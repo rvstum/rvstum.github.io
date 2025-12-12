@@ -205,13 +205,13 @@
         .tree-behind-left {
             left: 0;
             z-index: 1;
-            opacity: 0.8;
+            opacity: 1;
         }
 
         .tree-behind-right {
             right: 0;
             z-index: 2;
-            opacity: 0.8;
+            opacity: 1;
         }
 
         .tree-behind-left img,
@@ -284,7 +284,7 @@
             height: 150px;
             border-radius: 4px;
             position: relative;
-            z-index: 1;
+            z-index: 0;
         }
 
         .preview-content img {
@@ -297,10 +297,10 @@
             position: absolute;
             width: 80px;
             height: 80px;
-            top: 50%;
+            bottom: 50%;
             left: 50%;
-            transform: translate(-50%, -100%);
-            z-index: 0;
+            transform: translateX(-50%);
+            z-index: 1;
             pointer-events: none;
         }
 
