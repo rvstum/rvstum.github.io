@@ -606,6 +606,12 @@
             applyFilters();
         }
 
+        function extractFilename(wixUrl) {
+            if (!wixUrl) return '';
+            const match = wixUrl.match(/\/([^\/]+\.png)/i);
+            return match ? match[1] : '';
+        }
+
         function loadCSV() {
             fetch('maps.csv')
                 .then(response => response.text())
@@ -613,13 +619,20 @@
                     Papa.parse(csvText, {
                         header: true,
                         complete: function(results) {
-                            allMaps = results.data.filter(row => row['Main Project Image']);
+                            allMaps = results.data.filter(row => row['Main Project Image']).map(row => {
+                                return {
+                                    ...row,
+                                    mapImage: 'maps/' + extractFilename(row['Main Project Image']),
+                                    locationImage: 'locations/' + extractFilename(row['Image'])
+                                };
+                            });
                             filteredMaps = [...allMaps];
                             updateDisplay();
                         }
                     });
                 })
                 .catch(error => {
+                    console.error('Error loading CSV:', error);
                     createDemoData();
                 });
         }
@@ -677,7 +690,7 @@
 
             gallery.innerHTML = pageMaps.map(map => `
                 <div class="map-thumbnail">
-                    <img src="${map['Main Project Image']}" alt="Map" onerror="this.style.display='none'">
+                    <img src="${map.mapImage}" alt="Map" onerror="this.style.display='none'">
                 </div>
             `).join('');
 
