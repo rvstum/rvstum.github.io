@@ -608,8 +608,11 @@
 
         function extractFilename(wixUrl) {
             if (!wixUrl) return '';
-            const match = wixUrl.match(/\/([^\/]+\.png)/i);
-            return match ? match[1] : '';
+            // Extract filename after the last / and before any #
+            const parts = wixUrl.split('/');
+            const lastPart = parts[parts.length - 1];
+            const filename = lastPart.split('#')[0];
+            return filename || '';
         }
 
         function loadCSV() {
