@@ -317,7 +317,7 @@
         .reset-button {
             width: 100%;
             padding: 15px;
-            background: transparent;
+            background: #000;
             border: 2px solid #8B7355;
             color: #d4af37;
             font-size: 16px;
@@ -329,7 +329,7 @@
         }
 
         .reset-button:hover {
-            background: rgba(139, 115, 85, 0.2);
+            background: #000;
             border-color: #DAA520;
         }
 
@@ -357,11 +357,11 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
+            transition: filter 0.2s;
         }
 
-        .nav-arrow:hover:not(:disabled) {
-            background: rgba(139, 115, 85, 0.2);
-            border-color: #DAA520;
+        .nav-arrow:hover:not(:disabled) img {
+            filter: brightness(1.5);
         }
 
         .nav-arrow:disabled {
