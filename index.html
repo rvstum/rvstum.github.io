@@ -305,10 +305,10 @@
             border-color: #DAA520;
         }
 
-        .gallery-nav {
+        .gallery-wrapper {
             display: flex;
-            justify-content: center;
-            gap: 30px;
+            align-items: center;
+            gap: 20px;
             margin-bottom: 20px;
         }
 
@@ -322,6 +322,7 @@
             transition: all 0.2s;
             padding: 0;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .nav-arrow img {
@@ -344,7 +345,7 @@
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             gap: 15px;
-            margin-bottom: 20px;
+            flex: 1;
         }
 
         .map-thumbnail {
@@ -626,12 +627,11 @@
 
         <button class="reset-button" id="resetBtn">Reset</button>
 
-        <div class="gallery-nav">
+        <div class="gallery-wrapper">
             <button class="nav-arrow" id="prevBtn"><img src="icons/copyofdeco33.png" alt="Previous"></button>
+            <div class="gallery-grid" id="mapGallery">
+            </div>
             <button class="nav-arrow" id="nextBtn"><img src="icons/copyofdeco33edited.png" alt="Next"></button>
-        </div>
-
-        <div class="gallery-grid" id="mapGallery">
         </div>
 
         <div class="modal-overlay" id="modalOverlay">
