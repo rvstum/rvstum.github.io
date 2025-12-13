@@ -264,11 +264,27 @@
         }
 
         .slider-labels {
+            position: absolute;
+            width: 100%;
+            top: -5px;
             display: flex;
             justify-content: space-between;
-            margin-top: 5px;
             color: #999;
             font-size: 12px;
+        }
+
+        .slider-labels span {
+            position: relative;
+            width: 0;
+            text-align: center;
+        }
+
+        .slider-tick {
+            position: absolute;
+            width: 2px;
+            height: 8px;
+            background: #8B7355;
+            bottom: -2px;
         }
 
         .preview-box {
@@ -361,7 +377,7 @@
         }
 
         .nav-arrow:hover:not(:disabled) img {
-            filter: brightness(1.5);
+            filter: brightness(1.25);
         }
 
         .nav-arrow:disabled {
@@ -639,14 +655,14 @@
                         <input type="range" min="1" max="8" value="8" class="slider" id="treeSliderMax">
                     </div>
                     <div class="slider-labels">
-                        <span>1</span>
-                        <span>2</span>
-                        <span>3</span>
-                        <span>4</span>
-                        <span>5</span>
-                        <span>6</span>
-                        <span>7</span>
-                        <span>8</span>
+                        <span>1<div class="slider-tick"></div></span>
+                        <span>2<div class="slider-tick"></div></span>
+                        <span>3<div class="slider-tick"></div></span>
+                        <span>4<div class="slider-tick"></div></span>
+                        <span>5<div class="slider-tick"></div></span>
+                        <span>6<div class="slider-tick"></div></span>
+                        <span>7<div class="slider-tick"></div></span>
+                        <span>8<div class="slider-tick"></div></span>
                     </div>
                 </div>
                 <div class="preview-box">
