@@ -891,7 +891,6 @@
             const maxPage = Math.ceil(filteredMaps.length / mapsPerPage) - 1;
             currentPage = Math.max(0, Math.min(maxPage, currentPage + direction));
             updateDisplay();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
