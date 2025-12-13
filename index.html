@@ -812,17 +812,26 @@
         function applyFilters() {
             filteredMaps = allMaps.filter(map => {
                 // Region filter
-                if (filters.region && !map[filters.region]) return false;
+                if (filters.region) {
+                    const regionValue = map[filters.region];
+                    if (!regionValue || regionValue === '[]' || regionValue === '') return false;
+                }
                 
                 // Entity filters - ALL selected entities must be present
                 if (filters.entities.length > 0) {
-                    const hasAllEntities = filters.entities.every(entity => map[entity]);
+                    const hasAllEntities = filters.entities.every(entity => {
+                        const value = map[entity];
+                        return value && value !== '[]' && value !== '';
+                    });
                     if (!hasAllEntities) return false;
                 }
                 
                 // Addition filters - ALL selected additions must be present
                 if (filters.additions.length > 0) {
-                    const hasAllAdditions = filters.additions.every(addition => map[addition]);
+                    const hasAllAdditions = filters.additions.every(addition => {
+                        const value = map[addition];
+                        return value && value !== '[]' && value !== '';
+                    });
                     if (!hasAllAdditions) return false;
                 }
                 
