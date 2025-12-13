@@ -790,18 +790,16 @@
                 // Region filter
                 if (filters.region) {
                     const regionValue = map[filters.region];
-                    console.log('Region check:', filters.region, 'Value:', regionValue);
-                    // Check if value exists and is not empty array
-                    if (!regionValue || regionValue === '[]' || regionValue.trim() === '') return false;
+                    // Only reject if explicitly empty - accept anything with content
+                    if (!regionValue || regionValue === '[]' || regionValue === '') return false;
                 }
                 
                 // Entity filters - ALL selected entities must be present
                 if (filters.entities.length > 0) {
                     const hasAllEntities = filters.entities.every(entity => {
                         const value = map[entity];
-                        console.log('Entity check:', entity, 'Value:', value);
-                        // Check if value exists and is not empty array
-                        return value && value !== '[]' && value.trim() !== '';
+                        // Only reject if explicitly empty
+                        return value && value !== '[]' && value !== '';
                     });
                     if (!hasAllEntities) return false;
                 }
@@ -810,16 +808,17 @@
                 if (filters.additions.length > 0) {
                     const hasAllAdditions = filters.additions.every(addition => {
                         const value = map[addition];
-                        console.log('Addition check:', addition, 'Value:', value);
-                        // Check if value exists and is not empty array
-                        return value && value !== '[]' && value.trim() !== '';
+                        // Only reject if explicitly empty
+                        return value && value !== '[]' && value !== '';
                     });
                     if (!hasAllAdditions) return false;
                 }
                 
-                // Tree count filter
-                const treeCount = parseInt(map.NumberofTrees) || 0;
-                if (treeCount < filters.treeCount) return false;
+                // Tree count filter - this might be the issue!
+                if (filters.treeCount > 1) {
+                    const treeCount = parseInt(map.NumberofTrees) || 0;
+                    if (treeCount < filters.treeCount) return false;
+                }
                 
                 return true;
             });
