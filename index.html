@@ -268,7 +268,7 @@
         .slider-labels {
     position: absolute;
     width: 100%;
-    top: 8px;
+    top: 15px;
     left: 0;
     color: #999;
     font-size: 12px;
@@ -294,9 +294,17 @@
     height: 10px;
     background: #8B7355;
     top: 48px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
 }
+
+.slider-labels span:nth-child(1) .slider-tick { left: 0; }
+.slider-labels span:nth-child(2) .slider-tick { left: 50%; transform: translateX(-50%); }
+.slider-labels span:nth-child(3) .slider-tick { left: 50%; transform: translateX(-50%); }
+.slider-labels span:nth-child(4) .slider-tick { left: 50%; transform: translateX(-50%); }
+.slider-labels span:nth-child(5) .slider-tick { left: 50%; transform: translateX(-50%); }
+.slider-labels span:nth-child(6) .slider-tick { left: 50%; transform: translateX(-50%); }
+.slider-labels span:nth-child(7) .slider-tick { left: 50%; transform: translateX(-50%); }
+.slider-labels span:nth-child(8) .slider-tick { left: 100%; }
 
         .preview-box {
             width: 180px;
@@ -932,22 +940,19 @@
         }
 
         function resetFilters() {
-            filters.region = null;
-            filters.entities = [];
-            filters.additions = [];
-            filters.treeCountMin = 1;
-            filters.treeCountMax = 8;
-            document.querySelectorAll('.icon-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            document.getElementById('treeSliderMin').value = 1;
-            document.getElementById('treeSliderMax').value = 8;
-            updateSliderFill();
-            filteredMaps = [...allMaps];
-            currentPage = 0;
-            updateDisplay();
-            updateDebugInfo();
-        }
+    filters.region = null;
+    filters.entities = [];
+    filters.additions = [];
+    filters.treeCountMin = 1;
+    filters.treeCountMax = 8;
+    document.querySelectorAll('.icon-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    document.getElementById('treeSliderMin').value = 1;
+    document.getElementById('treeSliderMax').value = 8;
+    updateSliderFill();
+    applyFilters();
+}
 
         function updateSliderFill() {
             const fill = document.getElementById('sliderFill');
