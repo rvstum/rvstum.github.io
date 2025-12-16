@@ -50,11 +50,12 @@
         }
 
         .section-title {
-            color: #DAA520;
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
+    color: #DAA520;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-decoration: underline;
+}
 
         .section-subtitle {
             color: #666;
@@ -63,10 +64,10 @@
         }
 
         .region-icons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
 
         .icon-item {
             text-align: center;
@@ -101,26 +102,25 @@
         }
 
         .icon-label {
-            color: #d4af37;
-            font-size: 12px;
-        }
+    color: #ffffff;
+    font-size: 12px;
+    margin-top: 4px;
+}
 
         .icon-label.highlight {
-            color: #DAA520;
-            text-decoration: underline;
-        }
+    color: #ffffff;
+}
 
         .entity-icons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
         .addition-icons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
 
         .advanced-section {
             margin-bottom: 20px;
@@ -223,28 +223,31 @@
 }
 
         .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #DAA520;
-            cursor: pointer;
-            border-radius: 50%;
-            pointer-events: all;
-            position: relative;
-            z-index: 3;
-        }
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #FFD700;
+    border: 4px solid #DAA520;
+    cursor: pointer;
+    border-radius: 50%;
+    pointer-events: all;
+    position: relative;
+    z-index: 3;
+    box-shadow: inset 0 0 0 2px #FFD700;
+}
 
         .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #DAA520;
-            cursor: pointer;
-            border-radius: 50%;
-            border: none;
-            pointer-events: all;
-            position: relative;
-            z-index: 3;
-        }
+    width: 20px;
+    height: 20px;
+    background: #FFD700;
+    border: 4px solid #DAA520;
+    cursor: pointer;
+    border-radius: 50%;
+    pointer-events: all;
+    position: relative;
+    z-index: 3;
+    box-shadow: inset 0 0 0 2px #FFD700;
+}
 
         .slider-track-bg {
     position: absolute;
@@ -259,7 +262,7 @@
         .slider-fill {
     position: absolute;
     height: 6px;
-    background: #DAA520;
+    background: #FFD700;
     border-radius: 3px;
     top: 37px;
     pointer-events: none;
@@ -344,23 +347,23 @@
         }
 
         .reset-button {
-            width: 100%;
-            padding: 15px;
-            background: #000;
-            border: 2px solid #8B7355;
-            color: #d4af37;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 40px;
-            transition: all 0.2s;
-        }
+    width: 100%;
+    padding: 15px;
+    background: #000;
+    border: 2px solid #FFD700;
+    color: #d4af37;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-bottom: 40px;
+    transition: all 0.2s;
+}
 
         .reset-button:hover {
-            background: #000;
-            border-color: #DAA520;
-        }
+    background: #000;
+    border-color: #FFD700;
+}
 
         .gallery-wrapper {
             display: flex;
@@ -513,143 +516,150 @@
         <div class="debug-info" id="debugInfo"></div>
         
         <div class="top-section">
-            <div>
-                <div class="section-title">Region</div>
-                <div class="section-subtitle">Select only one (Deselect all to show all regions)</div>
-                <div class="region-icons" id="regionFilters">
-                    <div class="icon-item" data-filter="Overworld">
-                        <div class="icon-placeholder"><img src="icons/deco28.png" alt="Overworld"></div>
-                        <div class="icon-label">Overworld</div>
-                    </div>
-                    <div class="icon-item" data-filter="Snow">
-                        <div class="icon-placeholder"><img src="icons/deco27.png" alt="Snow"></div>
-                        <div class="icon-label">Snow</div>
-                    </div>
-                    <div class="icon-item" data-filter="Cavern">
-                        <div class="icon-placeholder"><img src="icons/deco26.png" alt="Cavern"></div>
-                        <div class="icon-label highlight">Cavern</div>
-                    </div>
-                    <div class="icon-item" data-filter="Big City">
-                        <div class="icon-placeholder"><img src="icons/deco29.png" alt="Big City"></div>
-                        <div class="icon-label">Big City</div>
-                    </div>
-                </div>
+    <div>
+        <div class="section-title">Region</div>
+        <div class="section-subtitle">Select only one (Deselect all to show all regions)</div>
+        <div class="region-icons" id="regionFilters">
+            <div class="icon-item" data-filter="Snow">
+                <div class="icon-placeholder"><img src="icons/deco27.png" alt="Snow"></div>
+                <div class="icon-label">Snow</div>
             </div>
-
-            <div>
-                <div class="section-title">Entity</div>
-                <div class="entity-icons" id="entityFilters">
-                    <div class="icon-item" data-filter="Baddy">
-                        <div class="icon-placeholder"><img src="icons/Deco18.png" alt="Baddy"></div>
-                        <div class="icon-label">Baddy</div>
-                    </div>
-                    <div class="icon-item" data-filter="NPC">
-                        <div class="icon-placeholder"><img src="icons/Deco17.png" alt="NPC"></div>
-                        <div class="icon-label">NPC</div>
-                    </div>
-                    <div class="icon-item" data-filter="Bug">
-                        <div class="icon-placeholder"><img src="icons/Deco19.png" alt="Bug"></div>
-                        <div class="icon-label">Bug</div>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <div class="section-title">Addition</div>
-                <div class="section-subtitle">(containing tables, chairs, boxes, statues, bridges, market stands, pillars etc. that isn't included in the filter list)</div>
-                <div class="addition-icons" id="additionFilters">
-                    <div class="icon-item" data-filter="Other">
-                        <div class="icon-placeholder"><img src="icons/deco31.png" alt="Other"></div>
-                        <div class="icon-label">Other</div>
-                    </div>
-                </div>
+            <div class="icon-item" data-filter="Big City">
+                <div class="icon-placeholder"><img src="icons/deco29.png" alt="Big City"></div>
+                <div class="icon-label">Big City</div>
             </div>
         </div>
+    </div>
 
-        <div style="margin-bottom: 30px;">
-            <div class="addition-icons" id="fullAdditionFilters" style="grid-template-columns: repeat(12, 1fr); gap: 10px;">
-                <div class="icon-item" data-filter="Tree">
-                    <div class="icon-placeholder"><img src="icons/Deco1.png" alt="Tree"></div>
-                    <div class="icon-label">Tree</div>
-                </div>
-                <div class="icon-item" data-filter="Red Tree">
-                    <div class="icon-placeholder"><img src="icons/Deco2.png" alt="Red Tree"></div>
-                    <div class="icon-label">Red Tree</div>
-                </div>
-                <div class="icon-item" data-filter="Trunk">
-                    <div class="icon-placeholder"><img src="icons/Deco3.png" alt="Trunk"></div>
-                    <div class="icon-label">Trunk</div>
-                </div>
-                <div class="icon-item" data-filter="Grass">
-                    <div class="icon-placeholder"><img src="icons/Deco4.png" alt="Grass"></div>
-                    <div class="icon-label">Grass</div>
-                </div>
-                <div class="icon-item" data-filter="Bush">
-                    <div class="icon-placeholder"><img src="icons/Deco5.png" alt="Bush"></div>
-                    <div class="icon-label">Bush</div>
-                </div>
-                <div class="icon-item" data-filter="Flower">
-                    <div class="icon-placeholder"><img src="icons/Deco10.png" alt="Flower"></div>
-                    <div class="icon-label">Flower</div>
-                </div>
-                <div class="icon-item" data-filter="Water">
-                    <div class="icon-placeholder"><img src="icons/Deco13.png" alt="Water"></div>
-                    <div class="icon-label">Water</div>
-                </div>
-                <div class="icon-item" data-filter="Dirt">
-                    <div class="icon-placeholder"><img src="icons/Deco6.png" alt="Dirt"></div>
-                    <div class="icon-label">Dirt</div>
-                </div>
-                <div class="icon-item" data-filter="Sign">
-                    <div class="icon-placeholder"><img src="icons/Deco8.png" alt="Sign"></div>
-                    <div class="icon-label">Sign</div>
-                </div>
-                <div class="icon-item" data-filter="Stone">
-                    <div class="icon-placeholder"><img src="icons/Deco7.png" alt="Stone"></div>
-                    <div class="icon-label">Stone</div>
-                </div>
-                <div class="icon-item" data-filter="Building">
-                    <div class="icon-placeholder"><img src="icons/Deco16.png" alt="Building"></div>
-                    <div class="icon-label">Building</div>
-                </div>
-                <div class="icon-item" data-filter="Doorway">
-                    <div class="icon-placeholder"><img src="icons/Deco15.png" alt="Doorway"></div>
-                    <div class="icon-label">Doorway</div>
-                </div>
-                <div class="icon-item" data-filter="Path">
-                    <div class="icon-placeholder"><img src="icons/Deco11.png" alt="Path"></div>
-                    <div class="icon-label">Path</div>
-                </div>
-                <div class="icon-item" data-filter="Boundary">
-                    <div class="icon-placeholder"><img src="icons/Deco14.png" alt="Boundary"></div>
-                    <div class="icon-label">Boundary</div>
-                </div>
-                <div class="icon-item" data-filter="Fence">
-                    <div class="icon-placeholder"><img src="icons/deco32.png" alt="Fence"></div>
-                    <div class="icon-label">Fence</div>
-                </div>
-                <div class="icon-item" data-filter="Hedge">
-                    <div class="icon-placeholder"><img src="icons/deco30.png" alt="Hedge"></div>
-                    <div class="icon-label">Hedge</div>
-                </div>
-                <div class="icon-item" data-filter="Boulder">
-                    <div class="icon-placeholder"><img src="icons/Deco12.png" alt="Boulder"></div>
-                    <div class="icon-label">Boulder</div>
-                </div>
-                <div class="icon-item" data-filter="Rail">
-                    <div class="icon-placeholder"><img src="icons/Deco20.png" alt="Rail"></div>
-                    <div class="icon-label">Rail</div>
-                </div>
-                <div class="icon-item" data-filter="Mushroom">
-                    <div class="icon-placeholder"><img src="icons/Deco9.png" alt="Mushroom"></div>
-                    <div class="icon-label">Mushroom</div>
-                </div>
-                <div class="icon-item" data-filter="Void">
-                    <div class="icon-placeholder"><img src="icons/Deco21.png" alt="Void"></div>
-                    <div class="icon-label">Void</div>
-                </div>
+    <div>
+        <div class="section-title">Entity</div>
+        <div class="entity-icons" id="entityFilters">
+            <div class="icon-item" data-filter="Baddy">
+                <div class="icon-placeholder"><img src="icons/Deco18.png" alt="Baddy"></div>
+                <div class="icon-label">Baddy</div>
+            </div>
+            <div class="icon-item" data-filter="NPC">
+                <div class="icon-placeholder"><img src="icons/Deco17.png" alt="NPC"></div>
+                <div class="icon-label">NPC</div>
+            </div>
+            <div class="icon-item" data-filter="Bug">
+                <div class="icon-placeholder"><img src="icons/Deco19.png" alt="Bug"></div>
+                <div class="icon-label">Bug</div>
             </div>
         </div>
+    </div>
+
+    <div>
+        <div class="section-title">Addition</div>
+        <div class="section-subtitle">(containing tables, chairs, boxes, statues, bridges, market stands, pillars etc. that isn't included in the filter list)</div>
+        <div class="addition-icons" id="additionFilters">
+            <div class="icon-item" data-filter="Other">
+                <div class="icon-placeholder"><img src="icons/deco31.png" alt="Other"></div>
+                <div class="icon-label">Other</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-bottom: 30px;">
+    <div class="section-title">Overworld</div>
+    <div class="addition-icons" id="overworldFilters" style="grid-template-columns: repeat(12, 1fr); gap: 8px;">
+        <div class="icon-item" data-filter="Overworld">
+            <div class="icon-placeholder"><img src="icons/deco28.png" alt="Overworld"></div>
+            <div class="icon-label">Overworld</div>
+        </div>
+        <div class="icon-item" data-filter="Tree">
+            <div class="icon-placeholder"><img src="icons/Deco1.png" alt="Tree"></div>
+            <div class="icon-label">Tree</div>
+        </div>
+        <div class="icon-item" data-filter="Red Tree">
+            <div class="icon-placeholder"><img src="icons/Deco2.png" alt="Red Tree"></div>
+            <div class="icon-label">Red Tree</div>
+        </div>
+        <div class="icon-item" data-filter="Trunk">
+            <div class="icon-placeholder"><img src="icons/Deco3.png" alt="Trunk"></div>
+            <div class="icon-label">Trunk</div>
+        </div>
+        <div class="icon-item" data-filter="Grass">
+            <div class="icon-placeholder"><img src="icons/Deco4.png" alt="Grass"></div>
+            <div class="icon-label">Grass</div>
+        </div>
+        <div class="icon-item" data-filter="Bush">
+            <div class="icon-placeholder"><img src="icons/Deco5.png" alt="Bush"></div>
+            <div class="icon-label">Bush</div>
+        </div>
+        <div class="icon-item" data-filter="Flower">
+            <div class="icon-placeholder"><img src="icons/Deco10.png" alt="Flower"></div>
+            <div class="icon-label">Flower</div>
+        </div>
+        <div class="icon-item" data-filter="Water">
+            <div class="icon-placeholder"><img src="icons/Deco13.png" alt="Water"></div>
+            <div class="icon-label">Water</div>
+        </div>
+        <div class="icon-item" data-filter="Dirt">
+            <div class="icon-placeholder"><img src="icons/Deco6.png" alt="Dirt"></div>
+            <div class="icon-label">Dirt</div>
+        </div>
+        <div class="icon-item" data-filter="Sign">
+            <div class="icon-placeholder"><img src="icons/Deco8.png" alt="Sign"></div>
+            <div class="icon-label">Sign</div>
+        </div>
+        <div class="icon-item" data-filter="Stone">
+            <div class="icon-placeholder"><img src="icons/Deco7.png" alt="Stone"></div>
+            <div class="icon-label">Stone</div>
+        </div>
+        <div class="icon-item" data-filter="Building">
+            <div class="icon-placeholder"><img src="icons/Deco16.png" alt="Building"></div>
+            <div class="icon-label">Building</div>
+        </div>
+        <div class="icon-item" data-filter="Doorway">
+            <div class="icon-placeholder"><img src="icons/Deco15.png" alt="Doorway"></div>
+            <div class="icon-label">Doorway</div>
+        </div>
+        <div class="icon-item" data-filter="Path">
+            <div class="icon-placeholder"><img src="icons/Deco11.png" alt="Path"></div>
+            <div class="icon-label">Path</div>
+        </div>
+        <div class="icon-item" data-filter="Boundary">
+            <div class="icon-placeholder"><img src="icons/Deco14.png" alt="Boundary"></div>
+            <div class="icon-label">Boundary</div>
+        </div>
+        <div class="icon-item" data-filter="Fence">
+            <div class="icon-placeholder"><img src="icons/deco32.png" alt="Fence"></div>
+            <div class="icon-label">Fence</div>
+        </div>
+        <div class="icon-item" data-filter="Hedge">
+            <div class="icon-placeholder"><img src="icons/deco30.png" alt="Hedge"></div>
+            <div class="icon-label">Hedge</div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-bottom: 30px;">
+    <div class="section-title">Cavern</div>
+    <div class="addition-icons" id="cavernFilters" style="grid-template-columns: repeat(12, 1fr); gap: 8px;">
+        <div class="icon-item" data-filter="Cavern">
+            <div class="icon-placeholder"><img src="icons/deco26.png" alt="Cavern"></div>
+            <div class="icon-label">Cavern</div>
+        </div>
+        <div class="icon-item" data-filter="Boulder">
+            <div class="icon-placeholder"><img src="icons/Deco12.png" alt="Boulder"></div>
+            <div class="icon-label">Boulder</div>
+        </div>
+        <div class="icon-item" data-filter="Rail">
+            <div class="icon-placeholder"><img src="icons/Deco20.png" alt="Rail"></div>
+            <div class="icon-label">Rail</div>
+        </div>
+        <div class="icon-item" data-filter="Mushroom">
+            <div class="icon-placeholder"><img src="icons/Deco9.png" alt="Mushroom"></div>
+            <div class="icon-label">Mushroom</div>
+        </div>
+        <div class="icon-item" data-filter="Void">
+            <div class="icon-placeholder"><img src="icons/Deco21.png" alt="Void"></div>
+            <div class="icon-label">Void</div>
+        </div>
+    </div>
+</div>
 
         <div class="advanced-section">
             <div class="advanced-title">Advanced</div>
@@ -749,10 +759,11 @@
         }
 
         function setupEventListeners() {
-            document.getElementById('regionFilters').addEventListener('click', handleRegionClick);
-            document.getElementById('entityFilters').addEventListener('click', handleMultiSelect);
-            document.getElementById('additionFilters').addEventListener('click', handleMultiSelect);
-            document.getElementById('fullAdditionFilters').addEventListener('click', handleMultiSelect);
+            document.getElementById('regionFilters').addEventListener('click', handleMultiSelect);
+document.getElementById('entityFilters').addEventListener('click', handleMultiSelect);
+document.getElementById('additionFilters').addEventListener('click', handleMultiSelect);
+document.getElementById('overworldFilters').addEventListener('click', handleMultiSelect);
+document.getElementById('cavernFilters').addEventListener('click', handleMultiSelect);
             
             const sliderMin = document.getElementById('treeSliderMin');
             const sliderMax = document.getElementById('treeSliderMax');
@@ -787,43 +798,55 @@
         }
 
         function handleRegionClick(e) {
-            const item = e.target.closest('.icon-item');
-            if (!item) return;
-            
-            const allRegions = this.querySelectorAll('.icon-item');
-            allRegions.forEach(i => i.classList.remove('selected'));
-            
-            if (filters.region === item.dataset.filter) {
-                filters.region = null;
-            } else {
-                item.classList.add('selected');
-                filters.region = item.dataset.filter;
-            }
-            
-            applyFilters();
+    const item = e.target.closest('.icon-item');
+    if (!item) return;
+    
+    const filter = item.dataset.filter;
+    
+    // Check if it's a region filter
+    if (['Overworld', 'Snow', 'Cavern', 'Big City'].includes(filter)) {
+        // Clear all region selections
+        document.querySelectorAll('#regionFilters .icon-item, #overworldFilters .icon-item[data-filter="Overworld"], #cavernFilters .icon-item[data-filter="Cavern"]').forEach(i => i.classList.remove('selected'));
+        
+        if (filters.region === filter) {
+            filters.region = null;
+        } else {
+            item.classList.add('selected');
+            filters.region = filter;
         }
+        
+        applyFilters();
+    }
+}
 
         function handleMultiSelect(e) {
-            const item = e.target.closest('.icon-item');
-            if (!item) return;
-            
-            item.classList.toggle('selected');
-            const filter = item.dataset.filter;
-            
-            if (filters.additions.includes(filter)) {
-                filters.additions = filters.additions.filter(f => f !== filter);
-            } else {
-                filters.additions.push(filter);
-            }
-            
-            if (filters.entities.includes(filter)) {
-                filters.entities = filters.entities.filter(f => f !== filter);
-            } else if (['Baddy', 'NPC', 'Bug'].includes(filter)) {
-                filters.entities.push(filter);
-            }
-            
-            applyFilters();
-        }
+    const item = e.target.closest('.icon-item');
+    if (!item) return;
+    
+    const filter = item.dataset.filter;
+    
+    // Handle region filters (Overworld, Cavern, Snow, Big City)
+    if (['Overworld', 'Snow', 'Cavern', 'Big City'].includes(filter)) {
+        handleRegionClick.call(this, e);
+        return;
+    }
+    
+    item.classList.toggle('selected');
+    
+    if (filters.additions.includes(filter)) {
+        filters.additions = filters.additions.filter(f => f !== filter);
+    } else {
+        filters.additions.push(filter);
+    }
+    
+    if (filters.entities.includes(filter)) {
+        filters.entities = filters.entities.filter(f => f !== filter);
+    } else if (['Baddy', 'NPC', 'Bug'].includes(filter)) {
+        filters.entities.push(filter);
+    }
+    
+    applyFilters();
+}
 
         function extractFilename(wixUrl) {
             if (!wixUrl) return '';
