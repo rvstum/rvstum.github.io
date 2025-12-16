@@ -268,9 +268,9 @@
 
         .slider-labels {
     position: absolute;
-    width: 57%;
+    width: 58%;
     top: 10px;
-    left: 21.5%;
+    left: 21%;
     color: #999;
     font-size: 12px;
     pointer-events: none;
@@ -964,20 +964,34 @@ if (filters.treeCountMin > 1 || filters.treeCountMax < 8) {
         }
 
         function updateDisplay() {
-            const gallery = document.getElementById('mapGallery');
-            const start = currentPage * mapsPerPage;
-            const end = start + mapsPerPage;
-            const pageMaps = filteredMaps.slice(start, end);
+    const gallery = document.getElementById('mapGallery');
+    const start = currentPage * mapsPerPage;
+    const end = start + mapsPerPage;
+    const pageMaps = filteredMaps.slice(start, end);
 
-            gallery.innerHTML = pageMaps.map((map, index) => `
-                <div class="map-thumbnail" onclick="showLocationImage('${map.locationImage}')">
-                    <img src="${map.mapImage}" alt="Map" onerror="this.style.display='none'">
-                </div>
-            `).join('');
+    gallery.innerHTML = pageMaps.map((map, index) => `
+        <div class="map-thumbnail" onclick="showLocationImage('${map.locationImage}')">
+            <img src="${map.mapImage}" alt="Map" onerror="this.style.display='none'">
+        </div>
+    `).join('');
 
-            document.getElementById('prevBtn').disabled = currentPage === 0;
-            document.getElementById('nextBtn').disabled = end >= filteredMaps.length;
-        }
+    document.getElementById('prevBtn').disabled = currentPage === 0;
+    document.getElementById('nextBtn').disabled = end >= filteredMaps.length;
+    
+    // Preload next page images
+    preloadNextPage();
+}
+
+function preloadNextPage() {
+    const nextStart = (currentPage + 1) * mapsPerPage;
+    const nextEnd = nextStart + mapsPerPage;
+    const nextPageMaps = filteredMaps.slice(nextStart, nextEnd);
+    
+    nextPageMaps.forEach(map => {
+        const img = new Image();
+        img.src = map.mapImage;
+    });
+}
 
         function changePage(direction) {
             const maxPage = Math.ceil(filteredMaps.length / mapsPerPage) - 1;
