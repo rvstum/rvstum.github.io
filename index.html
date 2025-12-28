@@ -58,7 +58,7 @@
 }
 
 .section-subtitle {
-            color: #ffffff;
+            color: #666;
             font-size: 11px;
             margin-bottom: 0px;
         }
@@ -73,7 +73,7 @@
 .icon-item {
             text-align: center;
             cursor: pointer;
-            padding: 0px 1px;
+            padding: 0px 3px;
             border: none;
             border-radius: 0px;
             transition: all 0.2s;
@@ -434,7 +434,7 @@
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             column-gap: 4px;
-            row-gap: 0px;
+            row-gap: 2px;
             flex: 1;
             align-items: start;
         }
@@ -556,7 +556,7 @@
 <div class="top-section">
     <div>
         <div class="section-title">Region</div>
-<div class="section-subtitle">Select <span style="color: #DAA520;">only</span> one (Deselect <span style="color: #DAA520;">all</span> to show <span style="color: #DAA520;">all</span> regions)</div>
+        <div class="section-subtitle">Select only one (Deselect all to show all regions)</div>
 <div class="region-icons" style="margin-top: 8px;">
 <div class="icon-item" data-filter="Overworld">
                 <div class="icon-placeholder"><img src="icons/deco28.png" alt="Overworld"></div>
@@ -578,9 +578,8 @@
     </div>
 
     <div>
-<div style="text-align: center;">
         <div class="section-title">Entity</div>
-        <div class="entity-icons" id="entityFilters" style="margin-top: 8px; display: inline-grid;">
+<div class="entity-icons" id="entityFilters" style="margin-top: 8px;">
             <div class="icon-item" data-filter="Baddy">
                 <div class="icon-placeholder"><img src="icons/Deco18.png" alt="Baddy"></div>
                 <div class="icon-label">Baddy</div>
@@ -598,7 +597,7 @@
 
 <div style="text-align: center;">
         <div class="section-title">Addition</div>
-<div class="section-subtitle">(<span style="color: #DAA520;">containing</span> tables, chairs, boxes, statues, bridges, market stands, pillars etc. that <span style="color: #DAA520; text-decoration: underline;">isn't</span> included in the filter list)</div>
+        <div class="section-subtitle">(containing tables, chairs, boxes, statues, bridges, market stands, pillars etc. that isn't included in the filter list)</div>
 <div class="addition-icons" id="additionFilters" style="display: inline-block; margin-top: 8px;">
             <div class="icon-item" data-filter="Other">
                 <div class="icon-placeholder"><img src="icons/deco31.png" alt="Other"></div>
