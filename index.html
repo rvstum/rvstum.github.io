@@ -434,9 +434,9 @@
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             column-gap: 4px;
-            row-gap: 1px;
+            row-gap: 2px;
             flex: 1;
-            min-height: 600px;
+            align-items: start;
         }
 
 .map-thumbnail {
@@ -450,22 +450,21 @@
             margin: 0 !important;
             padding: 0 !important;
             line-height: 0;
+            display: block;
+        }
+
+        .map-thumbnail:hover {
+            transform: scale(1.05);
         }
 
         .map-thumbnail img {
             display: block;
-            margin: 0;
-            padding: 0;
-        }
-
-.map-thumbnail:hover {
-            transform: scale(1.05);
-        }
-
-.map-thumbnail img {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            margin: 0;
+            padding: 0;
+            vertical-align: top;
         }
 
 .modal-overlay {
