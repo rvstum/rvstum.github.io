@@ -84,14 +84,14 @@
             transform: scale(1.1);
         }
 
-        .icon-item .icon-label {
+.icon-item .icon-label {
             padding: 2px 8px;
             border-radius: 4px;
             display: inline-block;
         }
 
         .icon-item.selected .icon-label {
-            background: #8B6914;
+            background: #DAA520;
         }
 
 .icon-placeholder {
@@ -127,7 +127,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 0px;
-    justify-items: start;
+    justify-items: center;
 }
         .filter-category-section {
     display: flex;
@@ -441,11 +441,13 @@
 .map-thumbnail {
             aspect-ratio: 1;
             background: transparent;
-            border: 2px solid transparent;
-            border-radius: 8px;
+            border: none;
+            border-radius: 0px;
             overflow: hidden;
             cursor: pointer;
             transition: all 0.2s;
+            margin: 0;
+            padding: 0;
         }
 
 .map-thumbnail:hover {
@@ -586,10 +588,10 @@
         </div>
     </div>
 
-    <div>
+<div style="text-align: center;">
         <div class="section-title">Addition</div>
         <div class="section-subtitle">(containing tables, chairs, boxes, statues, bridges, market stands, pillars etc. that isn't included in the filter list)</div>
-        <div class="addition-icons" id="additionFilters">
+        <div class="addition-icons" id="additionFilters" style="display: inline-block;">
             <div class="icon-item" data-filter="Other">
                 <div class="icon-placeholder"><img src="icons/deco31.png" alt="Other"></div>
                 <div class="icon-label">Other</div>
