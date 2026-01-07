@@ -606,6 +606,7 @@
         </div>
     </div>
 </div>
+
 <div style="margin-bottom: 0px;">
     <div class="section-title">Overworld</div>
     <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 0px; margin-top: 8px;">
@@ -676,34 +677,29 @@
 </div>
 </div>
 
-<div style="margin-bottom: 0px;">
-    <div class="section-title">Cavern</div>
-    <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 0px; margin-top: 8px;">
-        <div class="icon-item" data-filter="Boulder">
-            <div class="icon-placeholder"><img src="icons/Deco12.png" alt="Boulder"></div>
-            <div class="icon-label">Boulder</div>
-        </div>
-        <div class="icon-item" data-filter="Rail">
-            <div class="icon-placeholder"><img src="icons/Deco20.png" alt="Rail"></div>
-            <div class="icon-label">Rail</div>
-        </div>
-        <div class="icon-item" data-filter="Mushroom">
-            <div class="icon-placeholder"><img src="icons/Deco9.png" alt="Mushroom"></div>
-            <div class="icon-label">Mushroom</div>
-        </div>
-        <div class="icon-item" data-filter="Void">
-            <div class="icon-placeholder"><img src="icons/Deco21.png" alt="Void"></div>
-            <div class="icon-label">Void</div>
+<div style="display: grid; grid-template-columns: auto 1fr; gap: 40px; align-items: start; margin-bottom: 0px;">
+    <div>
+        <div class="section-title">Cavern</div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0px; margin-top: 8px;">
+            <div class="icon-item" data-filter="Boulder">
+                <div class="icon-placeholder"><img src="icons/Deco12.png" alt="Boulder"></div>
+                <div class="icon-label">Boulder</div>
+            </div>
+            <div class="icon-item" data-filter="Rail">
+                <div class="icon-placeholder"><img src="icons/Deco20.png" alt="Rail"></div>
+                <div class="icon-label">Rail</div>
+            </div>
+            <div class="icon-item" data-filter="Mushroom">
+                <div class="icon-placeholder"><img src="icons/Deco9.png" alt="Mushroom"></div>
+                <div class="icon-label">Mushroom</div>
+            </div>
+            <div class="icon-item" data-filter="Void">
+                <div class="icon-placeholder"><img src="icons/Deco21.png" alt="Void"></div>
+                <div class="icon-label">Void</div>
+            </div>
         </div>
     </div>
-</div>
-
-<div style="display: grid; grid-template-columns: 1fr auto auto; gap: 40px; align-items: start; margin-top: 20px; margin-bottom: 20px;">
-    <div style="display: flex; justify-content: flex-start;">
-        <button class="reset-button" id="resetBtn">Reset</button>
-    </div>
-    
-    <div class="advanced-section" style="margin-bottom: 0px; padding: 5px 0px;">
+<div class="advanced-section" style="margin-bottom: 0px; padding: 5px 0px;">
             <div class="advanced-title">Advanced</div>
             <div class="advanced-subtitle">Number of Trees</div>
             <div class="slider-row">
@@ -733,6 +729,13 @@
                 </div>
             </div>
         </div>
+    
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: start; margin-top: 20px; margin-bottom: 20px;">
+    <div>
+        <button class="reset-button" id="resetBtn">Reset</button>
+    </div>
     
     <div class="preview-box">
         <div class="old-man-behind"><img src="icons/deco25.gif" alt="Old Man"></div>
@@ -810,6 +813,9 @@ document.getElementById('additionFilters').addEventListener('click', handleMulti
 
 // Add click handlers for Overworld and Cavern filter sections
 document.querySelectorAll('[style*="grid-template-columns: repeat(12"]').forEach(container => {
+    container.addEventListener('click', handleMultiSelect);
+});
+document.querySelectorAll('[style*="grid-template-columns: repeat(4"]').forEach(container => {
     container.addEventListener('click', handleMultiSelect);
 });
             
