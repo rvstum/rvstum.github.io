@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KDAssist</title>
+    <title>Graal Classic Treasure Maps</title>
+    <link rel="icon" href="icons/map2a.png" type="image/png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 <style>
 :root {
-            --preview-scale: 1.5;
+            --preview-scale: 1.25;
         }
 
         * {
@@ -24,7 +25,7 @@
             background-position: center;
             color: #d4af37;
             font-family: Arial, sans-serif;
-            padding: 20px 0;
+            padding: 5px 0;
         }
 
         body::before {
@@ -50,11 +51,10 @@
             gap: 0px;
             margin-bottom: 0px;
             padding-bottom: 0px;
-            border-bottom: 2px solid #8B7355;
         }
 
 .section-title {
-    color: #DAA520;
+    color: #ffc43d;
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 0px;
@@ -69,69 +69,68 @@
 
 .region-icons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0px;
-    max-width: 350px;
+    grid-template-columns: repeat(4, auto);
+    gap: 20px;
+    max-width: 100%;
+    justify-content: start;
 }
 
 .icon-item {
-            text-align: center;
-            cursor: pointer;
-            padding: 0px 1px;
-            border: none;
-            border-radius: 0px;
-            transition: all 0.2s;
-        }
+    text-align: center;
+    cursor: pointer;
+    padding: 0px 1px;
+    border: none;
+    border-radius: 0px;
+    transition: all 0.2s;
+}
 
-        .icon-item:hover .icon-placeholder,
-        .icon-item:hover .icon-label {
-            transform: scale(1.1);
-        }
+.icon-item:hover .icon-placeholder,
+.icon-item:hover .icon-label {
+    transform: scale(1.1);
+}
 
 .icon-item .icon-label {
-            padding: 2px 8px;
-            border-radius: 4px;
-            display: inline-block;
-        }
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
 
-        .icon-item.selected .icon-label {
-            background: #DAA520;
-        }
+.icon-item.selected .icon-label {
+    background: #DAA520;
+}
 
 .icon-placeholder {
-            width: 50px;
-            height: 50px;
-            margin: 0 auto 0px;
-            border-radius: 4px;
-            transition: transform 0.2s ease;
-            will-change: transform;
-            backface-visibility: hidden;
-        }
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 0px;
+    border-radius: 4px;
+    transition: transform 0.2s ease;
+}
 
-        .icon-placeholder img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
+.icon-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .icon-label {
     color: #ffffff;
     font-size: 11px;
     margin-top: 2px;
     transition: transform 0.2s ease;
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-font-smoothing: subpixel-antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-        .icon-label.highlight {
+.icon-label.highlight {
     color: #ffffff;
 }
 
 .entity-icons {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0px;
-    justify-items: center;
+    grid-template-columns: repeat(3, auto);
+    gap: 20px;
+    justify-content: start;
 }
         .filter-category-section {
     display: flex;
@@ -155,11 +154,31 @@
     vertical-align: top;
 }
 
+/* Advanced slider: restore original size/padding (force overrides) */
+.advanced-section .slider-container {
+    width: 360px;
+    max-width: 80vw;
+    padding: 0 !important;
+}
+
+
+/* Reduce labels and ticks side padding by half (from 2% to 1%) */
+.advanced-section .slider-labels {
+    padding: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+}
+.advanced-section .slider-ticks {
+    padding: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+}
+
 .advanced-title {
-            color: #DAA520;
+            color: #ffc43d;
             font-size: 16px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 0px;
             text-decoration: underline;
             text-align: center;
         }
@@ -167,7 +186,7 @@
 .advanced-subtitle {
     color: #ffffff;
     font-size: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     text-align: center;
 }
 
@@ -175,24 +194,25 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 0px;
         }
 
 .tree-graphic {
-            width: 80px;
+            width: 110px;
             text-align: center;
             position: relative;
-            height: 70px;
+            height: 100px;
             margin: 0 auto;
         }
 
         .tree-icon {
-            width: 60px;
-            height: 60px;
+            width: 95px;
+            height: 95px;
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
             z-index: 3;
+            top: 5px;
         }
 
         .tree-icon img {
@@ -204,19 +224,21 @@
         .tree-behind-left,
         .tree-behind-right {
             position: absolute;
-            width: 50px;
-            height: 50px;
+            width: 75px;
+            height: 75px;
             top: -5px;
         }
 
         .tree-behind-left {
-            left: 0;
+            left: auto;
+            right: 42%;
             z-index: 1;
             opacity: 1;
         }
 
         .tree-behind-right {
-            right: 0;
+            left: 42%;
+            right: auto;
             z-index: 2;
             opacity: 1;
         }
@@ -232,7 +254,8 @@
     width: 100%;
     position: relative;
     padding: 0 10%;
-}
+    margin-top: -18px;
+}  
 
         .slider-track {
     position: relative;
@@ -243,10 +266,10 @@
         .slider {
     width: 100%;
     -webkit-appearance: none;
-    height: 6px;
+    height: 4px;
     background: transparent;
     outline: none;
-    border-radius: 3px;
+    border-radius: 2px;
     position: absolute;
     top: 37px;
     pointer-events: none;
@@ -258,7 +281,7 @@
     width: 20px;
     height: 20px;
     background: #FFD700;
-    border: 4px solid #FFD700;
+    border: 4px solid #fdf6ce;
     cursor: pointer;
     border-radius: 50%;
     pointer-events: all;
@@ -271,7 +294,7 @@
     width: 20px;
     height: 20px;
     background: #FFD700;
-    border: 4px solid #FFD700;
+    border: 4px solid #fdf6ce;
     cursor: pointer;
     border-radius: 50%;
     pointer-events: all;
@@ -283,18 +306,18 @@
         .slider-track-bg {
     position: absolute;
     width: 100%;
-    height: 6px;
-    background: #8B7355;
-    border-radius: 3px;
+    height: 4px;
+    background: #bf9904;
+    border-radius: 2px;
     top: 37px;
     z-index: 0;
 }
 
         .slider-fill {
     position: absolute;
-    height: 6px;
-    background: #FFD700;
-    border-radius: 3px;
+    height: 4px;
+    background: #fdf6ce;
+    border-radius: 2px;
     top: 37px;
     pointer-events: none;
     z-index: 1;
@@ -302,37 +325,76 @@
 
         .slider-labels {
     position: absolute;
-    width: 58%;
-    top: 10px;
-    left: 21%;
-    color: #999;
+    width: 100%;
+    top: 5px;
+    left: 0;
+    display: block;
+    padding: 0;
+    color: #ffffff;
     font-size: 12px;
     pointer-events: none;
 }
 
-.slider-labels span {
+.slider-labels span,
+.slider-ticks span {
     position: absolute;
+    left: 0;
     transform: translateX(-50%);
+    display: block;
+    text-align: center;
 }
 
-.slider-labels span:nth-child(1) { left: 0.9%; transform: translateX(0); }
-.slider-labels span:nth-child(2) { left: 15.203%; }
-.slider-labels span:nth-child(3) { left: 29.183%; }
-.slider-labels span:nth-child(4) { left: 43.080%; }
-.slider-labels span:nth-child(5) { left: 57.033%; }
-.slider-labels span:nth-child(6) { left: 70.9337%; }
-.slider-labels span:nth-child(7) { left: 84.837%; }
-.slider-labels span:nth-child(8) { left: 99.3%; transform: translateX(-100%); }
+.slider-ticks {
+    position: absolute;
+    width: 100%;
+    top: 62px;
+    left: 0;
+    display: block;
+    padding: 0;
+    pointer-events: none;
+}
+
+.slider-labels, .slider-ticks { z-index: 6; }
+/* Strong overrides for advanced slider labels/ticks placed after general rules */
+.advanced-section .slider-labels {
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0 !important;
+}
+.advanced-section .slider-ticks {
+    left: 0 !important;
+    right: 0 !important;
+    padding: 0 !important;
+}
 
 .slider-tick {
-    position: absolute;
+    /* original subtle tick style: thin vertical line */
     width: 2px;
     height: 8px;
-    background: #8B7355;
-    top: 50px;
-    left: 50%;
+    background: #FFD700;
+    border: none;
+    border-radius: 1px;
+    position: absolute;
     transform: translateX(-50%);
+    top: 0;
+    z-index: 6;
+    display: block;
+    box-shadow: none;
 }
+
+/* Stronger scoped overrides to ensure advanced slider labels/ticks align */
+.advanced-section .slider-labels {
+    left: 0.25% !important;
+    right: 0.25% !important;
+    padding: 0 !important;
+    width: auto !important;
+}
+.advanced-section .slider-ticks {
+    left: 0.25% !important;
+    right: 0.25% !important;
+    padding: 0 !important;
+    width: auto !important;
+} 
 
 .preview-box {
             width: 180px;
@@ -351,7 +413,7 @@
             height: 150px;
             border-radius: 4px;
             position: relative;
-            z-index: 0;
+            z-index: 2;
             overflow: visible;
         }
 
@@ -359,10 +421,10 @@
             position: absolute;
             width: 80px;
             height: 80px;
-            bottom: 85%;
+            bottom: 75%;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 1;
+            z-index: 3;
             pointer-events: none;
         }
 
@@ -386,8 +448,8 @@
     width: auto;
     padding: 12px 150px;
     background: #000;
-    border: 2px solid #FFD700;
-    color: #FFD700;
+    border: 2px solid #f4ecba;
+    color: #f4ecba;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
@@ -398,16 +460,16 @@
 }
 
         .reset-button:hover {
-    background: #000;
-    border-color: #FFD700;
+    background: #211d0e;
+    border-color: #f4ecba;
 }
 
 .gallery-wrapper {
             display: flex;
             align-items: center;
             gap: 20px;
-            margin-bottom: 20px;
-            margin-top: 10px;
+            margin-bottom: -10px;
+            margin-top: -10px;
         }
 
 .nav-arrow {
@@ -449,11 +511,11 @@
         }
 
 .map-thumbnail {
-            aspect-ratio: 1;
             background: transparent;
             border: none;
             border-radius: 0px;
             overflow: hidden;
+            aspect-ratio: 1;
             cursor: pointer;
             transition: all 0.2s;
             margin: 0 !important;
@@ -499,7 +561,7 @@
             max-width: 90%;
             max-height: 90%;
             position: relative;
-            animation: blink 0.3s ease;
+            animation: eyeOpen 0.4s ease-out;
         }
 
 .modal-content img {
@@ -508,6 +570,7 @@
             border: none;
             border-radius: 0px;
             display: block;
+            margin: 0 auto;
         }
 
         @keyframes fadeIn {
@@ -515,42 +578,44 @@
             to { opacity: 1; }
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+        @keyframes eyeOpen {
+            0% { transform: scaleY(0); }
+            100% { transform: scaleY(1); }
         }
 
         .bottom-section {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #8B7355;
+            margin-top: 10px;
+            padding-top: 0px;
         }
 
         .highfive-image {
             width: 100px;
-            margin: 0 auto 10px;
+            margin: 0 auto 0px;
         }
 
         .highfive-image img {
             width: 100%;
             height: auto;
+            display: block;
         }
 
         .logo-image {
             max-width: 400px;
-            margin: 0 auto 20px;
+            margin: -50px auto 0;
         }
 
         .logo-image img {
             width: 100%;
             height: auto;
+            display: block;
         }
 
         .credits {
             text-align: center;
-            color: #666;
-            font-size: 12px;
-            line-height: 1.8;
+            color: #ffffff;
+            font-size: 10px;
+            line-height: 1.4;
+            margin-top: -45px;
         }
 
         .debug-info {
@@ -559,13 +624,18 @@
     </style>
 </head>
 <body>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 5px; width: 100%;">
+        <div style="width: 40%; height: 2px; background-color: #f5c645;"></div>
+        <div style="width: 100%; height: 2px; background-color: #fdf6ce;"></div>
+    </div>
+
     <div class="container">
         <div class="debug-info" id="debugInfo"></div>
         
 <div class="top-section">
     <div>
         <div class="section-title">Region</div>
-<div class="section-subtitle">Select <span style="color: #ffc23e;">only</span> one (Deselect <span style="color: #ffedc5;">all</span> to show all regions)</div>
+<div class="section-subtitle">Only <span style="color: #ffc23e;">one</span> can be selected</div>
 <div class="region-icons" style="margin-top: 8px;">
 <div class="icon-item" data-filter="Overworld">
                 <div class="icon-placeholder"><img src="icons/deco28.png" alt="Overworld"></div>
@@ -586,20 +656,22 @@
 </div>
     </div>
 
-    <div>
-        <div class="section-title">Entity</div>
-<div class="entity-icons" id="entityFilters" style="margin-top: 8px;">
-            <div class="icon-item" data-filter="Baddy">
-                <div class="icon-placeholder"><img src="icons/Deco18.png" alt="Baddy"></div>
-                <div class="icon-label">Baddy</div>
-            </div>
-            <div class="icon-item" data-filter="NPC">
-                <div class="icon-placeholder"><img src="icons/Deco17.png" alt="NPC"></div>
-                <div class="icon-label">NPC</div>
-            </div>
-            <div class="icon-item" data-filter="Bug">
-                <div class="icon-placeholder"><img src="icons/Deco19.png" alt="Bug"></div>
-                <div class="icon-label">Bug</div>
+    <div style="text-align: center;">
+        <div style="display: inline-block; text-align: left; margin-top: 12px;">
+            <div class="section-title">Entity</div>
+            <div class="entity-icons" id="entityFilters" style="margin-top: 8px;">
+                <div class="icon-item" data-filter="Baddy">
+                    <div class="icon-placeholder"><img src="icons/Deco18.png" alt="Baddy"></div>
+                    <div class="icon-label">Baddy</div>
+                </div>
+                <div class="icon-item" data-filter="NPC">
+                    <div class="icon-placeholder"><img src="icons/Deco17.png" alt="NPC"></div>
+                    <div class="icon-label">NPC</div>
+                </div>
+                <div class="icon-item" data-filter="Bug">
+                    <div class="icon-placeholder"><img src="icons/Deco19.png" alt="Bug"></div>
+                    <div class="icon-label">Bug</div>
+                </div>
             </div>
         </div>
     </div>
@@ -616,16 +688,16 @@
     </div>
 </div>
 
-<div style="margin-bottom: 0px;">
+<div style="margin-bottom: 0px; margin-top: -15px;">
     <div class="section-title">Overworld</div>
-    <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 0px; margin-top: 8px;">
+    <div style="display: grid; grid-template-columns: repeat(14, auto); gap: 5px 15px; justify-content: start; margin-top: 8px;">
         <div class="icon-item" data-filter="Tree">
             <div class="icon-placeholder"><img src="icons/Deco1.png" alt="Tree"></div>
             <div class="icon-label">Tree</div>
         </div>
         <div class="icon-item" data-filter="Red Tree">
             <div class="icon-placeholder"><img src="icons/Deco2.png" alt="Red Tree"></div>
-            <div class="icon-label">Red Tree</div>
+            <div class="icon-label" style="white-space: nowrap;">Red Tree</div>
         </div>
         <div class="icon-item" data-filter="Trunk">
             <div class="icon-placeholder"><img src="icons/Deco3.png" alt="Trunk"></div>
@@ -688,7 +760,7 @@
 
 <div style="margin-bottom: 0px;">
     <div class="section-title">Cavern</div>
-    <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 0px; margin-top: 8px;">
+    <div style="display: grid; grid-template-columns: repeat(4, auto); gap: 15px; justify-content: start; margin-top: 8px;">
         <div class="icon-item" data-filter="Boulder">
             <div class="icon-placeholder"><img src="icons/Deco12.png" alt="Boulder"></div>
             <div class="icon-label">Boulder</div>
@@ -708,7 +780,7 @@
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 0px; margin-top: -140px; margin-bottom: 0px;">
+<div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 0px; margin-top: -130px; margin-bottom: 0px;">
     <div style="grid-column: 7 / 9; display: flex; justify-content: center;">
 <div class="advanced-section" style="margin-bottom: 0px; padding: 5px 0px;">
             <div class="advanced-title">Advanced</div>
@@ -728,14 +800,24 @@
                         <input type="range" min="1" max="8" value="8" class="slider" id="treeSliderMax">
                     </div>
                     <div class="slider-labels">
-                        <span>1<div class="slider-tick"></div></span>
-                        <span>2<div class="slider-tick"></div></span>
-                        <span>3<div class="slider-tick"></div></span>
-                        <span>4<div class="slider-tick"></div></span>
-                        <span>5<div class="slider-tick"></div></span>
-                        <span>6<div class="slider-tick"></div></span>
-                        <span>7<div class="slider-tick"></div></span>
-                        <span>8<div class="slider-tick"></div></span>
+                        <span>1</span>
+                        <span>2</span>
+                        <span>3</span>
+                        <span>4</span>
+                        <span>5</span>
+                        <span>6</span>
+                        <span>7</span>
+                        <span>8</span>
+                    </div>
+                    <div class="slider-ticks">
+                        <span class="slider-tick"></span>
+                        <span class="slider-tick"></span>
+                        <span class="slider-tick"></span>
+                        <span class="slider-tick"></span>
+                        <span class="slider-tick"></span>
+                        <span class="slider-tick"></span>
+                        <span class="slider-tick"></span>
+                        <span class="slider-tick"></span>
                     </div>
                 </div>
             </div>
@@ -744,11 +826,11 @@
 </div>
 
 <div style="position: relative; height: 0;">
-    <div style="position: absolute; left: 0; top: -60px;">
+    <div style="position: absolute; left: 0; top: -55px;">
         <button class="reset-button" id="resetBtn">Reset</button>
     </div>
     
-    <div style="position: absolute; right: 0; top: -140px;">
+    <div style="position: absolute; right: 0; top: -160px;">
         <div class="preview-box">
             <div class="old-man-behind"><img src="icons/deco25.gif" alt="Old Man"></div>
             <div class="preview-content"><img src="icons/deco24.png" alt="Preview"></div>
@@ -756,6 +838,14 @@
     </div>
 </div>
 
+</div>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: -5px; margin-bottom: 0px; width: 100%;">
+    <div style="width: 100%; height: 2px; background-color: #fdf6ce;"></div>
+    <div style="width: 40%; height: 2px; background-color: #f5c645;"></div>
+</div>
+
+<div class="container">
         <div class="gallery-wrapper">
             <button class="nav-arrow" id="prevBtn"><img src="icons/copyofdeco33.png" alt="Previous"></button>
             <div class="gallery-grid" id="mapGallery">
@@ -769,6 +859,28 @@
             </div>
         </div>
 
+    </div>
+
+    <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 0px; margin-bottom: 0px; width: 100%;">
+    <div style="width: 100%; height: 2px; background-color: #fdf6ce;"></div>
+    <div style="width: 40%; height: 2px; background-color: #f5c645;"></div>
+    <div style="position: absolute; top: 2px; left: 0; width: 100%; height: 120px; padding: 0; overflow: hidden; z-index: -1;">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" style="width: 100%; height: 100%; display: block; filter: blur(0.5px);">
+            <defs>
+                <pattern id="stripes" patternUnits="userSpaceOnUse" width="2.5" height="120" patternTransform="rotate(25)">
+                    <line x1="0" y1="0" x2="0" y2="120" stroke="#000" stroke-width="1.5" opacity="1"/>
+                </pattern>
+            </defs>
+            <path d="M0,0 H1200 V120 C1000,140 800,100 600,120 S200,140 0,120 Z" fill="#f5c645" opacity="0.03"/>
+            <path d="M0,0 H1200 V80 C1100,100 900,60 600,80 S100,100 0,80 Z" fill="#f5c645" opacity="0.04"/>
+            <path d="M0,0 H1200 V40 C950,60 750,20 600,40 S250,60 0,40 Z" fill="#f5c645" opacity="0.05"/>
+            <rect x="0" y="0" width="1200" height="120" fill="url(#stripes)"/>
+        </svg>
+    </div>
+</div>
+
+<div style="width: 100%; background: linear-gradient(to bottom, transparent 114px, #000 114px); padding-bottom: 2px;">
+    <div class="container">
         <div class="bottom-section">
             <div class="highfive-image">
                 <img src="icons/deco36.png" alt="High Five">
@@ -777,11 +889,12 @@
                 <img src="icons/kdassist.gif" alt="KDAssist">
             </div>
             <div class="credits">
-                Site made by Rustum. Special thanks to Maddy.<br>
+                Site made by <span style="color: #edf6c1;">Rustum</span>. Special thanks to <span style="color: #ffc43d;">Maddy</span>.<br>
                 This site is not affiliated, maintained, endorsed or sponsored by Toonslab, All assets © 2025 Toonslab
             </div>
         </div>
     </div>
+</div>
 
     <script>
         let allMaps = [];
@@ -801,6 +914,11 @@
             setupEventListeners();
             setupModal();
             loadCSV();
+            positionSliderMarks();
+        });
+
+        window.addEventListener('resize', function() {
+            positionSliderMarks();
         });
 
         function setupModal() {
@@ -825,7 +943,7 @@ document.getElementById('entityFilters').addEventListener('click', handleMultiSe
 document.getElementById('additionFilters').addEventListener('click', handleMultiSelect);
 
 // Add click handlers for Overworld and Cavern filter sections
-document.querySelectorAll('[style*="grid-template-columns: repeat(12"]').forEach(container => {
+document.querySelectorAll('[style*="grid-template-columns: repeat(14"]').forEach(container => {
     container.addEventListener('click', handleMultiSelect);
 });
 document.querySelectorAll('[style*="grid-template-columns: repeat(4"]').forEach(container => {
@@ -855,13 +973,82 @@ document.querySelectorAll('[style*="grid-template-columns: repeat(4"]').forEach(
                 filters.treeCountMax = newMax;
                 updateSliderFill();
                 applyFilters();
+                positionSliderMarks();
             });
+
+            // Reposition marks when sliders move
+            document.querySelectorAll('.advanced-section .slider').forEach(s => s.addEventListener('input', positionSliderMarks));
             
             updateSliderFill();
+            positionSliderMarks();
 
             document.getElementById('resetBtn').addEventListener('click', resetFilters);
             document.getElementById('prevBtn').addEventListener('click', () => changePage(-1));
             document.getElementById('nextBtn').addEventListener('click', () => changePage(1));
+        }
+
+        function positionSliderMarks() {
+            const container = document.querySelector('.advanced-section .slider-container');
+            if (!container) return;
+            const labels = container.querySelectorAll('.slider-labels span');
+            const ticks = container.querySelectorAll('.slider-ticks span');
+            const track = container.querySelector('.slider-track');
+            if (!track) return;
+            const count = Math.max(labels.length, ticks.length);
+            if (count <= 1) return;
+
+            // Use pixel positions based on the visible track area to ensure accurate alignment
+            const containerRect = container.getBoundingClientRect();
+            const trackRect = track.getBoundingClientRect();
+            const trackLeft = trackRect.left - containerRect.left;
+            const trackWidth = trackRect.width;
+            
+            // Adjust for thumb width (20px) so labels/ticks align with thumb centers
+            const thumbWidth = 20;
+            const effectiveWidth = trackWidth - thumbWidth;
+            const offset = thumbWidth / 2;
+
+            labels.forEach((el, i) => {
+                const pct = (i / (count - 1));
+                const x = trackLeft + offset + pct * effectiveWidth;
+                // Place labels so their bottom is desiredGap above the track
+                const desiredGap = -20; // Move closer to slider
+                const labelsContainer = container.querySelector('.slider-labels');
+                const labelsRect = labelsContainer ? labelsContainer.getBoundingClientRect() : containerRect;
+                // measure label height
+                const elRect = el.getBoundingClientRect();
+                const labelHeight = elRect.height || 14;
+                const labelTop = trackRect.top - containerRect.top - desiredGap - labelHeight;
+                const leftRel = x - (labelsRect.left - containerRect.left);
+                const topRel = labelTop - (labelsRect.top - containerRect.top);
+                el.style.left = leftRel + 'px';
+                el.style.top = topRel + 'px';
+                el.style.position = 'absolute';
+            });
+
+            ticks.forEach((el, i) => {
+                const pct = (i / (count - 1));
+                const x = trackLeft + offset + pct * effectiveWidth;
+                // Place ticks slightly below the track (closer by 4px)
+                const tickY = trackRect.top - containerRect.top + trackRect.height + 4;
+                const ticksContainer = container.querySelector('.slider-ticks');
+                const ticksRect = ticksContainer ? ticksContainer.getBoundingClientRect() : containerRect;
+                const leftRel = x - (ticksRect.left - containerRect.left);
+                const topRel = tickY - (ticksRect.top - containerRect.top);
+                const NUDGE = 12; // move ticks upward by this many pixels
+                el.style.left = leftRel + 'px';
+                el.style.top = (topRel - NUDGE) + 'px';
+                el.style.position = 'absolute';
+                // Force visual nudge via transform as a robust fallback
+                el.style.transform = 'translateX(-50%) translateY(-12px)';
+                el.style.background = '#FFD700';
+                el.style.width = '2px';
+                el.style.height = '8px';
+
+                // Log computed and rendered positions for debugging (print rect top)
+                const rect = el.getBoundingClientRect();
+                console.log('tick pos', i, 'calculatedTop', (topRel - NUDGE), 'getRectTop', rect.top, 'rect', rect);
+            });
         }
 
         function handleRegionClick(e) {
@@ -1061,11 +1248,21 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
     const end = start + mapsPerPage;
     const pageMaps = filteredMaps.slice(start, end);
 
-    gallery.innerHTML = pageMaps.map((map, index) => `
+    let html = pageMaps.map((map, index) => `
         <div class="map-thumbnail" onclick="showLocationImage('${map.locationImage}')">
             <img src="${map.mapImage}" alt="Map" onerror="this.style.display='none'">
         </div>
     `).join('');
+
+    // Fill remaining slots to maintain layout stability
+    const remainingSlots = mapsPerPage - pageMaps.length;
+    if (remainingSlots > 0) {
+        for (let i = 0; i < remainingSlots; i++) {
+            html += `<div class="map-thumbnail" style="cursor: default; pointer-events: none;"></div>`;
+        }
+    }
+
+    gallery.innerHTML = html;
 
     document.getElementById('prevBtn').disabled = currentPage === 0;
     document.getElementById('nextBtn').disabled = end >= filteredMaps.length;
