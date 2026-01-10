@@ -1547,11 +1547,11 @@ body {
     positionSliderMarks();
     setupMobileAnimations();
     
-    // Register Service Worker
+    // Unregister any existing service workers (temporary test)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(reg => console.log('Service Worker registered', reg))
-            .catch(err => console.log('Service Worker registration failed', err));
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(reg => reg.unregister());
+        });
     }
 });
 
