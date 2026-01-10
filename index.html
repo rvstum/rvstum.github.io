@@ -1121,7 +1121,7 @@ body {
 </head>
 <body>
     <!-- Install App Button (Mobile Only) -->
-    <div id="installBtnWrapper" style="display: block; text-align: center; padding: 10px 20px;">
+    <div id="installBtnWrapper" style="display: none; text-align: center; padding: 10px 20px;">
         <button id="installBtn" style="
             background: #000;
             border: 2px solid #f4ecba;
@@ -1133,7 +1133,7 @@ body {
             cursor: pointer;
             width: 100%;
             max-width: 400px;
-        ">📱 Install App</button>
+        ">Install App</button>
     </div>
 
     <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 5px; width: 100%;">
@@ -1886,17 +1886,47 @@ function preloadNextPage() {
         }
 
 // PWA Install functionality
-        let deferredPrompt;
+let deferredPrompt;
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            // Show install button when PWA is installable
-            const wrapper = document.getElementById('installBtnWrapper');
-            if (wrapper) {
-                wrapper.style.display = 'block';
-            }
-        });
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('Install prompt available');
+    // Show install button when PWA is installable
+    const wrapper = document.getElementById('installBtnWrapper');
+    if (wrapper) {
+        wrapper.style.display = 'block';
+    }
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+    if (!deferredPrompt) {
+        alert('App is already installed or not installable on this device');
+        return;
+    }
+    
+    try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('Install outcome:', outcome);
+        
+        if (outcome === 'accepted') {
+            console.log('User accepted install');
+        }
+        
+        deferredPrompt = null;
+        document.getElementById('installBtnWrapper').style.display = 'none';
+    } catch (error) {
+        console.error('Install error:', error);
+        alert('Installation failed. Please try installing from your browser menu.');
+    }
+});
+
+// Hide after installation
+window.addEventListener('appinstalled', () => {
+    console.log('App installed successfully');
+    document.getElementById('installBtnWrapper').style.display = 'none';
+});
 
         document.getElementById('installBtn').addEventListener('click', async () => {
             if (deferredPrompt) {
