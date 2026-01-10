@@ -1,42 +1,30 @@
 {
   "name": "KDAssist",
   "short_name": "KDAssist",
-  "description": "KDAssist - Your assistance application",
+  "description": ".",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#1a73e8",
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "/icons/mapicon192.png",
+      "src": "icons/mapicon192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/mapicon512.png",
+      "src": "icons/mapicon512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/mapicon512.png",
+      "src": "icons/mapicon512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshot-desktop.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshot-mobile.png",
-      "sizes": "750x1334",
-      "type": "image/png"
     }
   ]
 }
