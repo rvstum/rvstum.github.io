@@ -8,13 +8,9 @@
   "icons": [
     {
       "src": "/icons/map2a.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/map2a.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
