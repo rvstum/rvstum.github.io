@@ -3,8 +3,8 @@
   "short_name": "KDAssist",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#1a73e8",
-  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "background_color": "#000000",
   "icons": [
     {
       "src": "https://rvstum.github.io/icons/mapicon192.png",
