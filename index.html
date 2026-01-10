@@ -691,6 +691,11 @@
         max-width: 100%;
     }
 
+    /* Force hardware acceleration and touch handling to prevent delays */
+    * {
+        touch-action: manipulation;
+    }
+
     .container {
         padding: 0 10px;
         padding-bottom: 0px;
@@ -1749,7 +1754,10 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
             filters.region = filter;
         }
         
-        applyFilters();
+        // Defer filtering to allow UI update immediately
+        setTimeout(() => {
+            applyFilters();
+        }, 10);
     }
 }
 
@@ -1779,7 +1787,10 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
         filters.entities.push(filter);
     }
     
-    applyFilters();
+    // Defer filtering to allow UI update immediately
+    setTimeout(() => {
+        applyFilters();
+    }, 10);
 }
 
         function extractFilename(wixUrl) {
