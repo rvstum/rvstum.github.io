@@ -583,6 +583,7 @@
             border-radius: 0px;
             display: block;
             margin: 0 auto;
+            transition: opacity 0.15s ease;
         }
 
         @keyframes fadeIn {
@@ -1531,6 +1532,8 @@ body {
         let mapsPerPage = window.innerWidth <= 1024 ? 15 : 18;
         let filterDebounceTimer = null;
         let isFilteringInProgress = false;
+        let imageCache = new Set();
+        let preloadQueue = [];
         
         const filters = {
             region: null,
@@ -1594,8 +1597,25 @@ body {
         function showLocationImage(locationImage) {
             const modal = document.getElementById('modalOverlay');
             const modalImg = document.getElementById('modalImage');
-            modalImg.src = locationImage;
-            modal.classList.add('active');
+            
+            // Check if image is already cached/loaded
+            if (modalImg.src === locationImage || imageCache.has(locationImage)) {
+                modalImg.src = locationImage;
+                modal.classList.add('active');
+            } else {
+                // Show modal immediately with loading state
+                modal.classList.add('active');
+                modalImg.style.opacity = '0.3';
+                modalImg.src = locationImage;
+                
+                // Fade in when loaded
+                const img = new Image();
+                img.onload = () => {
+                    modalImg.style.opacity = '1';
+                    imageCache.add(locationImage);
+                };
+                img.src = locationImage;
+            }
         }
 
         function setupEventListeners() {
@@ -1964,7 +1984,7 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
 
     let html = pageMaps.map((map, index) => `
         <div class="map-thumbnail" onclick="showLocationImage('${map.locationImage}')">
-            <img src="${map.mapImage}" alt="Map" onerror="this.style.display='none'">
+            <img src="${map.mapImage}" alt="Map" onerror="this.style.display='none'" loading="eager">
         </div>
     `).join('');
 
@@ -1988,8 +2008,10 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
     document.getElementById('prevBtn').disabled = currentPage === 0;
     document.getElementById('nextBtn').disabled = end >= filteredMaps.length;
     
-    // Preload next page images
-    preloadNextPage();
+    // Aggressive preloading strategy
+    requestAnimationFrame(() => {
+        aggressivePreload();
+    });
 }
 
 function preloadNextPage() {
@@ -1997,10 +2019,39 @@ function preloadNextPage() {
     const nextEnd = nextStart + mapsPerPage;
     const nextPageMaps = filteredMaps.slice(nextStart, nextEnd);
     
+    // Preload both map thumbnails AND location images
     nextPageMaps.forEach(map => {
-        const img = new Image();
-        img.src = map.mapImage;
+        if (!imageCache.has(map.mapImage)) {
+            const img = new Image();
+            img.onload = () => imageCache.add(map.mapImage);
+            img.src = map.mapImage;
+        }
+        if (!imageCache.has(map.locationImage)) {
+            const imgLoc = new Image();
+            imgLoc.onload = () => imageCache.add(map.locationImage);
+            imgLoc.src = map.locationImage;
+        }
     });
+}
+
+function aggressivePreload() {
+    // Preload current page location images immediately
+    const start = currentPage * mapsPerPage;
+    const end = start + mapsPerPage;
+    const pageMaps = filteredMaps.slice(start, end);
+    
+    pageMaps.forEach((map, index) => {
+        if (!imageCache.has(map.locationImage)) {
+            setTimeout(() => {
+                const img = new Image();
+                img.onload = () => imageCache.add(map.locationImage);
+                img.src = map.locationImage;
+            }, index * 50); // Stagger loads slightly
+        }
+    });
+    
+    // Also preload next page
+    preloadNextPage();
 }
 
         function changePage(direction) {
