@@ -8,19 +8,19 @@
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "/mapicon192.png",
+      "src": "/icons/mapicon192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/mapicon512.png",
+      "src": "/icons/mapicon512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/mapicon512.png",
+      "src": "/icons/mapicon512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
