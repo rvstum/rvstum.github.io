@@ -1547,11 +1547,11 @@ body {
     positionSliderMarks();
     setupMobileAnimations();
     
-    // Unregister any existing service workers (temporary test)
+    // Register Service Worker
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            registrations.forEach(reg => reg.unregister());
-        });
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('Service Worker registered', reg))
+            .catch(err => console.log('Service Worker registration failed', err));
     }
 });
 
@@ -1985,8 +1985,26 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
     const current = currentPage + 1;
     document.getElementById('pageCounter').innerHTML = `<span style="color: #e6d5b1">${current}</span><span style="color: #ffc43d">/${totalPages}</span>`;
 
-document.getElementById('prevBtn').disabled = currentPage === 0;
+    document.getElementById('prevBtn').disabled = currentPage === 0;
     document.getElementById('nextBtn').disabled = end >= filteredMaps.length;
+    
+    // Smart mobile preloading
+    if (window.innerWidth <= 1024) {
+        const preloadFn = () => {
+            pageMaps.forEach((map, i) => {
+                setTimeout(() => {
+                    const img = new Image();
+                    img.src = map.locationImage;
+                }, i * 150);
+            });
+        };
+        
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(preloadFn, { timeout: 2000 });
+        } else {
+            setTimeout(preloadFn, 500);
+        }
+    }
 }
 
         function changePage(direction) {
