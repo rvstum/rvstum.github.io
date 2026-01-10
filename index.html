@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Graal Classic Treasure Maps</title>
@@ -633,6 +633,16 @@
 
 /* Tablet and Mobile - 768px and smaller */
 @media (max-width: 768px) {
+    /* DISABLE TEXT SELECTION AND HIGHLIGHTING ON MOBILE */
+    * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
     .container {
         padding: 0 10px;
         padding-bottom: 0px;
