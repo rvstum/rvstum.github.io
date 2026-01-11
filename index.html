@@ -1641,12 +1641,30 @@ body {
     positionSliderMarks();
     setupMobileAnimations();
     
-    // Register Service Worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(reg => console.log('Service Worker registered', reg))
-            .catch(err => console.log('Service Worker registration failed', err));
-    }
+    // Register Service Worker with auto-update
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => {
+            console.log('Service Worker registered', reg);
+            
+            // Check for updates immediately
+            reg.update();
+            
+            // Listen for new service worker installing
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                
+                newWorker.addEventListener('statechange', () => {
+                    // When new service worker is installed and there's an old one
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // Automatically reload to activate new version
+                        window.location.reload();
+                    }
+                });
+            });
+        })
+        .catch(err => console.log('Service Worker registration failed', err));
+}
 });
 
         window.addEventListener('resize', function() {
