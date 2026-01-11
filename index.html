@@ -2003,17 +2003,6 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
 
     document.getElementById('prevBtn').disabled = currentPage === 0;
     document.getElementById('nextBtn').disabled = end >= filteredMaps.length;
-    
-// Super aggressive mobile preloading - load everything NOW
-    if (window.innerWidth <= 1024) {
-        pageMaps.forEach((map) => {
-            if (!imageCache.has(map.locationImage)) {
-                const img = new Image();
-                img.onload = () => imageCache.set(map.locationImage, map.locationImage);
-                img.src = map.locationImage;
-            }
-        });
-    }
 }
 
         function changePage(direction) {
