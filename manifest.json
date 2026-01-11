@@ -4,7 +4,7 @@
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#000000",
-  "background_color": "#000000",
+  "background_color": "#8B7500",
   "icons": [
     {
       "src": "https://rvstum.github.io/icons/mapicon192.png",
@@ -19,7 +19,7 @@
       "purpose": "any"
     },
     {
-      "src": "https://rvstum.github.io/icons/mapicon512.png",
+      "src": "https://rvstum.github.io/icons/mapicon512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
