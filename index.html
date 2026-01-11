@@ -576,10 +576,11 @@
             max-height: 90%;
             position: relative;
             animation: eyeOpen 0.4s ease-out;
+            text-align: center;
         }
 
 .modal-content img {
-            max-width: 60%;
+            width: 100%;
             max-height: 60vh;
             border: none;
             border-radius: 0px;
@@ -695,6 +696,37 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Download Button */
+.modal-image-wrapper {
+    position: relative;
+    display: inline-block;
+    max-width: 60%;
+    max-height: 60vh;
+}
+
+.download-btn {
+    position: absolute;
+    bottom: -15px;
+    right: -15px;
+    width: 40px;
+    height: 40px;
+    background-color: #000;
+    border: 2px solid #f4ecba;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    transition: transform 0.2s;
+}
+
+.download-btn:active {
+    transform: scale(0.95);
 }
 
 /* ==================== MOBILE SUPPORT ==================== */
@@ -1099,8 +1131,13 @@ body {
 }
 
     /* Make modal image larger on mobile */
+    .modal-image-wrapper {
+        max-width: 95% !important;
+        max-height: 80vh;
+    }
+
     .modal-content img {
-        max-width: 95%;
+        max-width: 100% !important;
         max-height: 80vh;
     }
 
@@ -1526,7 +1563,14 @@ body {
         <div class="modal-overlay" id="modalOverlay">
             <div class="spinner" id="modalSpinner"></div>
             <div class="modal-content">
-                <img id="modalImage" src="" alt="Location">
+                <div class="modal-image-wrapper">
+                    <img id="modalImage" src="" alt="Location">
+                    <a id="downloadBtn" class="download-btn" href="#" download onclick="event.stopPropagation()">
+                        <svg viewBox="0 0 24 24" width="26" height="26">
+                            <path d="M19 11.5h-4V5.5H9v6H5l7 7 7-7z" fill="#f4ecba"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -1652,11 +1696,14 @@ function preloadImage(url) {
 function showLocationImage(locationImage) {
             const modal = document.getElementById('modalOverlay');
             const modalImg = document.getElementById('modalImage');
+            const downloadBtn = document.getElementById('downloadBtn');
             const spinner = document.getElementById('modalSpinner');
             
             modalImg.style.display = 'none';
             spinner.style.display = 'block';
             modal.classList.add('active');
+            
+            if (downloadBtn) downloadBtn.href = locationImage;
             
             const img = new Image();
             img.onload = function() {
@@ -1766,7 +1813,7 @@ function positionSliderMarks() {
             const trackWidth = trackRect.width;
             
             // Adjust for thumb width (20px) so labels/ticks align with thumb centers
-            const thumbWidth = window.innerWidth <= 1024 ? 12 : 8;
+            const thumbWidth = 12;
             const effectiveWidth = trackWidth - thumbWidth;
             const offset = thumbWidth / 2;
 
