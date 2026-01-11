@@ -2085,7 +2085,7 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
 
     let html = pageMaps.map((map, index) => `
         <div class="map-thumbnail" onclick="showLocationImage('${map.locationImage}')" ontouchstart="preloadImage('${map.locationImage}')" onmouseenter="preloadImage('${map.locationImage}')">
-            <img src="${map.mapImage}" alt="Map" loading="eager" decoding="async" onerror="this.style.display='none'">
+            <img src="${map.mapImage}" alt="" loading="eager" decoding="async" onerror="this.style.display='none'">
         </div>
     `).join('');
 
