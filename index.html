@@ -35,11 +35,12 @@
             padding: 0;
             box-sizing: border-box;
             touch-action: manipulation;
-        }
-        
-        ::selection {
-            background: rgba(255, 196, 61, 0.4);
-            color: #fff;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -607,9 +608,14 @@
             max-width: 90%;
             max-height: 90%;
             position: relative;
-            animation: eyeOpen 0.4s ease-out;
+            opacity: 0;
             text-align: center;
             filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
+        }
+
+        .modal-content.image-loaded {
+            opacity: 1;
+            animation: eyeOpen 0.4s ease-out;
         }
 
         .modal-content.closing {
@@ -959,16 +965,6 @@
 
 /* Tablet and Mobile - 1024px and smaller */
 @media (max-width: 1024px) {
-    /* DISABLE TEXT SELECTION AND HIGHLIGHTING ON MOBILE */
-    * {
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        -webkit-touch-callout: none;
-        -webkit-tap-highlight-color: transparent;
-    }
-
     /* Remove custom scrollbar on mobile to prevent right-side line */
     ::-webkit-scrollbar {
         width: 0px;
@@ -2110,9 +2106,11 @@ function showLocationImage(locationImage) {
             const modalImg = document.getElementById('modalImage');
             const downloadBtn = document.getElementById('downloadBtn');
             const spinner = document.getElementById('modalSpinner');
+            const modalContent = modal.querySelector('.modal-content');
             
             modalImg.style.display = 'none';
             spinner.style.display = 'block';
+            modalContent.classList.remove('image-loaded');
             modal.classList.add('active');
             
             if (downloadBtn) {
@@ -2126,6 +2124,7 @@ function showLocationImage(locationImage) {
                 modalImg.style.display = 'block';
                 if (downloadBtn) downloadBtn.style.display = 'flex';
                 spinner.style.display = 'none';
+                modalContent.classList.add('image-loaded');
                 imageCache.set(locationImage, locationImage);
             };
             img.src = locationImage;
@@ -2497,7 +2496,7 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
 
     let html = pageMaps.map((map, index) => `
         <div class="map-thumbnail" onclick="showLocationImage('${map.locationImage}')" ontouchstart="preloadImage('${map.locationImage}')" onmouseenter="preloadImage('${map.locationImage}')">
-            <img src="${map.mapImage}" alt="" loading="eager" decoding="async" onerror="this.style.display='none'">
+            <img src="${map.mapImage}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
     `).join('');
 
@@ -2515,6 +2514,8 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
     gallery.innerHTML = html;
 
     // Sequential background preloading to prevent network congestion
+    // Only preload on desktop to save data/bandwidth on mobile
+    if (window.innerWidth > 1024) {
     preloadSequence++;
     const currentSequence = preloadSequence;
     const imagesToPreload = pageMaps.filter(map => !imageCache.has(map.locationImage));
@@ -2533,6 +2534,7 @@ document.querySelectorAll('.region-icons .icon-item').forEach(i => i.classList.r
         };
         preloadNext(0);
     }, 1000);
+    }
 
     const totalPages = Math.ceil(filteredMaps.length / mapsPerPage) || 1;
     const current = currentPage + 1;
