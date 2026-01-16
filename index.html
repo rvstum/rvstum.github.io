@@ -865,7 +865,7 @@
 .modal-content.image-loaded .download-btn {
     opacity: 1;
     pointer-events: auto;
-    transition-delay: 0.3s;
+    transition-delay: 0.1s;
 }
 
 /* Install Modal Styles */
@@ -2061,20 +2061,33 @@ if ('serviceWorker' in navigator) {
             
             overlay.style.display = 'flex';
             let progress = 0;
+            let isComplete = false;
+
+            const updateUI = () => {
+                if(pct) pct.textContent = Math.round(progress) + '%';
+                if(img) img.style.opacity = 0.2 + (0.8 * (progress / 100));
+            };
+
             const interval = setInterval(() => {
-                if(progress < 99) {
+                if (isComplete) {
+                    progress += 4;
+                    if (progress >= 100) {
+                        progress = 100;
+                        updateUI();
+                        clearInterval(interval);
+                        setTimeout(() => window.location.reload(), 100);
+                    } else {
+                        updateUI();
+                    }
+                } else if(progress < 85) {
                     progress += Math.random() * 2;
-                    if(progress > 99) progress = 99;
-                    if(pct) pct.textContent = Math.round(progress) + '%';
-                    if(img) img.style.opacity = 0.2 + (0.8 * (progress / 100));
+                    if(progress > 85) progress = 85;
+                    updateUI();
                 }
-            }, 100);
+            }, 50);
 
             const finish = () => {
-                clearInterval(interval);
-                if(pct) pct.textContent = '100%';
-                if(img) img.style.opacity = 1;
-                setTimeout(() => window.location.reload(), 100);
+                isComplete = true;
             };
 
             if (worker.state === 'installed' || worker.state === 'waiting') {
