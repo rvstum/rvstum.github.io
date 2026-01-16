@@ -2038,54 +2038,56 @@ body {
     loadCSV();
     positionSliderMarks();
     setupMobileAnimations();
-    
-    // Register Service Worker with auto-update
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => {
-            console.log('Service Worker registered', reg);
-            
-            // Check for updates immediately
-            reg.update();
-            
-            // Listen for new service worker installing
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-                
-                // Show update UI if this is an update (not first load)
-                const overlay = document.getElementById('updateOverlay');
-                const img = document.getElementById('updateImage');
-                const pct = document.getElementById('updatePercent');
-                let interval;
-
-                if (navigator.serviceWorker.controller) {
-                    if(overlay) overlay.style.display = 'flex';
-                    let progress = 0;
-                    interval = setInterval(() => {
-                        if(progress < 90) {
-                            progress += Math.random() * 10;
-                            if(progress > 90) progress = 90;
-                            if(pct) pct.textContent = Math.round(progress) + '%';
-                            if(img) img.style.opacity = 0.2 + (0.8 * (progress / 100));
-                        }
-                    }, 100);
-                }
-                
-                newWorker.addEventListener('statechange', () => {
-                    // When new service worker is installed and there's an old one
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        if (interval) clearInterval(interval);
-                        if(pct) pct.textContent = '100%';
-                        if(img) img.style.opacity = 1;
-                        // Automatically reload to activate new version
-                        setTimeout(() => window.location.reload(), 500);
-                    }
-                });
-            });
-        })
-        .catch(err => console.log('Service Worker registration failed', err));
-}
 });
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js').then(reg => {
+        const showUpdate = (worker) => {
+            const overlay = document.getElementById('updateOverlay');
+            const img = document.getElementById('updateImage');
+            const pct = document.getElementById('updatePercent');
+            
+            // Only show if we have a controller (not first visit)
+            if (!overlay || !navigator.serviceWorker.controller) return;
+            
+            overlay.style.display = 'flex';
+            let progress = 0;
+            const interval = setInterval(() => {
+                if(progress < 90) {
+                    progress += Math.random() * 15;
+                    if(progress > 90) progress = 90;
+                    if(pct) pct.textContent = Math.round(progress) + '%';
+                    if(img) img.style.opacity = 0.2 + (0.8 * (progress / 100));
+                }
+            }, 100);
+
+            const finish = () => {
+                clearInterval(interval);
+                if(pct) pct.textContent = '100%';
+                if(img) img.style.opacity = 1;
+                setTimeout(() => window.location.reload(), 200);
+            };
+
+            if (worker.state === 'installed' || worker.state === 'waiting') {
+                finish();
+            } else {
+                worker.addEventListener('statechange', () => {
+                    if (worker.state === 'installed') finish();
+                });
+            }
+        };
+
+        // Check if update is already in progress
+        if (reg.waiting) showUpdate(reg.waiting);
+        else if (reg.installing) showUpdate(reg.installing);
+        
+        reg.addEventListener('updatefound', () => {
+            showUpdate(reg.installing);
+        });
+
+        reg.update();
+    }).catch(err => console.log('Service Worker registration failed', err));
+}
 
         window.addEventListener('resize', function() {
             positionSliderMarks();
