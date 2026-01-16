@@ -62,7 +62,7 @@
             background-position: center;
             color: #d4af37;
             font-family: Arial, sans-serif;
-            padding: 5px 0;
+            padding: 5px 0 0 0;
         }
 
         body::before {
@@ -789,6 +789,17 @@
     display: none;
 		}	
 
+.footer-section {
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    width: 100%; 
+    margin-top: 0px; 
+    padding: 10px 0 12px 0; 
+    background: linear-gradient(to bottom, #030303 40%, rgba(255, 196, 61, 0.05)); 
+    border-top: 1px solid #1a1810;
+}
+
 /* Loading Spinner */
 .spinner {
     border: 3px solid rgba(255, 196, 61, 0.1);
@@ -1373,7 +1384,12 @@ div[style*="margin-bottom: 0px; padding: 5px 0px"] {
 
     /* Add padding to bottom of page for fixed reset button */
 body {
-    padding-bottom: 75px !important;
+    padding-bottom: 0px !important;
+}
+
+.footer-section {
+    padding-bottom: 95px !important;
+    background: linear-gradient(to bottom, #030303 5px, rgba(255, 196, 61, 0.05)) !important;
 }
 
     /* Make modal image larger on mobile */
@@ -1973,6 +1989,17 @@ body {
                 This site is not affiliated, maintained, endorsed or sponsored by Toonslab, All assets © 2026 Toonslab
             </div>
         </div>
+    </div>
+</div>
+
+<div class="footer-section">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 15px;">
+        <div style="color: #9e8c58; font-size: 11px; font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 2px;">Honorable Mentions</div>
+        <div style="color: #666666; font-size: 10px; text-align: center; font-style: italic;">To those who contributed, provided useful feedback, or assisted in any way.</div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 5px; height: 5px; background-color: #ffc43d; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 196, 61, 0.5);"></div>
+            <div style="color: #ccaa44; font-size: 11px; text-align: center; font-weight: bold; letter-spacing: 0.5px;">Liz</div>
     </div>
 </div>
 
