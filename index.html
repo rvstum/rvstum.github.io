@@ -998,6 +998,7 @@
     width: 100%;
     max-width: 100vw;
     overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
 }
 body {
     overflow-x: hidden;
@@ -1005,6 +1006,7 @@ body {
     max-width: 100vw;
     position: relative;
     overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
 }
 
     /* Force hardware acceleration and touch handling to prevent delays */
@@ -1166,9 +1168,9 @@ div[style*="margin-bottom: 0px; padding: 5px 0px"] {
 
 /* Medium thickness for mobile slider */
 .advanced-section .slider {
-    height: 24px !important;
+    height: 44px !important;
     border-radius: 0px !important;
-    top: 31px !important;
+    top: 18px !important;
     width: calc(100% + 32px) !important;
     left: -16px !important;
 }
@@ -1176,7 +1178,7 @@ div[style*="margin-bottom: 0px; padding: 5px 0px"] {
 /* Fix for PWA Android rendering offset */
 @media (display-mode: standalone) {
     .advanced-section .slider {
-        top: 28px !important;
+        top: 18px !important;
     }
 }
 
@@ -1190,7 +1192,7 @@ div[style*="margin-bottom: 0px; padding: 5px 0px"] {
     background-repeat: no-repeat !important;
     background-position: center !important;
     box-shadow: none !important;
-    margin-top: -10px !important;
+    margin-top: 0px !important;
     pointer-events: auto !important;
 }
 
@@ -1204,7 +1206,7 @@ div[style*="margin-bottom: 0px; padding: 5px 0px"] {
     background-repeat: no-repeat !important;
     background-position: center !important;
     box-shadow: none !important;
-    margin-top: -10px !important;
+    margin-top: 0px !important;
     pointer-events: auto !important;
 }
 
