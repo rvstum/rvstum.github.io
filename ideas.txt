@@ -1,2 +1,0 @@
-change all deco to normal colors ingame (also able to change 2 themes, classic = gold theme, modern = ingame theme)
-change background to ai raytracing
