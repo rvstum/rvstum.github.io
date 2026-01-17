@@ -1945,10 +1945,14 @@ body {
                                 Find this monitor arrow symbol
                                 <img src="icons/desktopins1.png" class="install-guide-img" alt="Step 1">
                             </div>
-                            <div>
+                            <div style="margin-bottom: 15px;">
                                 <strong style="color: #ffc43d;">Step 2:</strong><br>
                                 Click "Install"
                                 <img src="icons/desktopins2.png" class="install-guide-img" alt="Step 2">
+                            </div>
+                            <div>
+                                <strong style="color: #ffc43d;">Step 3 (No symbol):</strong><br>
+                                If the button is not there for you, you're going to need to clear the sites data. Different browsers vary its location, so go ahead and do your research on where to find that option
                             </div>
                         </div>
                     </div>
@@ -2141,9 +2145,23 @@ if ('serviceWorker' in navigator) {
             });
 
             const installModal = document.getElementById('installModalOverlay');
-            document.querySelector('.install-container').addEventListener('click', function(e) {
+            
+            // Capture the install prompt
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
-                installModal.classList.add('active');
+                deferredPrompt = e;
+            });
+
+            document.querySelector('.install-container').addEventListener('click', async function(e) {
+                e.preventDefault();
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                } else {
+                    installModal.classList.add('active');
+                }
             });
 
             function closeInstallModal() {

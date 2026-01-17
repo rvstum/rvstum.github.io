@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kdassist-v1.0.46'; // Change version number to force update
+const CACHE_NAME = 'kdassist-v1.0.48'; // Change version number to force update
 const urlsToCache = [
   './',
   './index.html',
@@ -32,18 +32,32 @@ self.addEventListener('activate', event => {
 
 // Fetch event - network first, fall back to cache
 self.addEventListener('fetch', event => {
+  // Skip cross-origin requests (like Google Analytics) to prevent errors
+  if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // Clone the response and cache it
+    caches.match(event.request).then(cachedResponse => {
+      // Return cached response if found (Cache First strategy)
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // Otherwise fetch from network
+      return fetch(event.request).then(response => {
+        // Don't cache if response is not valid or not basic (internal)
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
+        }
+
         const responseToCache = response.clone();
-        caches.open(CACHE_NAME)
-          .then(cache => cache.put(event.request, responseToCache));
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseToCache);
+        });
+
         return response;
-      })
-      .catch(() => {
-        // If network fails, use cache
-        return caches.match(event.request);
-      })
+      });
+    })
   );
 });
