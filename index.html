@@ -1937,22 +1937,18 @@ body {
                     <div class="install-section">
                         <div class="install-section-title">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffc43d"><path d="M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h6l-2 2v1h8v-1l-2-2h6c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z"/></svg>
-                            Desktop Guide
+                            <div>Desktop Guide:<br><span style="color: #ffffff;">(Only for Chrome/Edge)</span></div>
                         </div>
                         <div class="install-text-content">
                             <div style="margin-bottom: 15px;">
                                 <strong style="color: #ffc43d;">Step 1:</strong><br>
-                                Find this monitor arrow symbol
-                                <img src="icons/desktopins1.png" class="install-guide-img" alt="Step 1">
+                                Click Install App
+                                <img src="icons/desktopins3.png" class="install-guide-img" alt="Step 1">
                             </div>
                             <div style="margin-bottom: 15px;">
                                 <strong style="color: #ffc43d;">Step 2:</strong><br>
                                 Click "Install"
                                 <img src="icons/desktopins2.png" class="install-guide-img" alt="Step 2">
-                            </div>
-                            <div>
-                                <strong style="color: #ffc43d;">Step 3 (No symbol):</strong><br>
-                                If the button is not there for you, you're going to need to clear the sites data. Different browsers vary its location, so go ahead and do your research on where to find that option
                             </div>
                         </div>
                     </div>
@@ -2079,6 +2075,8 @@ if ('serviceWorker' in navigator) {
                         progress = 100;
                         updateUI();
                         clearInterval(interval);
+                        localStorage.clear();
+                        sessionStorage.clear();
                         setTimeout(() => window.location.reload(), 100);
                     } else {
                         updateUI();
