@@ -2079,7 +2079,14 @@ if ('serviceWorker' in navigator) {
                         clearInterval(interval);
                         localStorage.clear();
                         sessionStorage.clear();
-                        setTimeout(() => window.location.reload(), 100);
+                        if ('caches' in window) {
+                            caches.keys().then(names => {
+                                Promise.all(names.map(name => caches.delete(name)))
+                                    .then(() => window.location.reload());
+                            });
+                        } else {
+                            window.location.reload();
+                        }
                     } else {
                         updateUI();
                     }
