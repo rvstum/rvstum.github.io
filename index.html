@@ -1449,17 +1449,6 @@
 
 .desktop-reset { display: none !important; }
 
-.mobile-reset {
-    display: block !important;
-    position: fixed !important;
-    bottom: 10px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 95% !important;
-    z-index: 2147483647 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
-}
-
 /* MAKE RESET BUTTON VERTICALLY BIGGER */
 .reset-button {
     padding: 20px 20px !important;
@@ -1470,8 +1459,19 @@
     height: auto !important;
     display: block !important;
     font-weight: bold !important;
-    position: relative !important;
+    position: fixed !important;
     z-index: 2147483647 !important;
+}
+
+.mobile-reset {
+    display: block !important;
+    position: fixed !important;
+    bottom: 10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 95% !important;
+    z-index: 2147483647 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
 }
 
         .gallery-grid {
