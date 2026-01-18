@@ -624,18 +624,19 @@
     }
 
     .map-thumbnail {
-                background: transparent;
-                border: none;
-                border-radius: 0px;
-                overflow: hidden;
-                aspect-ratio: 1;
-                cursor: pointer;
-                transition: all 0.2s;
-                margin: 0 !important;
-                padding: 0 !important;
-                line-height: 0;
-                display: block;
-            }
+    background: transparent;
+    border: none;
+    border-radius: 0px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 0;
+    display: block;
+    z-index: 1;
+}
 
             .map-thumbnail:hover {
                 transform: scale(1.05);
@@ -853,6 +854,7 @@
         padding: 0 20px;
         width: 100%;
         position: relative;
+        z-index: 1;
     }
 
     @media (min-width: 1025px) {
@@ -1591,6 +1593,7 @@
             max-width: none !important;
             margin: 0 !important;
             padding: 0 !important;
+            z-index: 1;
         }
 
         .feedback-container .feedback-icon {
