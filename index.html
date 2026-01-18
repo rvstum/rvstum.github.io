@@ -1459,7 +1459,7 @@
     height: auto !important;
     font-weight: bold !important;
     position: relative !important;
-    z-index: 9000 !important;
+    z-index: 100 !important;
 }
 
 .mobile-reset {
@@ -1469,7 +1469,7 @@
     left: 50% !important;
     transform: translateX(-50%) !important;
     width: 90% !important;
-    z-index: 9000 !important;
+    z-index: 100 !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
 }
 
@@ -2245,6 +2245,8 @@
     </div>
         </div>
 
+    <button class="reset-button mobile-reset" id="resetBtnMobile">Reset</button>
+
     <div id="updateOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 2147483647; flex-direction: column; align-items: center; justify-content: center;">
         <div style="color: #ffc43d; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;">Updating</div>
         <div style="position: relative; width: 80px; height: 80px;">
@@ -2252,8 +2254,6 @@
             <div id="updatePercent" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffffff; font-weight: bold; font-size: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">0%</div>
         </div>
     </div>
-
-    <button class="reset-button mobile-reset" id="resetBtnMobile">Reset</button>
 
         <script>
             let allMaps = [];
