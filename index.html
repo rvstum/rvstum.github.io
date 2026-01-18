@@ -20,6 +20,23 @@
         <link rel="icon" href="icons/map2a.png" type="image/png">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
+        .section-reset-wrapper,
+.section-reset-wrapper *,
+#resetBtn {
+    z-index: 2147483647 !important;
+    pointer-events: auto !important;
+}
+
+.footer-wrapper,
+.footer-wrapper *,
+.footer-section,
+.footer-section *,
+.logo-container,
+.logo-container *,
+.actions-wrapper,
+.actions-wrapper * {
+    z-index: 1 !important;
+}
     :root {
                 --preview-scale: 1.25;
             }
