@@ -3039,9 +3039,16 @@ async function handleDownload(url, name) {
         if (window.innerWidth <= 1024) {
             gallery.querySelectorAll('.map-thumbnail').forEach(thumb => {
                 let pressTimer;
+                let startX = 0;
+                let startY = 0;
                 const img = thumb.querySelector('img');
                 
-                thumb.addEventListener('touchstart', () => {
+                thumb.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 1) return;
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    delete thumb.dataset.longPress;
+
                     pressTimer = setTimeout(() => {
                         thumb.dataset.longPress = 'true';
                         if (navigator.vibrate) navigator.vibrate(50);
@@ -3056,8 +3063,12 @@ async function handleDownload(url, name) {
                     }
                 }, { passive: true });
 
-                thumb.addEventListener('touchmove', () => {
-                    clearTimeout(pressTimer);
+                thumb.addEventListener('touchmove', (e) => {
+                    const moveX = e.touches[0].clientX;
+                    const moveY = e.touches[0].clientY;
+                    if (Math.abs(moveX - startX) > 10 || Math.abs(moveY - startY) > 10) {
+                        clearTimeout(pressTimer);
+                    }
                 }, { passive: true });
 
                 thumb.addEventListener('touchcancel', () => {
@@ -3066,6 +3077,10 @@ async function handleDownload(url, name) {
                         setTimeout(() => delete thumb.dataset.longPress, 100);
                     }
                 }, { passive: true });
+
+                thumb.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                });
             });
         }
 
