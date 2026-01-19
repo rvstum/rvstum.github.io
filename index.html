@@ -2153,11 +2153,11 @@
                 <div class="modal-content">
                     <div class="modal-image-wrapper">
                         <img id="modalImage" src="" alt="Location">
-                        <a id="downloadBtn" class="download-btn" href="#" download onclick="event.stopPropagation()">
-                            <svg viewBox="0 0 24 24" width="24" height="24">
-                                <path d="M19 11.5h-4V5.5H9v6H5l7 7 7-7z" fill="#a58f3e"/>
-                            </svg>
-                        </a>
+                        <button id="downloadBtn" class="download-btn" onclick="event.stopPropagation(); handleDownload()">
+    <svg viewBox="0 0 24 24" width="24" height="24">
+        <path d="M19 11.5h-4V5.5H9v6H5l7 7 7-7z" fill="#a58f3e"/>
+    </svg>
+</button>
                     </div>
                 </div>
             </div>
@@ -2449,7 +2449,36 @@
                     closeInstallModal();
                 });
             }
-
+async function handleDownload() {
+    const downloadBtn = document.getElementById('downloadBtn');
+    const imageUrl = downloadBtn.dataset.imageUrl;
+    const imageName = downloadBtn.dataset.imageName || 'graal-map.png';
+    
+    try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], imageName, { type: blob.type });
+        
+        // Use Share API on iOS (stays in PWA)
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: 'Graal Map Location',
+                text: 'Treasure map location'
+            });
+        } else {
+            // Fallback for desktop
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = imageName;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    } catch (error) {
+        console.error('Download failed:', error);
+    }
+}
             function setupMobileAnimations() {
         // Helper to add temporary class for animation
         const triggerAnimation = (element, className, duration) => {
@@ -2490,8 +2519,9 @@
                 modal.classList.add('active');
                 
                 if (downloadBtn) {
-                    downloadBtn.href = locationImage;
-                }
+    downloadBtn.dataset.imageUrl = locationImage;
+    downloadBtn.dataset.imageName = locationImage.split('/').pop();
+}
                 
                 const img = new Image();
                 img.onload = function() {
