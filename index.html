@@ -3045,13 +3045,13 @@ async function handleDownload(url, name) {
                     pressTimer = setTimeout(() => {
                         thumb.dataset.longPress = 'true';
                         if (navigator.vibrate) navigator.vibrate(50);
+                        if (img && img.src) handleDownload(img.src, img.src.split('/').pop());
                     }, 500);
                 }, { passive: true });
 
                 thumb.addEventListener('touchend', () => {
                     clearTimeout(pressTimer);
                     if (thumb.dataset.longPress) {
-                        if (img && img.src) handleDownload(img.src, img.src.split('/').pop());
                         setTimeout(() => delete thumb.dataset.longPress, 100);
                     }
                 }, { passive: true });
