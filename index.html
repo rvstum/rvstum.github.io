@@ -672,8 +672,14 @@
     z-index: 1;
 }
 
-            .map-thumbnail:hover {
-                transform: scale(1.05);
+            @media (hover: hover) {
+                .map-thumbnail:hover {
+                    transform: scale(1.05);
+                }
+            }
+
+            .map-thumbnail.mobile-active {
+                animation: tapPulse 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             }
 
             .map-thumbnail img {
@@ -2576,6 +2582,19 @@ async function handleDownload(url, name) {
         }
     }
 
+    function handleMapClick(element, url) {
+        if (element.dataset.longPress) return;
+        
+        if (window.innerWidth <= 1024) {
+            element.classList.remove('mobile-active');
+            void element.offsetWidth;
+            element.classList.add('mobile-active');
+            setTimeout(() => element.classList.remove('mobile-active'), 200);
+        }
+        
+        showLocationImage(url);
+    }
+
     function showLocationImage(locationImage) {
                 const modal = document.getElementById('modalOverlay');
                 const modalImg = document.getElementById('modalImage');
@@ -2991,7 +3010,7 @@ async function handleDownload(url, name) {
         const pageMaps = filteredMaps.slice(start, end);
 
         let html = pageMaps.map((map, index) => `
-            <div class="map-thumbnail" draggable="false" onclick="if(!this.dataset.longPress) showLocationImage('${map.locationImage}')" ontouchstart="preloadImage('${map.locationImage}')" onmouseenter="preloadImage('${map.locationImage}')">
+            <div class="map-thumbnail" draggable="false" onclick="handleMapClick(this, '${map.locationImage}')" ontouchstart="preloadImage('${map.locationImage}')" onmouseenter="preloadImage('${map.locationImage}')">
                 <img src="${map.mapImage}" alt="" onerror="this.style.display='none'" draggable="false">
             </div>
         `).join('');
