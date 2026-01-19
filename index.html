@@ -2452,7 +2452,14 @@
 async function handleDownload() {
     const downloadBtn = document.getElementById('downloadBtn');
     const imageUrl = downloadBtn.dataset.imageUrl;
-    const imageName = downloadBtn.dataset.imageName || 'graal-map.png';
+    const originalName = downloadBtn.dataset.imageName || 'graal-map.png';
+    
+    // Add timestamp to filename to force new creation date
+    const timestamp = new Date().getTime();
+    const nameParts = originalName.split('.');
+    const extension = nameParts.pop();
+    const baseName = nameParts.join('.');
+    const imageName = `${baseName}_${timestamp}.${extension}`;
     
     try {
         const response = await fetch(imageUrl);
