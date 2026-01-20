@@ -1520,6 +1520,7 @@
         .gallery-grid {
     grid-template-columns: repeat(3, 1fr) !important;
     z-index: 1 !important;
+    position: relative !important;
     column-gap: 2px !important;
     row-gap: 0px !important;
     margin-bottom: 0px !important;
@@ -1527,7 +1528,7 @@
     width: 95% !important;
     margin-left: auto !important;
     margin-right: auto !important;
-    margin-top: -15px !important;
+    margin-top: -55px !important;
 }
 
     .nav-controls {
@@ -1902,6 +1903,95 @@
     }
     }
 
+            .mobile-download-controls {
+                display: flex !important;
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 auto 0 auto !important;
+                background: transparent !important;
+                border: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                box-shadow: none !important;
+                position: relative !important;
+                z-index: 200 !important;
+                box-sizing: border-box !important;
+                height: 36px !important;
+                pointer-events: auto !important;
+            }
+
+            .mobile-spacer {
+                display: none;
+                height: 10px;
+                width: 100%;
+            }
+
+            @media (max-width: 1024px) {
+                .mobile-spacer {
+                    display: block !important;
+                }
+            }
+
+            @media (min-width: 1025px) {
+                .mobile-download-controls {
+                    display: none !important;
+                }
+            }
+
+            .download-label {
+                color: #f4ecba;
+                font-weight: bold;
+                font-size: 16px;
+                margin: 0 128px 0 25px !important;
+                padding: 0 0 0 10px !important;
+                line-height: normal !important;
+                height: 36px !important;
+                position: static !important;
+                display: flex !important;
+                align-items: center !important;
+                background: #0e0c06 !important;
+                border: 2px solid #f4ecba !important;
+                flex: 1 !important;
+                padding-right: 0 !important;
+                border-radius: 0 !important;
+                pointer-events: auto !important;
+            }
+
+            .download-toggle {
+                background: #080703;
+                border: 1px solid #453e23;
+                color: #7d7960;
+                padding: 8px 20px;
+                border-radius: 0 !important;
+                font-weight: bold;
+                cursor: pointer;
+                min-width: 100px;
+                transition: all 0.2s;
+                position: relative !important;
+                top: -36px !important;
+                margin: 0 25px 0 auto !important;
+                height: 36px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                pointer-events: auto !important;
+                z-index: 1000 !important;
+            }
+
+
+            .download-toggle.enabled {
+                background: #f4ecba;
+                color: #000;
+                box-shadow: 0 0 10px rgba(244, 236, 186, 0.3);
+            }
+            
+            .download-toggle.mobile-active {
+                animation: tapPulse 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+
     /* ==================== END OF MOBILE SUPPORT ==================== */
 
         </style>
@@ -2130,6 +2220,11 @@
     </div>
 
     <div class="gallery-desktop-container">
+        <div class="mobile-spacer"></div>
+        <div class="mobile-download-controls">
+            <div class="download-label">Map Download</div>
+            <button id="downloadToggleBtn" class="download-toggle">Disabled</button>
+        </div>
         <div class="spinner" id="gallerySpinner"></div>
         <div class="gallery-grid" id="mapGallery" style="display: inline-grid; grid-template-columns: repeat(6, 1fr); column-gap: 4px; row-gap: 2px; flex: 1; align-items: start;">
         </div>
@@ -2308,6 +2403,7 @@
             let isFilteringInProgress = false;
             let loadTimeouts = [];
             let preloadSequence = 0;
+            let isDownloadMode = false;
             const imageCache = new Map();
             
             const filters = {
@@ -2588,17 +2684,23 @@ async function handleDownload(url, name) {
         }
     }
 
-    function handleMapClick(element, url) {
-        if (element.dataset.longPress) return;
-        
+    function handleMapClick(element, locationUrl, mapUrl) {
         if (window.innerWidth <= 1024) {
             element.classList.remove('mobile-active');
             void element.offsetWidth;
             element.classList.add('mobile-active');
             setTimeout(() => element.classList.remove('mobile-active'), 200);
-            setTimeout(() => showLocationImage(url), 50);
+            
+            if (isDownloadMode) {
+                setTimeout(() => {
+                    const filename = mapUrl.split('/').pop();
+                    handleDownload(mapUrl, filename);
+                }, 50);
+            } else {
+                setTimeout(() => showLocationImage(locationUrl), 50);
+            }
         } else {
-            showLocationImage(url);
+            showLocationImage(locationUrl);
         }
     }
 
@@ -2710,6 +2812,20 @@ async function handleDownload(url, name) {
                 if(mobileBtn) mobileBtn.addEventListener('click', resetFilters);
                 document.getElementById('prevBtn').addEventListener('click', () => changePage(-1));
                 document.getElementById('nextBtn').addEventListener('click', () => changePage(1));
+                
+                const downloadToggleBtn = document.getElementById('downloadToggleBtn');
+                if (downloadToggleBtn) {
+                    downloadToggleBtn.addEventListener('click', function() {
+                        isDownloadMode = !isDownloadMode;
+                        this.textContent = isDownloadMode ? 'Enabled' : 'Disabled';
+                        this.classList.toggle('enabled', isDownloadMode);
+                        
+                        this.classList.remove('mobile-active');
+                        void this.offsetWidth;
+                        this.classList.add('mobile-active');
+                        setTimeout(() => this.classList.remove('mobile-active'), 180);
+                    });
+                }
             }
 
     function positionSliderMarks() {
@@ -3017,7 +3133,7 @@ async function handleDownload(url, name) {
         const pageMaps = filteredMaps.slice(start, end);
 
         let html = pageMaps.map((map, index) => `
-            <div class="map-thumbnail" draggable="false" onclick="handleMapClick(this, '${map.locationImage}')" ontouchstart="preloadImage('${map.locationImage}')" onmouseenter="preloadImage('${map.locationImage}')">
+            <div class="map-thumbnail" draggable="false" onclick="handleMapClick(this, '${map.locationImage}', '${map.mapImage}')" ontouchstart="preloadImage('${map.locationImage}')" onmouseenter="preloadImage('${map.locationImage}')">
                 <img src="${map.mapImage}" alt="" onerror="this.style.display='none'" draggable="false">
             </div>
         `).join('');
@@ -3034,65 +3150,6 @@ async function handleDownload(url, name) {
         }
 
         gallery.innerHTML = html;
-
-        // Add long press listeners for mobile download
-        if (window.innerWidth <= 1024) {
-            gallery.querySelectorAll('.map-thumbnail').forEach(thumb => {
-                let pressTimer = null;
-                let startX = 0;
-                let startY = 0;
-                const img = thumb.querySelector('img');
-                
-                const clearTimer = () => {
-                    if (pressTimer) {
-                        clearTimeout(pressTimer);
-                        pressTimer = null;
-                    }
-                };
-
-                thumb.addEventListener('touchstart', (e) => {
-                    clearTimer();
-                    delete thumb.dataset.longPress;
-                    
-                    if (e.touches.length !== 1) return;
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-
-                    pressTimer = setTimeout(() => {
-                        thumb.dataset.longPress = 'true';
-                        if (navigator.vibrate) navigator.vibrate(50);
-                        if (img && img.src) handleDownload(img.src, img.src.split('/').pop());
-                    }, 500);
-                }, { passive: true });
-
-                thumb.addEventListener('touchend', () => {
-                    clearTimer();
-                    if (thumb.dataset.longPress) {
-                        setTimeout(() => delete thumb.dataset.longPress, 100);
-                    }
-                }, { passive: true });
-
-                thumb.addEventListener('touchmove', (e) => {
-                    if (!pressTimer) return;
-                    const moveX = e.touches[0].clientX;
-                    const moveY = e.touches[0].clientY;
-                    if (Math.abs(moveX - startX) > 15 || Math.abs(moveY - startY) > 15) {
-                        clearTimer();
-                    }
-                }, { passive: true });
-
-                thumb.addEventListener('touchcancel', () => {
-                    clearTimer();
-                    if (thumb.dataset.longPress) {
-                        setTimeout(() => delete thumb.dataset.longPress, 100);
-                    }
-                }, { passive: true });
-
-                thumb.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                });
-            });
-        }
 
         const images = gallery.querySelectorAll('img');
         
