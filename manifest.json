@@ -3,7 +3,7 @@
   "short_name": "KDAssist",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#8B7500",
+  "theme_color": "#000000",
   "background_color": "#8B7500",
   "icons": [
     {
