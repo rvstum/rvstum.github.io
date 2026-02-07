@@ -1,0 +1,2390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benchmark</title>
+<script type="module">
+  import * as modernScreenshot from 'https://cdn.jsdelivr.net/npm/modern-screenshot@4.4.39/+esm';
+  window.modernScreenshot = modernScreenshot;
+</script>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #050505;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(14, 165, 233, 0.08), transparent 25%);
+            color: #e0e0e0;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #responsive-wrapper {
+            width: 100%;
+            max-width: 1624px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #benchmark-content {
+            width: 1584px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        @keyframes gradualBlur {
+            0% { backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
+            100% { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        }
+
+        .container {
+            width: 1584px;
+            height: auto;
+            background-color: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: gradualBlur 1.5s ease-out forwards;
+        }
+
+        .controls-container {
+            width: 1584px;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            position: relative;
+            z-index: 20;
+        }
+
+        .top-box {
+            width: 1584px;
+            height: 72px;
+            background-color: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+            animation: gradualBlur 1.5s ease-out forwards;
+        }
+
+        .profile-circle {
+            width: 60px;
+            height: 60px;
+            background-color: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            margin-right: 15px;
+            position: relative;
+        }
+
+        .nationality-flag {
+            position: absolute;
+            width: 28px;
+            height: 18px;
+            background-color: #444;
+            border: 1px solid #111;
+            border-radius: 2px;
+            bottom: 2px;
+            left: 58%;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .guild-name {
+            color: #FFD700;
+            font-size: 15px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .top-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .nav-item:hover {
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 4px;
+            fill: #e0e0e0;
+            transition: fill 0.2s ease;
+        }
+
+        .nav-item:hover .nav-icon {
+            fill: #ffffff;
+        }
+
+        .nav-divider {
+            width: 2px;
+            height: 25px;
+            background-color: #333;
+            margin: 0 20px;
+        }
+
+        .middle-box {
+            width: 1584px;
+            background-color: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            display: flex;
+            padding: 20px 20px 1px;
+            overflow: visible;
+            animation: gradualBlur 1.5s ease-out forwards;
+        }
+
+        .rounded-inner-box {
+            position: relative;
+            overflow: visible !important;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 25px;
+            margin-left: 0;
+            flex-grow: 1;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .small-inner-box {
+            height: 35px;
+            padding: 0 5px 0 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-right: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            gap: 5px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .small-inner-box:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        #platformBox {
+            width: 90px;
+        }
+
+        #timeBox {
+            width: 90px;
+        }
+
+        #statBox {
+            width: 140px;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            width: 100%;
+            background-color: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        .dropdown-item {
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #e0e0e0;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: #252525;
+        }
+
+        .arrow-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .rotate {
+            transform: rotate(180deg);
+        }
+
+        .ranks-wrapper {
+            display: flex;
+            flex-direction: column;
+            margin-right: 70px;
+            transform: translateZ(0);
+        }
+
+        .ranks-labels {
+            display: flex;
+            gap: 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 8px;
+            justify-content: flex-end;
+        }
+
+        .rank-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 46px;
+        }
+
+        .rank-number {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 2px;
+            position: relative;
+            bottom: 4px;
+        }
+
+        .trophy-container {
+            position: relative;
+            height: 30px;
+            margin-bottom: 5px;
+            display: inline-block;
+            z-index: 0;
+        }
+
+        .trophy-base {
+            height: 100%;
+            width: auto;
+            display: none;
+            filter: sepia(0.4);
+        }
+
+        .eternal-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background: linear-gradient(110deg, #763232 20%, #a64747 35%, #d67c7c 45%, #ffffff 50%, #d67c7c 55%, #a64747 65%, #763232 80%);
+            background-size: 200% auto;
+            animation: eternalTrophyShimmer 2.5s linear infinite;
+            -webkit-mask: url(#trophy-mask);
+            mask: url(#trophy-mask);
+            mix-blend-mode: overlay;
+            z-index: 1;
+        }
+
+        .trophy-layer {
+            position: relative;
+            height: 100%;
+            width: auto;
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 32px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #ffffff;
+            position: relative;
+            overflow: visible;
+            background-clip: padding-box;
+        }
+
+        .rank-line {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 2px;
+            height: 60%;
+            z-index: 1;
+        }
+
+        .ranks-bars {
+            display: flex;
+            gap: 0;
+            position: relative;
+        }
+
+        .rank-bar {
+            width: 42px;
+            margin: 0 2px;
+            height: 25px;
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transform: skewX(-40deg);
+            background-clip: padding-box;
+        }
+
+        .rank-bar:first-child {
+            position: absolute;
+            right: calc(100% + 10px);
+            top: -6.5px;
+            height: 38px;
+            transform: none;
+            width: 100px;
+            margin-right: 15px;
+            border: none;
+            display: none;
+        }
+
+        .ranks-bars:last-child .rank-bar:first-child {
+            height: 50px;
+        }
+
+        .ranks-bars:last-child .rank-bar:nth-child(2) {
+            height: 50px;
+        }
+
+        .rank-bar:nth-child(2) {
+            position: absolute;
+            right: calc(100% + 540px);
+            top: -6.5px;
+            height: 38px;
+            transform: none;
+            width: 300px;
+            max-width: none;
+            margin-right: 2px;
+            border: none;
+        }
+
+        .vertical-box {
+            position: absolute;
+            left: 0;
+            right: auto;
+            width: 40px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 0 12px 12px 0;
+            border: none;
+            z-index: 1;
+        }
+
+        .bg-stripe {
+            position: absolute;
+            right: 90px;
+            width: 552px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.03));
+            z-index: 0;
+            display: none;
+        }
+
+        .rating-text {
+            position: absolute;
+            top: 0;
+            left: auto;
+            right: 0;
+            width: calc(70px + 20px);
+            height: calc(20px + 13.5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            z-index: 2;
+        }
+
+        .rating-value {
+            position: absolute;
+            left: auto;
+            right: 0;
+            width: calc(70px + 20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            outline: none;
+            text-align: center;
+            padding: 0;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            z-index: 2;
+        }
+
+        .score-input-wrapper {
+            position: absolute;
+            left: 360px;
+            right: auto;
+            width: 100px;
+            z-index: 100;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .score-input {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            text-align: center;
+            padding: 0;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: bold;
+            color: transparent;
+            caret-color: white;
+            z-index: 2;
+            cursor: text;
+        }
+
+        .score-text-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .score-text {
+            position: absolute;
+            top: 0;
+            left: 360px;
+            right: auto;
+            width: 100px;
+            height: calc(20px + 13.5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            z-index: 2;
+        }
+
+        .cave-text {
+    position: absolute;
+    top: 0;
+    left: 102px;
+    right: auto;
+    width: 300px;
+    max-width: none;
+    height: calc(20px + 13.5px);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    z-index: 2;
+}
+
+        .progression-text {
+            position: absolute;
+            top: 0;
+            right: 90px;
+            width: 552px;
+            height: calc(20px + 13.5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            z-index: 2;
+        }
+
+        @keyframes eternalShimmer {
+            0% { background-position: -50% 50%; }
+            100% { background-position: 150% 50%; }
+        }
+
+        @keyframes auraPulse {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.15); }
+        }
+
+        @keyframes eternalTrophyShimmer {
+            0% { background-position: -50% 50%; }
+            100% { background-position: 150% 50%; }
+        }
+
+        .ranks-labels .rank-item:nth-child(1) span { color: #6E6E6E; }
+        .ranks-labels .rank-item:nth-child(2) span { color: #CD7F32; }
+        .ranks-labels .rank-item:nth-child(3) span { color: #C0C0C0; }
+        .ranks-labels .rank-item:nth-child(4) span { color: #C5A000; }
+        .ranks-labels .rank-item:nth-child(5) span { color: #5FE0E0; }
+        .ranks-labels .rank-item:nth-child(6) span { color: #2196F3; }
+        .ranks-labels .rank-item:nth-child(7) span { color: #7B3FE4; }
+        .ranks-labels .rank-item:nth-child(8) span { color: #E6E600; }
+        .ranks-labels .rank-item:nth-child(9) span { color: #FF3B30; }
+        .ranks-labels .rank-item:nth-child(10) span { color: #00A892; }
+        .ranks-labels .rank-item:nth-child(11) span { color: #FF6F00; }
+        .ranks-labels .rank-item:nth-child(12) span { color: #D8007F; }
+        .ranks-labels .rank-item:nth-child(13) span {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(110deg, #763232 20%, #a64747 35%, #d67c7c 45%, #ffffff 50%, #d67c7c 55%, #a64747 65%, #763232 80%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: eternalShimmer 2.5s linear infinite;
+        }
+
+        .ranks-labels .rank-item:nth-child(13) .rank-name::before {
+            content: 'Aeternus';
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: -1;
+            background: linear-gradient(110deg, transparent 20%, #a64747 35%, #d67c7c 45%, #ffffff 50%, #d67c7c 55%, #a64747 65%, transparent 80%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: blur(10px);
+            animation: eternalShimmer 2.5s linear infinite;
+        }
+
+        .ranks-labels .rank-item:nth-child(1) .trophy-layer { filter: grayscale(100%); -webkit-filter: grayscale(100%); }
+        .ranks-labels .rank-item:nth-child(2) .trophy-layer { filter: sepia(1) hue-rotate(-35deg) saturate(3) brightness(0.65); -webkit-filter: sepia(1) hue-rotate(-35deg) saturate(3) brightness(0.65); }
+        .ranks-labels .rank-item:nth-child(3) .trophy-layer { filter: grayscale(100%) brightness(1.3); -webkit-filter: grayscale(100%) brightness(1.3); }
+        .ranks-labels .rank-item:nth-child(4) .trophy-layer { filter: sepia(1) hue-rotate(5deg) saturate(2.5) brightness(0.9); -webkit-filter: sepia(1) hue-rotate(5deg) saturate(2.5) brightness(0.9); }
+        .ranks-labels .rank-item:nth-child(5) .trophy-layer { filter: sepia(1) hue-rotate(130deg) saturate(1.5) brightness(1.1); -webkit-filter: sepia(1) hue-rotate(130deg) saturate(1.5) brightness(1.1); }
+        .ranks-labels .rank-item:nth-child(6) .trophy-layer { filter: sepia(1) hue-rotate(170deg) saturate(3) brightness(1.0); -webkit-filter: sepia(1) hue-rotate(170deg) saturate(3) brightness(1.0); }
+        .ranks-labels .rank-item:nth-child(7) .trophy-layer { filter: sepia(1) hue-rotate(220deg) saturate(3) brightness(0.9); -webkit-filter: sepia(1) hue-rotate(220deg) saturate(3) brightness(0.9); }
+        .ranks-labels .rank-item:nth-child(8) .trophy-layer { filter: sepia(1) hue-rotate(10deg) saturate(5) brightness(1.2); -webkit-filter: sepia(1) hue-rotate(10deg) saturate(5) brightness(1.2); }
+        .ranks-labels .rank-item:nth-child(9) .trophy-layer { filter: sepia(1) hue-rotate(330deg) saturate(5) brightness(0.8); -webkit-filter: sepia(1) hue-rotate(330deg) saturate(5) brightness(0.8); }
+        .ranks-labels .rank-item:nth-child(10) .trophy-layer { filter: sepia(1) hue-rotate(120deg) saturate(2) brightness(0.9); -webkit-filter: sepia(1) hue-rotate(120deg) saturate(2) brightness(0.9); }
+        .ranks-labels .rank-item:nth-child(11) .trophy-layer { filter: grayscale(100%); -webkit-filter: grayscale(100%); }
+        .ranks-labels .rank-item:nth-child(11) .eternal-layer {
+            display: block;
+            background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%);
+            background-size: 200% auto;
+            animation: eternalTrophyShimmer 2.5s linear infinite;
+        }
+        .ranks-labels .rank-item:nth-child(11) span {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: eternalShimmer 2.5s linear infinite;
+        }
+        .ranks-labels .rank-item:nth-child(11) .rank-name::before {
+            content: 'Stellar';
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: -1;
+            background: linear-gradient(110deg, transparent 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, transparent 80%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: blur(10px);
+            animation: eternalShimmer 2.5s linear infinite;
+        }
+
+        .ranks-labels .rank-item:nth-child(12) .trophy-layer { filter: grayscale(100%); -webkit-filter: grayscale(100%); }
+        .ranks-labels .rank-item:nth-child(12) .eternal-layer {
+            display: block;
+            background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%);
+            background-size: 300% auto;
+            animation: eternalTrophyShimmer 2.5s linear infinite;
+        }
+        .ranks-labels .rank-item:nth-child(12) span {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: eternalShimmer 2.5s linear infinite;
+        }
+        .ranks-labels .rank-item:nth-child(12) .rank-name::before {
+            content: 'Celestium';
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: -1;
+            background: linear-gradient(110deg, transparent 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, transparent 80%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: blur(6px);
+            animation: eternalShimmer 2.5s linear infinite;
+        }
+
+        .ranks-labels .rank-item:nth-child(13) .trophy-layer { filter: sepia(1) hue-rotate(310deg) saturate(1.8) brightness(0.8); -webkit-filter: sepia(1) hue-rotate(310deg) saturate(1.8) brightness(0.8); }
+        .ranks-labels .rank-item:nth-child(13) .eternal-layer { display: block; }
+
+        .dropdown-item[data-value="Mobile"] { color: #2196F3; }
+        .dropdown-item[data-value="PC"] { color: #F44336; }
+
+        .roman-numerals-container {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            position: relative;
+            width: calc(100% - 2px);
+            height: 12px;
+            margin: 4px auto 2px;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 10px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .roman-numerals-container span {
+            position: absolute;
+            transform: translateX(-50%);
+        }
+
+        .share-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(2.5px);
+        }
+
+        .share-modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .share-modal-content {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            border: 1px solid #333;
+        }
+
+        .share-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+            z-index: 10;
+        }
+
+        .share-modal-close:hover {
+            color: #fff;
+        }
+
+        .screenshot-preview-container {
+            width: 100%;
+            max-height: 60vh;
+            overflow-y: auto;
+            margin: 20px 0;
+            border: 1px solid #333;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            background: #0a0a0c;
+            padding: 10px;
+        }
+        
+        .screenshot-preview-container img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 4px;
+        }
+
+        .share-actions {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.1s, background 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .share-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-download {
+            background-color: #2196F3;
+            color: white;
+            box-shadow: 0 4px 6px rgba(33, 150, 243, 0.3);
+        }
+        .btn-download:hover {
+            background-color: #1976D2;
+            box-shadow: 0 6px 8px rgba(33, 150, 243, 0.4);
+        }
+
+        .btn-copy {
+            background-color: #333;
+            color: #e0e0e0;
+            border: 1px solid #555;
+        }
+        .btn-copy:hover {
+            background-color: #444;
+            border-color: #666;
+        }
+
+        .cave-play-icon {
+    margin-left: auto;
+    margin-right: 10px;
+    height: 18px;
+    width: 18px;
+            fill: none;
+            stroke: #e0e0e0;
+            stroke-width: 1.5;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            opacity: 0.7;
+            flex-shrink: 0;
+        }
+
+        .cave-play-icon:hover {
+            transform: scale(1.1);
+            opacity: 1;
+            stroke: #fff;
+        }
+
+        .info-icon {
+            position: absolute;
+            right: calc(-47.5px - 10px);
+            top: -18px;
+            transform: translateY(-50%);
+            width: 25px;
+            height: 25px;
+            background-color: transparent;
+            border: 1px solid #555;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: bold;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .info-icon:hover {
+            background-color: #555;
+            border-color: #777;
+            color: #fff;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .rules-content-box {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 450px;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .rule-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: baseline;
+        }
+
+        .rule-idx {
+            color: #444;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 15px;
+        }
+
+        .rule-text {
+            color: #ccc;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        #rulesModal {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes modalPopIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes modalPopOut {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.9); }
+        }
+
+        #rulesModal.show .rules-content-box {
+            animation: modalPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        
+        #rulesModal.closing .rules-content-box {
+            animation: modalPopOut 0.2s ease-in forwards;
+        }
+        
+        #rulesModal.closing {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="responsive-wrapper">
+    <!-- SVG Mask Definition for Trophy Shimmer -->
+    <svg width="0" height="0" style="position: absolute; pointer-events: none;">
+        <defs>
+            <mask id="trophy-mask" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+                <image href="icons/trophy.png" x="0" y="0" width="1" height="1" preserveAspectRatio="none" />
+            </mask>
+        </defs>
+    </svg>
+<div id="benchmark-content">
+    <div class="controls-container">
+        <div class="small-inner-box" id="platformBox">
+            <span id="platformText" style="color: #2196F3;">Mobile</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            <div class="dropdown-menu">
+                <div class="dropdown-item" data-value="Mobile">Mobile</div>
+                <div class="dropdown-item" data-value="PC">PC</div>
+            </div>
+        </div>
+        <div class="small-inner-box" id="timeBox">
+            <span id="timeText">5 Min</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            <div class="dropdown-menu">
+                <div class="dropdown-item" data-value="5 Min">5 Min</div>
+                <div class="dropdown-item" data-value="10 Min">10 Min</div>
+                <div class="dropdown-item" data-value="60 Min">60 Min</div>
+            </div>
+        </div>
+        <div class="small-inner-box" id="statBox">
+            <span id="statText">Baddy Kills</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            <div class="dropdown-menu">
+                <div class="dropdown-item" data-value="Baddy Kills">Baddy Kills</div>
+                <div class="dropdown-item" data-value="Baddy Points">Baddy Points</div>
+            </div>
+        </div>
+    </div>
+    <div class="top-box">
+        <div class="profile-circle">
+            <div class="nationality-flag"></div>
+        </div>
+        <div class="profile-name">John Doe</div>
+        <div class="guild-name">(Guild)</div>
+        <div class="top-right">
+            <div class="nav-item" id="shareBtn">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                Share
+            </div>
+            <div class="nav-divider"></div>
+            <div class="nav-item">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L4.04 9.81c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.22.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                Settings
+            </div>
+        </div>
+    </div>
+    <div class="middle-box">
+        <div class="rounded-inner-box">Unranked</div>
+        <div class="ranks-wrapper">
+            <div class="ranks-labels">
+                <div class="rank-item">
+                    <span class="rank-number">1350</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Iron</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">2700</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Bronze</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">4050</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Silver</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">5400</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Gold</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">6750</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Platinum</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">8100</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Diamond</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">9450</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Master</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">10800</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Grandmaster</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">12150</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Champion</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">13500</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Paragon</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">14850</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                        <div class="eternal-layer"></div>
+                    </div>
+                    <span class="rank-name">Stellar</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">16200</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                        <div class="eternal-layer"></div>
+                    </div>
+                    <span class="rank-name">Celestium</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">17550</span>
+                    <div class="trophy-container">
+                        <img src="icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="icons/trophy.png" class="trophy-layer" alt="Trophy">
+                        <div class="eternal-layer"></div>
+                    </div>
+                    <span class="rank-name">Aeternus</span>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <span style="position: relative; z-index: 2;">0/0</span>
+                <div class="rank-line" style="left: 21.5%;"></div>
+                <div class="rank-line" style="left: 41.5%;"></div>
+                <div class="rank-line" style="left: 61.5%;"></div>
+                <div class="rank-line" style="left: 81.5%;"></div>
+                <div class="info-icon" id="rulesBtn">!</div>
+            </div>
+            <div class="roman-numerals-container">
+                <span style="left: 1.5%;">V</span><span style="left: 21.5%;">IV</span><span style="left: 41.5%;">III</span><span style="left: 61.5%;">II</span><span style="left: 81.5%;">I</span>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="rating-text">Rating</div>
+        <div class="score-text">Score</div>
+        <div class="progression-text">Progression</div>
+        <div class="cave-text">Cave</div>
+        <div class="bg-stripe" style="top: calc(20px + 20px - 6.5px); height: 78px;"></div>
+        <div class="bg-stripe" style="top: calc(20px + 100px - 6.5px); height: 78px;"></div>
+        <div class="bg-stripe" style="top: calc(20px + 180px - 6.5px); height: 78px;"></div>
+        <div class="bg-stripe" style="top: calc(20px + 260px - 6.5px); height: 38px;"></div>
+        <div class="bg-stripe" style="top: calc(20px + 300px - 6.5px); height: 78px;"></div>
+        <div class="bg-stripe" style="top: calc(20px + 380px - 6.5px); height: 78px;"></div>
+        <div class="bg-stripe" style="top: calc(20px + 460px - 6.5px); height: 78px;"></div>
+        <div class="bg-stripe" style="top: calc(20px + 540px - 6.5px); height: calc(38px + 12px);"></div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; padding: calc(20px + 20px) 20px 10px 20px; gap: 15px; position: relative; z-index: 1; margin-right: 70px;">
+            <div class="vertical-box" style="top: calc(20px + 20px - 6.5px); height: 278px; display: flex; align-items: center; justify-content: center;"><div style="transform: rotate(-90deg); position: relative; display: inline-flex; align-items: center; justify-content: center;"><span style="color: #fff; font-size: 15px; font-weight: bold; white-space: nowrap;">Swords</span><img src="icons/benchmarksword.jpg" style="position: absolute; right: 100%; margin-right: 5px; height: 20px; width: auto; transform: rotate(90deg);"></div></div>
+            <div class="vertical-box" style="top: calc(20px + 300px - 6.5px); height: 290px; display: flex; align-items: center; justify-content: center; padding-bottom: 10px;"><div style="transform: rotate(-90deg); position: relative; display: inline-flex; align-items: center; justify-content: center;"><span style="color: #fff; font-size: 15px; font-weight: bold; white-space: nowrap;">Bombs</span><img src="icons/benchmarkbomb.jpg" style="position: absolute; right: 100%; margin-right: 15px; height: 20px; width: auto; transform: rotate(90deg);"></div></div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_0.jpg" style="height: 30px; width: auto; margin-right: 5px;">Mercy<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_1.jpg" style="height: 30px; width: auto; margin-right: 5px;">Ruin<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_2.jpg" style="height: 30px; width: auto; margin-right: 5px;">Rats_01<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_3.jpg" style="height: 30px; width: auto; margin-right: 5px;">Rats_02<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_4.jpg" style="height: 30px; width: auto; margin-right: 5px;">Bats_01<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_5.jpg" style="height: 30px; width: auto; margin-right: 5px;">Bats_02<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_6.jpg" style="height: 30px; width: auto; margin-right: 5px;">Lizardrons_04<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_7.jpg" style="height: 30px; width: auto; margin-right: 5px;">Pyrats_01<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_8.jpg" style="height: 30px; width: auto; margin-right: 5px;">PCS_01 (Cave Switch)<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_9.jpg" style="height: 30px; width: auto; margin-right: 5px;">Rebels_04<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_10.jpg" style="height: 30px; width: auto; margin-right: 5px;">RCS_04 (Cave Switch)<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_11.jpg" style="height: 30px; width: auto; margin-right: 5px;">Dark Blobs_02<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_12.jpg" style="height: 30px; width: auto; margin-right: 5px;">DBCS_02 (Cave Switch)<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+            <div class="ranks-bars">
+                <div class="rank-bar"></div>
+                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="icons/cellimage_0_13.jpg" style="height: 30px; width: auto; margin-right: 5px;">Spiders_01<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+                <div class="rank-bar"></div>
+            </div>
+        </div>
+        <div class="score-input-wrapper" style="top: calc(20px + 20px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 60px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 100px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 140px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 180px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 220px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 260px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 300px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 340px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 380px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 420px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 460px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 500px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
+        <div class="score-input-wrapper" style="top: calc(20px + 540px - 6.5px); height: calc(38px + 12px); padding-bottom: 12px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay" style="height: 38px;">0</div></div>
+        <div class="rating-value" style="top: calc(20px + 20px - 6.5px); height: 78px;">0</div>
+        <div class="rating-value" style="top: calc(20px + 100px - 6.5px); height: 78px;">0</div>
+        <div class="rating-value" style="top: calc(20px + 180px - 6.5px); height: 78px;">0</div>
+        <div class="rating-value" style="top: calc(20px + 260px - 6.5px); height: 38px;">0</div>
+        <div class="rating-value" style="top: calc(20px + 300px - 6.5px); height: 78px;">0</div>
+        <div class="rating-value" style="top: calc(20px + 380px - 6.5px); height: 78px;">0</div>
+        <div class="rating-value" style="top: calc(20px + 460px - 6.5px); height: 78px;">0</div>
+        <div class="rating-value" style="top: calc(20px + 540px - 6.5px); height: calc(38px + 12px); padding-bottom: 12px;">0</div>
+    </div>
+    </div>
+
+    </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="share-modal-overlay" id="shareModal">
+        <div class="share-modal-content">
+            <span class="share-modal-close" id="closeShareModal">&times;</span>
+            <div class="screenshot-preview-container" id="screenshotContainer">
+                <!-- Screenshot will be injected here -->
+            </div>
+            <div class="share-actions">
+                <button class="share-btn btn-download" id="downloadImageBtn">Download Image</button>
+                <button class="share-btn btn-copy" id="copyLinkBtn">Copy Benchmark Link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div class="share-modal-overlay" id="rulesModal">
+        <div class="rules-content-box">
+            <span class="share-modal-close" id="closeRulesModal" style="top: 20px; right: 20px; font-size: 24px; color: #444;">&times;</span>
+            
+            <div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #222;">
+                <div style="color: #fff; font-size: 20px; font-weight: bold; margin-bottom: 5px;">Guidelines</div>
+                <div style="color: #666; font-size: 12px;">for accurate scoring</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">01</div>
+                <div class="rule-text">The benchmark is intended exclusively for <span style="color: #fff;">personal use</span>.</div>
+            </div>
+            
+            <div class="rule-row">
+                <div class="rule-idx">02</div>
+                <div class="rule-text">All baddies in the cave must be <span style="color: #fff;">reset to full health</span> before starting.</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">03</div>
+                <div class="rule-text">No <span style="color: #fff;">speed boosts</span> from bushes are allowed.</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">04</div>
+                <div class="rule-text">Scoring thresholds must be achieved <span style="color: #fff;">without any assistance</span> from other players or accidental damage caused by other players.</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">05</div>
+                <div class="rule-text">The <span style="color: #fff;">Swords</span> category allows the use of swords only, while the <span style="color: #fff;">Bombs</span> category permits the use of both bombs and swords.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const RANK_THRESHOLDS = [0, 1350, 2700, 4050, 5400, 6750, 8100, 9450, 10800, 12150, 13500, 14850, 16200, 17550];
+        const RANK_COLORS = [
+            'transparent',
+            '#505050',
+            '#A05A2C',
+            '#A0A0A0',
+            '#967A00',
+            '#40B0B0',
+            '#1976D2',
+            '#5E35B1',
+            '#FFC400',
+            '#FF3B30',
+            '#00796B',
+            '#FF9100',
+            '#AD1457',
+            '#a64747'
+        ];
+        const RANK_NAMES = [
+            'Unranked', 'Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 
+            'Master', 'Grandmaster', 'Champion', 'Paragon', 'Stellar', 'Celestium', 'Aeternus'
+        ];
+        const RANK_TEXT_COLORS = [
+            '#e0e0e0',
+            '#6E6E6E',
+            '#CD7F32',
+            '#C0C0C0',
+            '#C5A000',
+            '#5FE0E0',
+            '#2196F3',
+'#7B3FE4', // Master
+            '#E6E600', // Grandmaster
+            '#FF3B30', // Champion
+            '#00A892', // Paragon
+            '#FF6F00', // Stellar
+            '#D8007F', // Celestium
+            '#a64747'  // Aeternus
+        ];
+        const SCORE_TEXT_COLORS = [
+            '#ffffff', // Unranked
+            '#b0b0b0', // Iron
+            '#e6a060', // Bronze
+            '#e0e0e0', // Silver
+            '#ffd700', // Gold
+            '#80ffff', // Platinum
+            '#64b5f6', // Diamond
+            '#b388ff', // Master
+            '#ffff00', // Grandmaster
+            '#ff8585', // Champion
+            '#4db6ac', // Paragon
+            '#ffa726', // Stellar
+            '#f48fb1', // Celestium
+            '#d46a6a'  // Aeternus
+        ];
+        const RANK_LINE_COLORS = [
+            'rgba(255, 255, 255, 0.4)', // Unranked
+            '#909090', // Iron (Brighter)
+            '#8B4513', // Bronze (Fixed visibility)
+            '#333333', // Silver (Darker 70%)
+            '#FFF59D', // Gold (Brighter 70%)
+            '#00fcff', // Platinum
+            '#19c1d2', // Diamond
+            '#aa00ff', // Master
+            '#fff122', // Grandmaster
+            '#8d0000', // Champion
+            '#00e2b1', // Paragon
+            '#ffb700', // Stellar
+            '#FFB2DD', // Celestium (Brighter Pink)
+            '#f58d89'  // Aeternus
+        ];
+        const DEFAULT_BAR_COLOR = 'rgba(255, 255, 255, 0.02)';
+        // Global state variables
+
+        function getRomanSubRank(progress) {
+            if (progress < 21.5) return 'V';
+            if (progress < 41.5) return 'IV';
+            if (progress < 61.5) return 'III';
+            if (progress < 81.5) return 'II';
+            return 'I';
+        }
+
+        let allRowThresholds = [];
+        let individualRatings = new Array(14).fill(0);
+        const savedScores = {};
+
+        function getConfigKey() {
+            const platform = document.getElementById('platformText').textContent;
+            const time = document.getElementById('timeText').textContent;
+            const stat = document.getElementById('statText').textContent;
+            return `${platform}|${time}|${stat}`;
+        }
+
+        function saveCurrentScores() {
+            const key = getConfigKey();
+            const inputs = document.querySelectorAll('.score-input');
+            const values = Array.from(inputs).map(input => input.value);
+            savedScores[key] = values;
+        }
+
+        function loadScores() {
+            const key = getConfigKey();
+            const values = savedScores[key] || new Array(14).fill('0');
+            const inputs = document.querySelectorAll('.score-input');
+            inputs.forEach((input, index) => {
+                input.value = values[index] || '0';
+            });
+            document.querySelectorAll('.score-text-overlay').forEach((overlay, index) => {
+                overlay.textContent = values[index] || '0';
+            });
+        }
+
+        function setupDropdown(boxId, textId) {
+            const box = document.getElementById(boxId);
+            const textSpan = document.getElementById(textId);
+            const arrow = box.querySelector('.arrow-icon');
+            const menu = box.querySelector('.dropdown-menu');
+            const items = box.querySelectorAll('.dropdown-item');
+
+            box.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Close other dropdowns
+                document.querySelectorAll('.dropdown-menu').forEach(m => {
+                    if (m !== menu) m.classList.remove('show');
+                });
+                document.querySelectorAll('.arrow-icon').forEach(a => {
+                    if (a !== arrow) a.classList.remove('rotate');
+                });
+
+                const currentVal = textSpan.textContent;
+                items.forEach(item => {
+                    if (item.getAttribute('data-value') === currentVal) {
+                        item.style.display = 'none';
+                    } else {
+                        item.style.display = 'flex';
+                    }
+                });
+
+                menu.classList.toggle('show');
+                arrow.classList.toggle('rotate');
+            });
+
+            items.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const val = item.getAttribute('data-value');
+                    
+                    if (textSpan.textContent !== val) {
+                        saveCurrentScores();
+                        textSpan.textContent = val;
+                        
+                        if (boxId === 'platformBox') {
+                            if (val === 'Mobile') textSpan.style.color = '#2196F3';
+                            if (val === 'PC') textSpan.style.color = '#F44336';
+                        }
+
+                        loadScores();
+                        updateScoreRequirements();
+                    }
+
+                    menu.classList.remove('show');
+                    arrow.classList.remove('rotate');
+                });
+            });
+        }
+
+        setupDropdown('platformBox', 'platformText');
+        setupDropdown('timeBox', 'timeText');
+        setupDropdown('statBox', 'statText');
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            document.querySelectorAll('.arrow-icon').forEach(a => a.classList.remove('rotate'));
+        });
+
+        function calculateSingleRating(score, thresholds) {
+            score = Number(score);
+            if (!score || score <= 0 || thresholds.length < 13) return 0;
+
+            const T = thresholds;
+
+            if (score >= T[12]) {
+                return 1300;
+            }
+
+            for (let i = 11; i >= 0; i--) {
+                if (score >= T[i]) {
+                    const baseRating = (i + 1) * 100;
+                    const lowerBound = T[i];
+                    const upperBound = T[i + 1];
+                    const range = upperBound - lowerBound;
+                    
+                    const progress = (range > 0) ? (score - lowerBound) / range : 0;
+                    return Math.round(baseRating + (progress * 100));
+                }
+            }
+
+            if (score < T[0]) {
+                const progress = (T[0] > 0) ? score / T[0] : 0;
+                return Math.round(progress * 100);
+            }
+
+            return 0;
+        }
+
+        function updateMainProgressBarAndRanks() {
+            const totalRating = individualRatings.reduce((sum, rating) => sum + rating, 0);
+            const maxRating = 18200;
+            const progressBar = document.querySelector('.progress-bar');
+
+            // Find current rank index
+            let currentRankIndex = 0;
+            for (let i = RANK_THRESHOLDS.length - 1; i > 0; i--) {
+                if (totalRating >= RANK_THRESHOLDS[i]) {
+                    currentRankIndex = i;
+                    break;
+                }
+            }
+
+            // Calculate progress within the current rank tier
+            const lowerBound = RANK_THRESHOLDS[currentRankIndex];
+            const upperBound = (currentRankIndex + 1 < RANK_THRESHOLDS.length) ? RANK_THRESHOLDS[currentRankIndex + 1] : maxRating;
+
+            const range = upperBound - lowerBound;
+            const progressInRank = (range > 0) ? Math.min(100, ((totalRating - lowerBound) / range) * 100) : (totalRating >= upperBound ? 100 : 0);
+
+            // --- Update Main Progress Bar ---
+            if (progressBar) {
+                // Update text content and style
+                const span = progressBar.querySelector('span');
+                if (span) {
+                    span.textContent = `${totalRating}/${upperBound}`;
+                }
+
+                // Update background style
+                if (totalRating > 0) {
+                    const startColor = RANK_COLORS[currentRankIndex];
+                    progressBar.style.background = `linear-gradient(to right, ${startColor} ${progressInRank}%, ${DEFAULT_BAR_COLOR} ${progressInRank}%)`;
+                } else {
+                    progressBar.style.background = DEFAULT_BAR_COLOR;
+                }
+                progressBar.style.backgroundClip = 'padding-box';
+
+                // Update Rank Lines Color
+                const rankLines = progressBar.querySelectorAll('.rank-line');
+                const originalColor = currentRankIndex === 0 ? '#444' : RANK_COLORS[currentRankIndex];
+                const activeColor = RANK_LINE_COLORS[currentRankIndex] || '#444';
+                const linePositions = [21.5, 41.5, 61.5, 81.5];
+
+                rankLines.forEach((line, index) => {
+                    const lineColor = (progressInRank > linePositions[index]) ? activeColor : originalColor;
+                    line.style.background = `linear-gradient(to bottom, transparent, ${lineColor} 15%, ${lineColor} 85%, transparent)`;
+                });
+            }
+
+            // --- Update Rank Display Box ---
+            const rankBox = document.querySelector('.rounded-inner-box');
+            if (rankBox) {
+                const romanContainer = document.querySelector('.roman-numerals-container');
+                let name;
+
+                if (totalRating >= 18200) {
+                    name = "Aeternus Complete";
+                } else {
+                    const subRank = getRomanSubRank(progressInRank);
+                    name = `${RANK_NAMES[currentRankIndex]}&nbsp;<span style="font-family: 'Times New Roman', Times, serif;">${subRank}</span>`;
+                }
+                
+                if (romanContainer) {
+                    romanContainer.style.visibility = 'visible';
+                    romanContainer.style.opacity = '1';
+                }
+
+                if (currentRankIndex === 0) {
+                    rankBox.innerHTML = name;
+                    rankBox.style.color = '';
+                    const oldStyle = document.getElementById('dynamic-honeycomb-style');
+                    if (oldStyle) oldStyle.remove();
+                } else {
+                    let filter = '';
+                    let eternalLayerStyle = '';
+                    let glowStyle = '';
+                    let textStyle = `color: ${RANK_TEXT_COLORS[currentRankIndex]};`;
+
+                    switch(currentRankIndex) {
+                        case 1: filter = 'grayscale(100%)'; break;
+                        case 2: filter = 'sepia(1) hue-rotate(-35deg) saturate(3) brightness(0.65)'; break;
+                        case 3: filter = 'grayscale(100%) brightness(1.3)'; break;
+                        case 4: filter = 'sepia(1) hue-rotate(5deg) saturate(2.5) brightness(0.9)'; break;
+                        case 5: filter = 'sepia(1) hue-rotate(130deg) saturate(1.5) brightness(1.1)'; break;
+                        case 6: filter = 'sepia(1) hue-rotate(170deg) saturate(3) brightness(1.0)'; break;
+                        case 7: 
+                            filter = 'sepia(1) hue-rotate(220deg) saturate(3) brightness(0.9)'; 
+                            glowStyle = 'background: rgba(123, 63, 228, 0.4); box-shadow: 0 0 15px rgba(123, 63, 228, 0.4);';
+                            break;
+                        case 8: 
+                            filter = 'sepia(1) hue-rotate(10deg) saturate(5) brightness(1.2)'; 
+                            glowStyle = 'background: rgba(230, 230, 0, 0.4); box-shadow: 0 0 15px rgba(230, 230, 0, 0.4);';
+                            break;
+                        case 9: 
+                            filter = 'sepia(1) hue-rotate(330deg) saturate(5) brightness(0.8)'; 
+                            glowStyle = 'background: rgba(255, 59, 48, 0.4); box-shadow: 0 0 15px rgba(255, 59, 48, 0.4);';
+                            break;
+                        case 10: 
+                            filter = 'sepia(1) hue-rotate(120deg) saturate(2) brightness(0.9)'; 
+                            glowStyle = 'background: rgba(0, 168, 146, 0.4); box-shadow: 0 0 15px rgba(0, 168, 146, 0.4);';
+                            break;
+                        case 11: 
+                            filter = 'grayscale(100%)'; 
+                            eternalLayerStyle = `background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%); background-size: 200% auto; animation: eternalTrophyShimmer 2.5s linear infinite;`;
+                            glowStyle = 'background: rgba(255, 111, 0, 0.5); box-shadow: 0 0 20px rgba(255, 111, 0, 0.5);';
+                            textStyle = `background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite;`;
+                            break;
+                        case 12: 
+                            filter = 'grayscale(100%)'; 
+                            eternalLayerStyle = `background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%); background-size: 300% auto; animation: eternalTrophyShimmer 2.5s linear infinite;`;
+                            glowStyle = 'background: rgba(216, 0, 127, 0.5); box-shadow: 0 0 20px rgba(216, 0, 127, 0.5);';
+                            textStyle = `background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite;`;
+                            break;
+                        case 13: 
+                            filter = 'sepia(1) hue-rotate(310deg) saturate(1.8) brightness(0.8)'; 
+                            eternalLayerStyle = `background: linear-gradient(110deg, #763232 20%, #a64747 35%, #d67c7c 45%, #ffffff 50%, #d67c7c 55%, #a64747 65%, #763232 80%); background-size: 200% auto; animation: eternalTrophyShimmer 2.5s linear infinite;`;
+                            glowStyle = 'background: rgba(166, 71, 71, 0.6); box-shadow: 0 0 25px rgba(166, 71, 71, 0.6); animation: auraPulse 2s infinite ease-in-out;';
+                            textStyle = `background: linear-gradient(110deg, #763232 20%, #a64747 35%, #d67c7c 45%, #ffffff 50%, #d67c7c 55%, #a64747 65%, #763232 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite;`;
+                            break;
+                    }
+
+                    // --- Honeycomb Background ---
+                    const rankColor = RANK_TEXT_COLORS[currentRankIndex] || '#ffffff';
+                    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='49'><path d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5z' fill='none' stroke='${rankColor}' stroke-width='2' opacity='0.4'/></svg>`;
+                    const encodedSvg = btoa(svg);
+                    const bgImage = `url("data:image/svg+xml;base64,${encodedSvg}")`;
+
+                    const oldStyle = document.getElementById('dynamic-honeycomb-style');
+                    if (oldStyle) oldStyle.remove();
+
+                    const style = document.createElement('style');
+                    style.id = 'dynamic-honeycomb-style';
+                    style.innerHTML = `
+                        .rounded-inner-box::before {
+                            content: '';
+                            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                            background-image: ${bgImage}, ${bgImage};
+                            background-size: 14px 24.5px;
+                            background-position: 0 0, 7px 12.25px;
+                            background-repeat: repeat;
+                            -webkit-mask-image: radial-gradient(ellipse 40% 76% at 50% 46%, black 15%, transparent 65%);
+                            mask-image: radial-gradient(ellipse 40% 76% at 50% 46%, black 15%, transparent 65%);
+                            z-index: 0;
+                            pointer-events: none;
+                        }
+                    `;
+                    document.head.appendChild(style);
+
+                    rankBox.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 1;">
+                            <div style="position: relative; height: 50px; display: inline-block;">
+                                <img src="icons/trophy.png" style="height: 100%; width: auto; filter: ${filter}; position: relative; z-index: 2; display: block;">
+                                ${eternalLayerStyle ? `<div class="eternal-layer-main" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; -webkit-mask: url(#trophy-mask); mask: url(#trophy-mask); mix-blend-mode: overlay; z-index: 3; ${eternalLayerStyle}"></div>` : ''}
+                            </div>
+                            <span style="${textStyle} margin-top: 5px; display: block; line-height: 1.2;">${name}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            // --- Update Slanted Boxes (All rows) ---
+            const rows = document.querySelectorAll('.ranks-bars');
+            const inputs = document.querySelectorAll('.score-input');
+
+            rows.forEach((row, rowIndex) => {
+                const bars = row.querySelectorAll('.rank-bar');
+                const input = inputs[rowIndex];
+                if (!input) return;
+
+                const currentScore = Number(input.value);
+                const thresholds = allRowThresholds[rowIndex] || allRowThresholds[0] || [];
+
+                let currentTierIndex = thresholds.length;
+                for (let i = 0; i < thresholds.length; i++) {
+                    if (currentScore < thresholds[i]) {
+                        currentTierIndex = i;
+                        break;
+                    }
+                }
+
+                const fillColor = RANK_COLORS[currentTierIndex] || RANK_COLORS[RANK_COLORS.length - 1];
+
+                bars.forEach((bar, i) => {
+                    if (i < 2) return;
+                    const thresholdIndex = i - 2;
+
+                    if (thresholdIndex < currentTierIndex) {
+                        bar.style.background = fillColor;
+                    } else if (thresholdIndex === currentTierIndex) {
+                        const lowerBound = (currentTierIndex > 0) ? thresholds[currentTierIndex - 1] : 0;
+                        const upperBound = thresholds[currentTierIndex];
+                        const range = upperBound - lowerBound;
+                        
+                        let pct = 0;
+                        if (range > 0) {
+                            pct = ((currentScore - lowerBound) / range) * 100;
+                            pct = Math.max(0, Math.min(100, pct));
+                        }
+
+                        if (pct <= 0) bar.style.background = DEFAULT_BAR_COLOR;
+                        else bar.style.background = `linear-gradient(to right, ${fillColor} ${pct}%, ${DEFAULT_BAR_COLOR} calc(${pct}% + 1px))`;
+                    } else {
+                        bar.style.background = DEFAULT_BAR_COLOR;
+                    }
+                    bar.style.backgroundClip = 'padding-box';
+                });
+            });
+        }
+
+        function updateAllRatings() {
+            const scoreInputs = document.querySelectorAll('.score-input');
+            const ratingValueDivs = document.querySelectorAll('.rating-value');
+
+            scoreInputs.forEach((input, index) => {
+                const score = Number(input.value);
+                const thresholds = allRowThresholds[index] || allRowThresholds[0] || [];
+                individualRatings[index] = calculateSingleRating(score, thresholds);
+            });
+
+            const groups = [
+                [0, 1],
+                [2, 3],
+                [4, 5],
+                [6],
+                [7, 8],
+                [9, 10],
+                [11, 12],
+                [13]
+            ];
+
+            ratingValueDivs.forEach((div, index) => {
+                if (index < groups.length) {
+                    const groupIndices = groups[index];
+                    const combinedRating = groupIndices.reduce((sum, i) => sum + individualRatings[i], 0);
+                    div.textContent = combinedRating;
+
+                    let maxRank = 0;
+                    groupIndices.forEach(i => {
+                        const rating = individualRatings[i];
+                        const rank = rating >= 100 ? Math.min(13, Math.floor(rating / 100)) : 0;
+                        if (rank > maxRank) maxRank = rank;
+                    });
+
+                    div.style.background = '';
+                    div.style.webkitBackgroundClip = '';
+                    div.style.backgroundClip = '';
+                    div.style.color = 'white';
+                    div.style.animation = '';
+                    div.style.backgroundSize = '';
+
+                    if (combinedRating > 0) {
+                        div.style.color = SCORE_TEXT_COLORS[maxRank];
+                    } else {
+                        div.style.color = 'white';
+                    }
+                }
+            });
+
+            updateMainProgressBarAndRanks();
+            updateRowColors();
+        }
+
+        document.querySelectorAll('.score-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                if (this.value === '0') {
+                    this.select();
+                } else {
+                    setTimeout(() => {
+                        this.setSelectionRange(this.value.length, this.value.length);
+                    }, 0);
+                }
+            });
+
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                const overlay = this.parentElement.querySelector('.score-text-overlay');
+                if (overlay) {
+                    overlay.textContent = this.value;
+                }
+                updateAllRatings();
+            });
+
+            input.addEventListener('blur', function() {
+                if (this.value === '') {
+                    this.value = '0';
+                }
+                const overlay = this.parentElement.querySelector('.score-text-overlay');
+                if (overlay) {
+                    overlay.textContent = this.value;
+                }
+                updateAllRatings();
+            });
+        });
+
+        function updateScoreRequirements() {
+            const time = document.getElementById('timeText').textContent;
+            const stat = document.getElementById('statText').textContent;
+
+            const rows = document.querySelectorAll('.ranks-bars');
+            if (rows.length === 0) return;
+
+            let baseValues = { 0: 0, 1: 0, 2: 0, 3: 0 };
+
+            if (time === '5 Min') {
+                if (stat === 'Baddy Kills') { baseValues[0] = 73; baseValues[1] = 53; baseValues[2] = 68; baseValues[3] = 47; }
+                else if (stat === 'Baddy Points') { baseValues[0] = 53; baseValues[1] = 44; baseValues[2] = 49; baseValues[3] = 34; }
+            } else if (time === '10 Min') {
+                if (stat === 'Baddy Kills') { baseValues[0] = 146; baseValues[1] = 107; baseValues[2] = 141; baseValues[3] = 92; }
+                else if (stat === 'Baddy Points') { baseValues[0] = 107; baseValues[1] = 87; baseValues[2] = 97; baseValues[3] = 68; }
+            } else if (time === '60 Min') {
+                if (stat === 'Baddy Kills') { baseValues[0] = 873; baseValues[1] = 640; baseValues[2] = 844; baseValues[3] = 553; }
+                else if (stat === 'Baddy Points') { baseValues[0] = 669; baseValues[1] = 524; baseValues[2] = 582; baseValues[3] = 407; }
+            }
+
+            allRowThresholds = [];
+
+            rows.forEach((row, rowIndex) => {
+                let base = baseValues[rowIndex];
+                if (base === undefined) base = baseValues[0];
+
+                const bars = row.querySelectorAll('.rank-bar');
+                let values = new Array(15);
+                values[14] = base;
+
+                for (let i = 13; i >= 2; i--) {
+                    const steps = 14 - i;
+                    const decrease = steps * 0.05;
+                    values[i] = Math.max(0, Math.round(base * (1 - decrease)));
+                }
+
+                allRowThresholds[rowIndex] = values.slice(2);
+
+                if (rowIndex <= 3) {
+                    for (let i = 14; i >= 2; i--) {
+                        const box = bars[i];
+                        box.innerHTML = `<span style="transform: skewX(40deg); display: inline-block; color: #fff; font-size: 12px; font-weight: bold;">${values[i]}</span>`;
+                        box.style.display = 'flex';
+                        box.style.alignItems = 'center';
+                        box.style.justifyContent = 'center';
+                    }
+                }
+            });
+            
+            updateAllRatings();
+        }
+
+        function darkenColor(color, amount) {
+            let r, g, b, a = 1;
+            if (color.startsWith('#')) {
+                const hex = color.slice(1);
+                if (hex.length === 3) {
+                    r = parseInt(hex[0] + hex[0], 16);
+                    g = parseInt(hex[1] + hex[1], 16);
+                    b = parseInt(hex[2] + hex[2], 16);
+                } else {
+                    r = parseInt(hex.substring(0, 2), 16);
+                    g = parseInt(hex.substring(2, 4), 16);
+                    b = parseInt(hex.substring(4, 6), 16);
+                }
+            } else if (color.startsWith('rgba')) {
+                const parts = color.match(/[\d.]+/g);
+                r = parseFloat(parts[0]);
+                g = parseFloat(parts[1]);
+                b = parseFloat(parts[2]);
+                a = parseFloat(parts[3]);
+            } else if (color.startsWith('rgb')) {
+                const parts = color.match(/[\d.]+/g);
+                r = parseFloat(parts[0]);
+                g = parseFloat(parts[1]);
+                b = parseFloat(parts[2]);
+            } else {
+                return color;
+            }
+            r = Math.max(0, Math.floor(r * (1 - amount)));
+            g = Math.max(0, Math.floor(g * (1 - amount)));
+            b = Math.max(0, Math.floor(b * (1 - amount)));
+            return `rgba(${r}, ${g}, ${b}, ${a})`;
+        }
+
+        function getContrastColor(color) {
+            let r, g, b;
+            if (color.startsWith('#')) {
+                const hex = color.slice(1);
+                if (hex.length === 3) {
+                    r = parseInt(hex[0] + hex[0], 16);
+                    g = parseInt(hex[1] + hex[1], 16);
+                    b = parseInt(hex[2] + hex[2], 16);
+                } else {
+                    r = parseInt(hex.substring(0, 2), 16);
+                    g = parseInt(hex.substring(2, 4), 16);
+                    b = parseInt(hex.substring(4, 6), 16);
+                }
+            } else if (color.startsWith('rgb')) {
+                const parts = color.match(/[\d.]+/g);
+                if (parts) { r = parseFloat(parts[0]); g = parseFloat(parts[1]); b = parseFloat(parts[2]); }
+            } else { return 'rgba(255, 255, 255, 0.8)'; }
+            
+            const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            
+            if (yiq >= 128) {
+                const factor = 0.3;
+                return `rgba(${Math.round(r * factor)}, ${Math.round(g * factor)}, ${Math.round(b * factor)}, 1)`;
+            } else {
+                const factor = 3.0;
+                const nr = Math.min(255, Math.round(r * factor));
+                const ng = Math.min(255, Math.round(g * factor));
+                const nb = Math.min(255, Math.round(b * factor));
+                return `rgba(${nr}, ${ng}, ${nb}, 1)`;
+            }
+        }
+
+        function updateRowColors() {
+            const scoreInputs = document.querySelectorAll('.score-input');
+            const stripes = document.querySelectorAll('.bg-stripe');
+            
+            scoreInputs.forEach((input, idx) => {
+                const wrapper = input.parentElement;
+                const overlay = wrapper.querySelector('.score-text-overlay');
+                if (!wrapper || !overlay) return;
+
+                let rankIndex = 0;
+                const rating = individualRatings[idx];
+                if (rating > 0) {
+                    rankIndex = Math.min(13, Math.floor(rating / 100));
+                }
+
+                wrapper.style.background = '';
+                overlay.style.background = '';
+                overlay.style.webkitBackgroundClip = '';
+                overlay.style.backgroundClip = '';
+                overlay.style.color = 'white';
+                overlay.style.animation = '';
+                overlay.style.backgroundSize = '';
+
+                if (rankIndex > 0) {
+                    overlay.style.color = SCORE_TEXT_COLORS[rankIndex];
+                    wrapper.style.background = darkenColor(RANK_COLORS[rankIndex], 0.6);
+                }
+            });
+
+            const groups = [
+                [0, 1],
+                [2, 3],
+                [4, 5],
+                [6],
+                [7, 8],
+                [9, 10],
+                [11, 12],
+                [13]
+            ];
+
+            stripes.forEach((stripe, index) => {
+                if (index < groups.length) {
+                    const groupIndices = groups[index];
+                    let maxRank = 0;
+                    groupIndices.forEach(i => {
+                        const rating = individualRatings[i];
+                        const rank = rating >= 100 ? Math.min(13, Math.floor(rating / 100)) : 0;
+                        if (rank > maxRank) maxRank = rank;
+                    });
+
+                    if (maxRank > 1) {
+                        stripe.style.background = `linear-gradient(to right, transparent, ${darkenColor(RANK_COLORS[maxRank], 0.8)})`;
+                    } else if (maxRank === 1) {
+                        stripe.style.background = 'linear-gradient(to right, transparent, rgba(255, 255, 255, 0.05))';
+                    } else {
+                        stripe.style.background = 'none';
+                    }
+                }
+            });
+        }
+
+        // Share Functionality
+        const shareBtn = document.getElementById('shareBtn');
+        const shareModal = document.getElementById('shareModal');
+        const closeShareModal = document.getElementById('closeShareModal');
+        const screenshotContainer = document.getElementById('screenshotContainer');
+        const downloadImageBtn = document.getElementById('downloadImageBtn');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        let currentScreenshotCanvas = null;
+
+        if (shareBtn) {
+            shareBtn.addEventListener('click', async () => {
+                updateAllRatings();
+
+                shareModal.classList.add('show');
+                screenshotContainer.innerHTML = `
+                    <div style="color: #ccc; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                        <div style="width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite;"></div>
+                        <div>Generating screenshot...</div>
+                    </div>
+                    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                `;
+                
+                setTimeout(async () => {
+                    try {
+                        const element = document.getElementById('benchmark-content');
+
+                        const overrideStyle = document.createElement('style');
+                        overrideStyle.id = 'screenshot-trophy-override';
+                        overrideStyle.innerHTML = `
+                            .eternal-layer, .eternal-layer-main, .rank-name::before { display: none !important; }
+                            .ranks-labels .rank-item:nth-child(11) .trophy-layer { filter: sepia(1) hue-rotate(-40deg) saturate(4) brightness(1.1) !important; -webkit-filter: sepia(1) hue-rotate(-40deg) saturate(4) brightness(1.1) !important; }
+                            .ranks-labels .rank-item:nth-child(11) span { color: #FF6F00 !important; background: none !important; -webkit-text-fill-color: #FF6F00 !important; animation: none !important; }
+                            .ranks-labels .rank-item:nth-child(12) .trophy-layer { filter: sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9) !important; -webkit-filter: sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9) !important; }
+                            .ranks-labels .rank-item:nth-child(12) span { color: #D8007F !important; background: none !important; -webkit-text-fill-color: #D8007F !important; animation: none !important; }
+                            .ranks-labels .rank-item:nth-child(13) .trophy-layer { filter: sepia(1) hue-rotate(310deg) saturate(3) brightness(0.8) !important; -webkit-filter: sepia(1) hue-rotate(310deg) saturate(3) brightness(0.8) !important; }
+                            .ranks-labels .rank-item:nth-child(13) span { color: #a64747 !important; background: none !important; -webkit-text-fill-color: #a64747 !important; animation: none !important; }
+                        `;
+                        document.head.appendChild(overrideStyle);
+
+                        const mainRankImg = document.querySelector('.rounded-inner-box img');
+                        const mainRankSpan = document.querySelector('.rounded-inner-box span');
+                        let savedMainImgFilter = null;
+                        let savedMainSpanStyle = null;
+                        if (mainRankImg) {
+                            savedMainImgFilter = mainRankImg.style.filter;
+                            const mainText = document.querySelector('.rounded-inner-box').textContent || '';
+                            if (mainText.includes('Stellar')) {
+                                mainRankImg.style.filter = 'sepia(1) hue-rotate(-40deg) saturate(4) brightness(1.1)';
+                            } else if (mainText.includes('Celestium')) {
+                                mainRankImg.style.filter = 'sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9)';
+                            } else if (mainText.includes('Aeternus')) {
+                                mainRankImg.style.filter = 'sepia(1) hue-rotate(310deg) saturate(3) brightness(0.8)';
+                            }
+                        }
+                        if (mainRankSpan) {
+                            savedMainSpanStyle = mainRankSpan.style.cssText;
+                            const mainText = document.querySelector('.rounded-inner-box').textContent || '';
+                            if (mainText.includes('Stellar')) {
+                                mainRankSpan.style.cssText = savedMainSpanStyle.replace(/background[^;]*;/g, '').replace(/-webkit-background-clip[^;]*;/g, '').replace(/background-clip[^;]*;/g, '').replace(/color: transparent[^;]*/g, 'color: #FF8F00') + ' color: #FF8F00 !important; -webkit-text-fill-color: #FF8F00 !important; background: none !important; animation: none !important;';
+                            } else if (mainText.includes('Celestium')) {
+                                mainRankSpan.style.cssText = savedMainSpanStyle.replace(/background[^;]*;/g, '').replace(/-webkit-background-clip[^;]*;/g, '').replace(/background-clip[^;]*;/g, '').replace(/color: transparent[^;]*/g, 'color: #E91E63') + ' color: #E91E63 !important; -webkit-text-fill-color: #E91E63 !important; background: none !important; animation: none !important;';
+                            } else if (mainText.includes('Aeternus')) {
+                                mainRankSpan.style.cssText = savedMainSpanStyle.replace(/background[^;]*;/g, '').replace(/-webkit-background-clip[^;]*;/g, '').replace(/background-clip[^;]*;/g, '').replace(/color: transparent[^;]*/g, 'color: #a64747') + ' color: #a64747 !important; -webkit-text-fill-color: #a64747 !important; background: none !important; animation: none !important;';
+                            }
+                        }
+
+                        const dataUrl = await modernScreenshot.domToPng(element, {
+                            scale: 2,
+                            backgroundColor: '#050505',
+                            style: { margin: '0', padding: '0' },
+                            filter: (node) => {
+                                if (node.id === 'shareModal' || node.id === 'rulesModal') return false;
+                                if (node.nodeType === 1 && node.tagName === 'STYLE' && node.id === 'screenshot-trophy-override') return true;
+                                return true;
+                            },
+                            onClone: (doc) => {
+                                const style = doc.createElement('style');
+                                style.innerHTML = `
+                                    * { animation: none !important; transition: none !important; }
+                                    .rank-name::before { display: none !important; }
+                                    .rounded-inner-box span::before { display: none !important; }
+                                `;
+                                doc.head.appendChild(style);
+
+                                doc.querySelectorAll('.eternal-layer').forEach(el => {
+                                    const item = el.closest('.rank-item');
+                                    if (!item) { el.remove(); return; }
+                                    const trophyLayer = item.querySelector('.trophy-layer');
+                                    const rankName = item.querySelector('.rank-name');
+                                    const name = rankName ? rankName.textContent.trim() : '';
+                                    if (name === 'Stellar' && trophyLayer) {
+                                        trophyLayer.style.filter = 'sepia(1) hue-rotate(-40deg) saturate(4) brightness(1.1)';
+                                    } else if (name === 'Celestium' && trophyLayer) {
+                                        trophyLayer.style.filter = 'sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9)';
+                                    } else if (name === 'Aeternus' && trophyLayer) {
+                                        trophyLayer.style.filter = 'sepia(1) hue-rotate(310deg) saturate(3) brightness(0.8)';
+                                    }
+                                    el.remove();
+                                });
+                                doc.querySelectorAll('.eternal-layer-main').forEach(el => el.remove());
+
+                                const mainRankBox = doc.querySelector('.rounded-inner-box');
+                                if (mainRankBox) {
+                                    const text = mainRankBox.textContent || '';
+                                    const mainSpan = mainRankBox.querySelector('span');
+                                    const mainImg = mainRankBox.querySelector('img');
+                                    let targetColor = '';
+                                    let targetFilter = '';
+                                    if (text.includes('Stellar')) { targetColor = '#FF6F00'; targetFilter = 'sepia(1) hue-rotate(-40deg) saturate(4) brightness(1.1)'; }
+                                    else if (text.includes('Celestium')) { targetColor = '#D8007F'; targetFilter = 'sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9)'; }
+                                    else if (text.includes('Aeternus')) { targetColor = '#a64747'; targetFilter = 'sepia(1) hue-rotate(310deg) saturate(3) brightness(0.8)'; }
+                                    if (mainSpan && targetColor) {
+                                        mainSpan.style.cssText = `background: none !important; -webkit-text-fill-color: ${targetColor} !important; -webkit-background-clip: unset !important; background-clip: unset !important; animation: none !important; color: ${targetColor} !important; display: block; margin-top: 5px; line-height: 1.2; font-size: 25px; font-weight: bold; font-family: 'Times New Roman', Times, serif;`;
+                                    }
+                                    if (mainImg && targetFilter) {
+                                        mainImg.style.filter = targetFilter;
+                                        mainImg.style.webkitFilter = targetFilter;
+                                    }
+                                }
+
+                                const origHoneycomb = document.getElementById('dynamic-honeycomb-style');
+                                if (origHoneycomb) {
+                                    const clonedHoneycomb = doc.createElement('style');
+                                    clonedHoneycomb.id = 'dynamic-honeycomb-style';
+                                    clonedHoneycomb.innerHTML = origHoneycomb.innerHTML;
+                                    doc.head.appendChild(clonedHoneycomb);
+                                }
+                            }
+                        });
+
+                        const injectedOverride = document.getElementById('screenshot-trophy-override');
+                        if (injectedOverride) injectedOverride.remove();
+                        if (mainRankImg && savedMainImgFilter !== null) {
+                            mainRankImg.style.filter = savedMainImgFilter;
+                        }
+                        if (mainRankSpan && savedMainSpanStyle !== null) {
+                            mainRankSpan.style.cssText = savedMainSpanStyle;
+                        }
+                        
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0);
+                            currentScreenshotCanvas = canvas;
+                            
+                            const displayImg = document.createElement('img');
+                            displayImg.src = dataUrl;
+                            screenshotContainer.innerHTML = '';
+                            screenshotContainer.appendChild(displayImg);
+                        };
+                        img.src = dataUrl;
+                        
+                    } catch (err) {
+                        console.error('Screenshot error:', err);
+                        screenshotContainer.innerHTML = `<div style="color: #ff4444; padding: 20px;">Error: ${err.message}</div>`;
+                    }
+                }, 100);
+            });
+        }
+
+        closeShareModal.addEventListener('click', () => {
+            shareModal.classList.remove('show');
+            shareModal.style.display = '';
+        });
+        shareModal.addEventListener('click', (e) => { 
+            if (e.target === shareModal) {
+                shareModal.classList.remove('show');
+                shareModal.style.display = '';
+            }
+        });
+
+        downloadImageBtn.addEventListener('click', () => {
+            if (currentScreenshotCanvas) {
+                const link = document.createElement('a');
+                link.download = 'benchmark-result.png';
+                link.href = currentScreenshotCanvas.toDataURL('image/png');
+                link.click();
+            }
+        });
+
+        // Rules Modal Functionality
+        const rulesBtn = document.getElementById('rulesBtn');
+        const rulesModal = document.getElementById('rulesModal');
+        const closeRulesModal = document.getElementById('closeRulesModal');
+
+        function closeRules() {
+            rulesModal.classList.add('closing');
+            setTimeout(() => {
+                rulesModal.classList.remove('show');
+                rulesModal.classList.remove('closing');
+            }, 200);
+        }
+
+        if (rulesBtn) {
+            rulesBtn.addEventListener('click', () => {
+                rulesModal.classList.add('show');
+            });
+        }
+
+        if (closeRulesModal) {
+            closeRulesModal.addEventListener('click', closeRules);
+        }
+
+        if (rulesModal) {
+            rulesModal.addEventListener('click', (e) => {
+                if (e.target === rulesModal) closeRules();
+            });
+        }
+
+        updateScoreRequirements();
+
+        // IMPROVED ZOOM HANDLING - FIXED VERSION
+        function handleZoom() {
+            const wrapper = document.getElementById('responsive-wrapper');
+            const content = document.getElementById('benchmark-content');
+            if (!wrapper || !content) return;
+
+            const baseWidth = 1584;
+            
+            // Calculate available width with padding
+            const availableWidth = document.documentElement.clientWidth - 40;
+            
+            const scale = Math.min(1, availableWidth / baseWidth);
+            
+            content.style.width = baseWidth + 'px';
+            content.style.transform = `scale(${scale})`;
+            content.style.transformOrigin = 'top center';
+            
+            wrapper.style.justifyContent = 'center';
+            wrapper.style.overflowX = 'hidden';
+        }
+
+        // Listen to resize events
+        window.addEventListener('resize', handleZoom);
+        window.addEventListener('load', handleZoom);
+        
+        // Detect zoom changes
+        let lastWidth = window.innerWidth;
+        setInterval(() => {
+            if (window.innerWidth !== lastWidth) {
+                lastWidth = window.innerWidth;
+                handleZoom();
+            }
+        }, 100);
+        
+        // Initial call
+        handleZoom();
+    </script>
+</body>
+</html>
