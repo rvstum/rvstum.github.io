@@ -260,6 +260,25 @@ function buildProfileSlug(username, accountId, fallbackId = '') {
     return `${namePart}-${tail}`;
 }
 
+function getRequestedProfileSlugFromPath() {
+    const path = (window.location.pathname || '').replace(/\/+$/, '');
+    const base = getBenchmarkBasePath();
+    if (!path.startsWith(base)) return null;
+    let remainder = path.slice(base.length);
+    remainder = remainder.replace(/^\/+/, '');
+    if (!remainder) return null;
+    const segments = remainder.split('/').filter(Boolean);
+    if (!segments.length) return null;
+    const first = segments[0].toLowerCase();
+    if (first === 'sign-up' || first === 'forgot-password' || first === 'verification-sent' || first === 'benchmark.html' || first === 'index.html') {
+        return null;
+    }
+    if (segments.length > 1 && segments[1].toLowerCase() !== 'view-mode') {
+        return null;
+    }
+    return segments[0];
+}
+
 function updateOwnProfileUrl(user, data) {
     if (!user) return;
     const params = new URLSearchParams(window.location.search);
@@ -7796,7 +7815,22 @@ function initCustomThemePicker() {
 
 async function handleProfileLink() {
     const params = new URLSearchParams(window.location.search);
-    const profileId = params.get('id');
+    let profileId = params.get('id');
+    const requestedSlug = getRequestedProfileSlugFromPath();
+    let profileDocFromSlug = null;
+
+    if (!profileId && requestedSlug) {
+        try {
+            const slugQuery = query(collection(db, 'users'), where('publicSlug', '==', requestedSlug));
+            const slugSnapshot = await getDocs(slugQuery);
+            if (!slugSnapshot.empty) {
+                profileDocFromSlug = slugSnapshot.docs[0];
+                profileId = profileDocFromSlug.id;
+            }
+        } catch (slugErr) {
+            console.error('Error resolving profile slug:', slugErr);
+        }
+    }
     if (!profileId) return;
 
     // Wait for auth to initialize
@@ -7820,7 +7854,9 @@ async function handleProfileLink() {
     }, 12000);
 
     try {
-        const docSnap = await getDoc(doc(db, 'users', profileId));
+        const docSnap = profileDocFromSlug && profileDocFromSlug.id === profileId
+            ? profileDocFromSlug
+            : await getDoc(doc(db, 'users', profileId));
         if (!docSnap.exists()) {
             alert('User not found');
             window.location.href = getBenchmarkAppEntryUrl();
@@ -10641,6 +10677,16 @@ if (copyLinkBtn) {
     };
     const copyBenchmarkLinkToClipboard = async () => {
         const link = buildCopyLinkUrl();
+        try {
+            const user = auth.currentUser;
+            if (user) {
+                const parts = new URL(link).pathname.split('/').filter(Boolean);
+                const slug = parts.length ? parts[parts.length - 1] : '';
+                if (slug) await saveUserData({ publicSlug: slug });
+            }
+        } catch (slugSaveErr) {
+            console.warn('Unable to sync public slug before copy:', slugSaveErr);
+        }
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(link);
         } else {
@@ -12341,20 +12387,32 @@ function normalizeCellImagePaths() {
         const raw = img.getAttribute('src') || '';
         const match = raw.match(/cellimage_[0-9]+_[0-9]+\.jpg/i) || raw.match(/cellImage_[0-9]+_[0-9]+\.jpg/i);
         if (!match) return;
-        const fileName = match[0].replace(/^cellimage_/i, 'cellImage_');
-        const primary = `/icons/${fileName}`;
-        if (img.getAttribute('src') !== primary) {
-            img.setAttribute('src', primary);
-        }
+        const properCaseName = match[0].replace(/^cellimage_/i, 'cellImage_');
+        const lowerCaseName = properCaseName.replace(/^cellImage_/, 'cellimage_');
+        const candidates = [
+            `/icons/${properCaseName}`,
+            `${getBenchmarkBasePath()}/icons/${properCaseName}`,
+            `/icons/${lowerCaseName}`,
+            `${getBenchmarkBasePath()}/icons/${lowerCaseName}`
+        ];
+        let candidateIndex = 0;
+        const applyCandidate = (index) => {
+            if (index >= candidates.length) return;
+            candidateIndex = index;
+            const nextSrc = candidates[index];
+            if (img.getAttribute('src') !== nextSrc) {
+                img.setAttribute('src', nextSrc);
+            }
+        };
+        applyCandidate(0);
         if (img.dataset.cellFallbackBound === '1') return;
         img.dataset.cellFallbackBound = '1';
         img.addEventListener('error', () => {
-            const current = img.getAttribute('src') || '';
-            const fallback = `${getBenchmarkBasePath()}/icons/${fileName}`;
-            if (current !== fallback) {
-                img.setAttribute('src', fallback);
-            }
+            applyCandidate(candidateIndex + 1);
         });
+        if (img.complete && img.naturalWidth === 0) {
+            applyCandidate(candidateIndex + 1);
+        }
     });
 }
 
@@ -13403,6 +13461,16 @@ async function loadUserProfile(user) {
                 updateAccountIdUI(newId);
                 updateFriendPageAccountId(newId);
             }
+            {
+                const effectiveAccountId = data.accountId || localStorage.getItem('benchmark_account_id') || '';
+                const effectiveUsername = data.username || user.displayName || '';
+                if (effectiveUsername && effectiveAccountId) {
+                    const desiredSlug = buildProfileSlug(effectiveUsername, effectiveAccountId, user.uid);
+                    if (data.publicSlug !== desiredSlug) {
+                        await saveUserData({ publicSlug: desiredSlug });
+                    }
+                }
+            }
 
             if (data.settings) {
                 if (data.settings.language) {
@@ -13680,10 +13748,13 @@ if (saveProfileBtn) {
             updateMainHeaderLayout();
 
             const profileData = cleanProfileData(draftProfileState, editingGuilds);
+            const accountIdForSlug = localStorage.getItem('benchmark_account_id') || '';
+            const publicSlug = buildProfileSlug(username, accountIdForSlug, user.uid);
             // Save username and profile data to Firestore
             await setDoc(doc(db, 'users', user.uid), {
                 username: username,
-                profile: profileData
+                profile: profileData,
+                publicSlug
             }, { merge: true });
             
             originalProfileState = {
@@ -14991,10 +15062,13 @@ if (saveOnboardingBtn) {
             updateMainHeaderLayout();
 
             const profileData = cleanProfileData(draftProfileState, editingGuilds);
+            const accountIdForSlug = localStorage.getItem('benchmark_account_id') || '';
+            const publicSlug = buildProfileSlug(username, accountIdForSlug, user.uid);
 
             await setDoc(doc(db, 'users', user.uid), {
                 username: username,
                 profile: profileData,
+                publicSlug,
                 isNewUser: false // Mark as done
             }, { merge: true });
 
