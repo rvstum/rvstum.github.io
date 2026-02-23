@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Sent - Benchmark</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <h1 class="app-title">Benchmark</h1>
+    <div class="login-container" style="position: relative;">
+                <select id="authLanguageSelect" class="auth-lang-select">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="pt-BR">Português (Brasil)</option>
+        </select>
+        <h2 style="margin-bottom: 15px;" data-auth-i18n="verification_heading">Check Your Email</h2>
+        <div style="text-align: center; color: #ccc; margin-bottom: 25px; font-size: 14px; line-height: 1.6;" data-auth-i18n-html="verification_message_html">
+            We've sent a verification link to your email address.<br>
+            Please check your <strong>spam folder</strong>.
+        </div>
+        <button id="loginRedirectBtn" class="btn btn-primary" data-auth-i18n="btn_go_to_login">Go to Login</button>
+    </div>
+    <footer class="legal-footer auth-footer">
+        <div class="benchmark-footer-inner">
+            <div class="legal-footer-icon-wrap">
+                <img class="legal-baddy-icon" src="../icons/baddy.png" alt="Baddy icon">
+            </div>
+            <div class="legal-footer-text"><span data-auth-i18n="footer_site_made_by">Site made by</span> <span class="legal-author">Rustum</span>.</div>
+            <div class="legal-footer-disclaimer" data-auth-i18n="footer_disclaimer">This site is not affiliated, maintained, endorsed or sponsored by GraalOnline, All assets &copy; 2026 GraalOnline</div>
+            <div class="legal-footer-links">
+                <a href="../terms-and-condition/index.html?from=benchmark&returnTo=verification-sent" target="_blank" rel="noopener noreferrer" data-auth-i18n="footer_terms">Terms &amp; Conditions</a>
+                <span class="legal-divider">|</span>
+                <a href="../privacy-policy/index.html?from=benchmark&returnTo=verification-sent" target="_blank" rel="noopener noreferrer" data-auth-i18n="footer_privacy">Privacy Policy</a>
+                <span class="legal-divider">|</span>
+                <a href="../cookie-policy/index.html?from=benchmark&returnTo=verification-sent" target="_blank" rel="noopener noreferrer" data-auth-i18n="footer_cookie">Cookie Policy</a>
+                <span class="legal-divider">|</span>
+                <a href="../dmca-copyright-policy/index.html?from=benchmark&returnTo=verification-sent" target="_blank" rel="noopener noreferrer" data-auth-i18n="footer_dmca">DMCA Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="auth-i18n.js"></script>
+    <script src="footer-baddy.js"></script>
+    <script>
+        document.getElementById('loginRedirectBtn').addEventListener('click', () => {
+            window.location.href = 'login.html';
+        });
+
+        const langSelect = document.getElementById('authLanguageSelect');
+        const savedLang = localStorage.getItem('benchmark_language') || 'en';
+        if(langSelect) {
+            langSelect.value = savedLang;
+            if (window.applyAuthTranslations) window.applyAuthTranslations('verification');
+            langSelect.addEventListener('change', function() {
+                localStorage.setItem('benchmark_language', this.value);
+                if (window.applyAuthTranslations) window.applyAuthTranslations('verification');
+            });
+        } else if (window.applyAuthTranslations) {
+            window.applyAuthTranslations('verification');
+        }
+    </script>
+</body>
+</html>
+
