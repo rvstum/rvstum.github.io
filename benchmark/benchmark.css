@@ -3625,27 +3625,42 @@ input:-webkit-autofill:active {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--app-bg);
+    background-color: #121212;
     z-index: 20000;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
+    gap: 18px;
 }
 
-.private-profile-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
+.private-profile-back-login {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
-.private-profile-title { color: #fff; font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-.private-profile-msg { color: #888; font-size: 14px; margin-bottom: 30px; max-width: 300px; line-height: 1.5; }
+.private-profile-back-login:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.private-profile-msg-main {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    max-width: 760px;
+    padding: 0 20px;
+}
 
 .auth-lang-select {
     position: absolute;

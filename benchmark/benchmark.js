@@ -152,6 +152,9 @@ let lastProgressInRank = 0;
 let rowFillAnimationStates = [];
 let focusedInputIndex = -1;
 let activeViewProfileContext = null;
+const PAGE_LOADER_MIN_VISIBLE_MS = 1300;
+let pageLoaderHideTimeout = null;
+const pageLoaderStartedAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 
 function normalizeFriendRequestIds(rawRequests) {
     const normalized = [];
@@ -7931,7 +7934,7 @@ async function handleProfileLink() {
     const loader = document.getElementById('pageLoader');
     if (loader) loader.style.display = 'flex';
     const loaderSafetyTimeout = setTimeout(() => {
-        if (loader) loader.style.display = 'none';
+        hidePageLoader({ immediate: true });
     }, 12000);
 
     try {
@@ -7981,17 +7984,17 @@ async function handleProfileLink() {
             if (!isAllowed) {
                 const privatePage = document.getElementById('privateProfilePage');
                 if (privatePage) privatePage.style.display = 'flex';
-                if (loader) loader.style.display = 'none';
+                hidePageLoader();
                 return;
             }
         }
 
         await enterViewMode(data, profileId);
-        if (loader) loader.style.display = 'none';
+        hidePageLoader();
 
     } catch (e) {
         console.error("Error loading profile from link:", e);
-        if (loader) loader.style.display = 'none';
+        hidePageLoader();
     } finally {
         clearTimeout(loaderSafetyTimeout);
     }
@@ -11148,6 +11151,12 @@ const privateHomeBtn = document.getElementById('privateProfileHomeBtn');
 if (privateHomeBtn) {
     privateHomeBtn.addEventListener('click', () => {
         window.location.href = getBenchmarkAppEntryUrl();
+    });
+}
+const privateBackLoginBtn = document.getElementById('privateProfileBackLoginBtn');
+if (privateBackLoginBtn) {
+    privateBackLoginBtn.addEventListener('click', () => {
+        window.location.href = getBenchmarkLoginUrl();
     });
 }
 
@@ -15061,11 +15070,28 @@ if (profileUsernameInput) {
 
 requestAnimationFrame(syncUserMenuDropdownWidth);
 
-function hidePageLoader() {
+function hidePageLoader(options = {}) {
     const loader = document.getElementById('pageLoader');
-    if (loader) {
-        loader.style.display = 'none';
-    }
+    if (!loader) return;
+    if (loader.style.display === 'none') return;
+
+    const immediate = !!options.immediate;
+    const minVisibleMs = Number.isFinite(options.minVisibleMs) ? Math.max(0, options.minVisibleMs) : PAGE_LOADER_MIN_VISIBLE_MS;
+    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const elapsed = now - pageLoaderStartedAt;
+    const delay = immediate ? 0 : Math.max(0, minVisibleMs - elapsed);
+
+    if (pageLoaderHideTimeout) clearTimeout(pageLoaderHideTimeout);
+    pageLoaderHideTimeout = setTimeout(() => {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 520);
+            });
+        });
+    }, delay);
 }
 
 // Onboarding Logic
