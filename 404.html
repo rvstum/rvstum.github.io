@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting...</title>
+  <script>
+    (function () {
+      var path = window.location.pathname || '';
+      var lower = path.toLowerCase();
+      var isBenchmarkRoute = lower.indexOf('/benchmark/') >= 0 || lower === '/benchmark';
+      var isKnownBenchmarkPath =
+        lower === '/benchmark' ||
+        lower === '/benchmark/' ||
+        lower === '/benchmark/sign-up' ||
+        lower === '/benchmark/sign-up/' ||
+        lower === '/benchmark/forgot-password' ||
+        lower === '/benchmark/forgot-password/' ||
+        lower === '/benchmark/verification-sent' ||
+        lower === '/benchmark/verification-sent/' ||
+        lower === '/benchmark/benchmark.html' ||
+        lower === '/benchmark/index.html';
+
+      var hasFileExtension = /\.[a-z0-9]+$/i.test(path);
+
+      if (isBenchmarkRoute && !isKnownBenchmarkPath && !hasFileExtension) {
+        window.location.replace('/benchmark/');
+        return;
+      }
+
+      window.location.replace('/benchmark/');
+    })();
+  </script>
+</head>
+<body>
+  Redirecting...
+</body>
+</html>
