@@ -211,6 +211,11 @@ function getBenchmarkBasePath() {
     return fallback || '/benchmark';
 }
 
+function isLocalDevRoutingEnv() {
+    const host = (window.location.hostname || '').toLowerCase();
+    return host === 'localhost' || host === '127.0.0.1' || window.location.protocol === 'file:';
+}
+
 function restorePathFromFallback() {
     try {
         const url = new URL(window.location.href);
@@ -234,6 +239,7 @@ function getBenchmarkLoginUrl() {
 }
 
 function getBenchmarkAppEntryUrl() {
+    if (isLocalDevRoutingEnv()) return `${getBenchmarkBasePath()}/benchmark.html`;
     return `${getBenchmarkBasePath()}/`;
 }
 
@@ -297,6 +303,14 @@ function updateOwnProfileUrl(user, data) {
     const username = (data && data.username) || profile.username || user.displayName || 'player';
     const accountId = (data && data.accountId) || localStorage.getItem('benchmark_account_id') || '';
     const slug = buildProfileSlug(username, accountId, user.uid);
+    if (isLocalDevRoutingEnv()) {
+        const target = `${getBenchmarkBasePath()}/benchmark.html`;
+        const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        if (current !== target) {
+            window.history.replaceState({}, '', target);
+        }
+        return;
+    }
     const targetPath = `${getBenchmarkBasePath()}/${slug}`;
     const currentPath = (window.location.pathname || '').replace(/\/+$/, '');
     if (currentPath !== targetPath) {
@@ -309,6 +323,19 @@ function updateViewProfileUrl(data, uid) {
     const username = (data && data.username) || profile.username || 'player';
     const accountId = (data && data.accountId) || '';
     const slug = buildProfileSlug(username, accountId, uid || '');
+    if (isLocalDevRoutingEnv()) {
+        const url = new URL(window.location.href);
+        url.pathname = `${getBenchmarkBasePath()}/benchmark.html`;
+        if (uid) url.searchParams.set('id', uid);
+        else url.searchParams.delete('id');
+        url.hash = '';
+        const target = `${url.pathname}${url.search}`;
+        const current = `${window.location.pathname}${window.location.search}`;
+        if (current !== target) {
+            window.history.replaceState({}, '', target);
+        }
+        return;
+    }
     const targetPath = `${getBenchmarkBasePath()}/${slug}`;
     const currentPath = (window.location.pathname || '').replace(/\/+$/, '');
     if (currentPath !== targetPath) {
@@ -755,9 +782,17 @@ function buildCopyLinkUrl() {
         ? (context.uid || '')
         : (user ? user.uid : '');
     const slug = buildProfileSlug(username, accountId, fallbackId);
-    const url = new URL(window.location.origin);
-    url.pathname = `${getBenchmarkBasePath()}/${slug}`;
-    url.search = '';
+    const url = new URL(window.location.href);
+    if (isLocalDevRoutingEnv()) {
+        url.pathname = `${getBenchmarkBasePath()}/benchmark.html`;
+        url.search = '';
+        const targetId = context ? (context.uid || '') : (user ? user.uid : '');
+        if (targetId) url.searchParams.set('id', targetId);
+        else url.searchParams.delete('id');
+    } else {
+        url.pathname = `${getBenchmarkBasePath()}/${slug}`;
+        url.search = '';
+    }
     url.hash = '';
     return url.toString();
 }
@@ -13623,12 +13658,26 @@ async function loadUserProfile(user) {
 }
 
 onAuthStateChanged(auth, async (user) => {
-    if (hasRequestedProfileRoute()) {
-        hidePageLoader();
-        return;
-    }
     const params = new URLSearchParams(window.location.search);
     const profileId = params.get('id');
+    const requestedSlug = getRequestedProfileSlugFromPath();
+
+    // Keep shared-profile links in view-mode flow, but allow own slug route to load normally.
+    if (requestedSlug) {
+        if (!user) {
+            hidePageLoader();
+            return;
+        }
+        try {
+            const requestedDoc = await resolveProfileDocBySlug(requestedSlug);
+            if (requestedDoc && requestedDoc.id !== user.uid) {
+                hidePageLoader();
+                return;
+            }
+        } catch (slugErr) {
+            console.warn('Slug ownership check failed in auth handler:', slugErr);
+        }
+    }
 
     if (user) {
     if (profileId && profileId !== user.uid) {

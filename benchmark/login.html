@@ -117,6 +117,10 @@
           if (!clean) return '0000';
           return clean.slice(-4).toLowerCase();
       };
+      const isLocalDevRoutingEnv = () => {
+          const host = (window.location.hostname || '').toLowerCase();
+          return host === 'localhost' || host === '127.0.0.1' || window.location.protocol === 'file:';
+      };
       const resolveSignedInUrl = async (user) => {
           if (!user) return `${getBenchmarkBasePath()}/`;
           let username = user.displayName || 'player';
@@ -132,6 +136,9 @@
               }
           } catch (e) {
               console.warn('Failed to resolve signed-in profile URL, using fallback.', e);
+          }
+          if (isLocalDevRoutingEnv()) {
+              return `${getBenchmarkBasePath()}/benchmark.html`;
           }
           const slug = `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
           return `${getBenchmarkBasePath()}/${slug}`;
