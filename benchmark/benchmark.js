@@ -215,7 +215,7 @@ function getBenchmarkLoginUrl() {
 }
 
 function getBenchmarkAppEntryUrl() {
-    return `${getBenchmarkBasePath()}/benchmark.html`;
+    return `${getBenchmarkBasePath()}/`;
 }
 
 function slugifyProfileSegment(value) {
