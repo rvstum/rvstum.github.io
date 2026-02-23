@@ -7947,6 +7947,12 @@ async function handleProfileLink() {
     }
 }
 
+function hasRequestedProfileRoute() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) return true;
+    return !!getRequestedProfileSlugFromPath();
+}
+
 function getCurrentConfig() {
     const platformText = document.getElementById('platformText');
     const timeText = document.getElementById('timeText');
@@ -12684,6 +12690,8 @@ if (imageViewerModal) {
     bindModalOverlayQuickClose(imageViewerModal, closeImageViewerModalUI);
 }
 
+window.addEventListener('resize', syncUserMenuDropdownWidth);
+
 function updateMainHeaderLayout() {
     const pic = localStorage.getItem('benchmark_profile_pic');
     const flag = localStorage.getItem('benchmark_country_flag');
@@ -12739,6 +12747,20 @@ function updateMainHeaderLayout() {
     } else {
         flagEl.style.display = 'none';
     }
+    syncUserMenuDropdownWidth();
+}
+
+function syncUserMenuDropdownWidth() {
+    const box = document.getElementById('userMenuBox');
+    if (!box) return;
+    const menu = box.querySelector('.dropdown-menu');
+    if (!menu) return;
+    const minimum = 170;
+    const boxWidth = Math.ceil(box.getBoundingClientRect().width || box.offsetWidth || 0);
+    const target = Math.max(minimum, boxWidth);
+    menu.style.width = `${target}px`;
+    menu.style.minWidth = `${minimum}px`;
+    menu.style.maxWidth = `${Math.max(target, minimum)}px`;
 }
 
 function generateAccountId() {
@@ -13439,6 +13461,7 @@ async function loadUserProfile(user) {
                 document.querySelector('.profile-name').textContent = username;
                 const userMenuName = document.getElementById('userMenuUsername');
                 if (userMenuName) userMenuName.textContent = username;
+                syncUserMenuDropdownWidth();
             }
             
             if (data.profile) {
@@ -13586,6 +13609,10 @@ async function loadUserProfile(user) {
 }
 
 onAuthStateChanged(auth, async (user) => {
+    if (hasRequestedProfileRoute()) {
+        hidePageLoader();
+        return;
+    }
     const params = new URLSearchParams(window.location.search);
     const profileId = params.get('id');
 
@@ -13659,6 +13686,7 @@ onAuthStateChanged(auth, async (user) => {
             console.warn('Failed to update profile URL slug:', urlErr);
         }
         setRadarMode('combined', false);
+        syncUserMenuDropdownWidth();
         hidePageLoader();
     } else {
         if (profileId) {
@@ -13753,6 +13781,7 @@ if (saveProfileBtn) {
                 document.querySelector('.profile-name').textContent = username;
                 const userMenuName = document.getElementById('userMenuUsername');
                 if (userMenuName) userMenuName.textContent = username;
+                syncUserMenuDropdownWidth();
             }
             
             if (draftProfileState.pic) {
@@ -14964,6 +14993,8 @@ if (profileUsernameInput) {
         updateProfileButtons();
     });
 }
+
+requestAnimationFrame(syncUserMenuDropdownWidth);
 
 function hidePageLoader() {
     const loader = document.getElementById('pageLoader');
