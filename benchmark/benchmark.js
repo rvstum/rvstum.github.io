@@ -151,6 +151,7 @@ let userAchievements = {};
 let lastProgressInRank = 0;
 let rowFillAnimationStates = [];
 let focusedInputIndex = -1;
+let activeViewProfileContext = null;
 
 function normalizeFriendRequestIds(rawRequests) {
     const normalized = [];
@@ -304,6 +305,36 @@ function updateViewProfileUrl(data, uid) {
     if (currentPath !== targetPath) {
         window.history.replaceState({}, '', targetPath);
     }
+}
+
+async function resolveProfileDocBySlug(slug) {
+    if (!slug) return null;
+    const trimmedSlug = String(slug).trim();
+    if (!trimmedSlug) return null;
+
+    try {
+        const directQuery = query(collection(db, 'users'), where('publicSlug', '==', trimmedSlug));
+        const directSnap = await getDocs(directQuery);
+        if (!directSnap.empty) return directSnap.docs[0];
+    } catch (e) {
+        console.warn('publicSlug query failed, trying fallback slug scan:', e);
+    }
+
+    try {
+        const allUsersSnap = await getDocs(collection(db, 'users'));
+        for (const userDoc of allUsersSnap.docs) {
+            const data = userDoc.data() || {};
+            const profile = (data.profile && typeof data.profile === 'object') ? data.profile : {};
+            const username = data.username || profile.username || '';
+            const accountId = data.accountId || '';
+            const candidate = buildProfileSlug(username, accountId, userDoc.id);
+            if (candidate === trimmedSlug) return userDoc;
+        }
+    } catch (e) {
+        console.error('Fallback slug scan failed:', e);
+    }
+
+    return null;
 }
 
 async function resolveUserDocByIdentifier(identifier) {
@@ -689,11 +720,19 @@ function buildShareUrl() {
 }
 
 function buildCopyLinkUrl() {
-    const usernameEl = document.querySelector('.profile-name');
-    const username = usernameEl ? usernameEl.textContent : 'player';
-    const accountId = localStorage.getItem('benchmark_account_id') || '';
     const user = auth.currentUser;
-    const slug = buildProfileSlug(username, accountId, user ? user.uid : '');
+    const context = isViewMode && activeViewProfileContext ? activeViewProfileContext : null;
+    const usernameEl = document.querySelector('.profile-name');
+    const username = context
+        ? (context.username || 'player')
+        : (usernameEl ? usernameEl.textContent : 'player');
+    const accountId = context
+        ? (context.accountId || '')
+        : (localStorage.getItem('benchmark_account_id') || '');
+    const fallbackId = context
+        ? (context.uid || '')
+        : (user ? user.uid : '');
+    const slug = buildProfileSlug(username, accountId, fallbackId);
     const url = new URL(window.location.origin);
     url.pathname = `${getBenchmarkBasePath()}/${slug}`;
     url.search = '';
@@ -7820,16 +7859,8 @@ async function handleProfileLink() {
     let profileDocFromSlug = null;
 
     if (!profileId && requestedSlug) {
-        try {
-            const slugQuery = query(collection(db, 'users'), where('publicSlug', '==', requestedSlug));
-            const slugSnapshot = await getDocs(slugQuery);
-            if (!slugSnapshot.empty) {
-                profileDocFromSlug = slugSnapshot.docs[0];
-                profileId = profileDocFromSlug.id;
-            }
-        } catch (slugErr) {
-            console.error('Error resolving profile slug:', slugErr);
-        }
+        profileDocFromSlug = await resolveProfileDocBySlug(requestedSlug);
+        if (profileDocFromSlug) profileId = profileDocFromSlug.id;
     }
     if (!profileId) return;
 
@@ -11712,6 +11743,14 @@ async function enterViewMode(data, uid) {
 
     saveCurrentScores();
     updateViewProfileUrl(data, uid);
+    {
+        const profile = (data && typeof data.profile === 'object' && data.profile) ? data.profile : {};
+        activeViewProfileContext = {
+            uid: uid || '',
+            username: (data && data.username) || profile.username || 'player',
+            accountId: (data && data.accountId) || ''
+        };
+    }
     isViewMode = true;
     document.body.classList.add('view-mode');
     
@@ -11924,6 +11963,7 @@ if (exitViewModeBtn) {
         }
 
         isViewMode = false;
+        activeViewProfileContext = null;
         document.body.classList.remove('view-mode');
         
         const userMenuBox = document.getElementById('userMenuBox');
