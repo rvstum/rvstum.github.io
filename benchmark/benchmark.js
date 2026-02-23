@@ -650,6 +650,23 @@ function buildShareUrl() {
     return url.toString();
 }
 
+function buildCopyLinkUrl() {
+    const visibilityEl = document.getElementById('visibilitySelect');
+    const visibility = visibilityEl && visibilityEl.value ? visibilityEl.value : (localStorage.getItem(VISIBILITY_STORAGE_KEY) || 'everyone');
+    if (visibility === 'everyone') {
+        const usernameEl = document.querySelector('.profile-name');
+        const username = usernameEl ? usernameEl.textContent : 'player';
+        const accountId = localStorage.getItem('benchmark_account_id') || '';
+        const slug = `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
+        const url = new URL(window.location.origin);
+        url.pathname = `${getBenchmarkBasePath()}/${slug}/view-mode`;
+        url.search = '';
+        url.hash = '';
+        return url.toString();
+    }
+    return buildShareUrl();
+}
+
 function applyShareFromUrl() {
     if (!window.location.hash || window.location.hash.length < 2) return;
     const params = new URLSearchParams(window.location.hash.slice(1));
@@ -10608,7 +10625,7 @@ if (copyLinkBtn) {
         copyFeedbackTimers.set(el, nextTimer);
     };
     const copyBenchmarkLinkToClipboard = async () => {
-        const link = buildShareUrl();
+        const link = buildCopyLinkUrl();
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(link);
         } else {
@@ -11840,7 +11857,7 @@ if (exitViewModeBtn) {
     exitViewModeBtn.addEventListener('click', async () => {
         const user = auth.currentUser;
         if (!user) {
-            window.location.reload();
+            window.location.href = getBenchmarkLoginUrl();
             return;
         }
 
