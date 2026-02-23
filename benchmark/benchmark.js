@@ -210,6 +210,24 @@ function getBenchmarkBasePath() {
     return fallback || '/benchmark';
 }
 
+function restorePathFromFallback() {
+    try {
+        const url = new URL(window.location.href);
+        const restoreRaw = url.searchParams.get('__restore');
+        if (!restoreRaw) return;
+        const decoded = decodeURIComponent(restoreRaw);
+        if (!decoded) return;
+        const target = decoded.startsWith('/') ? decoded : `/${decoded}`;
+        const lower = target.toLowerCase();
+        if (!lower.startsWith('/benchmark')) return;
+        window.history.replaceState({}, '', target);
+    } catch (e) {
+        // Ignore malformed restore parameters and continue normal boot.
+    }
+}
+
+restorePathFromFallback();
+
 function getBenchmarkLoginUrl() {
     return `${getBenchmarkBasePath()}/`;
 }
