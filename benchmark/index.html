@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Benchmark</title>
-    <link rel="stylesheet" href="login.css?v=20260221i">
+    <link rel="stylesheet" href="login.css?v=20260221i2">
 </head>
 <body>
     <h1 class="app-title">Benchmark</h1>
@@ -62,8 +62,8 @@
         </div>
     </footer>
 
-    <script src="auth-i18n.js?v=20260223a"></script>
-    <script src="footer-baddy.js?v=20260221b"></script>
+    <script src="auth-i18n.js?v=20260223a2"></script>
+    <script src="footer-baddy.js?v=20260221b2"></script>
     <script type="module">
       // Import the functions you need from the SDKs you need
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -125,6 +125,7 @@
           if (!user) return `${getBenchmarkBasePath()}/`;
           let username = user.displayName || 'player';
           let accountId = localStorage.getItem('benchmark_account_id') || '';
+          let publicSlug = '';
           try {
               const userDoc = await getDoc(doc(db, 'users', user.uid));
               if (userDoc.exists()) {
@@ -132,6 +133,7 @@
                   const profile = (data.profile && typeof data.profile === 'object') ? data.profile : {};
                   username = data.username || profile.username || username;
                   accountId = data.accountId || accountId;
+                  publicSlug = (data.publicSlug || '').toString().trim();
                   if (data.accountId) localStorage.setItem('benchmark_account_id', data.accountId);
               }
           } catch (e) {
@@ -140,7 +142,7 @@
           if (isLocalDevRoutingEnv()) {
               return `${getBenchmarkBasePath()}/benchmark.html`;
           }
-          const slug = `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
+          const slug = publicSlug || `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
           return `${getBenchmarkBasePath()}/${slug}`;
       };
 
@@ -191,7 +193,7 @@
                   } catch (e) {
                       console.error("Error saving language preference:", e);
                   }
-                  window.location.href = await resolveSignedInUrl(userCredential.user);
+                  window.location.replace(await resolveSignedInUrl(userCredential.user));
               })
               .catch((error) => {
                   if (error && error.code === 'auth/invalid-email') {
@@ -303,10 +305,9 @@
       onAuthStateChanged(auth, async (user) => {
           if (!user) return;
           if (!user.emailVerified) return;
-          window.location.href = await resolveSignedInUrl(user);
+          window.location.replace(await resolveSignedInUrl(user));
       });
 
     </script>
 </body>
 </html>
-

@@ -1464,8 +1464,9 @@ body.view-mode .cave-play-edit {
 }
 
 #userMenuBox .dropdown-menu {
-    width: max-content;
-    min-width: 130px;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
     left: auto;
     right: 0;
 }
@@ -3632,24 +3633,6 @@ input:-webkit-autofill:active {
     justify-content: center;
     text-align: center;
     gap: 18px;
-}
-
-.private-profile-back-login {
-    position: absolute;
-    top: 18px;
-    left: 18px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.private-profile-back-login:hover {
-    background: rgba(255, 255, 255, 0.14);
 }
 
 .private-profile-msg-main {

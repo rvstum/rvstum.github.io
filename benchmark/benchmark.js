@@ -96,6 +96,7 @@ const DEFAULT_SLANTED_COLOR = 'rgba(0, 0, 0, 0.55)';
 
 const SCORE_STORAGE_KEY = 'benchmark_saved_scores';
 const CAVE_LINKS_STORAGE_KEY = 'benchmark_saved_cave_links';
+const SCORE_UPDATED_AT_STORAGE_KEY = 'benchmark_saved_scores_updated_at';
 const SCORE_BASES_BY_CONFIG = {
     default: [70, 53, 68, 39, 54, 53, 22, 85, 119, 85, 106, 118, 137, 85],
     // Mobile 5 Min
@@ -325,6 +326,20 @@ function updateOwnProfileUrl(user, data) {
     if (currentPath !== targetPath) {
         window.history.replaceState({}, '', `${targetPath}${window.location.search}${window.location.hash}`);
     }
+}
+
+function forceOwnSlugUrlFromAvailableData(user, data = null) {
+    if (!user) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) return;
+    if (isLocalDevRoutingEnv()) return;
+    const currentPath = (window.location.pathname || '').toLowerCase();
+    if (!currentPath.endsWith('/benchmark.html')) return;
+    updateOwnProfileUrl(user, data || {
+        username: user.displayName || 'player',
+        accountId: localStorage.getItem('benchmark_account_id') || '',
+        profile: {}
+    });
 }
 
 function updateViewProfileUrl(data, uid) {
@@ -562,12 +577,15 @@ function loadSavedScores() {
 async function saveSavedScores() {
     try {
         if (isViewMode) return;
+        const scoresUpdatedAt = Date.now();
         const user = auth.currentUser;
         if (user) {
             await setDoc(doc(db, 'users', user.uid), {
-                scores: savedScores
+                scores: savedScores,
+                scoresUpdatedAt
             }, { merge: true });
         }
+        localStorage.setItem(SCORE_UPDATED_AT_STORAGE_KEY, String(scoresUpdatedAt));
         localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(savedScores));
     } catch (e) {
         console.error('Error saving scores:', e);
@@ -688,6 +706,7 @@ function saveCurrentScores() {
     const scores = Array.from(document.querySelectorAll('.score-input')).map(input => Number(input.value) || 0);
     savedScores[key] = scores;
     // Persist immediately to avoid losing edits on quick navigation/refresh.
+    localStorage.setItem(SCORE_UPDATED_AT_STORAGE_KEY, String(Date.now()));
     localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(savedScores));
     clearTimeout(saveScoresDebounceTimer);
     saveScoresDebounceTimer = setTimeout(() => {
@@ -11173,6 +11192,7 @@ loadSavedScores();
 applyStoredSettings();
 setupMountDropdown();
 setupConfigDropdowns();
+syncUserMenuDropdownWidth();
 setupCavePlayEditors();
 applyShareFromUrl();
 handleProfileLink();
@@ -11181,12 +11201,6 @@ const privateHomeBtn = document.getElementById('privateProfileHomeBtn');
 if (privateHomeBtn) {
     privateHomeBtn.addEventListener('click', () => {
         window.location.href = getBenchmarkAppEntryUrl();
-    });
-}
-const privateBackLoginBtn = document.getElementById('privateProfileBackLoginBtn');
-if (privateBackLoginBtn) {
-    privateBackLoginBtn.addEventListener('click', () => {
-        window.location.href = getBenchmarkLoginUrl();
     });
 }
 
@@ -12843,12 +12857,11 @@ function syncUserMenuDropdownWidth() {
     if (!box) return;
     const menu = box.querySelector('.dropdown-menu');
     if (!menu) return;
-    const minimum = 170;
     const boxWidth = Math.ceil(box.getBoundingClientRect().width || box.offsetWidth || 0);
-    const target = Math.max(minimum, boxWidth);
+    const target = Math.max(1, boxWidth);
     menu.style.width = `${target}px`;
-    menu.style.minWidth = `${minimum}px`;
-    menu.style.maxWidth = `${Math.max(target, minimum)}px`;
+    menu.style.minWidth = `${target}px`;
+    menu.style.maxWidth = `${target}px`;
 }
 
 function generateAccountId() {
@@ -13673,12 +13686,40 @@ async function loadUserProfile(user) {
                     pacmanModeEnabled = false;
                 }
                 syncPacmanUI();
-                if (data.scores) {
+            }
+            if (data.scores && typeof data.scores === 'object') {
+                const localScoresUpdatedAt = Number(localStorage.getItem(SCORE_UPDATED_AT_STORAGE_KEY) || 0);
+                const remoteScoresUpdatedAt = Number(data.scoresUpdatedAt || 0);
+                const localHasScores = savedScores && Object.keys(savedScores).length > 0;
+                let useRemoteScores = false;
+                if (!localHasScores) {
+                    useRemoteScores = true;
+                } else if (localScoresUpdatedAt > 0 && remoteScoresUpdatedAt > 0) {
+                    useRemoteScores = remoteScoresUpdatedAt > localScoresUpdatedAt;
+                } else if (localScoresUpdatedAt <= 0 && remoteScoresUpdatedAt <= 0) {
+                    useRemoteScores = false;
+                } else if (localScoresUpdatedAt > 0 && remoteScoresUpdatedAt <= 0) {
+                    useRemoteScores = false;
+                } else {
+                    // Backward compatibility: keep existing local values when local timestamp is missing.
+                    useRemoteScores = false;
+                }
+
+                if (useRemoteScores) {
                     savedScores = data.scores;
                     localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(savedScores));
-                    loadScores();
-                    validateRankUnlock();
+                    if (remoteScoresUpdatedAt > 0) {
+                        localStorage.setItem(SCORE_UPDATED_AT_STORAGE_KEY, String(remoteScoresUpdatedAt));
+                    }
+                } else if (localScoresUpdatedAt > remoteScoresUpdatedAt && !isViewMode) {
+                    // Local edits are newer than cloud snapshot; push cloud update in background.
+                    clearTimeout(saveScoresDebounceTimer);
+                    saveScoresDebounceTimer = setTimeout(() => {
+                        saveSavedScores();
+                    }, 50);
                 }
+                loadScores();
+                validateRankUnlock();
             }
             if (data.configThemes) {
                 savedConfigThemes = data.configThemes;
@@ -13761,6 +13802,7 @@ onAuthStateChanged(auth, async (user) => {
             return;
         }
         currentUserEmail = user.email;
+        forceOwnSlugUrlFromAvailableData(user);
         if (accountEmailDisplay) {
             const parts = user.email.split('@');
             accountEmailDisplay.value = `**************@${parts[1] || 'gmail.com'}`;
@@ -13784,9 +13826,15 @@ onAuthStateChanged(auth, async (user) => {
         try {
             const myDocSnap = await getDoc(doc(db, 'users', user.uid));
             const myData = myDocSnap.exists() ? (myDocSnap.data() || {}) : {};
+            forceOwnSlugUrlFromAvailableData(user, myData);
             updateOwnProfileUrl(user, myData);
         } catch (urlErr) {
             console.warn('Failed to update profile URL slug:', urlErr);
+            updateOwnProfileUrl(user, {
+                username: user.displayName || (document.querySelector('.profile-name') ? document.querySelector('.profile-name').textContent : 'player'),
+                accountId: localStorage.getItem('benchmark_account_id') || '',
+                profile: {}
+            });
         }
         setRadarMode('combined', false);
         syncUserMenuDropdownWidth();
@@ -13798,6 +13846,12 @@ onAuthStateChanged(auth, async (user) => {
         }
         hidePageLoader();
     }
+});
+
+window.addEventListener('pagehide', () => {
+    if (isViewMode) return;
+    saveCurrentScores();
+    saveSavedScores();
 });
 
 function getCroppedImage() {
