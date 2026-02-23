@@ -343,10 +343,11 @@ function updateViewProfileUrl(data, uid) {
     }
 }
 
-async function resolveProfileDocBySlug(slug) {
+async function resolveProfileDocBySlug(slug, options = {}) {
     if (!slug) return null;
     const trimmedSlug = String(slug).trim();
     if (!trimmedSlug) return null;
+    const allowFallback = options.allowFallback !== false;
 
     const signedInViewer = !!auth.currentUser;
 
@@ -366,7 +367,7 @@ async function resolveProfileDocBySlug(slug) {
     }
 
     // Guest viewers cannot safely run broad collection scans under strict rules.
-    if (!signedInViewer) return null;
+    if (!signedInViewer || !allowFallback) return null;
 
     try {
         const allUsersSnap = await getDocs(collection(db, 'users'));
@@ -13669,7 +13670,8 @@ onAuthStateChanged(auth, async (user) => {
             return;
         }
         try {
-            const requestedDoc = await resolveProfileDocBySlug(requestedSlug);
+            // Use exact slug lookup only here; fallback scans can misclassify and block own data loading.
+            const requestedDoc = await resolveProfileDocBySlug(requestedSlug, { allowFallback: false });
             if (requestedDoc && requestedDoc.id !== user.uid) {
                 hidePageLoader();
                 return;
