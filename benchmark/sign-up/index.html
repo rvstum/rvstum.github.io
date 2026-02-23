@@ -1,0 +1,258 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Benchmark</title>
+    <link rel="stylesheet" href="../login.css?v=20260221i">
+</head>
+<body>
+    <h1 class="app-title">Benchmark</h1>
+    <div class="auth-main">
+    <div class="login-container">
+                <select id="authLanguageSelect" class="auth-lang-select">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="pt-BR">Português (Brasil)</option>
+        </select>
+        <h2 data-auth-i18n="signup_heading">Sign Up</h2>
+        <div class="input-group">
+            <label for="email" data-auth-i18n="label_email">Email</label>
+            <input type="email" id="email" name="email" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="input-group">
+            <label for="password" data-auth-i18n="label_password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="input-group">
+            <label for="confirmPassword" data-auth-i18n="label_confirm_password">Confirm Password</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <button id="signupBtn" class="btn btn-primary" data-auth-i18n="btn_signup">Sign Up</button>
+        <div class="alternative-actions">
+            <span data-auth-i18n="text_already_have_account">Already have an account?</span>
+            <a href="../" id="goToLoginLink" data-auth-i18n="link_login">Login</a>
+        </div>
+        <p id="error-message" class="error-message"></p>
+    </div>
+    <div class="auth-lang-shell">
+        <div class="auth-lang-dropdown" id="authLangDropdown">
+            <button type="button" class="auth-lang-button" id="authLangButton" aria-expanded="false">Language</button>
+            <div class="auth-lang-menu" id="authLangMenu"></div>
+        </div>
+    </div>
+    </div>
+    <footer class="legal-footer auth-footer">
+        <div class="benchmark-footer-inner">
+            <div class="legal-footer-icon-wrap">
+                <img class="legal-baddy-icon" src="../icons/baddy.png" alt="Baddy icon">
+            </div>
+            <div class="legal-footer-text"><span data-auth-i18n="footer_site_made_by">Site made by</span> <span class="legal-author">Rustum</span>.</div>
+            <div class="legal-footer-disclaimer" data-auth-i18n="footer_disclaimer">This site is not affiliated, maintained, endorsed or sponsored by GraalOnline, All assets &copy; 2026 GraalOnline</div>
+            <div class="legal-footer-links">
+                <a href="../../terms-and-condition/index.html?from=benchmark&returnTo=signup" target="_blank" rel="noopener noreferrer" data-auth-i18n="footer_terms">Terms &amp; Conditions</a>
+                <span class="legal-divider">|</span>
+                <a href="../../privacy-policy/index.html?from=benchmark&returnTo=signup" target="_blank" rel="noopener noreferrer" data-auth-i18n="footer_privacy">Privacy Policy</a>
+                <span class="legal-divider">|</span>
+                <a href="../../cookie-policy/index.html?from=benchmark&returnTo=signup" target="_blank" rel="noopener noreferrer" data-auth-i18n="footer_cookie">Cookie Policy</a>
+                <span class="legal-divider">|</span>
+                <a href="../../dmca-copyright-policy/index.html?from=benchmark&returnTo=signup" target="_blank" rel="noopener noreferrer" data-auth-i18n="footer_dmca">DMCA Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../auth-i18n.js?v=20260221e"></script>
+    <script src="../footer-baddy.js?v=20260221b"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDWOwnzCEQjZLhvVoLA5mAzchRTVBWWxF4",
+        authDomain: "benchmark-5a89f.firebaseapp.com",
+        projectId: "benchmark-5a89f",
+        storageBucket: "benchmark-5a89f.appspot.com",
+        messagingSenderId: "1001899133728",
+        appId: "1:1001899133728:web:73b7dc8f8814533020e545",
+        measurementId: "G-CCRXR4PKK2"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const getBenchmarkBasePath = () => {
+          const pathname = window.location.pathname || '';
+          const lower = pathname.toLowerCase();
+          const marker = '/benchmark';
+          const markerIndex = lower.indexOf(marker);
+          if (markerIndex >= 0) return pathname.slice(0, markerIndex + marker.length) || '/benchmark';
+          const fallback = pathname.replace(/\/[^/]*$/, '');
+          return fallback || '/benchmark';
+      };
+      const currentPath = (window.location.pathname || '').toLowerCase();
+      if (currentPath.endsWith('/signup.html') || currentPath.endsWith('/sign-up/index.html')) {
+          window.history.replaceState({}, '', `${getBenchmarkBasePath()}/sign-up`);
+      }
+
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const confirmPasswordInput = document.getElementById('confirmPassword');
+      const signupBtn = document.getElementById('signupBtn');
+      const goToLoginLink = document.getElementById('goToLoginLink');
+      const errorMessage = document.getElementById('error-message');
+      const tAuth = (key) => (window.authT ? window.authT(key) : key);
+
+      const animatePress = (element) => {
+          if (!element) return;
+          element.classList.remove('is-clicking');
+          void element.offsetWidth;
+          element.classList.add('is-clicking');
+          setTimeout(() => element.classList.remove('is-clicking'), 220);
+      };
+
+      function resolveAuthError(error) {
+          if (!error || !error.code) return tAuth('err_unknown');
+          if (error.code === 'auth/email-already-in-use') return tAuth('err_email_in_use');
+          if (error.code === 'auth/weak-password') return tAuth('err_weak_password');
+          if (error.code === 'auth/invalid-email') return tAuth('err_invalid_email');
+          if (error.code === 'auth/too-many-requests') return tAuth('err_too_many_requests');
+          return tAuth('err_unknown');
+      }
+
+      const handleSignup = () => {
+          const email = emailInput.value;
+          const password = passwordInput.value;
+          const confirmPassword = confirmPasswordInput.value;
+          errorMessage.textContent = '';
+
+          if (!email || !password || !confirmPassword) {
+              errorMessage.textContent = tAuth('err_signup_fill');
+              return;
+          }
+
+          if (password !== confirmPassword) {
+              errorMessage.textContent = tAuth('err_signup_mismatch');
+              return;
+          }
+
+          createUserWithEmailAndPassword(auth, email, password)
+              .then(async (userCredential) => {
+                  try {
+                      const savedLang = localStorage.getItem('benchmark_language') || 'en';
+                      await setDoc(doc(db, 'users', userCredential.user.uid), {
+                          settings: { language: savedLang },
+                          isNewUser: true
+                      }, { merge: true });
+
+                      await sendEmailVerification(userCredential.user);
+                      await signOut(auth);
+                      window.location.href = '../verification-sent';
+                  } catch (error) {
+                      errorMessage.textContent = tAuth('err_signup_verify_send');
+                  }
+              })
+              .catch((error) => {
+                  errorMessage.textContent = resolveAuthError(error);
+              });
+      };
+
+      [signupBtn, goToLoginLink].forEach((element) => {
+          if (!element) return;
+          element.addEventListener('pointerdown', () => animatePress(element));
+          element.addEventListener('keydown', (event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') return;
+              animatePress(element);
+          });
+      });
+
+      signupBtn.addEventListener('click', () => {
+          animatePress(signupBtn);
+          handleSignup();
+      });
+
+      [emailInput, passwordInput, confirmPasswordInput].forEach((inputEl) => {
+          if (!inputEl) return;
+          inputEl.addEventListener('keydown', (event) => {
+              if (event.key !== 'Enter') return;
+              event.preventDefault();
+              animatePress(signupBtn);
+              handleSignup();
+          });
+      });
+
+      const langSelect = document.getElementById('authLanguageSelect');
+      const setupAuthLangDropdown = (selectEl) => {
+          const dropdown = document.getElementById('authLangDropdown');
+          const button = document.getElementById('authLangButton');
+          const menu = document.getElementById('authLangMenu');
+          if (!selectEl || !dropdown || !button || !menu) return;
+          const syncLabel = () => {
+              const selected = selectEl.options[selectEl.selectedIndex];
+              button.textContent = selected ? selected.textContent : 'Language';
+          };
+          menu.innerHTML = '';
+          Array.from(selectEl.options).forEach((opt) => {
+              const optionBtn = document.createElement('button');
+              optionBtn.type = 'button';
+              optionBtn.className = 'auth-lang-option';
+              optionBtn.textContent = opt.textContent;
+              optionBtn.dataset.value = opt.value;
+              optionBtn.addEventListener('click', () => {
+                  selectEl.value = opt.value;
+                  selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                  setOpen(false);
+              });
+              menu.appendChild(optionBtn);
+          });
+          const setOpen = (isOpen) => {
+              dropdown.classList.toggle('open', isOpen);
+              button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          };
+          button.addEventListener('click', () => setOpen(!dropdown.classList.contains('open')));
+          document.addEventListener('click', (event) => {
+              if (!dropdown.contains(event.target)) setOpen(false);
+          });
+          selectEl.addEventListener('change', syncLabel);
+          syncLabel();
+      };
+      const savedLang = localStorage.getItem('benchmark_language') || 'en';
+      if(langSelect) {
+          langSelect.value = savedLang;
+          setupAuthLangDropdown(langSelect);
+          if (window.applyAuthTranslations) window.applyAuthTranslations('signup');
+          langSelect.addEventListener('change', function() {
+              localStorage.setItem('benchmark_language', this.value);
+              if (window.applyAuthTranslations) window.applyAuthTranslations('signup');
+          });
+      } else if (window.applyAuthTranslations) {
+          window.applyAuthTranslations('signup');
+      }
+
+      const alignMobileTitleBetweenTopAndBox = () => {
+          const title = document.querySelector('.app-title');
+          const box = document.querySelector('.login-container');
+          if (!title || !box) return;
+
+          if (!window.matchMedia('(max-width: 900px)').matches) {
+              title.style.removeProperty('transform');
+              return;
+          }
+
+          title.style.setProperty('transform', 'none', 'important');
+          const titleRect = title.getBoundingClientRect();
+          const boxRect = box.getBoundingClientRect();
+          const desiredTop = Math.max(4, (boxRect.top - titleRect.height) / 2);
+          const deltaY = Math.round(desiredTop - titleRect.top);
+          title.style.setProperty('transform', `translateY(${deltaY}px)`, 'important');
+      };
+
+      window.addEventListener('resize', alignMobileTitleBetweenTopAndBox);
+      window.addEventListener('orientationchange', alignMobileTitleBetweenTopAndBox);
+      requestAnimationFrame(() => {
+          alignMobileTitleBetweenTopAndBox();
+          setTimeout(alignMobileTitleBetweenTopAndBox, 100);
+      });
+    </script>
+</body>
+</html>
