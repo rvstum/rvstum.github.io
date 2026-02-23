@@ -253,6 +253,13 @@ function getAccountIdTail(accountId) {
     return clean.slice(-4).toLowerCase();
 }
 
+function buildProfileSlug(username, accountId, fallbackId = '') {
+    const namePart = slugifyProfileSegment(username || 'player');
+    const tailSource = accountId || fallbackId || '';
+    const tail = getAccountIdTail(tailSource);
+    return `${namePart}-${tail}`;
+}
+
 function updateOwnProfileUrl(user, data) {
     if (!user) return;
     const params = new URLSearchParams(window.location.search);
@@ -260,11 +267,23 @@ function updateOwnProfileUrl(user, data) {
     const profile = (data && typeof data.profile === 'object' && data.profile) ? data.profile : {};
     const username = (data && data.username) || profile.username || user.displayName || 'player';
     const accountId = (data && data.accountId) || localStorage.getItem('benchmark_account_id') || '';
-    const slug = `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
+    const slug = buildProfileSlug(username, accountId, user.uid);
     const targetPath = `${getBenchmarkBasePath()}/${slug}`;
     const currentPath = (window.location.pathname || '').replace(/\/+$/, '');
     if (currentPath !== targetPath) {
         window.history.replaceState({}, '', `${targetPath}${window.location.search}${window.location.hash}`);
+    }
+}
+
+function updateViewProfileUrl(data, uid) {
+    const profile = (data && typeof data.profile === 'object' && data.profile) ? data.profile : {};
+    const username = (data && data.username) || profile.username || 'player';
+    const accountId = (data && data.accountId) || '';
+    const slug = buildProfileSlug(username, accountId, uid || '');
+    const targetPath = `${getBenchmarkBasePath()}/${slug}`;
+    const currentPath = (window.location.pathname || '').replace(/\/+$/, '');
+    if (currentPath !== targetPath) {
+        window.history.replaceState({}, '', targetPath);
     }
 }
 
@@ -651,20 +670,16 @@ function buildShareUrl() {
 }
 
 function buildCopyLinkUrl() {
-    const visibilityEl = document.getElementById('visibilitySelect');
-    const visibility = visibilityEl && visibilityEl.value ? visibilityEl.value : (localStorage.getItem(VISIBILITY_STORAGE_KEY) || 'everyone');
-    if (visibility === 'everyone') {
-        const usernameEl = document.querySelector('.profile-name');
-        const username = usernameEl ? usernameEl.textContent : 'player';
-        const accountId = localStorage.getItem('benchmark_account_id') || '';
-        const slug = `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
-        const url = new URL(window.location.origin);
-        url.pathname = `${getBenchmarkBasePath()}/${slug}/view-mode`;
-        url.search = '';
-        url.hash = '';
-        return url.toString();
-    }
-    return buildShareUrl();
+    const usernameEl = document.querySelector('.profile-name');
+    const username = usernameEl ? usernameEl.textContent : 'player';
+    const accountId = localStorage.getItem('benchmark_account_id') || '';
+    const user = auth.currentUser;
+    const slug = buildProfileSlug(username, accountId, user ? user.uid : '');
+    const url = new URL(window.location.origin);
+    url.pathname = `${getBenchmarkBasePath()}/${slug}`;
+    url.search = '';
+    url.hash = '';
+    return url.toString();
 }
 
 function applyShareFromUrl() {
@@ -11650,6 +11665,7 @@ async function enterViewMode(data, uid) {
     }
 
     saveCurrentScores();
+    updateViewProfileUrl(data, uid);
     isViewMode = true;
     document.body.classList.add('view-mode');
     
@@ -11918,6 +11934,11 @@ if (exitViewModeBtn) {
              const userMenuName = document.getElementById('userMenuUsername');
              if (userMenuName) userMenuName.textContent = user.displayName;
         }
+        updateOwnProfileUrl(user, {
+            username: user.displayName || (document.querySelector('.profile-name') ? document.querySelector('.profile-name').textContent : 'player'),
+            accountId: localStorage.getItem('benchmark_account_id') || '',
+            profile: {}
+        });
 
         const cachedViews = localStorage.getItem('benchmark_cached_views');
         const viewCountEl = document.getElementById('viewCount');
@@ -12313,6 +12334,31 @@ function closeImageViewerModalUI() {
     activeHighlightPreviewCard = null;
 }
 
+function normalizeCellImagePaths() {
+    const imgs = document.querySelectorAll('.rank-bar:nth-child(2) img');
+    imgs.forEach((img) => {
+        if (!img) return;
+        const raw = img.getAttribute('src') || '';
+        const match = raw.match(/cellimage_[0-9]+_[0-9]+\.jpg/i) || raw.match(/cellImage_[0-9]+_[0-9]+\.jpg/i);
+        if (!match) return;
+        const fileName = match[0].replace(/^cellimage_/i, 'cellImage_');
+        const primary = `/icons/${fileName}`;
+        if (img.getAttribute('src') !== primary) {
+            img.setAttribute('src', primary);
+        }
+        if (img.dataset.cellFallbackBound === '1') return;
+        img.dataset.cellFallbackBound = '1';
+        img.addEventListener('error', () => {
+            const current = img.getAttribute('src') || '';
+            const fallback = `${getBenchmarkBasePath()}/icons/${fileName}`;
+            if (current !== fallback) {
+                img.setAttribute('src', fallback);
+            }
+        });
+    });
+}
+
+normalizeCellImagePaths();
 bindCaveImageViewer();
 
 function renderHighlights() {
