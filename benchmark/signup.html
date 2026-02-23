@@ -31,7 +31,7 @@
         <button id="signupBtn" class="btn btn-primary" data-auth-i18n="btn_signup">Sign Up</button>
         <div class="alternative-actions">
             <span data-auth-i18n="text_already_have_account">Already have an account?</span>
-            <a href="login.html" id="goToLoginLink" data-auth-i18n="link_login">Login</a>
+            <a href="./" id="goToLoginLink" data-auth-i18n="link_login">Login</a>
         </div>
         <p id="error-message" class="error-message"></p>
     </div>
@@ -81,6 +81,18 @@
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
+      const getBenchmarkBasePath = () => {
+          const pathname = window.location.pathname || '';
+          const lower = pathname.toLowerCase();
+          const marker = '/benchmark';
+          const markerIndex = lower.indexOf(marker);
+          if (markerIndex >= 0) return pathname.slice(0, markerIndex + marker.length) || '/benchmark';
+          const fallback = pathname.replace(/\/[^/]*$/, '');
+          return fallback || '/benchmark';
+      };
+      if ((window.location.pathname || '').toLowerCase().endsWith('/signup.html')) {
+          window.history.replaceState({}, '', `${getBenchmarkBasePath()}/sign-up`);
+      }
 
       const emailInput = document.getElementById('email');
       const passwordInput = document.getElementById('password');
@@ -134,7 +146,7 @@
 
                       await sendEmailVerification(userCredential.user);
                       await signOut(auth);
-                      window.location.href = 'verification-sent.html';
+                      window.location.href = 'verification-sent';
                   } catch (error) {
                       errorMessage.textContent = tAuth('err_signup_verify_send');
                   }
@@ -243,4 +255,3 @@
     </script>
 </body>
 </html>
-

@@ -44,8 +44,20 @@
     <script src="footer-baddy.js"></script>
     <script>
         document.getElementById('loginRedirectBtn').addEventListener('click', () => {
-            window.location.href = 'login.html';
+            window.location.href = './';
         });
+        const getBenchmarkBasePath = () => {
+            const pathname = window.location.pathname || '';
+            const lower = pathname.toLowerCase();
+            const marker = '/benchmark';
+            const markerIndex = lower.indexOf(marker);
+            if (markerIndex >= 0) return pathname.slice(0, markerIndex + marker.length) || '/benchmark';
+            const fallback = pathname.replace(/\/[^/]*$/, '');
+            return fallback || '/benchmark';
+        };
+        if ((window.location.pathname || '').toLowerCase().endsWith('/verification-sent.html')) {
+            window.history.replaceState({}, '', `${getBenchmarkBasePath()}/verification-sent`);
+        }
 
         const langSelect = document.getElementById('authLanguageSelect');
         const savedLang = localStorage.getItem('benchmark_language') || 'en';

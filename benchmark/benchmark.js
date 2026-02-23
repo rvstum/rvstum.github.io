@@ -198,6 +198,58 @@ function normalizeFriendRequestIds(rawRequests) {
     return normalized;
 }
 
+function getBenchmarkBasePath() {
+    const pathname = window.location.pathname || '';
+    const lower = pathname.toLowerCase();
+    const marker = '/benchmark';
+    const markerIndex = lower.indexOf(marker);
+    if (markerIndex >= 0) {
+        return pathname.slice(0, markerIndex + marker.length) || '/benchmark';
+    }
+    const fallback = pathname.replace(/\/[^/]*$/, '');
+    return fallback || '/benchmark';
+}
+
+function getBenchmarkLoginUrl() {
+    return `${getBenchmarkBasePath()}/`;
+}
+
+function getBenchmarkAppEntryUrl() {
+    return `${getBenchmarkBasePath()}/benchmark.html`;
+}
+
+function slugifyProfileSegment(value) {
+    const raw = (value || '').toString().trim().toLowerCase();
+    const slug = raw
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    return slug || 'player';
+}
+
+function getAccountIdTail(accountId) {
+    const clean = (accountId || '')
+        .toString()
+        .trim()
+        .replace(/[^a-zA-Z0-9]/g, '');
+    if (!clean) return '0000';
+    return clean.slice(-4).toLowerCase();
+}
+
+function updateOwnProfileUrl(user, data) {
+    if (!user) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) return;
+    const profile = (data && typeof data.profile === 'object' && data.profile) ? data.profile : {};
+    const username = (data && data.username) || profile.username || user.displayName || 'player';
+    const accountId = (data && data.accountId) || localStorage.getItem('benchmark_account_id') || '';
+    const slug = `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
+    const targetPath = `${getBenchmarkBasePath()}/${slug}`;
+    const currentPath = (window.location.pathname || '').replace(/\/+$/, '');
+    if (currentPath !== targetPath) {
+        window.history.replaceState({}, '', `${targetPath}${window.location.search}${window.location.hash}`);
+    }
+}
+
 async function resolveUserDocByIdentifier(identifier) {
     const candidates = normalizeFriendRequestIds([identifier]);
     if (typeof identifier === 'string' && identifier.trim() !== '') {
@@ -7707,7 +7759,7 @@ async function handleProfileLink() {
     const currentUser = auth.currentUser;
 
     if (currentUser && currentUser.uid === profileId) {
-        window.location.href = 'benchmark.html';
+        window.location.href = getBenchmarkAppEntryUrl();
         return;
     }
 
@@ -7721,7 +7773,7 @@ async function handleProfileLink() {
         const docSnap = await getDoc(doc(db, 'users', profileId));
         if (!docSnap.exists()) {
             alert('User not found');
-            window.location.href = 'benchmark.html';
+            window.location.href = getBenchmarkAppEntryUrl();
             return;
         }
 
@@ -9298,7 +9350,7 @@ document.querySelectorAll('.score-input').forEach((input, index) => {
     input.addEventListener('focus', function() {
         if (isViewMode) return;
         if (!auth.currentUser) {
-            window.location.href = 'login.html';
+            window.location.href = getBenchmarkLoginUrl();
             return;
         }
 
@@ -10912,7 +10964,7 @@ handleProfileLink();
 const privateHomeBtn = document.getElementById('privateProfileHomeBtn');
 if (privateHomeBtn) {
     privateHomeBtn.addEventListener('click', () => {
-        window.location.href = 'benchmark.html';
+        window.location.href = getBenchmarkAppEntryUrl();
     });
 }
 
@@ -12343,7 +12395,7 @@ if (addHighlightBtn) {
     addHighlightBtn.addEventListener('click', () => {
         if (isViewMode) return;
         if (!auth.currentUser) {
-            window.location.href = 'login.html';
+            window.location.href = getBenchmarkLoginUrl();
             return;
         }
         if ((userHighlights || []).length >= 6) {
@@ -12752,7 +12804,7 @@ if (emailReloginBtn) {
         } catch (err) {
             console.error('Error signing out after email update:', err);
         } finally {
-            window.location.href = 'login.html';
+            window.location.href = getBenchmarkLoginUrl();
         }
     });
 }
@@ -12943,7 +12995,7 @@ if (deleteAccountBtn) {
                     // Clear local storage
                     localStorage.clear();
                     // Redirect to login
-                    window.location.href = 'login.html';
+                    window.location.href = getBenchmarkLoginUrl();
                 };
 
                 try {
@@ -12957,7 +13009,7 @@ if (deleteAccountBtn) {
                 }
             } else {
                 localStorage.clear();
-                window.location.href = 'login.html';
+                window.location.href = getBenchmarkLoginUrl();
             }
         });
     });
@@ -13002,7 +13054,7 @@ if (signOutBtn) {
                 'benchmark_pacman_mode'
             ];
             keysToRemove.forEach(key => localStorage.removeItem(key));
-            window.location.href = 'login.html';
+            window.location.href = getBenchmarkLoginUrl();
         }).catch((error) => {
             console.error('Sign out error:', error);
         });
@@ -13384,7 +13436,7 @@ onAuthStateChanged(auth, async (user) => {
                     };
                 }
                 if (reloadBtn) reloadBtn.onclick = () => window.location.reload();
-                if (signOutBtn) signOutBtn.onclick = () => signOut(auth).then(() => window.location.href = 'login.html');
+                if (signOutBtn) signOutBtn.onclick = () => signOut(auth).then(() => window.location.href = getBenchmarkLoginUrl());
             }
             hidePageLoader();
             return;
@@ -13410,6 +13462,13 @@ onAuthStateChanged(auth, async (user) => {
         });
 
         await loadUserProfile(user);
+        try {
+            const myDocSnap = await getDoc(doc(db, 'users', user.uid));
+            const myData = myDocSnap.exists() ? (myDocSnap.data() || {}) : {};
+            updateOwnProfileUrl(user, myData);
+        } catch (urlErr) {
+            console.warn('Failed to update profile URL slug:', urlErr);
+        }
         setRadarMode('combined', false);
         hidePageLoader();
     } else {
