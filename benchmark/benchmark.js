@@ -298,6 +298,12 @@ function waitForAuthInitialization() {
     });
 }
 
+function showPrivateProfileOverlay() {
+    const privatePage = document.getElementById('privateProfilePage');
+    if (!privatePage) return;
+    privatePage.style.display = 'flex';
+}
+
 function updateOwnProfileUrl(user, data) {
     if (!user) return;
     const params = new URLSearchParams(window.location.search);
@@ -681,6 +687,8 @@ function saveCurrentScores() {
     const key = getConfigKey();
     const scores = Array.from(document.querySelectorAll('.score-input')).map(input => Number(input.value) || 0);
     savedScores[key] = scores;
+    // Persist immediately to avoid losing edits on quick navigation/refresh.
+    localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(savedScores));
     clearTimeout(saveScoresDebounceTimer);
     saveScoresDebounceTimer = setTimeout(() => {
         saveSavedScores();
@@ -7923,8 +7931,31 @@ async function handleProfileLink() {
     if (!profileId && requestedSlug) {
         profileDocFromSlug = await resolveProfileDocBySlug(requestedSlug);
         if (profileDocFromSlug) profileId = profileDocFromSlug.id;
+        if (!profileId && currentUser) {
+            try {
+                const myDoc = await getDoc(doc(db, 'users', currentUser.uid));
+                if (myDoc.exists()) {
+                    const mine = myDoc.data() || {};
+                    const mineProfile = (mine.profile && typeof mine.profile === 'object') ? mine.profile : {};
+                    const mineUsername = mine.username || mineProfile.username || currentUser.displayName || 'player';
+                    const mineAccountId = mine.accountId || localStorage.getItem('benchmark_account_id') || '';
+                    const mySlug = buildProfileSlug(mineUsername, mineAccountId, currentUser.uid);
+                    if (mySlug === requestedSlug) {
+                        profileId = currentUser.uid;
+                    }
+                }
+            } catch (ownResolveErr) {
+                console.warn('Failed to resolve own slug fallback:', ownResolveErr);
+            }
+        }
     }
-    if (!profileId) return;
+    if (!profileId) {
+        if (requestedSlug) {
+            showPrivateProfileOverlay();
+            hidePageLoader();
+        }
+        return;
+    }
 
     if (currentUser && currentUser.uid === profileId) {
         window.location.href = getBenchmarkAppEntryUrl();
@@ -7982,8 +8013,7 @@ async function handleProfileLink() {
             }
 
             if (!isAllowed) {
-                const privatePage = document.getElementById('privateProfilePage');
-                if (privatePage) privatePage.style.display = 'flex';
+                showPrivateProfileOverlay();
                 hidePageLoader();
                 return;
             }
@@ -11799,8 +11829,7 @@ async function enterViewMode(data, uid) {
             }
 
             if (!isAllowed) {
-                const privatePage = document.getElementById('privateProfilePage');
-                if (privatePage) privatePage.style.display = 'flex';
+                showPrivateProfileOverlay();
                 return;
             }
         }

@@ -112,8 +112,7 @@
             var reason = e && e.reason ? String(e.reason) : 'Promise rejection';
             showBootError('Startup error: ' + reason);
         });
-        window.addEventListener('load', function () { setTimeout(releaseLoader, 300); });
-        setTimeout(releaseLoader, 4000);
+        window.addEventListener('load', function () { setTimeout(releaseLoader, 2500); });
         setTimeout(releaseLoader, 8000);
         setTimeout(releaseLoader, 12000);
     })();
@@ -1670,7 +1669,7 @@ input.addEventListener('click', (e) => {
     }
 })();
 </script>
-        <script type="module" src="benchmark.js?v=20260223-loaderfix1">
+        <script type="module" src="benchmark.js?v=20260223-loaderfix2">
         </script>
 </body>
 </html>
