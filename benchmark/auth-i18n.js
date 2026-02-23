@@ -23,7 +23,7 @@
         link_back_to_login: 'Back to Login',
         verification_message_html: 'We\'ve sent a verification link to your email address.<br>Please check your <strong>spam folder</strong>.',
         footer_site_made_by: 'Site made by',
-        footer_disclaimer: 'This site is not affiliated, maintained, endorsed or sponsored by GraalOnline. All assets Â© 2026 GraalOnline',
+        footer_disclaimer: 'This site is not affiliated, maintained, endorsed or sponsored by GraalOnline. All assets \u00A9 2026 GraalOnline',
         footer_terms: 'Terms & Conditions',
         footer_privacy: 'Privacy Policy',
         footer_cookie: 'Cookie Policy',

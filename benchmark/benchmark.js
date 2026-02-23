@@ -280,6 +280,15 @@ function getRequestedProfileSlugFromPath() {
     return segments[0];
 }
 
+function waitForAuthInitialization() {
+    return new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            unsubscribe();
+            resolve(user || null);
+        });
+    });
+}
+
 function updateOwnProfileUrl(user, data) {
     if (!user) return;
     const params = new URLSearchParams(window.location.search);
@@ -312,13 +321,25 @@ async function resolveProfileDocBySlug(slug) {
     const trimmedSlug = String(slug).trim();
     if (!trimmedSlug) return null;
 
+    const signedInViewer = !!auth.currentUser;
+
     try {
-        const directQuery = query(collection(db, 'users'), where('publicSlug', '==', trimmedSlug));
+        const directQuery = signedInViewer
+            ? query(collection(db, 'users'), where('publicSlug', '==', trimmedSlug))
+            : query(
+                collection(db, 'users'),
+                where('publicSlug', '==', trimmedSlug),
+                where('settings.visibility', '==', 'everyone')
+            );
         const directSnap = await getDocs(directQuery);
         if (!directSnap.empty) return directSnap.docs[0];
+        console.warn('Slug query returned no documents:', trimmedSlug);
     } catch (e) {
-        console.warn('publicSlug query failed, trying fallback slug scan:', e);
+        console.warn('publicSlug query failed:', e);
     }
+
+    // Guest viewers cannot safely run broad collection scans under strict rules.
+    if (!signedInViewer) return null;
 
     try {
         const allUsersSnap = await getDocs(collection(db, 'users'));
@@ -330,6 +351,7 @@ async function resolveProfileDocBySlug(slug) {
             const candidate = buildProfileSlug(username, accountId, userDoc.id);
             if (candidate === trimmedSlug) return userDoc;
         }
+        console.warn('Fallback slug scan found no match:', trimmedSlug);
     } catch (e) {
         console.error('Fallback slug scan failed:', e);
     }
@@ -2474,7 +2496,7 @@ const I18N_EXTRA = {
         mount_speed_1: 'Mount Speed 1',
         mount_speed_2: 'Mount Speed 2',
         footer_site_made_by: 'Site made by',
-        footer_disclaimer: 'This site is not affiliated, maintained, endorsed or sponsored by GraalOnline. All assets Ã‚Â© 2026 GraalOnline',
+        footer_disclaimer: 'This site is not affiliated, maintained, endorsed or sponsored by GraalOnline. All assets \u00A9 2026 GraalOnline',
         footer_terms: 'Terms & Conditions',
         footer_privacy: 'Privacy Policy',
         footer_cookie: 'Cookie Policy',
@@ -7857,21 +7879,13 @@ async function handleProfileLink() {
     let profileId = params.get('id');
     const requestedSlug = getRequestedProfileSlugFromPath();
     let profileDocFromSlug = null;
+    const currentUser = await waitForAuthInitialization();
 
     if (!profileId && requestedSlug) {
         profileDocFromSlug = await resolveProfileDocBySlug(requestedSlug);
         if (profileDocFromSlug) profileId = profileDocFromSlug.id;
     }
     if (!profileId) return;
-
-    // Wait for auth to initialize
-    await new Promise(resolve => {
-        const unsubscribe = onAuthStateChanged(auth, () => {
-            unsubscribe();
-            resolve();
-        });
-    });
-    const currentUser = auth.currentUser;
 
     if (currentUser && currentUser.uid === profileId) {
         window.location.href = getBenchmarkAppEntryUrl();
