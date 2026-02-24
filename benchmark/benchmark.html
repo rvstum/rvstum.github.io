@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1520,7 +1520,7 @@
             ranksWrapper.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
 
             ranksWrapper.addEventListener('scroll', () => {
-                if (window.innerWidth > 900 && !isSyncingLeft) {
+                if (!isSyncingLeft) {
                     isSyncingRight = true;
                     const targetLeft = toWholePx(ranksWrapper.scrollLeft + syncOffset);
                     if (Math.abs(scrollEl.scrollLeft - targetLeft) > 0.5) {
@@ -1529,7 +1529,6 @@
                     if (syncTimeoutRight) clearTimeout(syncTimeoutRight);
                     syncTimeoutRight = setTimeout(() => { isSyncingRight = false; }, 60);
                 }
-                // Mobile labels should follow only the lower container's scroll, not the top progress box.
             }, { passive: true });
         }
 
