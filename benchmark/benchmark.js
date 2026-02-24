@@ -15478,6 +15478,40 @@ function restructureRatingsLayout() {
     });
 }
 
+function restructureRankBox() {
+    const rankBox = document.querySelector('.rounded-inner-box');
+    const ranksWrapper = document.querySelector('.ranks-wrapper');
+    const middleBox = document.querySelector('.middle-box');
+    const infoIcon = document.querySelector('.info-icon');
+
+    if (!rankBox || !ranksWrapper || !middleBox) return;
+
+    if (window.innerWidth <= 900) {
+        if (rankBox.parentElement !== ranksWrapper) {
+            ranksWrapper.insertBefore(rankBox, ranksWrapper.firstChild);
+        }
+        if (infoIcon && infoIcon.parentElement !== ranksWrapper) {
+            ranksWrapper.appendChild(infoIcon);
+        }
+    } else {
+        if (rankBox.parentElement !== middleBox) {
+            middleBox.insertBefore(rankBox, middleBox.firstChild);
+        }
+        if (infoIcon && infoIcon.parentElement !== middleBox) {
+            middleBox.appendChild(infoIcon);
+        }
+    }
+}
+
+let restructureRankBoxRafId = null;
+function scheduleRestructureRankBox() {
+    if (restructureRankBoxRafId !== null) return;
+    restructureRankBoxRafId = requestAnimationFrame(() => {
+        restructureRankBoxRafId = null;
+        restructureRankBox();
+    });
+}
+
 // Call restructure on init
 document.addEventListener('DOMContentLoaded', () => {
     restructureHighlightsLayout();
@@ -15490,4 +15524,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupVerticalBoxClasses();
     setupRatingValueClasses();
     restructureRatingsLayout();
+    restructureRankBox();
 });
+
+window.addEventListener('resize', scheduleRestructureRankBox, { passive: true });
+window.addEventListener('orientationchange', scheduleRestructureRankBox, { passive: true });

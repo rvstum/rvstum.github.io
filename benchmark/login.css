@@ -381,7 +381,7 @@ textarea:focus {
 
     body {
         height: auto;
-        min-height: 100dvh;
+        min-height: 100%;
         overflow-y: auto;
         grid-template-rows: auto 1fr auto;
     }
