@@ -12059,8 +12059,9 @@ async function enterViewMode(data, uid) {
         input.disabled = true;
         input.style.pointerEvents = 'none';
     });
+    // Keep cave link icons clickable in view mode (editing is already blocked by isViewMode checks).
     document.querySelectorAll('.cave-play-wrapper').forEach(wrapper => {
-        wrapper.style.pointerEvents = 'none';
+        wrapper.style.pointerEvents = 'auto';
     });
 }
 
