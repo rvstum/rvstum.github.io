@@ -68,7 +68,7 @@
         setTimeout(apply, 350);
       })();
     </script>
-    <link rel="stylesheet" href="benchmark.css?v=20260224-scrollsteady1">
+    <link rel="stylesheet" href="benchmark.css?v=20260224-scrollsteady2">
 </head>
 <body>
     <div id="pageLoader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #050505; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease;">
@@ -1444,7 +1444,7 @@
             scoreWrappers.forEach((w, i) => {
                 if (!rows[i]) return;
                 const rowH = rows[i].offsetHeight;
-                w.style.top = ((rowH - 28) / 2) + -6.5 + 'px';
+                w.style.top = `${toWholePx(((rowH - 28) / 2) - 6.5)}px`;
             });
         }
 
@@ -1466,7 +1466,7 @@
                 const isSingleRow = stripeHeight <= 40;
                 const midY = stripeTop + stripeHeight / 2;
                 v.style.position = 'absolute';
-                v.style.top = (midY - (isSingleRow ? 19 : 9)) + 'px';
+                v.style.top = `${toWholePx(midY - (isSingleRow ? 19 : 9))}px`;
             });
         }
 
@@ -1481,13 +1481,15 @@
         let isSyncingRight = false;
         let syncTimeoutLeft = null;
         let syncTimeoutRight = null;
+        const toWholePx = (value) => Math.round(Number(value) || 0);
 
         const updateMobileTransforms = (offset) => {
             if (window.innerWidth <= 900) {
-                if (caveText) caveText.style.transform = `translateX(${offset}px)`;
-                if (scoreText) scoreText.style.transform = `translateX(${offset}px)`;
-                if (progressionText) progressionText.style.transform = `translateX(${offset}px)`;
-                if (ratingText) ratingText.style.transform = `translateX(${offset}px)`;
+                const snapped = toWholePx(offset);
+                if (caveText) caveText.style.transform = `translate3d(${snapped}px, 0, 0)`;
+                if (scoreText) scoreText.style.transform = `translate3d(${snapped}px, 0, 0)`;
+                if (progressionText) progressionText.style.transform = `translate3d(${snapped}px, 0, 0)`;
+                if (ratingText) ratingText.style.transform = `translate3d(${snapped}px, 0, 0)`;
             }
         };
 
@@ -1517,7 +1519,10 @@
             ranksWrapper.addEventListener('scroll', () => {
                 if (!isSyncingLeft) {
                     isSyncingRight = true;
-                    scrollEl.scrollLeft = ranksWrapper.scrollLeft + syncOffset;
+                    const targetLeft = toWholePx(ranksWrapper.scrollLeft + syncOffset);
+                    if (Math.abs(scrollEl.scrollLeft - targetLeft) > 0.5) {
+                        scrollEl.scrollLeft = targetLeft;
+                    }
                     if (syncTimeoutRight) clearTimeout(syncTimeoutRight);
                     syncTimeoutRight = setTimeout(() => { isSyncingRight = false; }, 60);
                 }
@@ -1528,7 +1533,12 @@
         scrollEl.addEventListener('scroll', () => {
             if (!isSyncingRight) {
                 isSyncingLeft = true;
-                if (ranksWrapper) ranksWrapper.scrollLeft = scrollEl.scrollLeft - syncOffset;
+                if (ranksWrapper) {
+                    const targetLeft = toWholePx(scrollEl.scrollLeft - syncOffset);
+                    if (Math.abs(ranksWrapper.scrollLeft - targetLeft) > 0.5) {
+                        ranksWrapper.scrollLeft = targetLeft;
+                    }
+                }
                 if (syncTimeoutLeft) clearTimeout(syncTimeoutLeft);
                 syncTimeoutLeft = setTimeout(() => { isSyncingLeft = false; }, 60);
             }
@@ -1537,16 +1547,17 @@
             updateMobileTransforms(offset);
 
             if (window.innerWidth > 900) {
-                scoreWrappers.forEach(w => { w.style.transform = `translateX(${offset}px)`; });
-                ratingValues.forEach(v => { v.style.transform = `translateX(${offset}px)`; });
+                const snapped = toWholePx(offset);
+                scoreWrappers.forEach(w => { w.style.transform = `translate3d(${snapped}px, 0, 0)`; });
+                ratingValues.forEach(v => { v.style.transform = `translate3d(${snapped}px, 0, 0)`; });
             }
         }, { passive: true });
 
         window.addEventListener('scroll', () => {
             if (window.innerWidth <= 900) return;
-            const offset = -scrollEl.scrollLeft;
-            ratingValues.forEach(v => { v.style.transform = `translateX(${offset}px)`; });
-            scoreWrappers.forEach(w => { w.style.transform = `translateX(${offset}px)`; });
+            const snapped = toWholePx(-scrollEl.scrollLeft);
+            ratingValues.forEach(v => { v.style.transform = `translate3d(${snapped}px, 0, 0)`; });
+            scoreWrappers.forEach(w => { w.style.transform = `translate3d(${snapped}px, 0, 0)`; });
         }, { passive: true });
 
         repositionScoreInputs();
@@ -1557,14 +1568,14 @@
             repositionRatingValues();
             repositionScoreInputs();
             if (window.innerWidth > 900) {
-const currentOffset = -scrollEl.scrollLeft;
+const currentOffset = toWholePx(-scrollEl.scrollLeft);
                 ratingValues.forEach((v, i) => {
                     v.style.position = ratingOriginalStyles[i].position;
                     v.style.left = '';
                     v.style.top = ratingOriginalStyles[i].top;
-                    v.style.transform = `translateX(${currentOffset}px)`;
+                    v.style.transform = `translate3d(${currentOffset}px, 0, 0)`;
                 });
-                scoreWrappers.forEach(w => { w.style.transform = `translateX(${currentOffset}px)`; });
+                scoreWrappers.forEach(w => { w.style.transform = `translate3d(${currentOffset}px, 0, 0)`; });
                 if (caveText) caveText.style.transform = '';
                 if (scoreText) scoreText.style.transform = '';
                 if (progressionText) progressionText.style.transform = '';

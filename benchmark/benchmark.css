@@ -5821,4 +5821,23 @@ body.view-mode .achievement-proof-upload.has-image {
     #settingsModal .settings-custom-item {
         font-size: 16px !important;
     }
+
+    /* Keep header labels and rank/progress area visually steady during horizontal pan. */
+    .cave-text,
+    .score-text,
+    .progression-text,
+    .rating-text,
+    .rating-value,
+    .ranks-wrapper,
+    #ranksBarsContainer,
+    .container > div[style*="margin-right: 70px"],
+    .ranks-labels,
+    .progress-bar,
+    .ranks-bars {
+        will-change: transform;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
 }
