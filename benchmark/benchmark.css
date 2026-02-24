@@ -2499,7 +2499,7 @@ html[data-benchmark-lang='pt-PT'] .rating-text {
 
 .info-icon {
     position: absolute;
-    right: 12.5px;
+    right: calc(((var(--progression-right) + 20px) / 2) - 12.5px);
     top: calc(50% - 5px);
     transform: translateY(-50%);
     width: 25px;
