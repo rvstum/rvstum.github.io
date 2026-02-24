@@ -157,6 +157,7 @@ const PAGE_LOADER_MIN_VISIBLE_MS = 1300;
 let pageLoaderHideTimeout = null;
 const pageLoaderStartedAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 let runtimeAccountId = '';
+const ACCOUNT_ID_MAP_STORAGE_KEY = 'benchmark_account_ids_v1';
 
 function setRuntimeAccountId(value) {
     runtimeAccountId = (value || '').toString().trim();
@@ -165,6 +166,42 @@ function setRuntimeAccountId(value) {
 
 function getRuntimeAccountId() {
     return runtimeAccountId || '';
+}
+
+function readAccountIdMap() {
+    try {
+        const raw = localStorage.getItem(ACCOUNT_ID_MAP_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        return (parsed && typeof parsed === 'object') ? parsed : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function writeAccountIdMap(map) {
+    try {
+        localStorage.setItem(ACCOUNT_ID_MAP_STORAGE_KEY, JSON.stringify(map || {}));
+    } catch (e) {
+        // ignore storage access issues
+    }
+}
+
+function getRememberedAccountIdForUid(uid) {
+    const key = (uid || '').toString().trim();
+    if (!key) return '';
+    const map = readAccountIdMap();
+    const value = map[key];
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+function rememberAccountIdForUid(uid, accountId) {
+    const key = (uid || '').toString().trim();
+    const value = (accountId || '').toString().trim();
+    if (!key || !value) return;
+    const map = readAccountIdMap();
+    if (map[key] === value) return;
+    map[key] = value;
+    writeAccountIdMap(map);
 }
 
 try {
@@ -13651,15 +13688,19 @@ async function loadUserProfile(user) {
             }
             
             if (data.accountId) {
-                setRuntimeAccountId(data.accountId);
-                updateAccountIdUI(data.accountId);
-                updateFriendPageAccountId(data.accountId);
+                const stableId = data.accountId;
+                setRuntimeAccountId(stableId);
+                rememberAccountIdForUid(user.uid, stableId);
+                updateAccountIdUI(stableId);
+                updateFriendPageAccountId(stableId);
             } else {
-                const newId = generateAccountId();
-                await saveUserData({ accountId: newId });
-                setRuntimeAccountId(newId);
-                updateAccountIdUI(newId);
-                updateFriendPageAccountId(newId);
+                const rememberedId = getRememberedAccountIdForUid(user.uid);
+                const stableId = rememberedId || getRuntimeAccountId() || generateAccountId();
+                setRuntimeAccountId(stableId);
+                rememberAccountIdForUid(user.uid, stableId);
+                await saveUserData({ accountId: stableId });
+                updateAccountIdUI(stableId);
+                updateFriendPageAccountId(stableId);
             }
             {
                 const effectiveAccountId = data.accountId || getRuntimeAccountId();
@@ -13797,6 +13838,14 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     if (user) {
+    {
+        const rememberedId = getRememberedAccountIdForUid(user.uid);
+        if (rememberedId) {
+            setRuntimeAccountId(rememberedId);
+            updateAccountIdUI(rememberedId);
+            updateFriendPageAccountId(rememberedId);
+        }
+    }
     if (profileId && profileId !== user.uid) {
         hidePageLoader();
         return;
