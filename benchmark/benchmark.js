@@ -7948,9 +7948,8 @@ async function handleProfileLink() {
     const currentUser = await waitForAuthInitialization();
 
     if (!profileId && requestedSlug) {
-        profileDocFromSlug = await resolveProfileDocBySlug(requestedSlug);
-        if (profileDocFromSlug) profileId = profileDocFromSlug.id;
-        if (!profileId && currentUser) {
+        // Fast-path: if the slug matches the signed-in user, skip heavy lookup work.
+        if (currentUser) {
             try {
                 const myDoc = await getDoc(doc(db, 'users', currentUser.uid));
                 if (myDoc.exists()) {
@@ -7960,16 +7959,18 @@ async function handleProfileLink() {
                     const mineAccountId = mine.accountId || localStorage.getItem('benchmark_account_id') || '';
                     const mySlug = buildProfileSlug(mineUsername, mineAccountId, currentUser.uid);
                     if (mySlug === requestedSlug) {
-                        profileId = currentUser.uid;
+                        return;
                     }
                 }
             } catch (ownResolveErr) {
                 console.warn('Failed to resolve own slug fallback:', ownResolveErr);
             }
         }
+        profileDocFromSlug = await resolveProfileDocBySlug(requestedSlug, { allowFallback: false });
+        if (profileDocFromSlug) profileId = profileDocFromSlug.id;
     }
     if (!profileId) {
-        if (requestedSlug) {
+        if (requestedSlug && !currentUser) {
             showPrivateProfileOverlay();
             hidePageLoader();
         }

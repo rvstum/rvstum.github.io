@@ -205,13 +205,11 @@
                   }
 
                   const savedLang = localStorage.getItem('benchmark_language') || 'en';
-                  try {
-                      await setDoc(doc(db, 'users', userCredential.user.uid), {
-                          settings: { language: savedLang }
-                      }, { merge: true });
-                  } catch (e) {
+                  setDoc(doc(db, 'users', userCredential.user.uid), {
+                      settings: { language: savedLang }
+                  }, { merge: true }).catch((e) => {
                       console.error("Error saving language preference:", e);
-                  }
+                  });
                   await navigateAfterLogin(userCredential.user);
               })
               .catch((error) => {
