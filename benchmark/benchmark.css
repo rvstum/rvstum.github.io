@@ -4020,6 +4020,28 @@ body.view-mode .achievement-proof-upload.has-image {
 }
 
 @media (max-width: 900px) {
+    html,
+    body {
+        min-height: 100dvh;
+        overscroll-behavior-y: none;
+    }
+
+    body {
+        align-items: flex-start;
+        overflow-y: auto;
+    }
+
+    #responsive-wrapper,
+    #benchmark-content {
+        min-height: 100dvh;
+    }
+
+    /* Prevent iOS/Safari focus zoom on form controls. */
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
 
     
     .rounded-inner-box {
