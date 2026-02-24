@@ -8612,7 +8612,7 @@ async function updateMainProgressBarAndRanks() {
                     textStyle = `background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite;`;
                     break;
                 case 12: 
-                    filter = 'grayscale(100%)'; 
+                    filter = 'sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9)'; 
                     eternalLayerStyle = `background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%); background-size: 300% auto; animation: eternalTrophyShimmer 2.5s linear infinite;`;
                     textStyle = `background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite;`;
                     break;
@@ -15486,7 +15486,15 @@ function restructureRankBox() {
 
     if (!rankBox || !ranksWrapper || !middleBox) return;
 
-    if (window.innerWidth <= 900) {
+    const isMobile = window.matchMedia('(max-width: 900px)').matches;
+    const clearPlacement = (el) => {
+        if (!el || !el.style) return;
+        ['position', 'top', 'left', 'right', 'bottom', 'width', 'height', 'min-height', 'transform', 'margin', 'z-index'].forEach((prop) => {
+            el.style.removeProperty(prop);
+        });
+    };
+
+    if (isMobile) {
         if (rankBox.parentElement !== ranksWrapper) {
             ranksWrapper.insertBefore(rankBox, ranksWrapper.firstChild);
         }
@@ -15500,6 +15508,9 @@ function restructureRankBox() {
         if (infoIcon && infoIcon.parentElement !== middleBox) {
             middleBox.appendChild(infoIcon);
         }
+        // Ensure desktop falls back to CSS placement if any inline layout was left behind.
+        clearPlacement(rankBox);
+        clearPlacement(infoIcon);
     }
 }
 
@@ -15529,3 +15540,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.addEventListener('resize', scheduleRestructureRankBox, { passive: true });
 window.addEventListener('orientationchange', scheduleRestructureRankBox, { passive: true });
+window.addEventListener('load', scheduleRestructureRankBox);
+window.matchMedia('(max-width: 900px)').addEventListener('change', scheduleRestructureRankBox);

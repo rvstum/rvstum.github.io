@@ -2098,7 +2098,7 @@ html[data-benchmark-lang='pt-PT'] .rating-text {
     animation: eternalShimmer 2.5s linear infinite;
 }
 
-.ranks-labels .rank-item:nth-child(12) .trophy-layer { filter: grayscale(100%); -webkit-filter: grayscale(100%); }
+.ranks-labels .rank-item:nth-child(12) .trophy-layer { filter: sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9); -webkit-filter: sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9); }
 .ranks-labels .rank-item:nth-child(12) .eternal-layer {
     display: block;
     background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%);
