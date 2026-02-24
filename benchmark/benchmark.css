@@ -4024,16 +4024,24 @@ body.view-mode .achievement-proof-upload.has-image {
     body {
         min-height: 100dvh;
         overscroll-behavior-y: none;
+        overflow: hidden;
     }
 
     body {
         align-items: flex-start;
-        overflow-y: auto;
+        overflow: hidden;
     }
 
     #responsive-wrapper,
     #benchmark-content {
         min-height: 100dvh;
+    }
+
+    #responsive-wrapper {
+        height: 100dvh;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
     }
 
     /* Prevent iOS/Safari focus zoom on form controls. */
@@ -5753,5 +5761,48 @@ body.view-mode .achievement-proof-upload.has-image {
     html[data-benchmark-lang='pt-PT'] #mobileOptionsLink > span {
         font-size: 9px !important;
         line-height: 1 !important;
+    }
+}
+
+/* Final mobile safeguards: prevent page overscroll void + input auto-zoom. */
+@media (max-width: 900px) {
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        min-height: 100dvh;
+        overflow: hidden !important;
+        overscroll-behavior-y: none !important;
+    }
+
+    body {
+        position: relative;
+        align-items: flex-start;
+    }
+
+    #responsive-wrapper {
+        width: 100%;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        overscroll-behavior-y: contain !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #benchmark-content {
+        min-height: 100%;
+    }
+
+    input,
+    select,
+    textarea,
+    .settings-select,
+    .score-input,
+    .achievement-input,
+    #friendsModal #friendIdInput,
+    #settingsModal .settings-custom-trigger,
+    #settingsModal .settings-custom-item {
+        font-size: 16px !important;
     }
 }
