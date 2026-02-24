@@ -4872,14 +4872,14 @@ body.view-mode .achievement-proof-upload.has-image {
         transform: translateY(-7px);
     }
     
-    .bg-stripe:nth-of-type(5) { top: 43px !important; height: 73px !important; }
-    .bg-stripe:nth-of-type(6) { top: 117px !important; height: 73px !important; }
-    .bg-stripe:nth-of-type(7) { top: 191px !important; height: 73px !important; }
-    .bg-stripe:nth-of-type(8) { top: 265px !important; height: 36px !important; }
-    .bg-stripe:nth-of-type(9) { top: 301.5px !important; height: 73px !important; }
-    .bg-stripe:nth-of-type(10) { top: 376px !important; height: 73px !important; }
-    .bg-stripe:nth-of-type(11) { top: 450px !important; height: 73px !important; }
-    .bg-stripe:nth-of-type(12) { top: 523.5px !important; height: 36px !important; }
+    .bg-stripe:nth-of-type(1) { top: 43px !important; height: 73px !important; }
+    .bg-stripe:nth-of-type(2) { top: 117px !important; height: 73px !important; }
+    .bg-stripe:nth-of-type(3) { top: 191px !important; height: 73px !important; }
+    .bg-stripe:nth-of-type(4) { top: 265px !important; height: 36px !important; }
+    .bg-stripe:nth-of-type(5) { top: 301.5px !important; height: 73px !important; }
+    .bg-stripe:nth-of-type(6) { top: 376px !important; height: 73px !important; }
+    .bg-stripe:nth-of-type(7) { top: 450px !important; height: 73px !important; }
+    .bg-stripe:nth-of-type(8) { top: 523.5px !important; height: 36px !important; }
 
     .roman-numerals-container {
         display: block;
