@@ -4564,7 +4564,7 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 
     .ranks-labels {
-    width: 1043px;
+    width: 1040px;
     min-width: 0;
     margin-left: 345px;
     padding: 0;
@@ -4580,7 +4580,7 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 
     .progress-bar {
-        width: 1043px;
+        width: 1040px;
         min-width: 0;
         max-width: none;
         height: 28px;
@@ -4590,8 +4590,8 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 
     .rank-item {
-    width: 80.2px;
-    min-width: 80.2px;
+    width: 80px;
+    min-width: 80px;
     flex-shrink: 0;
     padding-left: 9px;
 }
@@ -4604,7 +4604,7 @@ body.view-mode .achievement-proof-upload.has-image {
         overflow-x: auto;
         overflow-y: visible;
         -webkit-overflow-scrolling: touch;
-        scroll-behavior: smooth;
+        scroll-behavior: auto;
         touch-action: auto;
         cursor: grab;
         pointer-events: auto !important;
@@ -4689,7 +4689,7 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 
     .rank-bar {
-        width: 76.2px;
+        width: 76px;
         height: 18px;
         margin: 0 2px;
         transform: skewX(-35deg);
@@ -4698,6 +4698,22 @@ body.view-mode .achievement-proof-upload.has-image {
         pointer-events: auto;
         touch-action: auto;
         order: 3;
+    }
+
+    /* Reduce sub-pixel paint shimmer while horizontal scrolling on mobile. */
+    .ranks-labels,
+    .progress-bar,
+    .ranks-bars,
+    .bg-stripe,
+    .cave-text,
+    .score-text,
+    .progression-text,
+    .rating-text,
+    .rating-value {
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
     }
 
     .rank-bar:first-child {
