@@ -7994,8 +7994,8 @@ async function handleProfileLink() {
             ? profileDocFromSlug
             : await getDoc(doc(db, 'users', profileId));
         if (!docSnap.exists()) {
-            alert('User not found');
-            window.location.href = getBenchmarkAppEntryUrl();
+            console.warn('Profile route did not resolve to a user document:', profileId);
+            hidePageLoader();
             return;
         }
 

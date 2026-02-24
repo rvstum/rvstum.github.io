@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Benchmark</title>
-    <link rel="stylesheet" href="login.css?v=20260221i3">
+    <link rel="stylesheet" href="login.css?v=20260221i4">
 </head>
 <body>
     <h1 class="app-title">Benchmark</h1>
@@ -62,8 +62,8 @@
         </div>
     </footer>
 
-    <script src="auth-i18n.js?v=20260223a3"></script>
-    <script src="footer-baddy.js?v=20260221b3"></script>
+    <script src="auth-i18n.js?v=20260223a4"></script>
+    <script src="footer-baddy.js?v=20260221b4"></script>
     <script type="module">
       // Import the functions you need from the SDKs you need
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -146,6 +146,38 @@
           return `${getBenchmarkBasePath()}/${slug}`;
       };
       const getCurrentPathWithSearch = () => `${window.location.pathname}${window.location.search}`;
+      const REDIRECT_GUARD_FLAG_KEY = 'benchmark_disable_auto_nav';
+      const REDIRECT_LOAD_GUARD_KEY = 'benchmark_auto_nav_load_guard';
+      const shouldDisableAutoNav = () => {
+          try {
+              const params = new URLSearchParams(window.location.search || '');
+              if (params.get('pause_nav') === '1') return true;
+              return sessionStorage.getItem(REDIRECT_GUARD_FLAG_KEY) === '1';
+          } catch (e) {
+              return false;
+          }
+      };
+      const registerAutoNavLoad = () => {
+          try {
+              const now = Date.now();
+              const raw = sessionStorage.getItem(REDIRECT_LOAD_GUARD_KEY);
+              let state = raw ? JSON.parse(raw) : { count: 0, ts: 0 };
+              if (!state || typeof state !== 'object') state = { count: 0, ts: 0 };
+              if (now - Number(state.ts || 0) <= 12000) {
+                  state.count = Number(state.count || 0) + 1;
+              } else {
+                  state.count = 1;
+              }
+              state.ts = now;
+              sessionStorage.setItem(REDIRECT_LOAD_GUARD_KEY, JSON.stringify(state));
+              if (state.count >= 4) {
+                  sessionStorage.setItem(REDIRECT_GUARD_FLAG_KEY, '1');
+              }
+          } catch (e) {
+              // ignore guard storage errors
+          }
+      };
+      registerAutoNavLoad();
       const isCanonicalLoginPath = (pathValue) => {
           const lower = (pathValue || '').toLowerCase();
           const base = getBenchmarkBasePath().toLowerCase();
@@ -158,6 +190,7 @@
       };
       const normalizePath = (path) => (path || '').replace(/\/+$/, '') || '/';
       const navigateAfterLogin = async (user) => {
+          if (shouldDisableAutoNav()) return;
           const now = Date.now();
           const loopWindowMs = 15000;
           const loopCountKey = 'benchmark_login_redirect_count';
