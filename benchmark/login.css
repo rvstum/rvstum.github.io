@@ -25,14 +25,19 @@ body {
     background-image: url('../icons/background1.png');
     background-size: cover;
     background-position: center;
-    height: 100svh;
-    min-height: 100svh;
+    min-height: 100dvh;
     margin: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 * {
     -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 a:focus,
