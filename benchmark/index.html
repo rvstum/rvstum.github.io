@@ -130,7 +130,7 @@
       const resolveSignedInUrl = async (user) => {
           if (!user) return `${getBenchmarkBasePath()}/`;
           let username = user.displayName || 'player';
-          let accountId = localStorage.getItem('benchmark_account_id') || '';
+          let accountId = '';
           let publicSlug = '';
           try {
               const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -140,7 +140,7 @@
                   username = data.username || profile.username || username;
                   accountId = data.accountId || accountId;
                   publicSlug = (data.publicSlug || '').toString().trim();
-                  if (data.accountId) localStorage.setItem('benchmark_account_id', data.accountId);
+                  
               }
           } catch (e) {
               console.warn('Failed to resolve signed-in profile URL, using fallback.', e);

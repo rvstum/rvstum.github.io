@@ -1510,14 +1510,17 @@
                 const maxScroll = ranksWrapper.scrollWidth - ranksWrapper.clientWidth;
                 
                 if ((ranksWrapper.scrollLeft <= 0 && deltaX < 0) || (ranksWrapper.scrollLeft >= maxScroll - 1 && deltaX > 0)) {
-                    scrollEl.scrollLeft = initialScrollLeft + deltaX;
+                    // Keep top progress area independent on mobile; do not push lower container scroll.
+                    if (window.innerWidth > 900) {
+                        scrollEl.scrollLeft = initialScrollLeft + deltaX;
+                    }
                 }
             }, { passive: true });
 
             ranksWrapper.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
 
             ranksWrapper.addEventListener('scroll', () => {
-                if (!isSyncingLeft) {
+                if (window.innerWidth > 900 && !isSyncingLeft) {
                     isSyncingRight = true;
                     const targetLeft = toWholePx(ranksWrapper.scrollLeft + syncOffset);
                     if (Math.abs(scrollEl.scrollLeft - targetLeft) > 0.5) {
@@ -1526,7 +1529,7 @@
                     if (syncTimeoutRight) clearTimeout(syncTimeoutRight);
                     syncTimeoutRight = setTimeout(() => { isSyncingRight = false; }, 60);
                 }
-                updateMobileTransforms(-ranksWrapper.scrollLeft);
+                // Mobile labels should follow only the lower container's scroll, not the top progress box.
             }, { passive: true });
         }
 
@@ -1679,7 +1682,7 @@ input.addEventListener('click', (e) => {
     }
 })();
 </script>
-        <script type="module" src="benchmark.js?v=20260224-routingfix1">
+        <script type="module" src="benchmark.js?v=20260224-privacyfix1">
         </script>
 </body>
 </html>

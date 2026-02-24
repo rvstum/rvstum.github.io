@@ -156,6 +156,23 @@ let activeViewProfileContext = null;
 const PAGE_LOADER_MIN_VISIBLE_MS = 1300;
 let pageLoaderHideTimeout = null;
 const pageLoaderStartedAt = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+let runtimeAccountId = '';
+
+function setRuntimeAccountId(value) {
+    runtimeAccountId = (value || '').toString().trim();
+    return runtimeAccountId;
+}
+
+function getRuntimeAccountId() {
+    return runtimeAccountId || '';
+}
+
+try {
+    // Remove legacy persistent account id so it no longer appears in browser local storage.
+    localStorage.removeItem('benchmark_account_id');
+} catch (e) {
+    // ignore storage access issues
+}
 
 function normalizeFriendRequestIds(rawRequests) {
     const normalized = [];
@@ -316,7 +333,7 @@ function updateOwnProfileUrl(user, data) {
     if (params.get('id')) return;
     const profile = (data && typeof data.profile === 'object' && data.profile) ? data.profile : {};
     const username = (data && data.username) || profile.username || user.displayName || 'player';
-    const accountId = (data && data.accountId) || localStorage.getItem('benchmark_account_id') || '';
+    const accountId = (data && data.accountId) || getRuntimeAccountId();
     const slug = buildProfileSlug(username, accountId, user.uid);
     if (isLocalDevRoutingEnv()) {
         const target = `${getBenchmarkBasePath()}/benchmark.html`;
@@ -342,7 +359,7 @@ function forceOwnSlugUrlFromAvailableData(user, data = null) {
     if (!currentPath.endsWith('/benchmark.html')) return;
     updateOwnProfileUrl(user, data || {
         username: user.displayName || 'player',
-        accountId: localStorage.getItem('benchmark_account_id') || '',
+        accountId: getRuntimeAccountId(),
         profile: {}
     });
 }
@@ -813,7 +830,7 @@ function buildCopyLinkUrl() {
         : (usernameEl ? usernameEl.textContent : 'player');
     const accountId = context
         ? (context.accountId || '')
-        : (localStorage.getItem('benchmark_account_id') || '');
+        : (getRuntimeAccountId());
     const fallbackId = context
         ? (context.uid || '')
         : (user ? user.uid : '');
@@ -7961,7 +7978,7 @@ async function handleProfileLink() {
                     const mine = myDoc.data() || {};
                     const mineProfile = (mine.profile && typeof mine.profile === 'object') ? mine.profile : {};
                     const mineUsername = mine.username || mineProfile.username || currentUser.displayName || 'player';
-                    const mineAccountId = mine.accountId || localStorage.getItem('benchmark_account_id') || '';
+                    const mineAccountId = mine.accountId || getRuntimeAccountId();
                     const mySlug = buildProfileSlug(mineUsername, mineAccountId, currentUser.uid);
                     if (mySlug === requestedSlug) {
                         return;
@@ -12150,7 +12167,7 @@ if (exitViewModeBtn) {
         }
         updateOwnProfileUrl(user, {
             username: user.displayName || (document.querySelector('.profile-name') ? document.querySelector('.profile-name').textContent : 'player'),
-            accountId: localStorage.getItem('benchmark_account_id') || '',
+            accountId: getRuntimeAccountId(),
             profile: {}
         });
 
@@ -12907,11 +12924,10 @@ function updateAccountIdUI(accountId) {
 }
 
 function initAccountId() {
-    const storageKey = 'benchmark_account_id';
-    let accountId = localStorage.getItem(storageKey);
+    let accountId = getRuntimeAccountId();
     if (!accountId) {
         accountId = generateAccountId();
-        localStorage.setItem(storageKey, accountId);
+        setRuntimeAccountId(accountId);
     }
     updateAccountIdUI(accountId);
 }
@@ -13635,18 +13651,18 @@ async function loadUserProfile(user) {
             }
             
             if (data.accountId) {
-                localStorage.setItem('benchmark_account_id', data.accountId);
+                setRuntimeAccountId(data.accountId);
                 updateAccountIdUI(data.accountId);
                 updateFriendPageAccountId(data.accountId);
             } else {
                 const newId = generateAccountId();
                 await saveUserData({ accountId: newId });
-                localStorage.setItem('benchmark_account_id', newId);
+                setRuntimeAccountId(newId);
                 updateAccountIdUI(newId);
                 updateFriendPageAccountId(newId);
             }
             {
-                const effectiveAccountId = data.accountId || localStorage.getItem('benchmark_account_id') || '';
+                const effectiveAccountId = data.accountId || getRuntimeAccountId();
                 const effectiveUsername = data.username || user.displayName || '';
                 if (effectiveUsername && effectiveAccountId) {
                     const desiredSlug = buildProfileSlug(effectiveUsername, effectiveAccountId, user.uid);
@@ -13852,7 +13868,7 @@ onAuthStateChanged(auth, async (user) => {
             console.warn('Failed to update profile URL slug:', urlErr);
             updateOwnProfileUrl(user, {
                 username: user.displayName || (document.querySelector('.profile-name') ? document.querySelector('.profile-name').textContent : 'player'),
-                accountId: localStorage.getItem('benchmark_account_id') || '',
+                accountId: getRuntimeAccountId(),
                 profile: {}
             });
         }
@@ -13994,7 +14010,7 @@ if (saveProfileBtn) {
             updateMainHeaderLayout();
 
             const profileData = cleanProfileData(draftProfileState, editingGuilds);
-            const accountIdForSlug = localStorage.getItem('benchmark_account_id') || '';
+            const accountIdForSlug = getRuntimeAccountId();
             const publicSlug = buildProfileSlug(username, accountIdForSlug, user.uid);
             // Save username and profile data to Firestore
             await setDoc(doc(db, 'users', user.uid), {
@@ -15327,7 +15343,7 @@ if (saveOnboardingBtn) {
             updateMainHeaderLayout();
 
             const profileData = cleanProfileData(draftProfileState, editingGuilds);
-            const accountIdForSlug = localStorage.getItem('benchmark_account_id') || '';
+            const accountIdForSlug = getRuntimeAccountId();
             const publicSlug = buildProfileSlug(username, accountIdForSlug, user.uid);
 
             await setDoc(doc(db, 'users', user.uid), {
