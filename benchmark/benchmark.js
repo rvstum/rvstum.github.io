@@ -7977,7 +7977,8 @@ async function handleProfileLink() {
     }
 
     if (currentUser && currentUser.uid === profileId) {
-        window.location.href = getBenchmarkAppEntryUrl();
+        // Already viewing own profile route (slug or id). Do not redirect,
+        // otherwise login auto-redirect and this branch can create a loop.
         return;
     }
 
