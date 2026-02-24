@@ -366,10 +366,6 @@
         </div>
     </div>
     <div class="container">
-        <div class="rating-text" data-i18n="rating">Rating</div>
-        <div class="score-text" data-i18n="score">Score</div>
-        <div class="progression-text" data-i18n="progression">Score Threshold</div>
-        <div class="cave-text" data-i18n="cave">Cave</div>
         <div class="bg-stripe" style="top: calc(20px + 20px - 6.5px); height: 78px;"></div>
         <div class="bg-stripe" style="top: calc(20px + 100px - 6.5px); height: 78px;"></div>
         <div class="bg-stripe" style="top: calc(20px + 180px - 6.5px); height: 78px;"></div>
@@ -379,6 +375,10 @@
         <div class="bg-stripe" style="top: calc(20px + 460px - 6.5px); height: 78px;"></div>
         <div class="bg-stripe" style="top: calc(20px + 540px - 6.5px); height: 38px;"></div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; padding: calc(20px + 20px) 20px 15px 20px; position: relative; z-index: 202; pointer-events: none; margin-right: 70px;">
+            <div class="rating-text" data-i18n="rating">Rating</div>
+            <div class="score-text" data-i18n="score">Score</div>
+            <div class="progression-text" data-i18n="progression">Score Threshold</div>
+            <div class="cave-text" data-i18n="cave">Cave</div>
             <div class="vertical-box" style="top: calc(20px + 20px - 6.5px); height: 278px; display: flex; align-items: center; justify-content: center;"><div style="transform: rotate(-90deg); position: relative; display: inline-flex; align-items: center; justify-content: center;"><span style="color: #fff; font-size: 15px; font-weight: bold; white-space: nowrap;" data-i18n="swords">Swords</span><img src="../icons/benchmarksword.jpg" style="position: absolute; right: 100%; margin-right: 5px; height: 20px; width: auto; transform: rotate(90deg);"></div></div>
             <div class="vertical-box" style="top: calc(20px + 300px - 6.5px); height: 278px; display: flex; align-items: center; justify-content: center;"><div style="transform: rotate(-90deg); position: relative; display: inline-flex; align-items: center; justify-content: center;"><span style="color: #fff; font-size: 15px; font-weight: bold; white-space: nowrap;" data-i18n="bombs">Bombs</span><img src="../icons/benchmarkbomb.jpg" style="position: absolute; right: 100%; margin-right: 15px; height: 20px; width: auto; transform: rotate(90deg);"></div></div>
             <div class="ranks-bars">
@@ -1483,16 +1483,6 @@
         let syncTimeoutRight = null;
         const toWholePx = (value) => Math.round(Number(value) || 0);
 
-        const updateMobileTransforms = (offset) => {
-            if (window.innerWidth <= 900) {
-                const snapped = toWholePx(offset);
-                if (caveText) caveText.style.transform = `translate3d(${snapped}px, 0, 0)`;
-                if (scoreText) scoreText.style.transform = `translate3d(${snapped}px, 0, 0)`;
-                if (progressionText) progressionText.style.transform = `translate3d(${snapped}px, 0, 0)`;
-                if (ratingText) ratingText.style.transform = `translate3d(${snapped}px, 0, 0)`;
-            }
-        };
-
         if (ranksWrapper) {
             let touchStartX = 0;
             let initialScrollLeft = 0;
@@ -1543,15 +1533,6 @@
                 }
                 if (syncTimeoutLeft) clearTimeout(syncTimeoutLeft);
                 syncTimeoutLeft = setTimeout(() => { isSyncingLeft = false; }, 60);
-            }
-            
-            const offset = -scrollEl.scrollLeft;
-            updateMobileTransforms(offset);
-
-            if (window.innerWidth > 900) {
-                const snapped = toWholePx(offset);
-                scoreWrappers.forEach(w => { w.style.transform = `translate3d(${snapped}px, 0, 0)`; });
-                ratingValues.forEach(v => { v.style.transform = `translate3d(${snapped}px, 0, 0)`; });
             }
         }, { passive: true });
 

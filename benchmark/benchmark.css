@@ -1858,7 +1858,7 @@ body.view-mode .cave-play-edit {
     position: absolute;
     top: 0;
     left: auto;
-    right: 0;
+    right: calc(-1 * var(--progression-right));
     width: calc(70px + 20px);
     height: calc(20px + 13.5px);
     display: flex;
@@ -1989,7 +1989,7 @@ html[data-benchmark-lang='pt-PT'] .rating-text {
 .progression-text {
     position: absolute;
     top: 0;
-    right: var(--progression-right);
+    right: 0;
     width: var(--progression-width);
     height: calc(20px + 13.5px);
     display: flex;
@@ -4747,21 +4747,21 @@ body.view-mode .achievement-proof-upload.has-image {
     .cave-text {
         display: flex;
         left: 35px;
-        top: 10px;
+        top: 5px;
         font-size: 15px;
     }
 
     .score-text {
         display: flex;
         left: 262.5px;
-        top: 10px;
+        top: 5px;
         font-size: 15px;
     }
 
 .progression-text {
     display: flex;
     font-size: 15px;
-    top: 10px;
+    top: 5px;
     left: 850px;
     width: calc(100% - 265px);
     justify-content: center;
@@ -4785,7 +4785,7 @@ body.view-mode .achievement-proof-upload.has-image {
         display: flex;
         left: 1397px;
         right: auto !important;
-        top: 10px;
+        top: 5px;
         font-size: 15px;
     }
 
