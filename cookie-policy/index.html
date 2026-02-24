@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#000000">
     <title>Cookie Policy - KDAssist</title>
+    <link rel="icon" type="image/png" href="../icons/map2a.png">
     <style>
         body { background-color: #000; color: #ccc; font-family: Arial, sans-serif; margin: 0; padding: 0; line-height: 1.6; }
         body::before {
@@ -47,7 +48,7 @@
 </head>
 <body>
     <div class="content-container">
-    <a href="../" class="back-link">&larr; Back to Home</a>
+    <a href="../index.html" class="back-link">&larr; Back to Home</a>
     <h1>Cookie Policy</h1>
     <p><strong>Last Updated:</strong> February 6, 2025</p>
 
@@ -163,9 +164,44 @@
     <p><strong>Email:</strong> <a href="mailto:rvstum@gmail.com">rvstum@gmail.com</a></p>
     </div>
     <div class="legal-footer">
-        <a href="../terms-and-conditions/" class="legal-link">Terms & Conditions</a>
+        <a href="../terms-and-condition/" class="legal-link">Terms & Conditions</a>
         <a href="../privacy-policy/" class="legal-link">Privacy Policy</a>
         <a href="../dmca-copyright-policy/" class="legal-link">DMCA Policy</a>
     </div>
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const source = params.get('from') === 'benchmark' ? 'benchmark' : 'index';
+            const returnToRaw = params.get('returnTo') || '';
+            const returnToMap = {
+                index: '../index.html',
+                benchmark: '../benchmark/benchmark.html',
+                login: '../benchmark/',
+                signup: '../benchmark/sign-up/',
+                'forgot-password': '../benchmark/forgot-password/',
+                'verification-sent': '../benchmark/verification-sent/'
+            };
+            const returnTo = Object.prototype.hasOwnProperty.call(returnToMap, returnToRaw) ? returnToRaw : '';
+            const backLink = document.querySelector('.back-link');
+            if (backLink) {
+                const fallbackHref = source === 'benchmark' ? '../benchmark/benchmark.html' : '../index.html';
+                backLink.setAttribute('href', returnTo ? returnToMap[returnTo] : fallbackHref);
+            }
+            const policyPattern = /^(\.\.\/)(terms-and-condition|privacy-policy|cookie-policy|dmca-copyright-policy)(\/|\/index\.html)?/;
+            document.querySelectorAll('a[href]').forEach((link) => {
+                if (link.classList.contains('back-link')) return;
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('#')) return;
+                if (!policyPattern.test(href)) return;
+                const parts = href.split('#');
+                const hash = parts.length > 1 ? `#${parts.slice(1).join('#')}` : '';
+                const path = parts[0].split('?')[0];
+                const query = returnTo
+                    ? `?from=${source}&returnTo=${encodeURIComponent(returnTo)}`
+                    : `?from=${source}`;
+                link.setAttribute('href', `${path}${query}${hash}`);
+            });
+        })();
+    </script>
 </body>
 </html>
