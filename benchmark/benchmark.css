@@ -112,7 +112,7 @@ body.modal-open {
     overscroll-behavior: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-device-width: 900px) {
     html.modal-open,
     body.modal-open {
         overflow-y: auto !important;
@@ -4021,7 +4021,7 @@ body.view-mode .achievement-proof-upload.has-image {
     background: rgba(0, 0, 0, 0.86);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-device-width: 900px) {
     html,
     body {
         min-height: 100dvh;
@@ -5067,7 +5067,7 @@ body.view-mode .achievement-proof-upload.has-image {
         font-size: 10px !important;
     }
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-device-width: 900px) {
     #settingsModal .settings-select-native-hidden {
         position: absolute !important;
         width: 1px !important;
@@ -5778,7 +5778,7 @@ body.view-mode .achievement-proof-upload.has-image {
 }
 
 /* Final mobile scroll/zoom guard for benchmark page only. */
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-device-width: 900px) {
     html {
         min-height: 100%;
         overflow-x: hidden !important;

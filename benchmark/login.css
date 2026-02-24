@@ -448,7 +448,7 @@ textarea:focus {
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-device-width: 900px) {
     .auth-main {
         justify-content: center !important;
         align-self: stretch;
@@ -478,7 +478,7 @@ textarea:focus {
 
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-device-width: 900px) {
     .app-title {
         position: static !important;
         left: auto !important;
@@ -520,7 +520,7 @@ input:-moz-autofill {
 }
 
 /* Final mobile safeguards for all auth pages. */
-@media (max-width: 900px) {
+@media (max-width: 900px), (max-device-width: 900px) {
     html,
     body {
         width: 100%;

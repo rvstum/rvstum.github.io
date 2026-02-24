@@ -168,6 +168,15 @@ function getRuntimeAccountId() {
     return runtimeAccountId || '';
 }
 
+function isMobileViewport() {
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    if (viewportWidth <= 900) return true;
+    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches || Number(navigator.maxTouchPoints || 0) > 0;
+    const screenObj = window.screen || {};
+    const screenWidth = Math.min(screenObj.width || 0, screenObj.height || 0);
+    return !!(isCoarsePointer && screenWidth > 0 && screenWidth <= 900);
+}
+
 function readAccountIdMap() {
     try {
         const raw = localStorage.getItem(ACCOUNT_ID_MAP_STORAGE_KEY);
@@ -556,7 +565,7 @@ function markCurrentFriendRequestsViewed() {
 function syncMobileHoneycombMask() {
     const rankBox = document.querySelector('.rounded-inner-box');
     if (!rankBox) return;
-    if (window.innerWidth <= 900) {
+    if (isMobileViewport()) {
         rankBox.style.setProperty('--honeycomb-mask-x', '90px', 'important');
         rankBox.style.setProperty('--honeycomb-mask-y', '170px', 'important');
     } else {
@@ -8666,7 +8675,7 @@ async function updateMainProgressBarAndRanks() {
                 const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='49'><path d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5z' fill='none' stroke='${rankColor}' stroke-width='2' opacity='0.4'/></svg>`;
                 const encodedSvg = btoa(svg);
                 const bgImage = `url("data:image/svg+xml;base64,${encodedSvg}")`;
-                const isMobileMask = window.innerWidth <= 900;
+                const isMobileMask = isMobileViewport();
                 const mobileMaskY = isMobileMask ? '170px' : 'var(--honeycomb-mask-y)';
                 const baseMask = isMobileMask
                     ? `radial-gradient(ellipse 114px 80px at var(--rank-center-x) 50%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.96) 30%, rgba(0, 0, 0, 0.78) 50%, rgba(0, 0, 0, 0.42) 66%, transparent 82%)`
@@ -8984,7 +8993,7 @@ function drawRadarChart(canvas, labels, datasets) {
 
     const centerX = width / 2;
     const centerY = height / 2;
-    const isMobile = window.innerWidth <= 900;
+    const isMobile = isMobileViewport();
     const isSmallMobile = window.innerWidth <= 400;
     const is412x915 =
         isMobile &&
@@ -9070,7 +9079,7 @@ function drawPieChart(canvas, swordsTotal, bombsTotal) {
     const isPacman = pacmanModeEnabled;
     const shouldRenderPacman = isPacman && total > 0 && swordsTotal !== bombsTotal && swordsTotal > 0 && bombsTotal > 0;
     
-    const isMobile = window.innerWidth <= 900;
+    const isMobile = isMobileViewport();
     const isSmallMobile = window.innerWidth <= 400;
     const baseRadius = Math.min(width, height) * (isMobile ? (isSmallMobile ? 0.30 : 0.36) : 0.44);
 
@@ -9331,7 +9340,7 @@ function drawBarGraph(canvas, data) {
     const textColor = computed.getPropertyValue('--app-text').trim() || '#e0e0e0';
     const gridColor = computed.getPropertyValue('--panel-border').trim() || 'rgba(255,255,255,0.12)';
 
-    const isMobile = window.innerWidth <= 900;
+    const isMobile = isMobileViewport();
     const isSmallMobile = window.innerWidth <= 400;
     const padding = isMobile ? { top: 20, bottom: 30, left: 25, right: 5 } : { top: 20, bottom: 30, left: 45, right: 10 };
     const chartWidth = width - padding.left - padding.right;
@@ -9878,7 +9887,7 @@ function setupCavePlayEditors() {
     const caveWrappers = [];
     const caveOverlayMap = new Map();
     const getHitboxPad = () => (
-        window.innerWidth <= 900
+        isMobileViewport()
             ? { top: 0, bottom: 28, side: 6 }
             : { top: 0, bottom: 2, side: 3 }
     );
@@ -10061,7 +10070,7 @@ function setupCavePlayEditors() {
     });
 
     document.addEventListener('focusin', (e) => {
-        if (window.innerWidth > 900) return;
+        if (!isMobileViewport()) return;
         if (!activeWrapper) return;
         if (!e.target || !e.target.closest) return;
         if (e.target.closest('.score-input-wrapper')) {
@@ -10411,7 +10420,7 @@ if (shareBtn) {
                 const element = document.getElementById('benchmark-content')
                     || document.getElementById('responsive-wrapper')
                     || document.body;
-                const isMobileViewport = window.innerWidth <= 900;
+                const isMobileView = isMobileViewport();
                 const screenshotScale = 1;
                 const liveBodyStyle = getComputedStyle(document.body);
                 const fallbackThemeBg = getComputedStyle(document.documentElement).getPropertyValue('--app-bg').trim();
@@ -10659,7 +10668,7 @@ if (shareBtn) {
 
                 let dataUrl = null;
                 try {
-                    if (isMobileViewport) {
+                    if (isMobileView) {
                         const mobileDesktopAttempts = [
                             { width: 1366, quality: 0.76, timeoutMs: 0 },
                             { width: 1280, quality: 0.72, timeoutMs: 0 },
@@ -10680,7 +10689,7 @@ if (shareBtn) {
                         dataUrl = await runDesktopCapture(element, DESKTOP_SCREENSHOT_WIDTH_PX, 0.8, 14000);
                     }
                 } catch (primaryErr) {
-                    if (isMobileViewport) throw primaryErr;
+                    if (isMobileView) throw primaryErr;
                     const timedOutPrimary = primaryErr && typeof primaryErr.message === 'string' && /timed out/i.test(primaryErr.message);
                     if (!timedOutPrimary) throw primaryErr;
                     dataUrl = await runDesktopCapture(element, 1366, 0.72, 7000);
@@ -10755,8 +10764,8 @@ function isVisibleOverlayElement(el) {
 function syncGlobalModalScrollLock() {
     const hasOpenOverlay = Array.from(document.querySelectorAll('.share-modal-overlay.show'))
         .some((el) => isVisibleOverlayElement(el));
-    const isMobileViewport = window.matchMedia('(max-width: 900px)').matches;
-    const shouldLockPageScroll = hasOpenOverlay && !isMobileViewport;
+    const isMobileView = isMobileViewport();
+    const shouldLockPageScroll = hasOpenOverlay && !isMobileView;
     document.documentElement.classList.toggle('modal-open', shouldLockPageScroll);
     document.body.classList.toggle('modal-open', shouldLockPageScroll);
     if (shouldLockPageScroll) {
@@ -10916,12 +10925,12 @@ if (copyLinkBtn) {
     copyLinkBtn.addEventListener('click', async () => {
         try {
             await copyBenchmarkLinkToClipboard();
-            if (window.matchMedia('(min-width: 901px)').matches) {
+            if (!isMobileViewport()) {
                 showCopySuccessState(copyLinkBtn);
             }
         } catch (err) {
             console.error('Copy link failed:', err);
-            if (window.matchMedia('(min-width: 901px)').matches) {
+            if (!isMobileViewport()) {
                 restoreCopyLabel(copyLinkBtn);
             }
         }
@@ -11015,7 +11024,7 @@ function setupMobileSettingsDropdowns() {
     const selects = Array.from(document.querySelectorAll(MOBILE_SETTINGS_SELECT_SELECTOR));
     if (!selects.length) return;
 
-    const isMobile = window.matchMedia('(max-width: 900px)').matches;
+    const isMobile = isMobileViewport();
     selects.forEach((selectEl) => {
         const existing = selectEl.nextElementSibling;
         const hasCustom = existing && existing.classList && existing.classList.contains('settings-custom-select');
@@ -12579,7 +12588,7 @@ function bindCaveImageViewer() {
     }, true);
 
     document.addEventListener('mousemove', (e) => {
-        if (!e || window.innerWidth <= 900) return;
+        if (!e || isMobileViewport()) return;
         const img = findImageAtPoint(e.clientX, e.clientY);
         if (img === activeHoverImg) return;
         if (activeHoverImg && activeHoverImg.classList) activeHoverImg.classList.remove('cave-img-hover');
@@ -15509,7 +15518,7 @@ function setupRatingValueClasses() {
 }
 
 function restructureRatingsLayout() {
-    if (window.innerWidth > 900) return;
+    if (!isMobileViewport()) return;
     const rows = document.querySelectorAll('.ranks-bars');
     const ratings = document.querySelectorAll('.rating-value');
     
@@ -15535,7 +15544,7 @@ function restructureRankBox() {
 
     if (!rankBox || !ranksWrapper || !middleBox) return;
 
-    const isMobile = window.matchMedia('(max-width: 900px)').matches;
+    const isMobile = isMobileViewport();
     const clearPlacement = (el) => {
         if (!el || !el.style) return;
         ['position', 'top', 'left', 'right', 'bottom', 'width', 'height', 'min-height', 'transform', 'margin', 'z-index'].forEach((prop) => {
