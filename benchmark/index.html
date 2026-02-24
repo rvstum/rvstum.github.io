@@ -139,11 +139,12 @@
           } catch (e) {
               console.warn('Failed to resolve signed-in profile URL, using fallback.', e);
           }
+          const slug = publicSlug || `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
           if (isLocalDevRoutingEnv()) {
               return `${getBenchmarkBasePath()}/benchmark.html`;
           }
-          const slug = publicSlug || `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
-          return `${getBenchmarkBasePath()}/${slug}`;
+          const restoreTarget = `${getBenchmarkBasePath()}/${slug}`;
+          return `${getBenchmarkBasePath()}/benchmark.html?__restore=${encodeURIComponent(restoreTarget)}`;
       };
       const getCurrentPathWithSearch = () => `${window.location.pathname}${window.location.search}`;
       const REDIRECT_GUARD_FLAG_KEY = 'benchmark_disable_auto_nav';
@@ -211,11 +212,9 @@
           // If login HTML is being served on a slug/non-login path, force boot via benchmark.html.
           // This prevents auth redirect loops when hosting fallback serves the wrong document.
           if (!isCanonicalLoginPath(currentPathname)) {
-              const restore = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
-              const bootUrl = `${getBenchmarkBasePath()}/benchmark.html?__restore=${encodeURIComponent(restore)}`;
-              const bootPath = normalizePath(new URL(bootUrl, window.location.origin).pathname + new URL(bootUrl, window.location.origin).search);
-              if (currentPath !== bootPath) {
-                  window.location.replace(bootUrl);
+              const directTargetPath = normalizePath(`${targetUrl.pathname}${targetUrl.search}`);
+              if (currentPath !== directTargetPath) {
+                  window.location.replace(targetUrl.toString());
               }
               return;
           }
