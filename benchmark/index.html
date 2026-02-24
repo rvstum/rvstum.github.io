@@ -120,7 +120,12 @@
       };
       const isLocalDevRoutingEnv = () => {
           const host = (window.location.hostname || '').toLowerCase();
-          return host === 'localhost' || host === '127.0.0.1' || window.location.protocol === 'file:';
+          if (window.location.protocol === 'file:') return true;
+          if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '0.0.0.0') return true;
+          if (host.endsWith('.local') || host.endsWith('.lan')) return true;
+          const privateV4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/;
+          if (privateV4.test(host)) return true;
+          return false;
       };
       const resolveSignedInUrl = async (user) => {
           if (!user) return `${getBenchmarkBasePath()}/`;

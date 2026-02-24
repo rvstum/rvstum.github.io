@@ -217,7 +217,12 @@ function getBenchmarkBasePath() {
 
 function isLocalDevRoutingEnv() {
     const host = (window.location.hostname || '').toLowerCase();
-    return host === 'localhost' || host === '127.0.0.1' || window.location.protocol === 'file:';
+    if (window.location.protocol === 'file:') return true;
+    if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '0.0.0.0') return true;
+    if (host.endsWith('.local') || host.endsWith('.lan')) return true;
+    const privateV4 = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/;
+    if (privateV4.test(host)) return true;
+    return false;
 }
 
 function restorePathFromFallback() {
@@ -10684,11 +10689,23 @@ if (shareBtn) {
 }
 
 const MODAL_OUTSIDE_CLICK_MAX_MS = 220;
+function isVisibleOverlayElement(el) {
+    if (!el) return false;
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden') return false;
+    if (Number(style.opacity || '1') <= 0.01) return false;
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+}
+
 function syncGlobalModalScrollLock() {
-    const hasOpenOverlay = !!document.querySelector('.share-modal-overlay.show');
-    document.documentElement.classList.toggle('modal-open', hasOpenOverlay);
-    document.body.classList.toggle('modal-open', hasOpenOverlay);
-    if (hasOpenOverlay) {
+    const hasOpenOverlay = Array.from(document.querySelectorAll('.share-modal-overlay.show'))
+        .some((el) => isVisibleOverlayElement(el));
+    const isMobileViewport = window.matchMedia('(max-width: 900px)').matches;
+    const shouldLockPageScroll = hasOpenOverlay && !isMobileViewport;
+    document.documentElement.classList.toggle('modal-open', shouldLockPageScroll);
+    document.body.classList.toggle('modal-open', shouldLockPageScroll);
+    if (shouldLockPageScroll) {
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
     } else {
@@ -13440,11 +13457,11 @@ if (cropperArea) {
         startY = touch.clientY - cropperState.y;
     }, { passive: false });
 
-    window.addEventListener('touchmove', (e) => {
+    cropperArea.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
         const touch = e.touches && e.touches[0];
         if (!touch) return;
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         cropperState.x = touch.clientX - startX;
         cropperState.y = touch.clientY - startY;
         updateCropperTransform();
