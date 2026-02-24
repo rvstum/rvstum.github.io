@@ -4024,23 +4024,17 @@ body.view-mode .achievement-proof-upload.has-image {
     body {
         min-height: 100dvh;
         overscroll-behavior-y: none;
-        overflow: hidden;
+        overflow-x: hidden;
     }
 
     body {
-        align-items: flex-start;
-        overflow: hidden;
-    }
-
-    #responsive-wrapper,
-    #benchmark-content {
-        min-height: 100dvh;
+        overflow-y: auto;
     }
 
     #responsive-wrapper {
-        height: 100dvh;
-        overflow-y: auto;
-        overscroll-behavior-y: contain;
+        height: auto;
+        overflow-y: visible;
+        overscroll-behavior-y: auto;
         -webkit-overflow-scrolling: touch;
     }
 
@@ -5764,34 +5758,40 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 }
 
-/* Final mobile safeguards: prevent page overscroll void + input auto-zoom. */
+/* Final mobile scroll/zoom guard for benchmark page only. */
 @media (max-width: 900px) {
-    html,
-    body {
-        width: 100%;
-        height: 100%;
+    html {
         min-height: 100dvh;
-        overflow: hidden !important;
-        overscroll-behavior-y: none !important;
+        height: auto;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        overscroll-behavior-y: none;
+        overscroll-behavior-x: none;
+        touch-action: pan-y pinch-zoom;
     }
 
     body {
-        position: relative;
+        min-height: 100dvh;
+        height: auto;
+        overflow: visible !important;
+        overscroll-behavior-y: none;
+        overscroll-behavior-x: none;
+        touch-action: pan-y pinch-zoom;
         align-items: flex-start;
+        justify-content: flex-start;
     }
 
     #responsive-wrapper {
         width: 100%;
-        height: 100dvh !important;
-        min-height: 100dvh !important;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-        overscroll-behavior-y: contain !important;
-        -webkit-overflow-scrolling: touch;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     }
 
     #benchmark-content {
-        min-height: 100%;
+        width: 100%;
+        min-height: 0;
     }
 
     input,
