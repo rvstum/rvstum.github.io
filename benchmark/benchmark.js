@@ -1,9 +1,9 @@
-﻿import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, updateProfile, updateEmail, updatePassword, deleteUser, onAuthStateChanged, reauthenticateWithCredential, EmailAuthProvider, signOut, sendPasswordResetEmail, verifyBeforeUpdateEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion, arrayRemove, onSnapshot, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDWOwnzCEQjZLhvVoLA5mAzchRTVBWWxF4",
+  apiKey: "AIzaSyAiZHVFIXe8LrxGS-TklX-pIqC135IpIbY",
   authDomain: "benchmark-5a89f.firebaseapp.com",
   projectId: "benchmark-5a89f",
   storageBucket: "benchmark-5a89f.appspot.com",
