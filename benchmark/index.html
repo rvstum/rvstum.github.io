@@ -158,6 +158,17 @@
       };
       const normalizePath = (path) => (path || '').replace(/\/+$/, '') || '/';
       const navigateAfterLogin = async (user) => {
+          const now = Date.now();
+          const loopWindowMs = 15000;
+          const loopCountKey = 'benchmark_login_redirect_count';
+          const loopAtKey = 'benchmark_login_redirect_count_at';
+          const prevAt = Number(sessionStorage.getItem(loopAtKey) || '0');
+          const prevCount = Number(sessionStorage.getItem(loopCountKey) || '0');
+          const count = (now - prevAt <= loopWindowMs) ? (prevCount + 1) : 1;
+          sessionStorage.setItem(loopCountKey, String(count));
+          sessionStorage.setItem(loopAtKey, String(now));
+          if (count > 2) return;
+
           const target = await resolveSignedInUrl(user);
           const targetUrl = new URL(target, window.location.origin);
           const currentPathname = window.location.pathname || '';
@@ -178,7 +189,6 @@
 
           if (currentPath === targetPath) return;
 
-          const now = Date.now();
           const redirectKey = 'benchmark_login_redirect_target';
           const redirectAtKey = 'benchmark_login_redirect_at';
           const lastTarget = sessionStorage.getItem(redirectKey) || '';
@@ -346,6 +356,7 @@
       onAuthStateChanged(auth, async (user) => {
           if (!user) return;
           if (!user.emailVerified) return;
+          if (!isCanonicalLoginPath(window.location.pathname || '')) return;
           await navigateAfterLogin(user);
       });
 
