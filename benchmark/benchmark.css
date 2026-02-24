@@ -1592,7 +1592,7 @@ body.view-mode .cave-play-edit {
     transform: translateZ(0);
     width: var(--ranks-wrapper-width);
     flex-shrink: 0;
-    position: relative;
+    position: static;
     z-index: 1;
     height: 100%;
     justify-content: center;
@@ -2498,7 +2498,7 @@ html[data-benchmark-lang='pt-PT'] .rating-text {
 
 .info-icon {
     position: absolute;
-    right: 12.5px;
+    right: 32.5px;
     top: calc(50% - 5px);
     transform: translateY(-50%);
     width: 25px;
@@ -4555,6 +4555,7 @@ body.view-mode .achievement-proof-upload.has-image {
         padding-right: 70px;
         overflow-y: visible;
         -webkit-overflow-scrolling: touch;
+        position: relative;
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
     }

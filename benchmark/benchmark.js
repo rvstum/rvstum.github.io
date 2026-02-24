@@ -15478,19 +15478,6 @@ function restructureRatingsLayout() {
     });
 }
 
-function restructureRankBox() {
-    if (window.innerWidth > 900) return;
-    const rankBox = document.querySelector('.rounded-inner-box');
-    const ranksWrapper = document.querySelector('.ranks-wrapper');
-    if (rankBox && ranksWrapper && rankBox.parentElement !== ranksWrapper) {
-        ranksWrapper.appendChild(rankBox);
-    }
-    const infoIcon = document.querySelector('.info-icon');
-    if (infoIcon && ranksWrapper && infoIcon.parentElement !== ranksWrapper) {
-        ranksWrapper.appendChild(infoIcon);
-    }
-}
-
 // Call restructure on init
 document.addEventListener('DOMContentLoaded', () => {
     restructureHighlightsLayout();
@@ -15503,5 +15490,4 @@ document.addEventListener('DOMContentLoaded', () => {
     setupVerticalBoxClasses();
     setupRatingValueClasses();
     restructureRatingsLayout();
-    restructureRankBox();
 });
