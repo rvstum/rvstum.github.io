@@ -1,18 +1,20 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Verification Sent - Benchmark</title>
-    <link rel="stylesheet" href="../login.css">
+    <link rel="icon" type="image/png" href="../../icons/baddy.png">
+    <link rel="stylesheet" href="../login.css?v=20260224-mobilefix3">
 </head>
 <body>
     <h1 class="app-title">Benchmark</h1>
+    <div class="auth-main">
     <div class="login-container" style="position: relative;">
                 <select id="authLanguageSelect" class="auth-lang-select">
             <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="pt-BR">Português (Brasil)</option>
+            <option value="es">Espa�ol</option>
+            <option value="pt-BR">Portugu�s (Brasil)</option>
         </select>
         <h2 style="margin-bottom: 15px;" data-auth-i18n="verification_heading">Check Your Email</h2>
         <div style="text-align: center; color: #ccc; margin-bottom: 25px; font-size: 14px; line-height: 1.6;" data-auth-i18n-html="verification_message_html">
@@ -20,6 +22,7 @@
             Please check your <strong>spam folder</strong>.
         </div>
         <button id="loginRedirectBtn" class="btn btn-primary" data-auth-i18n="btn_go_to_login">Go to Login</button>
+    </div>
     </div>
     <footer class="legal-footer auth-footer">
         <div class="benchmark-footer-inner">
@@ -40,7 +43,7 @@
         </div>
     </footer>
 
-    <script src="../auth-i18n.js"></script>
+    <script src="../auth-i18n.js?v=20260223a"></script>
     <script src="../footer-baddy.js"></script>
     <script>
         document.getElementById('loginRedirectBtn').addEventListener('click', () => {
