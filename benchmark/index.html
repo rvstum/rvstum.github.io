@@ -145,6 +145,25 @@
           const slug = publicSlug || `${slugifyProfileSegment(username)}-${getAccountIdTail(accountId)}`;
           return `${getBenchmarkBasePath()}/${slug}`;
       };
+      const getCurrentPathWithSearch = () => `${window.location.pathname}${window.location.search}`;
+      const normalizePath = (path) => (path || '').replace(/\/+$/, '') || '/';
+      const navigateAfterLogin = async (user) => {
+          const target = await resolveSignedInUrl(user);
+          const targetUrl = new URL(target, window.location.origin);
+          const currentPath = normalizePath(getCurrentPathWithSearch());
+          const targetPath = normalizePath(`${targetUrl.pathname}${targetUrl.search}`);
+          if (currentPath === targetPath) return;
+
+          const now = Date.now();
+          const redirectKey = 'benchmark_login_redirect_target';
+          const redirectAtKey = 'benchmark_login_redirect_at';
+          const lastTarget = sessionStorage.getItem(redirectKey) || '';
+          const lastAt = Number(sessionStorage.getItem(redirectAtKey) || '0');
+          if (lastTarget === targetPath && now - lastAt < 4000) return;
+          sessionStorage.setItem(redirectKey, targetPath);
+          sessionStorage.setItem(redirectAtKey, String(now));
+          window.location.replace(targetUrl.toString());
+      };
 
       const emailInput = document.getElementById('email');
       const passwordInput = document.getElementById('password');
@@ -193,7 +212,7 @@
                   } catch (e) {
                       console.error("Error saving language preference:", e);
                   }
-                  window.location.replace(await resolveSignedInUrl(userCredential.user));
+                  await navigateAfterLogin(userCredential.user);
               })
               .catch((error) => {
                   if (error && error.code === 'auth/invalid-email') {
@@ -305,7 +324,7 @@
       onAuthStateChanged(auth, async (user) => {
           if (!user) return;
           if (!user.emailVerified) return;
-          window.location.replace(await resolveSignedInUrl(user));
+          await navigateAfterLogin(user);
       });
 
     </script>
