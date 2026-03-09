@@ -74,6 +74,14 @@ function getCachedProfileQuery(key, resolver) {
     return getCachedQuery(`profileUI:${key}`, resolver);
 }
 
+function getSlugAccountId() {
+    const accountIdDisplay = getCachedElementById("accountIdDisplay");
+    const fromDataset = accountIdDisplay && accountIdDisplay.dataset
+        ? (accountIdDisplay.dataset.realValue || "").trim()
+        : "";
+    return fromDataset || getRuntimeAccountId();
+}
+
 function normalizeGuildList(guilds) {
     return (Array.isArray(guilds) ? guilds : [])
         .map((guild) => String(guild || "").trim())
@@ -761,7 +769,7 @@ export async function saveOnboardingProfile(usernameRaw) {
     updateMainHeaderLayout();
 
     const profileData = cleanProfileData(draftProfileState, editingGuilds);
-    const accountIdForSlug = getRuntimeAccountId();
+    const accountIdForSlug = getSlugAccountId();
     const publicSlug = Slugs.buildProfileSlug(username, accountIdForSlug, user.uid);
 
     await setDoc(doc(db, 'users', user.uid), {

@@ -6,10 +6,10 @@ import { getCachedElementById, getCachedQuery, setHidden } from "./utils/domUtil
 import { getBenchmarkBasePath, normalizeFriendRequestIds } from "./utils.js";
 import * as Slugs from "./slugs.js";
 import * as UserService from "./userService.js";
-import * as AuthManager from "./authManager.js?v=20260304-achievements-6k";
+import * as AuthManager from "./authManager.js?v=20260309-profile-link-fix-1";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js";
-import * as ViewModeManager from "./viewModeManager.js?v=20260304-achievements-6k";
+import * as ViewModeManager from "./viewModeManager.js?v=20260309-profile-link-fix-1";
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf } from "./i18n.js";
 import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";

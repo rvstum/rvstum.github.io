@@ -20,11 +20,41 @@ export function getAccountIdTail(accountId) {
     return clean.slice(-4).toLowerCase();
 }
 
+export function resolveProfileUsername(data = {}, fallbackUsername = 'player') {
+    const safeData = data && typeof data === 'object' ? data : {};
+    const profile = safeData.profile && typeof safeData.profile === 'object' ? safeData.profile : {};
+    const fromData = typeof safeData.username === 'string' ? safeData.username.trim() : '';
+    if (fromData) return fromData;
+    const fromProfile = typeof profile.username === 'string' ? profile.username.trim() : '';
+    if (fromProfile) return fromProfile;
+    return (fallbackUsername || 'player').toString().trim() || 'player';
+}
+
+export function resolveProfileAccountId(data = {}, fallbackAccountId = '') {
+    const safeData = data && typeof data === 'object' ? data : {};
+    const profile = safeData.profile && typeof safeData.profile === 'object' ? safeData.profile : {};
+    const explicit = typeof safeData.accountId === 'string' ? safeData.accountId.trim() : '';
+    if (explicit) return explicit;
+    const fromProfile = typeof profile.accountId === 'string' ? profile.accountId.trim() : '';
+    if (fromProfile) return fromProfile;
+    return (fallbackAccountId || '').toString().trim();
+}
+
 export function buildProfileSlug(username, accountId, fallbackId = '') {
     const namePart = slugifyProfileSegment(username || 'player');
     const tailSource = accountId || fallbackId || '';
     const tail = getAccountIdTail(tailSource);
     return `${namePart}-${tail}`;
+}
+
+export function resolveProfileSlug(data = {}, options = {}) {
+    const safeOptions = options && typeof options === 'object' ? options : {};
+    const explicitSlug = data && typeof data.publicSlug === 'string' ? data.publicSlug.trim() : '';
+    if (explicitSlug) return explicitSlug;
+    const username = resolveProfileUsername(data, safeOptions.usernameFallback || 'player');
+    const accountId = resolveProfileAccountId(data, safeOptions.accountIdFallback || '');
+    const fallbackId = typeof safeOptions.uid === 'string' ? safeOptions.uid.trim() : '';
+    return buildProfileSlug(username, accountId, fallbackId);
 }
 
 export function isLocalDevRoutingEnv() {
@@ -85,10 +115,11 @@ export function updateOwnProfileUrl(user, data) {
     if (!user) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('id')) return;
-    const profile = (data && typeof data.profile === 'object' && data.profile) ? data.profile : {};
-    const username = (data && data.username) || profile.username || user.displayName || 'player';
-    const accountId = (data && data.accountId) || getRuntimeAccountId();
-    const slug = buildProfileSlug(username, accountId, user.uid);
+    const slug = resolveProfileSlug(data || {}, {
+        usernameFallback: user.displayName || 'player',
+        accountIdFallback: getRuntimeAccountId(),
+        uid: user.uid
+    });
     if (isLocalDevRoutingEnv()) {
         const target = `${getBenchmarkBasePath()}/benchmark.html`;
         const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
@@ -119,10 +150,11 @@ export function forceOwnSlugUrlFromAvailableData(user, data = null) {
 }
 
 export function updateViewProfileUrl(data, uid) {
-    const profile = (data && typeof data.profile === 'object' && data.profile) ? data.profile : {};
-    const username = (data && data.username) || profile.username || 'player';
-    const accountId = (data && data.accountId) || '';
-    const slug = buildProfileSlug(username, accountId, uid || '');
+    const slug = resolveProfileSlug(data || {}, {
+        usernameFallback: 'player',
+        accountIdFallback: '',
+        uid: uid || ''
+    });
     if (isLocalDevRoutingEnv()) {
         const url = new URL(window.location.href);
         url.pathname = `${getBenchmarkBasePath()}/benchmark.html`;

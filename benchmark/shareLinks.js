@@ -10,6 +10,14 @@ const shareLinkDeps = {
     applyConfig: null
 };
 
+function readCurrentPageAccountId() {
+    const accountInput = document.getElementById("accountIdDisplay");
+    const fromDataset = accountInput && accountInput.dataset
+        ? (accountInput.dataset.realValue || "").trim()
+        : "";
+    return fromDataset || getRuntimeAccountId();
+}
+
 export function configureShareLinks(deps = {}) {
     if (!deps || typeof deps !== "object") return;
     if (Object.prototype.hasOwnProperty.call(deps, "applyConfig")) {
@@ -40,11 +48,13 @@ export function buildCopyLinkUrl() {
         : (usernameEl ? usernameEl.textContent : "player");
     const accountId = context
         ? (context.accountId || "")
-        : getRuntimeAccountId();
+        : readCurrentPageAccountId();
     const fallbackId = context
         ? (context.uid || "")
         : (user ? user.uid : "");
-    const slug = Slugs.buildProfileSlug(username, accountId, fallbackId);
+    const slug = context && context.publicSlug
+        ? context.publicSlug
+        : Slugs.buildProfileSlug(username, accountId, fallbackId);
     const url = new URL(window.location.href);
     if (Slugs.isLocalDevRoutingEnv()) {
         url.pathname = `${getBenchmarkBasePath()}/benchmark.html`;
@@ -94,6 +104,8 @@ export function applyShareFromUrl() {
 async function syncCurrentUserPublicSlug(link) {
     const user = auth.currentUser;
     if (!user) return;
+    const context = state.isViewMode && state.activeViewProfileContext ? state.activeViewProfileContext : null;
+    if (context && context.uid && context.uid !== user.uid) return;
     const parts = new URL(link).pathname.split("/").filter(Boolean);
     const slug = parts.length ? parts[parts.length - 1] : "";
     if (!slug) return;

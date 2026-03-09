@@ -243,14 +243,15 @@ export async function loadUserProfile(user, hooks = {}) {
         }
 
         {
-            const effectiveAccountId = data.accountId || getRuntimeAccountId();
             const effectiveUsername = data.username || user.displayName || "";
-            if (effectiveUsername && effectiveAccountId) {
-                const desiredSlug = Slugs.buildProfileSlug(effectiveUsername, effectiveAccountId, sessionUid);
-                if (data.publicSlug !== desiredSlug) {
-                    await persistUserData({ publicSlug: desiredSlug }, { label: "profile slug" });
-                    if (isStaleAuthSession()) return;
-                }
+            const desiredSlug = Slugs.resolveProfileSlug(data || {}, {
+                usernameFallback: effectiveUsername,
+                accountIdFallback: getRuntimeAccountId(),
+                uid: sessionUid
+            });
+            if (effectiveUsername && desiredSlug && data.publicSlug !== desiredSlug) {
+                await persistUserData({ publicSlug: desiredSlug }, { label: "profile slug" });
+                if (isStaleAuthSession()) return;
             }
         }
 

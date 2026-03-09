@@ -3,8 +3,8 @@ import { db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
 import * as Slugs from "./slugs.js";
 import * as UserService from "./userService.js";
-import * as ViewModeManager from "./viewModeManager.js?v=20260304-achievements-6k";
-import * as AuthManager from "./authManager.js?v=20260304-achievements-6k";
+import * as ViewModeManager from "./viewModeManager.js?v=20260309-profile-link-fix-1";
+import * as AuthManager from "./authManager.js?v=20260309-profile-link-fix-1";
 import { showPageLoader } from "./pageLoaderUI.js";
 
 export async function handleProfileLink(options = {}) {
@@ -28,10 +28,11 @@ export async function handleProfileLink(options = {}) {
                 const myDoc = await getDoc(doc(db, "users", currentUser.uid));
                 if (myDoc.exists()) {
                     const mine = myDoc.data() || {};
-                    const mineProfile = (mine.profile && typeof mine.profile === "object") ? mine.profile : {};
-                    const mineUsername = mine.username || mineProfile.username || currentUser.displayName || "player";
-                    const mineAccountId = mine.accountId || getRuntimeAccountId();
-                    const mySlug = Slugs.buildProfileSlug(mineUsername, mineAccountId, currentUser.uid);
+                    const mySlug = Slugs.resolveProfileSlug(mine, {
+                        usernameFallback: currentUser.displayName || "player",
+                        accountIdFallback: getRuntimeAccountId(),
+                        uid: currentUser.uid
+                    });
                     if (mySlug === requestedSlug) {
                         return;
                     }
@@ -44,7 +45,7 @@ export async function handleProfileLink(options = {}) {
         if (profileDocFromSlug) profileId = profileDocFromSlug.id;
     }
     if (!profileId) {
-        if (requestedSlug && !currentUser) {
+        if (requestedSlug) {
             showPrivateProfileOverlay();
             hidePageLoader();
         }

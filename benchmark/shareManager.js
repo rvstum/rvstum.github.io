@@ -14,7 +14,7 @@ import {
     buildCopyLinkUrl,
     applyShareFromUrl,
     copyBenchmarkLinkToClipboard as copyProfileLinkToClipboard
-} from "./shareLinks.js";
+} from "./shareLinks.js?v=20260309-profile-link-fix-1";
 
 export { buildShareUrl, buildCopyLinkUrl, applyShareFromUrl };
 

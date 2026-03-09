@@ -42,6 +42,14 @@ function parseCropState(state) {
     };
 }
 
+function getSlugAccountId() {
+    const accountIdDisplay = getCachedElementById("accountIdDisplay");
+    const fromDataset = accountIdDisplay && accountIdDisplay.dataset
+        ? (accountIdDisplay.dataset.realValue || "").trim()
+        : "";
+    return fromDataset || getRuntimeAccountId();
+}
+
 function readDraftProfileState() {
     const raw = ProfileUI.draftProfileState && typeof ProfileUI.draftProfileState === "object"
         ? ProfileUI.draftProfileState
@@ -361,7 +369,7 @@ export function initProfileModalController(options = {}) {
             writeJson(GUILDS_STORAGE_KEY, guilds);
 
             const profileData = ProfileUI.cleanProfileData(draft, guilds);
-            const accountId = getRuntimeAccountId();
+            const accountId = getSlugAccountId();
             const publicSlug = Slugs.buildProfileSlug(username, accountId, user.uid);
 
             await setDoc(doc(db, "users", user.uid), {
@@ -724,7 +732,7 @@ export function initProfileModalController(options = {}) {
                 const user = auth.currentUser;
                 if (!user) return;
                 const action = async () => {
-                    const accountId = getRuntimeAccountId();
+                    const accountId = getSlugAccountId();
                     try {
                         await UserService.cleanupUserDataForAccountDeletion(user.uid, { accountId });
                     } catch (cleanupError) {

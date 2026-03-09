@@ -11,6 +11,7 @@ import * as FriendsService from "./friendsService.js";
 import * as RadarUI from "./radarUI.js";
 import * as RankingUI from "./rankingUI.js?v=20260309-mobile-score-center-fullbox-1";
 import * as ScoreManager from "./scoreManager.js";
+import * as Slugs from "./slugs.js";
 import { calculateRankFromData, calculateTotalRatingForScores } from "./scoring.js";
 import { getScoreBaseForConfigKey, DEFAULT_MOUNT_CONFIG, FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
 import { normalizeMountConfig, getConfigLookupKeys } from "./configManager.js";
@@ -444,10 +445,18 @@ export async function enterViewMode(data, uid) {
     updateViewProfileUrl(data, uid);
 
     const profile = (data && typeof data.profile === "object" && data.profile) ? data.profile : {};
+    const resolvedUsername = Slugs.resolveProfileUsername(data, profile.username || "player");
+    const resolvedAccountId = Slugs.resolveProfileAccountId(data, "");
+    const resolvedPublicSlug = Slugs.resolveProfileSlug(data || {}, {
+        usernameFallback: resolvedUsername,
+        accountIdFallback: resolvedAccountId,
+        uid: uid || ""
+    });
     state.activeViewProfileContext = {
         uid: uid || "",
-        username: (data && data.username) || profile.username || "player",
-        accountId: (data && data.accountId) || "",
+        username: resolvedUsername,
+        accountId: resolvedAccountId,
+        publicSlug: resolvedPublicSlug,
         rankIndex: resolveViewModeRankIndex(data)
     };
 
