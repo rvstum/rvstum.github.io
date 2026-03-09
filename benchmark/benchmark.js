@@ -46,7 +46,7 @@ import {
     MOUNT_CONFIG_IMAGES,
     CONFIG_OPTIONS
 } from "./constants.js";
-import * as Slugs from "./slugs.js";
+import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
 import {
     normalizeMountConfig,
     getMountConfigLabel,
@@ -62,9 +62,9 @@ import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-friends-trophy-preload-1";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js";
-import * as ViewModeManager from "./viewModeManager.js?v=20260309-profile-link-fix-1";
-import * as ShareManager from "./shareManager.js?v=20260309-profile-link-fix-1";
-import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-profile-link-fix-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260309-public-view-fix-1";
+import * as ShareManager from "./shareManager.js?v=20260309-public-view-fix-1";
+import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-public-view-fix-1";
 import * as TrophyUI from "./trophyUI.js?v=20260308-trophy-no-drag-1";
 import * as LayoutRuntime from "./layoutRuntime.js";
 import {
@@ -86,14 +86,14 @@ import {
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as ProfileUI from "./profileUI.js";
-import * as AuthManager from "./authManager.js?v=20260309-profile-link-fix-1";
+import * as AuthManager from "./authManager.js?v=20260309-public-view-fix-1";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-friends-trophy-preload-1";
 import { createHighlightsController } from "./highlightsUI.js";
 import * as UserService from "./userService.js?v=20260309-request-directory-1";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260309-profile-link-fix-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260309-public-view-fix-1";
 import { initOnboardingUI } from "./onboardingUI.js";
-import { handleProfileLink } from "./routeManager.js?v=20260309-profile-link-fix-1";
+import { handleProfileLink } from "./routeManager.js?v=20260309-public-view-fix-1";
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260309-aeternus-exit-text-1";
 import { initProfileModalController } from "./profileModalUI.js?v=20260309-profile-link-fix-1";
 import { createConfirmModalController } from "./confirmModalUI.js";

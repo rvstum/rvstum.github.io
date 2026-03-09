@@ -3,7 +3,7 @@ import { state, getRuntimeAccountId } from "./appState.js";
 import { getBenchmarkBasePath } from "./utils.js";
 import { getCurrentConfig } from "./configManager.js";
 import * as ScoreManager from "./scoreManager.js";
-import * as Slugs from "./slugs.js";
+import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
 import * as UserService from "./userService.js";
 
 const shareLinkDeps = {
@@ -66,7 +66,7 @@ export function buildCopyLinkUrl() {
             url.searchParams.delete("id");
         }
     } else {
-        url.pathname = `${getBenchmarkBasePath()}/${slug}`;
+        url.pathname = Slugs.buildViewModePathFromSlug(slug);
         url.search = "";
     }
     url.hash = "";
@@ -107,7 +107,11 @@ async function syncCurrentUserPublicSlug(link) {
     const context = state.isViewMode && state.activeViewProfileContext ? state.activeViewProfileContext : null;
     if (context && context.uid && context.uid !== user.uid) return;
     const parts = new URL(link).pathname.split("/").filter(Boolean);
-    const slug = parts.length ? parts[parts.length - 1] : "";
+    const slug = parts.length
+        ? (parts[parts.length - 1].toLowerCase() === "view-mode"
+            ? (parts[parts.length - 2] || "")
+            : parts[parts.length - 1])
+        : "";
     if (!slug) return;
     const lower = slug.toLowerCase();
     if (lower === "benchmark.html" || lower === "index.html") return;

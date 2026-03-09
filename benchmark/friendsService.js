@@ -96,9 +96,14 @@ export async function incrementViewCount(targetUid) {
     }
 
     const userRef = doc(db, "users", targetUserUid);
-    await updateDoc(userRef, {
-        "profile.views": increment(1)
-    });
+    try {
+        await updateDoc(userRef, {
+            "profile.views": increment(1)
+        });
+    } catch (e) {
+        if (!isPermissionLikeError(e)) throw e;
+        return false;
+    }
     cooldowns[targetUserUid] = now;
     writeProfileViewCooldowns(cooldowns);
     return true;

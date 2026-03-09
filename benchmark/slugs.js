@@ -47,6 +47,12 @@ export function buildProfileSlug(username, accountId, fallbackId = '') {
     return `${namePart}-${tail}`;
 }
 
+export function buildViewModePathFromSlug(slug) {
+    const trimmedSlug = (slug || '').toString().trim().replace(/^\/+|\/+$/g, '');
+    const safeSlug = trimmedSlug || 'player-0000';
+    return `${getBenchmarkBasePath()}/${safeSlug}/view-mode`;
+}
+
 export function resolveProfileSlug(data = {}, options = {}) {
     const safeOptions = options && typeof options === 'object' ? options : {};
     const explicitSlug = data && typeof data.publicSlug === 'string' ? data.publicSlug.trim() : '';
@@ -168,7 +174,7 @@ export function updateViewProfileUrl(data, uid) {
         }
         return;
     }
-    const targetPath = `${getBenchmarkBasePath()}/`;
+    const targetPath = buildViewModePathFromSlug(slug);
     const currentPath = (window.location.pathname || '').replace(/\/+$/, '');
     if (currentPath !== targetPath) {
         window.history.replaceState({}, '', targetPath);

@@ -30,7 +30,7 @@ import {
     AUTO_RANK_THEME_STORAGE_KEY,
     CONFIG_THEMES_STORAGE_KEY
 } from "./storage.js";
-import * as Slugs from "./slugs.js";
+import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
 import * as UserService from "./userService.js?v=20260309-request-directory-1";
 import * as ScoreManager from "./scoreManager.js";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
