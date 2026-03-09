@@ -1,10 +1,26 @@
-const CACHE_NAME = 'kdassist-v1.9.2'; // Change version number to force update
+const CACHE_NAME = 'kdassist-v1.9.6'; // Change version number to force update
 const urlsToCache = [
   './',
   './index.html',
+  './benchmark/benchmark.html',
   './icons/map2a.png',
   './maps.csv'
 ];
+
+function shouldUseNetworkFirst(request, acceptHeader) {
+  if (request.method !== 'GET') return false;
+
+  const destination = request.destination || '';
+  if (destination === 'document' || destination === 'script' || destination === 'style' || destination === 'worker') {
+    return true;
+  }
+
+  if (acceptHeader.includes('text/html') || acceptHeader.includes('text/css') || acceptHeader.includes('javascript')) {
+    return true;
+  }
+
+  return request.url.endsWith('.js') || request.url.endsWith('.css') || request.url.endsWith('.mjs');
+}
 
 // Install event - force immediate activation
 self.addEventListener('install', event => {
@@ -34,6 +50,26 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // Skip cross-origin requests (like Google Analytics) to prevent errors
   if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  const accept = event.request.headers.get('accept') || '';
+  if (shouldUseNetworkFirst(event.request, accept)) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
     return;
   }
 

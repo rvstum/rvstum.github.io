@@ -95,6 +95,7 @@
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
+                filter: contrast(1.1) saturate(1.05);
                 z-index: -2;
             }
 
@@ -105,7 +106,7 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.92);
+                background: rgba(0, 0, 0, 0.90);
                 z-index: -1;
             }
 
@@ -132,6 +133,10 @@
             
             .footer-wrapper {
                 position: relative;
+                width: 100%;
+                padding-bottom: 2px;
+                z-index: 1;
+                background: transparent;
             }
 
     .top-section {
@@ -920,8 +925,23 @@
         width: 100%; 
         margin-top: 5px; 
         padding: 5px 0 12px 0; 
-        background: linear-gradient(to bottom, #030303 40%, rgba(255, 196, 61, 0.05)); 
+        background: transparent; 
         border-top: 1px solid #1a1810;
+    }
+
+    @media (min-width: 1025px) {
+        .footer-wrapper {
+            background: transparent !important;
+        }
+
+        .footer-section {
+            background: transparent !important;
+        }
+
+        .legal-footer {
+            background-color: rgba(0, 0, 0, 0.9) !important;
+            box-shadow: none !important;
+        }
     }
 
     /* Loading Spinner */
@@ -1591,14 +1611,14 @@
 
     .footer-section {
         padding-bottom: 12px !important;
-        background: linear-gradient(to bottom, #030303 5px, rgba(155, 116, 31, 0.15)) !important;
+        background: transparent !important;
         margin-top: 0px;
         padding-top: 2px !important;
     }
 
     .legal-footer {
         padding-bottom: 95px !important;
-        box-shadow: inset 0 20px 30px -5px rgba(155, 116, 31, 0.15) !important;
+        box-shadow: none !important;
     }
 
         /* Make modal image larger on mobile */
@@ -2009,7 +2029,7 @@
                 background-color: rgba(0, 0, 0, 0.9);
                 padding: 15px 0;
                 border-top: 1px solid #1a1810;
-                box-shadow: inset 0 20px 30px -5px rgba(155, 116, 31, 0.1);
+                box-shadow: none;
                 display: flex;
                 justify-content: center;
                 gap: 15px;
@@ -2288,7 +2308,7 @@
         </div>
     </div>
 
-    <div class="footer-wrapper" style="width: 100%; background: linear-gradient(to bottom, transparent 114px, #000 114px); padding-bottom: 2px; position: relative; z-index: 1;">    <div style="width: 100px; margin: 0 auto 0px; position: relative; z-index: 1;">
+    <div class="footer-wrapper">    <div style="width: 100px; margin: 0 auto 0px; position: relative; z-index: 1;">
     <img src="icons/deco36.png" alt="High Five" style="width: 100%; height: auto; display: block; pointer-events: auto;">
 </div>
     <div class="actions-wrapper">
@@ -2306,7 +2326,7 @@
 </div>
     <div class="credits" style="text-align: center; color: #ffffff; font-size: 10px; line-height: 1.4; margin-top: -55px;">
         Site made by <span style="color: #edf6c1;">Rustum</span>. Special thanks to <span style="color: #ffc43d;">Maddy</span>.<br>
-        <span class="disclaimer">This site is not affiliated, maintained, endorsed or sponsored by Toonslab, All assets © 2026 Toonslab</span>
+        <span class="disclaimer">This site is not affiliated, maintained, endorsed or sponsored by GraalOnline, All assets &copy; 2026 GraalOnline</span>
     </div>
 </div>
 
@@ -2321,10 +2341,10 @@
         </div>
     </div>
     <div class="legal-footer">
-        <a href="terms-and-conditions/" class="legal-link">Terms & Conditions</a>
-        <a href="privacy-policy/" class="legal-link">Privacy Policy</a>
-        <a href="dmca-copyright-policy/" class="legal-link">DMCA Policy</a>
-        <a href="cookie-policy/" class="legal-link">Cookie Policy</a>
+        <a href="terms-and-condition/index.html?from=index" class="legal-link">Terms & Conditions</a>
+        <a href="privacy-policy/index.html?from=index" class="legal-link">Privacy Policy</a>
+        <a href="dmca-copyright-policy/index.html?from=index" class="legal-link">DMCA Policy</a>
+        <a href="cookie-policy/index.html?from=index" class="legal-link">Cookie Policy</a>
     </div>
         </div>
 

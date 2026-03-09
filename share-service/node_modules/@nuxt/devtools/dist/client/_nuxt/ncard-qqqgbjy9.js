@@ -1,0 +1,1 @@
+import{W as e,X as t,v as n}from"./vendor/json-editor-vue-jlmu1vk1.js";import{t as r}from"./_plugin-vue_export-helper-myijwyyb.js";var i={},a={class:`n-card n-card-base`};function o(r,i){return e(),n(`div`,a,[t(r.$slots,`default`)])}var s=Object.assign(r(i,[[`render`,o]]),{__name:`NCard`});export{s as t};

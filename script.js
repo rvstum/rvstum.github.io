@@ -96,4 +96,28 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `).join('');
   }
+
+  function setupGalleryModal() {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0,0,0,0.9);justify-content:center;align-items:center;';
+    
+    const modalImg = document.createElement('img');
+    modalImg.style.cssText = 'margin:auto;display:block;max-width:90%;max-height:90%;min-width:300px;object-fit:contain;image-rendering:pixelated;';
+    
+    modal.appendChild(modalImg);
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', () => modal.style.display = 'none');
+    
+    galleryContainer.addEventListener('click', (e) => {
+      if (e.target.tagName === 'IMG') {
+        modal.style.display = 'flex';
+        const fullImg = e.target.alt;
+        modalImg.src = fullImg ? `maps/${fullImg}.png` : e.target.src;
+        modalImg.onerror = () => { modalImg.src = e.target.src; };
+      }
+    });
+  }
+
+  setupGalleryModal();
 });

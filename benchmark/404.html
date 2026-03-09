@@ -5,35 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Redirecting...</title>
   <link rel="icon" type="image/png" href="../icons/baddy.png">
-  <script>
-    (function () {
-      var path = window.location.pathname || '';
-      var search = window.location.search || '';
-      var hash = window.location.hash || '';
-      var lower = path.toLowerCase();
-      var isKnownBenchmarkPath =
-        lower === '/benchmark' ||
-        lower === '/benchmark/' ||
-        lower === '/benchmark/sign-up' ||
-        lower === '/benchmark/sign-up/' ||
-        lower === '/benchmark/forgot-password' ||
-        lower === '/benchmark/forgot-password/' ||
-        lower === '/benchmark/verification-sent' ||
-        lower === '/benchmark/verification-sent/' ||
-        lower === '/benchmark/benchmark.html' ||
-        lower === '/benchmark/index.html';
-
-      var hasFileExtension = /\.[a-z0-9]+$/i.test(path);
-
-      if (!isKnownBenchmarkPath && !hasFileExtension) {
-        var restoreTarget = path + search + hash;
-        window.location.replace('/benchmark/benchmark.html?__restore=' + encodeURIComponent(restoreTarget));
-        return;
-      }
-
-      window.location.replace('/benchmark/');
-    })();
-  </script>
+  <script src="./404-redirect.js"></script>
 </head>
 <body>
   Redirecting...

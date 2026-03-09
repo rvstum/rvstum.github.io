@@ -203,6 +203,26 @@ textarea:focus {
     min-height: 18px;
 }
 
+.auth-message-success {
+    color: #4caf50;
+}
+
+.verification-container {
+    position: relative;
+}
+
+.verification-heading {
+    margin-bottom: 15px;
+}
+
+.verification-message {
+    text-align: center;
+    color: #ccc;
+    margin-bottom: 25px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
 .legal-footer {
     text-align: center;
 }
@@ -324,6 +344,10 @@ textarea:focus {
     width: 100%;
 }
 
+.auth-lang-dropdown.open {
+    z-index: 80;
+}
+
 .auth-lang-button {
     width: 100%;
     background: #0a0a0a;
@@ -350,6 +374,9 @@ textarea:focus {
     overflow: auto;
     max-height: 220px;
     z-index: 20;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
 }
 
 .auth-lang-dropdown.open .auth-lang-menu {
@@ -539,14 +566,33 @@ input:-moz-autofill {
     .auth-main {
         width: 100%;
         min-height: 0;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        overscroll-behavior-y: contain !important;
-        -webkit-overflow-scrolling: touch;
+        overflow: visible !important;
+        overscroll-behavior: auto !important;
+        -webkit-overflow-scrolling: auto;
+        position: relative;
+        z-index: 2;
     }
 
     .login-container {
         max-height: none;
+    }
+
+    body.auth-lang-menu-open .auth-lang-shell {
+        position: relative;
+        z-index: 80;
+    }
+
+    body.auth-lang-menu-open .auth-lang-dropdown {
+        z-index: 80;
+    }
+
+    body.auth-lang-menu-open .auth-lang-menu {
+        z-index: 90;
+    }
+
+    body.auth-lang-menu-open .auth-footer {
+        position: relative;
+        z-index: 1;
     }
 
     input,

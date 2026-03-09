@@ -1,0 +1,19 @@
+{
+  "name": "benchmark-share-service",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "nuxt": "^3.17.0",
+    "nuxt-og-image": "^5.0.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.58.2",
+    "typescript": "^5.7.3"
+  }
+}

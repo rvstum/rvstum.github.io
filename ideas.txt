@@ -1,0 +1,19 @@
+change all deco to normal colors ingame (also able to change 2 themes, classic = gold theme, modern = ingame theme)
+change background to ai raytracing
+293 loc needs to update
+
+        update serviceworker
+
+test visibility in live website
+url is correct, connects username 
+
+
+npx repomix@latest
+
+This file contains all the files in the repository combined into one.
+I want to refactor the code, so please review it first.
+
+
+
+fix mobile layout.. diff browsers makes the pages zoomed in locked and diff layout
+change email footer in database (benchmark-fadf212)

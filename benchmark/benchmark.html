@@ -5,121 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Benchmark</title>
     <link rel="icon" type="image/png" href="../icons/baddy.png">
-    <script type="module">
-      import * as modernScreenshot from 'https://cdn.jsdelivr.net/npm/modern-screenshot@4.4.39/+esm';
-      window.modernScreenshot = modernScreenshot;
-    </script>
-    <style id="hard-412-override">
-      @media (min-width: 390px) and (max-width: 430px) {
-        #addHighlightBtn {
-          padding: 4px 8px !important;
-          height: 24px !important;
-          line-height: 1 !important;
-          font-size: 9px !important;
-          border-radius: 6px !important;
-        }
-        .mobile-top-links .mobile-link > span,
-        #mobileCopyLinkBtn > span,
-        #mobileOptionsLink > span {
-          font-size: 9px !important;
-          line-height: 1 !important;
-        }
-      }
-    </style>
+    <link rel="preload" href="../icons/trophy.png" as="image" fetchpriority="high">
     <script>
-      (function force412CompactUi() {
-        function apply() {
-          var vw = window.innerWidth || document.documentElement.clientWidth || 0;
-          var is412 = vw >= 390 && vw <= 430;
-
-          var btn = document.getElementById('addHighlightBtn');
-          if (btn) {
-            if (is412) {
-              btn.style.setProperty('padding', '4px 8px', 'important');
-              btn.style.setProperty('height', '24px', 'important');
-              btn.style.setProperty('line-height', '1', 'important');
-              btn.style.setProperty('font-size', '9px', 'important');
-              btn.style.setProperty('border-radius', '6px', 'important');
-            } else {
-              btn.style.removeProperty('padding');
-              btn.style.removeProperty('height');
-              btn.style.removeProperty('line-height');
-              btn.style.removeProperty('font-size');
-              btn.style.removeProperty('border-radius');
-            }
-          }
-
-          var targets = document.querySelectorAll('.mobile-top-links .mobile-link > span, #mobileCopyLinkBtn > span, #mobileOptionsLink > span');
-          targets.forEach(function (el) {
-            if (is412) {
-              el.style.setProperty('font-size', '9px', 'important');
-              el.style.setProperty('line-height', '1', 'important');
-            } else {
-              el.style.removeProperty('font-size');
-              el.style.removeProperty('line-height');
-            }
-          });
-        }
-
-        window.addEventListener('resize', apply, { passive: true });
-        window.addEventListener('orientationchange', apply, { passive: true });
-        window.addEventListener('DOMContentLoaded', apply);
-        setTimeout(apply, 0);
-        setTimeout(apply, 350);
-      })();
+        window.__BENCHMARK_SHARE_SERVICE_URL__ = "http://localhost:3000";
     </script>
-    <link rel="stylesheet" href="benchmark.css?v=20260224-crossbrowsermobile4">
+    <script type="module" src="modernScreenshotLoader.js"></script>
+    <link rel="stylesheet" href="benchmark.css?v=20260309-mobile-score-center-fullbox-1">
 </head>
 <body>
-    <div id="pageLoader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #050505; z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s ease;">
-        <div style="width: 50px; height: 50px; border: 3px solid rgba(255, 196, 61, 0.1); border-radius: 50%; border-top-color: #ffc43d; animation: spin 1s linear infinite; box-shadow: 0 0 15px rgba(255, 196, 61, 0.2);"></div>
-        <div style="margin-top: 15px; color: #888; font-size: 12px; font-family: Arial, sans-serif; letter-spacing: 1px; font-weight: bold;">Logging in</div>
+    <div id="pageLoader" class="page-loader">
+        <div class="page-loader-spinner"></div>
+        <div class="page-loader-text">Loading...</div>
     </div>
     <script>
-    (function loaderFailsafe() {
-        var released = false;
-        var showBootError = function (message) {
-            var existing = document.getElementById('bootErrorBanner');
-            if (existing) return;
-            var banner = document.createElement('div');
-            banner.id = 'bootErrorBanner';
-            banner.textContent = message || 'Benchmark startup error detected.';
-            banner.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;z-index:100000;background:#2a0f0f;border:1px solid #7a2b2b;color:#ffd4d4;padding:8px 10px;font-size:12px;border-radius:8px;';
-            document.body.appendChild(banner);
-        };
-        var releaseLoader = function () {
-            if (released) return;
-            var loader = document.getElementById('pageLoader');
-            if (!loader) {
-                released = true;
-                return;
-            }
-            loader.style.setProperty('display', 'none', 'important');
-            loader.style.setProperty('opacity', '0', 'important');
-            if (loader.parentNode) loader.parentNode.removeChild(loader);
-            released = true;
-        };
-        window.addEventListener('error', function (e) {
-            releaseLoader();
-            var msg = (e && e.message ? e.message : 'Unknown error');
-            var src = (e && e.filename ? e.filename.split('/').pop() : '');
-            var line = (e && e.lineno ? ':' + e.lineno : '');
-            var col = (e && e.colno ? ':' + e.colno : '');
-            var at = src ? (' [' + src + line + col + ']') : '';
-            showBootError('Startup error: ' + msg + at);
-        });
-        window.addEventListener('unhandledrejection', function (e) {
-            releaseLoader();
-            var reason = e && e.reason ? String(e.reason) : 'Promise rejection';
-            showBootError('Startup error: ' + reason);
-        });
-        // Keep this as a true failsafe only; normal hide is controlled by benchmark.js.
-        setTimeout(releaseLoader, 20000);
-    })();
+        (function applyInitialLoaderLanguage() {
+            try {
+                var lang = localStorage.getItem("benchmark_language") || "en";
+                var loaderText = document.querySelector("#pageLoader .page-loader-text");
+                if (!loaderText) return;
+                if (lang === "es") {
+                    loaderText.textContent = "Cargando...";
+                    return;
+                }
+                if (lang === "pt-BR") {
+                    loaderText.textContent = "Carregando...";
+                    return;
+                }
+                loaderText.textContent = "Loading...";
+            } catch (e) {}
+        })();
     </script>
+    <script src="loaderFailsafe.js"></script>
     <div id="responsive-wrapper">
     <!-- SVG Mask Definition for Trophy Shimmer -->
-    <svg width="0" height="0" style="position: absolute; pointer-events: none;">
+    <svg width="0" height="0" class="trophy-mask-defs">
         <defs>
             <mask id="trophy-mask" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
                 <image href="../icons/trophy.png" x="0" y="0" width="1" height="1" preserveAspectRatio="none" />
@@ -129,7 +48,7 @@
 <div id="benchmark-content">
     <div class="controls-container">
         <div class="small-inner-box" id="platformBox">
-            <span id="platformText" style="color: #2196F3;">Mobile</span>
+            <span id="platformText" class="platform-label platform-label--mobile">Mobile</span>
             <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
             <div class="dropdown-menu">
                 <div class="dropdown-item" data-value="Mobile">Mobile</div>
@@ -167,26 +86,25 @@
         </div>
         <div class="user-menu-wrapper">
             <div class="mobile-top-links">
-                <span class="mobile-link" id="mobileCopyLinkBtn">
-                    <svg class="nav-icon" viewBox="0 0 24 24" width="14" height="14" style="margin-right: 4px; fill: #fff;"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                <span class="mobile-link" id="mobileCopyLinkBtn" aria-label="Copy Benchmark Link" title="Copy Benchmark Link">
+                    <svg class="nav-icon mobile-link-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                     <span data-i18n="copy_link">Copy Benchmark Link</span>
                 </span>
-                <span class="mobile-link-divider">|</span>
-                <span class="mobile-link" id="mobileOptionsLink" onclick="document.getElementById('settingsBtn').click()">
-                    <svg class="nav-icon" viewBox="0 0 24 24" width="14" height="14" style="margin-right: 4px; fill: #fff;"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L4.04 9.81c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.22.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                <span class="mobile-link" id="mobileOptionsLink" aria-label="Options" title="Options">
+                    <svg class="nav-icon mobile-link-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L4.04 9.81c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.22.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                     <span data-i18n="settings_title">Options</span>
                 </span>
             </div>
             <div class="small-inner-box" id="userMenuBox">
-                <div style="width: 24px; height: 24px; background-color: #0a0a0a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; margin-right: 6px;"></div>
+                <div class="user-menu-avatar-placeholder"></div>
                 <span id="userMenuUsername">Player</span>
                 <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
-                <div class="notification-dot" id="userMenuNotification" style="display: none;"></div>
+                <div class="notification-dot is-hidden" id="userMenuNotification"></div>
                 <div class="dropdown-menu">
                     <div class="dropdown-item" id="userProfileBtn" data-i18n="menu_profile">Profile</div>
                     <div class="dropdown-item" id="friendsMenuBtn">
                         <span class="friends-menu-label" data-i18n="menu_friends">Friends</span>
-                        <div class="notification-dot" id="friendsBtnNotification" style="display: none;"></div>
+                        <div class="notification-dot is-hidden" id="friendsBtnNotification"></div>
                     </div>
                     <div class="dropdown-item" id="signOutBtn" data-i18n="menu_logout">Log Out</div>
                 </div>
@@ -211,14 +129,14 @@
                     <div class="trophy-placeholder" id="trophyPlaceholder">
                         <span data-i18n="seasonal_add_placements">+ Add Seasonal Placements</span>
                     </div>
-                    <div class="trophy-list" id="trophyList" style="display: none;"></div>
+                    <div class="trophy-list initially-hidden" id="trophyList"></div>
                 </div>
             </div>
         </div>
         <div class="achievements-section">
             <div class="achievements-title" data-i18n="achievements_title">Achievements</div>
             <div class="achievements-bar">
-                <div class="achievements-fill" style="width: 0%;"></div>
+                <div class="achievements-fill achievements-fill--zero"></div>
             </div>
             <div class="achievements-text">You've unlocked 0/0 <span class="achievements-percent">(0%)</span></div>
         </div>
@@ -232,7 +150,7 @@
                 <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L4.04 9.81c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.22.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                 <span data-i18n="settings">Settings</span>
             </div>
-            <div class="nav-item" id="exitViewModeContainer" style="display: none;">
+            <div class="nav-item initially-hidden" id="exitViewModeContainer">
                 <button class="exit-view-mode-btn" id="exitViewModeBtn" data-i18n="exit_view_mode">Exit View Mode</button>
             </div>
         </div>
@@ -240,7 +158,8 @@
     <div class="middle-box">
         <div class="rounded-inner-box">Unranked</div>
         <div class="ranks-wrapper">
-            <div class="ranks-labels">
+            <div class="ranks-scroll">
+                <div class="ranks-labels">
                 <div class="rank-item">
                     <span class="rank-number">1350</span>
                     <div class="trophy-container">
@@ -349,303 +268,27 @@
                     <span class="rank-name">Aeternus</span>
                 </div>
             </div>
-            <div class="progress-stack">
-                <div class="progress-bar">
-                    <div class="progress-fill"></div>
-                    <span style="position: relative; z-index: 2;">0/0</span>
-                    <div class="rank-line" style="left: 21.5%;"></div>
-                    <div class="rank-line" style="left: 41.5%;"></div>
-                    <div class="rank-line" style="left: 61.5%;"></div>
-                    <div class="rank-line" style="left: 81.5%;"></div>
-                </div>
-                <div class="roman-numerals-container">
-                    <span style="left: 1.5%;">V</span><span style="left: 21.5%;">IV</span><span style="left: 41.5%;">III</span><span style="left: 61.5%;">II</span><span style="left: 81.5%;">I</span>
+                <div class="progress-stack">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                        <span class="progress-value-label">0/0</span>
+                        <div class="rank-line rank-line-1"></div>
+                        <div class="rank-line rank-line-2"></div>
+                        <div class="rank-line rank-line-3"></div>
+                        <div class="rank-line rank-line-4"></div>
+                    </div>
+                    <div class="roman-numerals-container">
+                        <span class="roman-pos-0">V</span><span class="roman-pos-1">IV</span><span class="roman-pos-2">III</span><span class="roman-pos-3">II</span><span class="roman-pos-4">I</span>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="info-icon" id="rulesBtn">!</div>
     </div>
-    <div class="container">
-        <div class="bg-stripe" style="top: calc(20px + 20px - 6.5px); height: 78px;"></div>
-        <div class="bg-stripe" style="top: calc(20px + 100px - 6.5px); height: 78px;"></div>
-        <div class="bg-stripe" style="top: calc(20px + 180px - 6.5px); height: 78px;"></div>
-        <div class="bg-stripe" style="top: calc(20px + 260px - 6.5px); height: 38px;"></div>
-        <div class="bg-stripe" style="top: calc(20px + 300px - 6.5px); height: 78px;"></div>
-        <div class="bg-stripe" style="top: calc(20px + 380px - 6.5px); height: 78px;"></div>
-        <div class="bg-stripe" style="top: calc(20px + 460px - 6.5px); height: 78px;"></div>
-        <div class="bg-stripe" style="top: calc(20px + 540px - 6.5px); height: 38px;"></div>
-        <div style="display: flex; flex-direction: column; align-items: flex-end; padding: calc(20px + 20px) 20px 15px 20px; position: relative; z-index: 202; pointer-events: none; margin-right: 70px;">
-            <div class="rating-text" data-i18n="rating">Rating</div>
-            <div class="score-text" data-i18n="score">Score</div>
-            <div class="progression-text" data-i18n="progression">Score Threshold</div>
-            <div class="cave-text" data-i18n="cave">Cave</div>
-            <div class="vertical-box" style="top: calc(20px + 20px - 6.5px); height: 278px; display: flex; align-items: center; justify-content: center;"><div style="transform: rotate(-90deg); position: relative; display: inline-flex; align-items: center; justify-content: center;"><span style="color: #fff; font-size: 15px; font-weight: bold; white-space: nowrap;" data-i18n="swords">Swords</span><img src="../icons/benchmarksword.jpg" style="position: absolute; right: 100%; margin-right: 5px; height: 20px; width: auto; transform: rotate(90deg);"></div></div>
-            <div class="vertical-box" style="top: calc(20px + 300px - 6.5px); height: 278px; display: flex; align-items: center; justify-content: center;"><div style="transform: rotate(-90deg); position: relative; display: inline-flex; align-items: center; justify-content: center;"><span style="color: #fff; font-size: 15px; font-weight: bold; white-space: nowrap;" data-i18n="bombs">Bombs</span><img src="../icons/benchmarkbomb.jpg" style="position: absolute; right: 100%; margin-right: 15px; height: 20px; width: auto; transform: rotate(90deg);"></div></div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_0.jpg" style="height: 30px; width: auto; margin-right: 5px;">Mercy<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_1.jpg" style="height: 30px; width: auto; margin-right: 5px;">Ruin<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_2.jpg" style="height: 30px; width: auto; margin-right: 5px;">Rats_01<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_3.jpg" style="height: 30px; width: auto; margin-right: 5px;">Rats_02<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_4.jpg" style="height: 30px; width: auto; margin-right: 5px;">Bats_01<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_5.jpg" style="height: 30px; width: auto; margin-right: 5px;">Bats_02<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_6.jpg" style="height: 30px; width: auto; margin-right: 5px;">Lizardron_04<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_7.jpg" style="height: 30px; width: auto; margin-right: 5px;">Pyrats_01<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_8.jpg" style="height: 30px; width: auto; margin-right: 5px;">PCS_01 (Cave Switch)<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_9.jpg" style="height: 30px; width: auto; margin-right: 5px;">Rebels_04<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_10.jpg" style="height: 30px; width: auto; margin-right: 5px;">RCS_04 (Cave Switch)<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_11.jpg" style="height: 30px; width: auto; margin-right: 5px;">Dark Blobs_02<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_12.jpg" style="height: 30px; width: auto; margin-right: 5px;">DBCS_02 (Cave Switch)<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-            <div class="ranks-bars">
-                <div class="rank-bar"></div>
-                <div class="rank-bar" style="display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden;"><img src="/icons/cellImage_0_13.jpg" style="height: 30px; width: auto; margin-right: 5px;">Spiders_01<svg class="cave-play-icon" viewBox="0 0 24 24"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418 c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768 C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.861-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-                <div class="rank-bar"></div>
-            </div>
-        </div>
-        <div class="score-input-wrapper" style="top: calc(20px + 20px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 60px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 100px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 140px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 180px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 220px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 260px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 300px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 340px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 380px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 420px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 460px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 500px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="score-input-wrapper" style="top: calc(20px + 540px - 6.5px); height: 38px;"><input type="text" inputmode="numeric" pattern="[0-9]*" class="score-input" value="0" maxlength="4"><div class="score-text-overlay">0</div></div>
-        <div class="rating-value" style="top: calc(20px + 20px - 6.5px); height: 78px;">0</div>
-        <div class="rating-value" style="top: calc(20px + 100px - 6.5px); height: 78px;">0</div>
-        <div class="rating-value" style="top: calc(20px + 180px - 6.5px); height: 78px;">0</div>
-        <div class="rating-value" style="top: calc(20px + 260px - 6.5px); height: 38px;">0</div>
-        <div class="rating-value" style="top: calc(20px + 300px - 6.5px); height: 78px;">0</div>
-        <div class="rating-value" style="top: calc(20px + 380px - 6.5px); height: 78px;">0</div>
-        <div class="rating-value" style="top: calc(20px + 460px - 6.5px); height: 78px;">0</div>
-        <div class="rating-value" style="top: calc(20px + 540px - 6.5px); height: 38px;">0</div>
-    </div>
+    <div class="container" id="benchmarkGridContainer"></div>
     <div class="radar-box">
-        <img id="radarSwordIcon" src="../icons/benchmarksword.jpg" alt="" style="position:absolute; width:0; height:0; opacity:0; pointer-events:none;">
-        <img id="radarBombIcon" src="../icons/benchmarkbomb.jpg" alt="" style="position:absolute; width:0; height:0; opacity:0; pointer-events:none;">
+        <img id="radarSwordIcon" class="radar-preload-asset" src="../icons/benchmarksword.jpg" alt="">
+        <img id="radarBombIcon" class="radar-preload-asset" src="../icons/benchmarkbomb.jpg" alt="">
         <div class="radar-header">
             <div>
                 <div class="radar-title" data-i18n="radar_title">Cave Graph</div>
@@ -682,7 +325,7 @@
             </div>
         </div>
     </div>
-    <div class="highlights-box">
+    <div class="highlights-box hidden-default">
         <div class="highlights-header">
             <div class="highlights-title" data-i18n="highlights_title">Highlights</div>
             <button class="add-highlight-btn" id="addHighlightBtn" data-i18n="add_highlight_btn">+ Add Highlight</button>
@@ -720,14 +363,20 @@
 
     <!-- Share Modal -->
     <div class="share-modal-overlay" id="shareModal">
-        <div class="share-modal-content">
+        <div class="share-modal-content share-modal-content--share">
             <span class="share-modal-close" id="closeShareModal">&times;</span>
-            <div class="screenshot-preview-container" id="screenshotContainer">
-                <!-- Screenshot will be injected here -->
+            <div class="share-modal-header">
+                <div class="share-modal-title" data-i18n="share_preview_title">Screenshot Preview</div>
             </div>
-            <div class="share-actions">
-                <button class="share-btn btn-download" id="downloadImageBtn" data-i18n="download_image">Download Image</button>
-                <button class="share-btn btn-copy" id="copyLinkBtn" data-i18n="copy_link">Copy Benchmark Link</button>
+            <div class="share-preview-shell">
+                <div class="share-preview-status" id="shareScreenshotStatus"></div>
+                <div class="screenshot-preview-container" id="screenshotContainer">
+                    <!-- Screenshot will be injected here -->
+                </div>
+            </div>
+            <div class="share-actions share-actions--screenshot">
+                <button class="share-btn btn-download" id="downloadImageBtn" type="button" data-i18n="download_image">Download Image</button>
+                <button class="share-btn btn-copy" id="copyLinkBtn" type="button" data-i18n="copy_link">Copy Benchmark Link</button>
             </div>
         </div>
     </div>
@@ -735,36 +384,41 @@
     <!-- Rules Modal -->
     <div class="share-modal-overlay" id="rulesModal">
         <div class="rules-content-box">
-            <span class="share-modal-close" id="closeRulesModal" style="top: 20px; right: 20px; font-size: 24px; color: #444;">&times;</span>
+            <span class="share-modal-close share-modal-close-muted" id="closeRulesModal">&times;</span>
             
-            <div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #222;">
-                <div style="color: #fff; font-size: 20px; font-weight: bold; margin-bottom: 5px;" data-i18n="guidelines_title">Guidelines</div>
-                <div style="color: #666; font-size: 12px;" data-i18n="guidelines_subtitle">for accurate scoring</div>
+            <div class="guidelines-header">
+                <div class="guidelines-title" data-i18n="guidelines_title">Guidelines</div>
+                <div class="guidelines-subtitle" data-i18n="guidelines_subtitle">for accurate scoring</div>
             </div>
 
             <div class="rule-row">
                 <div class="rule-idx">01</div>
-                <div class="rule-text" data-i18n="rule_1">The benchmark is intended exclusively for <span style="color: #fff;">personal use</span>.</div>
+                <div class="rule-text" data-i18n="rule_1">The benchmark is intended exclusively for <span class="rules-emphasis">personal use</span>.</div>
             </div>
             
             <div class="rule-row">
                 <div class="rule-idx">02</div>
-                <div class="rule-text" data-i18n="rule_2">All baddies in the cave must be <span style="color: #fff;">reset to full health</span> before starting.</div>
+                <div class="rule-text" data-i18n="rule_2">All baddies in the cave must be <span class="rules-emphasis">reset to full health</span> before starting.</div>
             </div>
 
             <div class="rule-row">
                 <div class="rule-idx">03</div>
-                <div class="rule-text" data-i18n="rule_3">No <span style="color: #fff;">speed boosts</span> from bushes are allowed.</div>
+                <div class="rule-text" data-i18n="rule_2b">Timer starts after entering the cave.</div>
             </div>
 
             <div class="rule-row">
                 <div class="rule-idx">04</div>
-                <div class="rule-text" data-i18n="rule_4">Scoring thresholds must be achieved <span style="color: #fff;">without any assistance</span> from other players or accidental damage caused by other players.</div>
+                <div class="rule-text" data-i18n="rule_3">No <span class="rules-emphasis">speed boosts</span> from bushes are allowed.</div>
             </div>
 
             <div class="rule-row">
                 <div class="rule-idx">05</div>
-                <div class="rule-text" data-i18n="rule_5">The <span style="color: #fff;">Swords</span> category allows the use of swords only, while the <span style="color: #fff;">Bombs</span> category permits the use of both bombs and swords.</div>
+                <div class="rule-text" data-i18n="rule_4">Scoring thresholds must be achieved <span class="rules-emphasis">without any assistance</span> from other players or accidental damage caused by other players.</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">06</div>
+                <div class="rule-text" data-i18n="rule_5">The <span class="rules-emphasis">Swords</span> category allows the use of swords only, while the <span class="rules-emphasis">Bombs</span> category permits the use of both bombs and swords.</div>
             </div>
         </div>
     </div>
@@ -772,16 +426,18 @@
     <!-- Settings Modal -->
     <div class="share-modal-overlay" id="settingsModal">
         <div class="settings-content-box">
-            <span class="share-modal-close" id="closeSettingsModal" style="top: 20px; right: 20px; font-size: 24px; color: #444;">&times;</span>
+            <span class="share-modal-close share-modal-close-muted" id="closeSettingsModal">&times;</span>
 
             <div class="settings-header">
-                <div class="settings-title" data-i18n="settings_title">Options</div>
+                <div class="settings-title settings-title-inline-icon">
+                    <img src="../icons/settingsicon.png" class="settings-title-icon" alt="">
+                    <span data-i18n="settings_title">Options</span>
+                </div>
             </div>
 
             <div class="settings-grid">
                 <div class="settings-card">
                     <div class="settings-card-title" data-i18n="settings_language">Language</div>
-                    <div class="settings-note" data-i18n="settings_language_note">Applies instantly.</div>
                     <div class="settings-field">
                         <select id="languageSelect" class="settings-select">
                             <option value="en">English</option>
@@ -800,7 +456,7 @@
                             <option value="nl">Nederlands (Dutch)</option>
                             <option value="no">Norsk (Norwegian)</option>
                             <option value="pl">Polski (Polish)</option>
-                            <option value="pt-BR">Português (Brasil)</option>
+                            <option value="pt-BR">Português</option>
                             <option value="pt-PT">Português (Portugal)</option>
                             <option value="fi">Suomi (Finnish)</option>
                             <option value="sv">Svenska (Swedish)</option>
@@ -815,6 +471,7 @@
 
                 <div class="settings-card">
                 <div class="settings-card-title" data-i18n="settings_default_config_startup">Configuration Start up</div>
+                    <div class="settings-note" data-i18n="settings_default_config_startup_note">Automatically applies configurations after login</div>
                     <div class="settings-field">
                         <label class="settings-label" for="defaultPlatform" data-i18n="settings_platform">Platform</label>
                         <select id="defaultPlatform" class="settings-select">
@@ -846,7 +503,7 @@
                     </div>
                 </div>
 
-                <div class="settings-card">
+                <div class="settings-card settings-card--reset">
                     <div class="settings-card-title" data-i18n="settings_reset_scores">Reset Score Values</div>
                     <div class="settings-field">
                         <label class="settings-label" for="resetPlatform" data-i18n="settings_platform">Platform</label>
@@ -870,7 +527,14 @@
                             <option value="Baddy Points">Baddy Points</option>
                         </select>
                     </div>
-                    <div class="settings-actions">
+                    <div class="settings-field">
+                        <label class="settings-label" for="resetMount" data-i18n="settings_mount">Mount</label>
+                        <select id="resetMount" class="settings-select">
+                            <option value="mountspeed1" data-i18n="mount_speed_1">Mount Speed 1</option>
+                            <option value="mountspeed2" data-i18n="mount_speed_2">Mount Speed 2</option>
+                        </select>
+                    </div>
+                    <div class="settings-actions settings-actions--reset">
                         <button class="settings-btn danger" type="button" id="resetSelectedScoresBtn" data-i18n="settings_reset_selected">Reset Selected</button>
                         <button class="settings-btn danger-strong" type="button" id="resetAllScoresBtn" data-i18n="settings_reset_all">Reset All Configurations</button>
                     </div>
@@ -879,9 +543,8 @@
                 <div class="settings-row theme-preview-row">
                     <div class="settings-card">
                         <div class="settings-card-title" data-i18n="settings_theme">Themes</div>
-                        <div class="settings-note theme-note" data-i18n="settings_theme_note">Rank themes unlock as you climb the ranks.</div>
                         <div class="settings-field">
-                            <label class="settings-label" for="autoRankThemeSelect" data-i18n="settings_theme_auto">Auto-apply your current rank theme when you rank up</label>
+                            <label class="settings-label settings-label--muted" for="autoRankThemeSelect" data-i18n="settings_theme_auto">Auto-apply your current rank theme when you rank up</label>
                             <select id="autoRankThemeSelect" class="settings-select">
                                 <option value="off" data-i18n="settings_toggle_off">Off</option>
                                 <option value="on" data-i18n="settings_toggle_on">On</option>
@@ -924,49 +587,78 @@
 
     <!-- Onboarding Modal -->
     <div class="share-modal-overlay" id="onboardingModal">
-        <div class="settings-content-box" style="max-width: 500px;">
-            <div class="settings-header">
-                <div class="settings-title" data-i18n="onboarding_welcome_title">Welcome to the Benchmarks!</div>
-                <div class="settings-subtitle" style="margin-top: 10px; line-height: 1.5; color: #ccc;" data-i18n="onboarding_welcome_subtitle">
-                    Please complete your profile setup. A username is required to proceed, while other details are optional and can be updated later in your settings.
-                </div>
-            </div>
-            
-            <div class="settings-field" style="margin-top: 20px;">
-                <label class="settings-label" data-i18n="profile_picture">Profile Picture</label>
-                <div class="profile-pic-section">
-                    <div class="profile-pic-preview-container">
-                        <div class="profile-circle-preview" id="onboardingProfilePreviewCircle"></div>
+        <div class="modal-lang-shell modal-lang-shell-500">
+            <select class="auth-lang-select">
+                <option value="en">English</option>
+                <option value="ar">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© (Arabic)</option>
+                <option value="bn">à¦¬à¦¾à¦‚à¦²à¦¾ (Bangla)</option>
+                <option value="da">Dansk (Danish)</option>
+                <option value="de">Deutsch (German)</option>
+                <option value="es">EspaÃ±ol (Spanish)</option>
+                <option value="fil">Filipino (Tagalog)</option>
+                <option value="fr">FranÃ§ais (French)</option>
+                <option value="hmn">Hmoob (Hmong)</option>
+                <option value="id">Indonesia (Indonesian)</option>
+                <option value="it">Italiano (Italian)</option>
+                <option value="hu">Magyar (Hungarian)</option>
+                <option value="ms">Melayu (Malay)</option>
+                <option value="nl">Nederlands (Dutch)</option>
+                <option value="no">Norsk (Norwegian)</option>
+                <option value="pl">Polski (Polish)</option>
+                <option value="pt-BR">PortuguÃªs</option>
+                <option value="pt-PT">PortuguÃªs (Portugal)</option>
+                <option value="fi">Suomi (Finnish)</option>
+                <option value="sv">Svenska (Swedish)</option>
+                <option value="vi">Tiáº¿ng Viá»‡t (Vietnamese)</option>
+                <option value="tr">TÃ¼rkÃ§e (Turkish)</option>
+                <option value="zh">ä¸­æ–‡ (Chinese)</option>
+                <option value="ja">æ—¥æœ¬èªž (Japanese)</option>
+                <option value="ko">í•œêµ­ì–´ (Korean)</option>
+            </select>
+            <div class="settings-content-box modal-box-500">
+                <div class="settings-header">
+                    <div class="settings-title" data-i18n="onboarding_welcome_title">Welcome to the Benchmarks!</div>
+                    <div class="settings-subtitle onboarding-subtitle" data-i18n="onboarding_welcome_subtitle">
+                        Please complete your profile setup. A username is required to proceed, while other details are optional and can be updated later in your settings.
                     </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="settings-btn" id="onboardingUploadProfilePicBtn" data-i18n="upload_image">Upload Image</button>
-                        <button class="settings-btn" id="onboardingEditProfilePicBtn" style="display: none;" data-i18n="edit_image">Edit Image</button>
-                        <button class="settings-btn danger" id="onboardingRemoveProfilePicBtn" style="display: none;" data-i18n="remove_image">Remove Image</button>
+                </div>
+                
+                <div class="settings-field settings-field--mt20">
+                    <label class="settings-label" data-i18n="profile_picture">Profile Picture</label>
+                    <div class="profile-pic-section">
+                        <div class="profile-pic-preview-container">
+                            <div class="profile-circle-preview" id="onboardingProfilePreviewCircle"></div>
+                        </div>
+                        <div class="row-gap-8">
+                            <button class="settings-btn" id="onboardingUploadProfilePicBtn" data-i18n="upload_image">Upload Image</button>
+                            <button class="settings-btn is-hidden" id="onboardingEditProfilePicBtn" data-i18n="edit_image">Edit Image</button>
+                            <button class="settings-btn danger is-hidden" id="onboardingRemoveProfilePicBtn" data-i18n="remove_image">Remove Image</button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="settings-field">
-                <label class="settings-label" data-i18n="username_label">Username (Required)</label>
-                <input type="text" class="settings-select" id="onboardingUsernameInput" maxlength="20" placeholder="Player" data-i18n-placeholder="username_placeholder" autocomplete="off" spellcheck="false">
-            </div>
-
-            <div class="settings-field">
-                <label class="settings-label" style="margin-bottom: 2px;" data-i18n="guilds_max">Guilds (Max 6)</label>
-                <div id="onboardingGuildListContainer" style="display: none; flex-direction: column; gap: 8px; margin-bottom: 4px;"></div>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="onboardingNewGuildInput" class="settings-select" maxlength="20" placeholder="Guild Name" data-i18n-placeholder="guild_name_placeholder" style="flex: 1;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                    <button class="settings-btn primary" id="onboardingAddGuildBtn" data-i18n="add">Add</button>
+                <div class="settings-field">
+                    <label class="settings-label" data-i18n="username_label">Username (Required)</label>
+                    <input type="text" class="settings-select" id="onboardingUsernameInput" maxlength="20" placeholder="Player" data-i18n-placeholder="username_placeholder" autocomplete="off" spellcheck="false">
                 </div>
-            </div>
 
-            <div class="settings-field">
-                <label class="settings-label" data-i18n="country_flag">Country Flag</label>
-                <div class="flag-selector-box" id="onboardingFlagSelectorBox"></div>
-            </div>
+                <div class="settings-field">
+                    <label class="settings-label settings-label--tight" data-i18n="guilds_max">Guilds (Max 6)</label>
+                    <div id="onboardingGuildListContainer" class="guild-list-stack is-hidden"></div>
+                    <div class="row-gap-8" id="onboardingAddGuildRow">
+                        <input type="text" id="onboardingNewGuildInput" class="settings-select flex-1" maxlength="20" placeholder="Guild Name" data-i18n-placeholder="guild_name_placeholder" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                        <button class="settings-btn primary" id="onboardingAddGuildBtn" data-i18n="add">Add</button>
+                    </div>
+                </div>
 
-            <div class="settings-actions" style="margin-top: 25px; justify-content: flex-end;">
-                <button class="settings-btn primary" id="saveOnboardingBtn" style="width: 100%;" data-i18n="onboarding_save_continue">Save & Continue</button>
+                <div class="settings-field">
+                    <label class="settings-label" data-i18n="country_flag">Country Flag</label>
+                    <div class="flag-selector-box" id="onboardingFlagSelectorBox"></div>
+                </div>
+
+                <div class="settings-actions settings-actions--top25 settings-actions--end">
+                    <button class="settings-btn primary btn-full" id="saveOnboardingBtn" data-i18n="onboarding_save_continue">Save & Continue</button>
+                </div>
             </div>
         </div>
     </div>
@@ -974,27 +666,30 @@
     <!-- Profile Modal -->
     <div class="share-modal-overlay" id="profileModal">
         <div class="settings-content-box profile-modal-box">
-            <span class="share-modal-close" id="closeProfileModal" style="top: 20px; right: 20px; font-size: 24px; color: #444;">&times;</span>
+            <span class="share-modal-close modal-close-muted" id="closeProfileModal">&times;</span>
             
             <div class="profile-content">
-                        <div class="settings-header" style="text-align: left; padding-left: 0; border-bottom: 1px solid #333;">
-                            <div class="settings-title" data-i18n="profile_settings_title">Profile Settings</div>
+                        <div class="settings-header">
+                            <div class="settings-title settings-title-inline-icon">
+                                <img src="../icons/profilesettingsicon.png" class="settings-title-icon" alt="">
+                                <span data-i18n="profile_settings_title">Profile Settings</span>
+                            </div>
                         </div>
                         
-                        <div class="settings-field" style="margin-top: 20px;">
+                        <div class="settings-field settings-field--mt20">
                             <label class="settings-label" data-i18n="profile_picture">Profile Picture</label>
                             <div class="profile-pic-section">
                                 <div class="profile-pic-preview-container">
                                     <div class="profile-circle-preview" id="profilePreviewCircle"></div>
                                     <div class="profile-box-preview" id="profilePreviewBox"></div>
                                 </div>
-                                <div class="profile-pic-actions" style="display: flex; gap: 8px;">
+                                <div class="profile-pic-actions row-gap-8">
                                     <button class="settings-btn" id="uploadProfilePicBtn" data-i18n="upload_image">Upload Image</button>
-                                    <button class="settings-btn" id="editProfilePicBtn" style="display: none;" data-i18n="edit_image">Edit Image</button>
-                                    <button class="settings-btn danger" id="removeProfilePicBtn" style="display: none;" data-i18n="remove_image">Remove Image</button>
+                                    <button class="settings-btn is-hidden" id="editProfilePicBtn" data-i18n="edit_image">Edit Image</button>
+                                    <button class="settings-btn danger is-hidden" id="removeProfilePicBtn" data-i18n="remove_image">Remove Image</button>
                                 </div>
                             </div>
-                            <div id="profilePicMessage" style="display: none; color: #ff6666; font-size: 12px; margin-top: 8px;"></div>
+                            <div id="profilePicMessage" class="hidden-default message-error"></div>
                         </div>
 
                         <div class="settings-field">
@@ -1003,12 +698,12 @@
                         </div>
 
                         <div class="settings-field">
-                            <label class="settings-label" style="margin-bottom: 2px;" data-i18n="guilds_max">Guilds (Max 6)</label>
-                            <div id="guildListContainer" style="display: none; flex-direction: column; gap: 8px; margin-bottom: 4px;"></div>
+                            <label class="settings-label settings-label--tight" data-i18n="guilds_max">Guilds (Max 6)</label>
+                            <div id="guildListContainer" class="guild-list-stack is-hidden"></div>
                             <div id="addGuildContainer">
-                                <button class="settings-btn" id="addGuildBtn" style="width: 100%;" data-i18n="add_guild">Add Guild</button>
-                                <div id="newGuildInputBox" style="display: none; gap: 8px; margin-top: 8px;">
-                                    <input type="text" id="newGuildInput" class="settings-select" maxlength="20" placeholder="Guild Name" data-i18n-placeholder="guild_name_placeholder" style="flex: 1;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                                <button class="settings-btn btn-full" id="addGuildBtn" data-i18n="add_guild">Add Guild</button>
+                                <div id="newGuildInputBox" class="hidden-default row-gap-8 mt-8">
+                                    <input type="text" id="newGuildInput" class="settings-select flex-1" maxlength="20" placeholder="Guild Name" data-i18n-placeholder="guild_name_placeholder" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                                     <button class="settings-btn primary" id="confirmAddGuildBtn" data-i18n="add">Add</button>
                                     <button class="settings-btn danger" id="cancelAddGuildBtn" data-i18n="cancel">Cancel</button>
                                 </div>
@@ -1017,60 +712,60 @@
 
                         <div class="settings-field">
                             <label class="settings-label" data-i18n="country_flag">Country Flag</label>
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="row-center-gap-10">
                                 <div class="flag-selector-box" id="flagSelectorBox"></div>
-                                <button class="settings-btn danger" id="removeFlagBtn" style="display: none; padding: 4px 8px; font-size: 11px;" data-i18n="remove_flag">Remove Flag</button>
+                                <button class="settings-btn danger remove-flag-btn is-hidden" id="removeFlagBtn" data-i18n="remove_flag">Remove Flag</button>
                             </div>
                         </div>
 
                         <!-- Account Details Section -->
-                        <div style="margin-top: 15px; margin-bottom: 20px; border-top: 1px solid #333;"></div>
+                        <div class="section-divider"></div>
                         
-                        <div class="settings-header" style="text-align: left; padding-left: 0; border-bottom: 1px solid #333; margin-bottom: 20px;">
+                        <div class="settings-header settings-header--left settings-header--mb20">
                             <div class="settings-title" data-i18n="account_details">Account Details</div>
                         </div>
 
-                        <div class="settings-card" style="margin-top: 20px;">
-                            <div class="settings-card-title" style="margin-bottom: 0;" data-i18n="account_id">Account ID</div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <input type="text" value="**************" readonly class="settings-select" id="accountIdDisplay" style="flex: 1; font-family: monospace; letter-spacing: 1px;" autocomplete="off">
+                        <div class="settings-card settings-card--mt20">
+                            <div class="settings-card-title settings-card-title--mb0" data-i18n="account_id">Account ID</div>
+                            <div class="row-center-gap-10">
+                                <input type="text" value="**************" readonly class="settings-select flex-1 account-id-display" id="accountIdDisplay" autocomplete="off">
                                 <div id="copyAccountIdBtn" class="copy-icon-btn" title="Copy ID">
                                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                                 </div>
-                                <button class="settings-btn" id="toggleAccountIdView" style="padding: 5px 10px; width: 60px; text-align: center;" data-i18n="show">Show</button>
+                                <button class="settings-btn toggle-btn-60" id="toggleAccountIdView" data-i18n="show">Show</button>
                             </div>
                         </div>
 
-                        <div class="settings-card" style="margin-top: 15px;">
+                        <div class="settings-card settings-card--mt15">
                             <div class="settings-card-title" data-i18n="email_address">Email Address</div>
-                            <div class="email-row" style="display: flex; gap: 10px; align-items: center;">
-                                <input type="text" value="**************@gmail.com" readonly class="settings-select" id="accountEmailDisplay" style="flex: 1;" autocomplete="off" spellcheck="false">
-                                <button class="settings-btn" id="toggleEmailView" style="padding: 5px 10px; width: 60px; text-align: center;" data-i18n="show">Show</button>
+                            <div class="email-row row-center-gap-10">
+                                <input type="text" value="**************@gmail.com" readonly class="settings-select flex-1" id="accountEmailDisplay" autocomplete="off" spellcheck="false">
+                                <button class="settings-btn toggle-btn-60" id="toggleEmailView" data-i18n="show">Show</button>
                             </div>
-                            <div id="emailChangeContainer" style="display: none; margin-top: 10px;">
-                                <input type="email" id="newEmailInput" class="settings-select" placeholder="New email address" data-i18n-placeholder="new_email_placeholder" style="width: 100%; margin-bottom: 8px;">
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="settings-btn primary" id="confirmEmailChangeBtn" style="flex: 1;" data-i18n="verify_update">Verify & Update</button>
+                            <div id="emailChangeContainer" class="hidden-default mt-10">
+                                <input type="email" id="newEmailInput" class="settings-select input-full mb-8" placeholder="New email address" data-i18n-placeholder="new_email_placeholder">
+                                <div class="row-gap-8">
+                                    <button class="settings-btn primary flex-1" id="confirmEmailChangeBtn" data-i18n="verify_update">Verify & Update</button>
                                     <button class="settings-btn danger" id="cancelEmailChangeBtn" data-i18n="cancel">Cancel</button>
                                 </div>
-                                <div id="emailChangeMessage" style="margin-top: 8px; font-size: 12px; color: #ccc; display: none;"></div>
+                                <div id="emailChangeMessage" class="hidden-default message-note"></div>
                             </div>
-                            <button class="settings-btn" id="changeEmailBtn" style="margin-top: 10px;" data-i18n="change_email_address">Change Email Address</button>
+                            <button class="settings-btn mt-10" id="changeEmailBtn" data-i18n="change_email_address">Change Email Address</button>
                         </div>
 
-                        <div class="settings-card" style="margin-top: 15px;">
+                        <div class="settings-card settings-card--mt15">
                             <div class="settings-card-title" data-i18n="password">Password</div>
-                            <div class="password-row" style="display: flex; gap: 10px; align-items: center;">
-                                <input type="text" value="**************" readonly class="settings-select" id="accountPasswordDisplay" style="flex: 1;" autocomplete="off">
+                            <div class="password-row row-center-gap-10">
+                                <input type="text" value="**************" readonly class="settings-select flex-1" id="accountPasswordDisplay" autocomplete="off">
                             </div>
-                            <button class="settings-btn" id="changePasswordBtn" style="margin-top: 10px;" data-i18n="change_password">Change Password</button>
-                            <div id="passwordChangeMessage" style="margin-top: 8px; font-size: 12px; color: #ccc; display: none;"></div>
+                            <button class="settings-btn mt-10" id="changePasswordBtn" data-i18n="change_password">Change Password</button>
+                            <div id="passwordChangeMessage" class="hidden-default message-note"></div>
                         </div>
 
-                        <div class="settings-card" style="margin-top: 15px; border-color: #5a2a2a; background: #2a0f0f; gap: 4px;">
-                            <div class="settings-card-title" style="color: #ffb0b0; margin-bottom: 0;" data-i18n="delete_personal_account">Delete Personal Account</div>
-                            <div class="settings-note" style="color: #ffb0b0;" data-i18n="cannot_undo">This cannot be undone.</div>
-                            <button class="settings-btn danger-strong" id="deleteAccountBtn" style="margin-top: 4px;" data-i18n="delete_account">Delete Account</button>
+                        <div class="settings-card settings-card--mt15 settings-card-danger">
+                            <div class="settings-card-title settings-title-danger settings-card-title--mb0" data-i18n="delete_personal_account">Delete Personal Account</div>
+                            <div class="settings-note settings-title-danger" data-i18n="cannot_undo">This cannot be undone.</div>
+                            <button class="settings-btn danger-strong mt-4" id="deleteAccountBtn" data-i18n="delete_account">Delete Account</button>
                         </div>
             </div>
             
@@ -1083,55 +778,58 @@
 
     <!-- Friends Modal -->
     <div class="share-modal-overlay" id="friendsModal">
-        <div class="settings-content-box" style="max-width: 500px; height: 600px; display: flex; flex-direction: column;">
-            <span class="share-modal-close" id="closeFriendsModal" style="top: 20px; right: 20px; font-size: 24px; color: #444;">&times;</span>
+        <div class="settings-content-box friends-modal-shell">
+            <span class="share-modal-close modal-close-muted" id="closeFriendsModal">&times;</span>
             
             <div class="settings-header">
-                <div class="settings-title" style="display: inline-block; position: relative;">
-                    <img src="../icons/friends.png" style="width: 24px; height: 24px; position: absolute; right: calc(100% + 10px); top: 50%; transform: translateY(-50%);">
+                <div class="settings-title settings-title-inline-icon">
+                    <img src="../icons/friends.png" class="settings-title-icon">
                     <span data-i18n="friends_title">Friends</span>
                 </div>
                 <div class="settings-subtitle" data-i18n="friends_subtitle">Add and view your friends benchmarks</div>
             </div>
 
-            <div style="margin: 0 20px 15px 20px; padding: 0;">
-                <div class="settings-card-title" style="margin-bottom: 5px;" data-i18n="your_account_id">Your Account ID</div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="text" value="**************" readonly class="settings-select" id="friendPageAccountIdDisplay" style="flex: 1; font-family: monospace; letter-spacing: 1px;" autocomplete="off">
+            <div class="account-id-block">
+                <div class="settings-card-title settings-card-title--mb5" data-i18n="your_account_id">Your Account ID</div>
+                <div class="row-center-gap-10">
+                    <input type="text" value="**************" readonly class="settings-select flex-1 account-id-display" id="friendPageAccountIdDisplay" autocomplete="off">
                     <div id="friendPageCopyAccountIdBtn" class="copy-icon-btn" title="Copy ID">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                     </div>
-                    <button class="settings-btn" id="friendPageToggleAccountIdView" style="padding: 4px 8px; min-width: 72px; text-align: center; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;" data-i18n="show">Show</button>
+                    <button class="settings-btn toggle-account-btn" id="friendPageToggleAccountIdView" data-i18n="show">Show</button>
                 </div>
             </div>
 
-            <div class="radar-tabs" style="margin: 0 auto 15px auto; background: rgba(0,0,0,0.2); width: fit-content; border: 1px solid #444;">
+            <div class="friends-add-block">
+                <div class="row-gap-8 friends-add-row">
+                    <input type="text" id="friendIdInput" class="settings-select flex-1 uppercase-input" placeholder="Enter Account ID" data-i18n-placeholder="enter_account_id_placeholder" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                    <button class="settings-btn primary" id="addFriendBtn" data-i18n="add_friend">Add Friend</button>
+                </div>
+                <div id="addFriendMessage" class="status-message is-hidden"></div>
+            </div>
+
+            <div class="radar-tabs friends-tabs-shell">
                 <button class="radar-tab active" id="tabFriendsList" data-i18n="friends_list_tab">Friends List</button>
                 <button class="radar-tab" id="tabFriendRequests">
                     <span data-i18n="friend_requests_tab">Friend Requests</span>
-                    <div class="notification-dot" id="requestsTabNotification" style="display: none;"></div>
+                    <div class="notification-dot is-hidden" id="requestsTabNotification"></div>
                 </button>
                 <button class="radar-tab" id="tabRemoveFriends" data-i18n="remove_friends_tab">Remove Friends</button>
             </div>
 
-            <div id="friendsListContent" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
-                <div style="display: flex; gap: 8px; margin-top: 0;">
-                    <input type="text" id="friendIdInput" class="settings-select" placeholder="Enter Account ID" data-i18n-placeholder="enter_account_id_placeholder" style="flex: 1; text-transform: uppercase;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                    <button class="settings-btn primary" id="addFriendBtn" data-i18n="add_friend">Add Friend</button>
-                </div>
-                <div id="addFriendMessage" style="margin-top: 8px; font-size: 12px; color: #ccc; display: none;"></div>
+            <div id="friendsListContent" class="friends-section-content">
                 <div class="friend-list-container" id="friendList"></div>
             </div>
 
-            <div id="friendRequestsContent" style="display: none; flex-direction: column; flex: 1; overflow: hidden;">
-                <div class="settings-card-title" style="margin-top: 0; margin-bottom: 0;" data-i18n="received_friend_requests">Received Friend Requests</div>
+            <div id="friendRequestsContent" class="friends-pane is-hidden">
+                <div class="settings-card-title settings-card-title--my0" data-i18n="received_friend_requests">Received Friend Requests</div>
                 <div class="friend-list-container" id="friendRequestsList"></div>
-                <div class="settings-card-title" style="margin-top: 15px; margin-bottom: 0;" data-i18n="sent_friend_requests">Friend Requests Sent</div>
+                <div class="settings-card-title settings-card-title--mt15mb0" data-i18n="sent_friend_requests">Friend Requests Sent</div>
                 <div class="friend-list-container" id="sentRequestsList"></div>
             </div>
 
-            <div id="removeFriendsContent" style="display: none; flex-direction: column; flex: 1; overflow: hidden;">
-                <div class="settings-card-title" style="margin-top: 0; margin-bottom: 0; padding: 0 20px;" data-i18n="select_friends_remove">Select friends to remove</div>
+            <div id="removeFriendsContent" class="friends-pane is-hidden">
+                <div class="settings-card-title settings-card-title--my0" data-i18n="select_friends_remove">Select friends to remove</div>
                 <div class="friend-list-container" id="removeFriendsList"></div>
             </div>
         </div>
@@ -1140,7 +838,7 @@
     <!-- Trophy Editor Modal -->
     <div class="share-modal-overlay" id="trophyModal">
         <div class="settings-content-box trophy-modal-box">
-            <span class="share-modal-close" id="closeTrophyModal" style="top: 15px; right: 15px;">&times;</span>
+            <span class="share-modal-close modal-close-sm" id="closeTrophyModal">&times;</span>
             <div class="settings-header trophy-modal-header">
                 <div class="settings-title" data-i18n="seasonal_modal_title">Seasonal Placements</div>
                 <div class="settings-subtitle" data-i18n="seasonal_modal_subtitle">Add your earned trophies</div>
@@ -1204,18 +902,18 @@
 
     <!-- Highlight Modal -->
     <div class="share-modal-overlay" id="highlightModal">
-        <div class="settings-content-box" style="max-width: 500px;">
-            <span class="share-modal-close" id="closeHighlightModal" style="top: 15px; right: 15px;">&times;</span>
+        <div class="settings-content-box modal-box-500">
+            <span class="share-modal-close modal-close-sm" id="closeHighlightModal">&times;</span>
             <div class="settings-header">
                 <div class="settings-title" data-i18n="highlight_modal_title">Add Highlight</div>
             </div>
             <div class="settings-field">
                 <label class="settings-label" data-i18n="highlight_label_image">Image</label>
                 <div class="highlight-upload-area" id="highlightUploadArea">
-                    <span id="highlightUploadText" style="color: #888; font-size: 13px;" data-i18n="highlight_click_upload">Click to upload image</span>
-                    <img id="highlightPreviewImg" style="display:none;">
+                    <span id="highlightUploadText" class="highlight-upload-text" data-i18n="highlight_click_upload">Click to upload image</span>
+                    <img id="highlightPreviewImg" class="hidden-default">
                 </div>
-                <input type="file" id="highlightFileInput" accept="image/*" style="display: none;">
+                <input type="file" id="highlightFileInput" accept="image/*" class="is-hidden">
             </div>
             <div class="settings-field">
                 <label class="settings-label" data-i18n="highlight_title_required_label">Title (Required)</label>
@@ -1223,10 +921,10 @@
             </div>
             <div class="settings-field">
                 <label class="settings-label" data-i18n="highlight_desc_optional_label">Description (Optional)</label>
-                <textarea id="highlightDescInput" class="settings-select" rows="3" maxlength="200" style="resize: none;" placeholder="Enter a description..." data-i18n-placeholder="highlight_desc_placeholder"></textarea>
+                <textarea id="highlightDescInput" class="settings-select textarea-no-resize" rows="3" maxlength="200" placeholder="Enter a description..." data-i18n-placeholder="highlight_desc_placeholder"></textarea>
             </div>
-            <div id="highlightErrorMessage" style="display: none; color: #ff6666; font-size: 12px; margin-top: 8px;"></div>
-            <div class="settings-actions" style="margin-top: 5px; justify-content: flex-end;">
+            <div id="highlightErrorMessage" class="hidden-default message-error"></div>
+            <div class="settings-actions settings-actions--top5 settings-actions--end">
                 <button class="settings-btn" id="cancelHighlightBtn" data-i18n="cancel">Cancel</button>
                 <button class="settings-btn primary" id="saveHighlightBtn" data-i18n="save">Save</button>
             </div>
@@ -1235,17 +933,17 @@
 
     <!-- Image Viewer Modal -->
     <div class="share-modal-overlay" id="imageViewerModal">
-        <span class="share-modal-close" id="closeImageViewerModal" style="top: 20px; right: 20px; z-index: 100;">&times;</span>
+            <span class="share-modal-close modal-close-muted image-viewer-close" id="closeImageViewerModal">&times;</span>
         <div class="image-viewer-content">
             <img id="imageViewerImg" class="image-viewer-img" src="">
-            <div id="imageViewerTitle" style="position: absolute; bottom: -40px; color: white; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8);"></div>
+            <div id="imageViewerTitle" class="image-viewer-title"></div>
         </div>
     </div>
 
     <!-- Flag Picker Modal -->
     <div class="share-modal-overlay" id="flagModal">
-        <div class="settings-content-box" style="max-width: 500px;">
-            <span class="share-modal-close" id="closeFlagModal" style="top: 15px; right: 15px;">&times;</span>
+        <div class="settings-content-box modal-box-500">
+            <span class="share-modal-close modal-close-sm" id="closeFlagModal">&times;</span>
             <div class="settings-header">
                 <div class="settings-title">Select Country Flag</div>
             </div>
@@ -1258,10 +956,11 @@
     <!-- Achievements Modal -->
     <div class="share-modal-overlay" id="achievementsModal">
         <div class="settings-content-box achievements-content-box">
-            <span class="share-modal-close" id="closeAchievementsModal" style="top: 15px; right: 15px;">&times;</span>
+            <span class="share-modal-close share-modal-close-muted" id="closeAchievementsModal">&times;</span>
+            <img src="../icons/achievementsicon.png" class="achievements-modal-title-icon" alt="" aria-hidden="true">
             <div class="achievements-title achievements-title-modal" data-i18n="achievements_title">Achievements</div>
             <div class="achievements-bar achievements-bar-modal">
-                <div class="achievements-fill" style="width: 0%;"></div>
+                <div class="achievements-fill achievements-fill--zero"></div>
             </div>
             <div class="achievements-text achievements-text-modal">You've unlocked 0/0 <span class="achievements-percent">(0%)</span></div>
             <div class="achievement-list" id="achievementList"></div>
@@ -1270,18 +969,18 @@
 
     <!-- Re-auth Modal -->
     <div class="share-modal-overlay" id="reauthModal">
-        <div class="settings-content-box" style="max-width: 400px;">
-            <span class="share-modal-close" id="closeReauthModal" style="top: 15px; right: 15px;">&times;</span>
+        <div class="settings-content-box modal-box-400">
+            <span class="share-modal-close modal-close-sm" id="closeReauthModal">&times;</span>
             <div class="settings-header">
                 <div class="settings-title" data-i18n="reauth_title">Re-authentication Required</div>
                 <div class="settings-subtitle" data-i18n="reauth_subtitle">Please enter your password to continue.</div>
             </div>
-            <div class="settings-field" style="margin-top: 20px;">
+            <div class="settings-field settings-field--mt20">
                 <label class="settings-label" for="reauthPasswordInput" data-i18n="reauth_current_password">Current Password</label>
                 <input type="password" id="reauthPasswordInput" class="settings-select">
             </div>
-            <div id="reauthMessage" style="margin-top: 8px; font-size: 12px; color: #ff6666; display: none;"></div>
-            <div class="settings-actions" style="margin-top: 20px; justify-content: flex-end;">
+            <div id="reauthMessage" class="hidden-default message-error"></div>
+            <div class="settings-actions settings-actions--top20 settings-actions--end">
                 <button class="settings-btn" id="cancelReauthBtn" data-i18n="cancel">Cancel</button>
                 <button class="settings-btn primary" id="confirmReauthBtn" data-i18n="confirm">Confirm</button>
             </div>
@@ -1290,20 +989,20 @@
 
     <!-- Email Relogin Modal -->
     <div class="share-modal-overlay" id="emailReloginModal">
-        <div class="settings-content-box" style="max-width: 430px; text-align: center; display: flex; flex-direction: column; align-items: center;">
-            <div class="settings-header" style="border-bottom: none; margin-bottom: 10px; width: 100%;">
-                <div class="settings-title" style="color: #ffc43d;" data-i18n="email_update_relogin_title">Email Update Requested</div>
+        <div class="settings-content-box modal-box-430 modal-stack-centered">
+            <div class="settings-header settings-header--plain">
+                <div class="settings-title settings-title-accent" data-i18n="email_update_relogin_title">Email Update Requested</div>
             </div>
-            <div id="emailReloginMessage" style="color: #ccc; margin-bottom: 20px; font-size: 13px; line-height: 1.5;">
+            <div id="emailReloginMessage" class="modal-message-secondary">
                 Verification email sent. Please check your inbox or spam folder.
             </div>
-            <button class="settings-btn primary" id="emailReloginBtn" style="width: 100%;" data-i18n="back_to_login_page">Back to Login page</button>
+            <button class="settings-btn primary btn-full" id="emailReloginBtn" data-i18n="back_to_login_page">Back to Login page</button>
         </div>
     </div>
 
     <!-- Verification Modal -->
     <div class="share-modal-overlay" id="verificationModal">
-        <div class="settings-content-box" style="max-width: 400px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+        <div class="settings-content-box modal-box-400 modal-stack-centered">
             <select class="auth-lang-select">
                 <option value="en">English</option>
                 <option value="ar">العربية (Arabic)</option>
@@ -1321,7 +1020,7 @@
                 <option value="nl">Nederlands (Dutch)</option>
                 <option value="no">Norsk (Norwegian)</option>
                 <option value="pl">Polski (Polish)</option>
-                <option value="pt-BR">Português (Brasil)</option>
+                <option value="pt-BR">Português</option>
                 <option value="pt-PT">Português (Portugal)</option>
                 <option value="fi">Suomi (Finnish)</option>
                 <option value="sv">Svenska (Swedish)</option>
@@ -1331,39 +1030,52 @@
                 <option value="ja">日本語 (Japanese)</option>
                 <option value="ko">한국어 (Korean)</option>
             </select>
-            <div class="settings-header" style="border-bottom: none; margin-bottom: 10px; width: 100%;">
-                <div class="settings-title" style="color: #ffc43d;">Email Verification Required</div>
+            <div class="settings-header settings-header--plain">
+                <div class="settings-title settings-title-accent" data-i18n="verification_modal_title">Email Verification Required</div>
             </div>
-            <div style="color: #ccc; margin-bottom: 25px; font-size: 14px; line-height: 1.5;">
-                Please verify your email address to continue.<br>
-                Check your inbox for a verification link.
+            <div class="modal-message-primary">
+                <span data-i18n="verification_modal_line_1">Please verify your email address to continue.</span><br>
+                <span data-i18n="verification_modal_line_2">Check your inbox for a verification link.</span>
             </div>
-            <div id="verificationMessage" style="margin-bottom: 15px; font-size: 12px; color: #4caf50; display: none;"></div>
-            <div class="settings-actions" style="justify-content: center; width: 100%; flex-direction: column; gap: 10px;">
-                <button class="settings-btn primary" id="resendVerificationBtn" style="width: 100%;">Resend Verification Email</button>
-                <button class="settings-btn" id="reloadPageBtn" style="width: 100%;">I've Verified My Email</button>
-                <button class="settings-btn danger" id="verificationSignOutBtn" style="width: 100%;">Log Out</button>
+            <div id="verificationMessage" class="hidden-default message-success"></div>
+            <div class="settings-actions settings-actions--center settings-actions--full settings-actions--column settings-actions--gap10">
+                <button class="settings-btn primary btn-full" id="resendVerificationBtn" data-i18n="verification_modal_resend_btn">Resend Verification Email</button>
+                <button class="settings-btn btn-full" id="reloadPageBtn" data-i18n="verification_modal_verified_btn">I've Verified My Email</button>
+                <button class="settings-btn danger btn-full" id="verificationSignOutBtn" data-i18n="verification_modal_logout_btn">Log Out</button>
             </div>
         </div>
     </div>
 
     <!-- Confirmation Modal -->
     <div class="share-modal-overlay" id="confirmModal">
-        <div class="settings-content-box" style="max-width: 400px; text-align: center; display: flex; flex-direction: column; align-items: center;">
-            <div class="settings-header" style="border-bottom: none; margin-bottom: 10px; width: 100%;">
-                <div class="settings-title" id="confirmTitle" style="color: #ffc43d;">Confirmation</div>
+        <div class="settings-content-box modal-box-400 modal-stack-centered">
+            <div class="settings-header settings-header--plain">
+                <div class="settings-title settings-title-accent" id="confirmTitle">Confirmation</div>
             </div>
-            <div style="color: #ccc; margin-bottom: 25px; font-size: 14px; line-height: 1.5;" id="confirmMessage">Are you sure?</div>
-            <div class="settings-actions" style="justify-content: center; width: 100%;">
-                <button class="settings-btn" id="confirmCancelBtn" style="min-width: 80px;" data-i18n="cancel">Cancel</button>
-                <button class="settings-btn danger" id="confirmOkBtn" style="min-width: 80px;" data-i18n="confirm">Confirm</button>
+            <div class="modal-message-primary" id="confirmMessage">Are you sure?</div>
+            <div class="settings-actions settings-actions--center settings-actions--full">
+                <button class="settings-btn btn-min-80" id="confirmCancelBtn" data-i18n="cancel">Cancel</button>
+                <button class="settings-btn danger btn-min-80" id="confirmOkBtn" data-i18n="confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="share-modal-overlay" id="removeFriendConfirmModal">
+        <div class="settings-content-box modal-box-400 modal-stack-centered">
+            <div class="settings-header settings-header--plain">
+                <div class="settings-title settings-title-accent" id="removeFriendConfirmTitle">Confirmation</div>
+            </div>
+            <div class="modal-message-primary" id="removeFriendConfirmMessage">Are you sure?</div>
+            <div class="settings-actions settings-actions--center settings-actions--full">
+                <button class="settings-btn btn-min-80" id="removeFriendConfirmCancelBtn" data-i18n="cancel">Cancel</button>
+                <button class="settings-btn danger btn-min-80" id="removeFriendConfirmOkBtn" data-i18n="confirm">Confirm</button>
             </div>
         </div>
     </div>
 
     <!-- Global Image Cropper & Input -->
-    <input type="file" id="profilePicInput" accept="image/*" style="display: none;">
-    <div class="cropper-container" id="cropperContainer" style="display: none;">
+    <input type="file" id="profilePicInput" class="is-hidden" accept="image/*">
+    <div class="cropper-container initially-hidden" id="cropperContainer">
         <div class="cropper-area" id="cropperArea">
             <img id="cropperImage" src="" alt="">
             <div class="cropper-overlay">
@@ -1372,10 +1084,10 @@
                 <div class="crop-crosshair"></div>
             </div>
         </div>
-        <input type="range" id="cropperZoom" min="0.05" max="3" step="0.05" value="1" class="settings-select" style="width: 100%; margin-top: 10px; padding: 0;">
-        <div style="display: flex; align-items: center; margin-top: 10px; position: relative; height: 30px;">
-            <button class="settings-btn" id="centerImageBtn" style="position: absolute; left: 50%; transform: translateX(-50%);" data-i18n="center">Center</button>
-            <div style="margin-left: auto; display: flex; gap: 10px;">
+        <input type="range" id="cropperZoom" min="0.05" max="3" step="0.05" value="1" class="settings-select cropper-zoom-input">
+        <div class="cropper-action-row">
+            <button class="settings-btn cropper-center-btn" id="centerImageBtn" data-i18n="center">Center</button>
+            <div class="cropper-action-buttons">
                 <button class="settings-btn danger" id="cancelImageBtn" data-i18n="cancel">Cancel</button>
                 <button class="settings-btn primary" id="saveImageBtn" data-i18n="save">Save</button>
             </div>
@@ -1383,286 +1095,15 @@
     </div>
 
     <!-- Private Profile Overlay -->
-    <div id="privateProfilePage" style="display: none;">
+    <div id="privateProfilePage" class="initially-hidden">
         <div class="private-profile-msg-main">User's benchmark visibility is private</div>
-        <button id="privateProfileHomeBtn" class="settings-btn primary" style="padding: 10px 24px; font-size: 14px;">Go Home</button>
+        <button id="privateProfileHomeBtn" class="settings-btn primary private-profile-home-btn">Go Home</button>
     </div>
 
-        <script src="footer-baddy.js"></script>
-        <script>
-(function syncScoreInputsToScroll() {
-    const init = () => {
-        const scrollEl = document.getElementById('ranksBarsContainer')
-            || document.querySelector('[style*="margin-right: 70px"]');
-        if (!scrollEl) return;
-
-        const scoreWrappers = Array.from(document.querySelectorAll('.score-input-wrapper'));
-        const ratingValues = Array.from(document.querySelectorAll('.rating-value'));
-        scoreWrappers.forEach(w => w.dataset.desktopTop = w.style.top);
-        ratingValues.forEach(v => {
-            v.dataset.desktopTop = v.style.top;
-            v.dataset.desktopHeight = v.style.height;
-        });
-        const ratingOriginalStyles = ratingValues.map(v => ({ position: v.style.position, top: v.style.top }));
-        const container = document.querySelector('.container');
-        const originalTops = scoreWrappers.map(w => w.style.top);
-        const originalParent = scoreWrappers[0] ? scoreWrappers[0].parentNode : null;
-
-        let mobileMode = false;
-
-        function enterMobileMode() {
-            if (mobileMode) return;
-            mobileMode = true;
-            const rows = scrollEl.querySelectorAll('.ranks-bars');
-            scoreWrappers.forEach((w, i) => {
-                if (!rows[i]) return;
-                rows[i].style.position = 'relative';
-                rows[i].appendChild(w);
-                w.style.position = 'absolute';
-                w.style.transform = '';
-            });
-        }
-
-        function exitMobileMode() {
-            if (!mobileMode) return;
-            mobileMode = false;
-            scoreWrappers.forEach((w, i) => {
-                originalParent.appendChild(w);
-                w.style.top = originalTops[i];
-                w.style.left = '';
-                w.style.transform = '';
-            });
-        }
-
-        function repositionScoreInputs() {
-            if (window.innerWidth > 900) {
-                exitMobileMode();
-                return;
-            }
-            enterMobileMode();
-            const rows = scrollEl.querySelectorAll('.ranks-bars');
-            scoreWrappers.forEach((w, i) => {
-                if (!rows[i]) return;
-                const rowH = rows[i].offsetHeight;
-                w.style.top = `${toWholePx(((rowH - 28) / 2) - 6.5)}px`;
-            });
-        }
-
-        const caveText = document.querySelector('.cave-text');
-        const scoreText = document.querySelector('.score-text');
-        const progressionText = document.querySelector('.progression-text');
-        const ratingText = document.querySelector('.rating-text');
-
-        function repositionRatingValues() {
-            if (window.innerWidth > 900) return;
-            const container = document.querySelector('.container');
-            if (!container) return;
-            const stripes = Array.from(container.querySelectorAll('.bg-stripe'));
-            ratingValues.forEach((v, i) => {
-                const stripe = stripes[i];
-                if (!stripe) return;
-                const stripeTop = parseFloat(stripe.style.top) || 0;
-                const stripeHeight = parseFloat(stripe.style.height) || 0;
-                const isSingleRow = stripeHeight <= 40;
-                const midY = stripeTop + stripeHeight / 2;
-                v.style.position = 'absolute';
-                v.style.top = `${toWholePx(midY - (isSingleRow ? 19 : 9))}px`;
-            });
-        }
-
-        const ranksWrapper = document.querySelector('.ranks-wrapper');
-        const middleBox = document.querySelector('.middle-box');
-        
-        if (scrollEl) scrollEl.style.scrollBehavior = 'auto';
-        if (ranksWrapper) ranksWrapper.style.scrollBehavior = 'auto';
-        
-        const syncOffset = 0;
-        let isSyncingLeft = false;
-        let isSyncingRight = false;
-        let syncTimeoutLeft = null;
-        let syncTimeoutRight = null;
-        const toWholePx = (value) => Math.round(Number(value) || 0);
-
-        if (ranksWrapper) {
-            let touchStartX = 0;
-            let initialScrollLeft = 0;
-            let isDragging = false;
-
-            ranksWrapper.addEventListener('touchstart', (e) => {
-                touchStartX = e.touches[0].clientX;
-                initialScrollLeft = scrollEl.scrollLeft;
-                isDragging = true;
-            }, { passive: true });
-
-            ranksWrapper.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-                const deltaX = touchStartX - e.touches[0].clientX;
-                const maxScroll = ranksWrapper.scrollWidth - ranksWrapper.clientWidth;
-                
-                if ((ranksWrapper.scrollLeft <= 0 && deltaX < 0) || (ranksWrapper.scrollLeft >= maxScroll - 1 && deltaX > 0)) {
-                    // Keep top progress area independent on mobile; do not push lower container scroll.
-                    if (window.innerWidth > 900) {
-                        scrollEl.scrollLeft = initialScrollLeft + deltaX;
-                    }
-                }
-            }, { passive: true });
-
-            ranksWrapper.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
-
-            ranksWrapper.addEventListener('scroll', () => {
-                if (!isSyncingLeft) {
-                    isSyncingRight = true;
-                    const targetLeft = toWholePx(ranksWrapper.scrollLeft + syncOffset);
-                    if (Math.abs(scrollEl.scrollLeft - targetLeft) > 0.5) {
-                        scrollEl.scrollLeft = targetLeft;
-                    }
-                    if (syncTimeoutRight) clearTimeout(syncTimeoutRight);
-                    syncTimeoutRight = setTimeout(() => { isSyncingRight = false; }, 60);
-                }
-            }, { passive: true });
-        }
-
-        scrollEl.addEventListener('scroll', () => {
-            if (!isSyncingRight) {
-                isSyncingLeft = true;
-                if (ranksWrapper) {
-                    const targetLeft = toWholePx(scrollEl.scrollLeft - syncOffset);
-                    if (Math.abs(ranksWrapper.scrollLeft - targetLeft) > 0.5) {
-                        ranksWrapper.scrollLeft = targetLeft;
-                    }
-                }
-                if (syncTimeoutLeft) clearTimeout(syncTimeoutLeft);
-                syncTimeoutLeft = setTimeout(() => { isSyncingLeft = false; }, 60);
-            }
-        }, { passive: true });
-
-        window.addEventListener('scroll', () => {
-            if (window.innerWidth <= 900) return;
-            const snapped = toWholePx(-scrollEl.scrollLeft);
-            ratingValues.forEach(v => { v.style.transform = `translate3d(${snapped}px, 0, 0)`; });
-            scoreWrappers.forEach(w => { w.style.transform = `translate3d(${snapped}px, 0, 0)`; });
-        }, { passive: true });
-
-        repositionScoreInputs();
-        repositionRatingValues();
-        let isResetting = false;
-        window.addEventListener('resize', () => {
-            if (isResetting) return;
-            repositionRatingValues();
-            repositionScoreInputs();
-            if (window.innerWidth > 900) {
-const currentOffset = toWholePx(-scrollEl.scrollLeft);
-                ratingValues.forEach((v, i) => {
-                    v.style.position = ratingOriginalStyles[i].position;
-                    v.style.left = '';
-                    v.style.top = ratingOriginalStyles[i].top;
-                    v.style.transform = `translate3d(${currentOffset}px, 0, 0)`;
-                });
-                scoreWrappers.forEach(w => { w.style.transform = `translate3d(${currentOffset}px, 0, 0)`; });
-                if (caveText) caveText.style.transform = '';
-                if (scoreText) scoreText.style.transform = '';
-                if (progressionText) progressionText.style.transform = '';
-                if (ratingText) ratingText.style.transform = '';
-                const radarWrap = document.querySelector('.radar-canvas-wrap');
-                const chartGrid = document.querySelector('.radar-chart-grid');
-                const chartPanels = document.querySelectorAll('.radar-chart-panel, .radar-donut-wrap, .radar-bar-wrap');
-                if (radarWrap) radarWrap.style.height = '';
-                if (chartGrid) { chartGrid.style.width = ''; chartGrid.style.height = ''; }
-                chartPanels.forEach(p => { p.style.width = ''; p.style.height = ''; });
-                isResetting = true;
-                setTimeout(() => {
-                    if (typeof Chart !== 'undefined') {
-                        Object.values(Chart.instances).forEach(chart => {
-                            chart.canvas.style.width = '';
-                            chart.canvas.style.height = '';
-                            chart.resize();
-                        });
-                    }
-                    isResetting = false;
-                }, 200);
-            }
-        });
-
-        const stripeMap = [0,0,1,1,2,2,3,4,4,5,5,6,6,7];
-        const bgStripes = Array.from(document.querySelectorAll('.bg-stripe'));
-
-        const ranksBars = Array.from(document.querySelectorAll('.ranks-bars'));
-        const stripeGroups = [[0,1],[2,3],[4,5],[6],[7,8],[9,10],[11,12],[13]];
-        let scoreInputFocused = false;
-        const clearRowSelection = () => {
-            ranksBars.forEach(r => r.classList.remove('row-active-first', 'row-active-second', 'row-active-single'));
-            bgStripes.forEach(s => s.classList.remove('stripe-active'));
-        };
-
-        ranksBars.forEach((row, i) => {
-            row.addEventListener('click', (e) => {
-                if (window.innerWidth > 900) return;
-                if (e.target.closest('.score-input-wrapper')) {
-                    e.stopPropagation();
-                    return;
-                }
-                if (scoreInputFocused) {
-                    scoreInputFocused = false;
-                    clearRowSelection();
-                    return;
-                }
-                const group = stripeGroups.find(g => g.includes(i));
-                const isActive = group && group.some(idx => ranksBars[idx] && (ranksBars[idx].classList.contains('row-active-first') || ranksBars[idx].classList.contains('row-active-second') || ranksBars[idx].classList.contains('row-active-single')));
-                clearRowSelection();
-                if (!isActive) {
-                    if (group && group.length === 2) {
-                        if (ranksBars[group[0]]) ranksBars[group[0]].classList.add('row-active-first');
-                        if (ranksBars[group[1]]) ranksBars[group[1]].classList.add('row-active-second');
-                    } else if (group && group.length === 1) {
-                        if (ranksBars[group[0]]) ranksBars[group[0]].classList.add('row-active-single');
-                    }
-                }
-            });
-        });
-
-        document.querySelectorAll('.score-input').forEach((input, i) => {
-input.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-            const wrapper = input.closest('.score-input-wrapper');
-            if (wrapper) wrapper.addEventListener('click', (e) => e.stopPropagation());
-            input.addEventListener('focus', () => {
-                if (window.innerWidth > 900) return;
-                scoreInputFocused = true;
-                clearRowSelection();
-                const group = stripeGroups.find(g => g.includes(i));
-                if (group && group.length === 2) {
-                    if (ranksBars[group[0]]) ranksBars[group[0]].classList.add('row-active-first');
-                    if (ranksBars[group[1]]) ranksBars[group[1]].classList.add('row-active-second');
-                } else if (group && group.length === 1) {
-                    if (ranksBars[group[0]]) ranksBars[group[0]].classList.add('row-active-single');
-                }
-            });
-            input.addEventListener('blur', () => {
-                if (window.innerWidth > 900) return;
-                document.body.classList.remove('score-input-focused');
-                setTimeout(() => { scoreInputFocused = false; }, 100);
-                clearRowSelection();
-            });
-        });
-
-        document.addEventListener('pointerdown', (e) => {
-            if (window.innerWidth > 900) return;
-            if (e.target.closest('.ranks-bars')) return;
-            if (e.target.closest('.score-input-wrapper')) return;
-            clearRowSelection();
-            scoreInputFocused = false;
-        }, true);
-    };
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-})();
-</script>
-        <script type="module" src="benchmark.js?v=20260224-crossbrowsermobile4">
-        </script>
+        <script type="module" src="footer-baddy.js"></script>
+        <script type="module" src="layoutBuilder.js"></script>
+        <script type="module" src="scrollSyncUI.js?v=20260309-mobile-touch-color-fix-2"></script>
+    <script type="module" src="benchmark.js?v=20260309-logout-loader-cover-1"></script>
 </body>
 </html>
+
