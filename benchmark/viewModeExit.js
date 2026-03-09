@@ -1,7 +1,7 @@
 import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
 import { readString, readJson, CACHED_VIEWS_STORAGE_KEY, ACHIEVEMENTS_STORAGE_KEY } from "./storage.js";
-import * as ScoreManager from "./scoreManager.js";
+import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as PacmanUI from "./pacmanUI.js";
 import * as ProfileUI from "./profileUI.js";

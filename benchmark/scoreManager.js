@@ -17,7 +17,7 @@ import {
     buildConfigKey
 } from "./configManager.js";
 import { DEFAULT_MOUNT_CONFIG, getScoreBaseForConfigKey } from "./constants.js";
-import * as RankingUI from "./rankingUI.js?v=20260309-mobile-touch-color-fix-1";
+import * as RankingUI from "./rankingUI.js?v=20260309-view-mode-rank-trophy-fix-1";
 import { createSyncedStore } from "./persistence.js";
 
 const scoreManagerCallbacks = {

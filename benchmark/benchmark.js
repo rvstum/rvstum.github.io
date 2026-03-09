@@ -61,10 +61,10 @@ import * as RankingUI from "./rankingUI.js?v=20260309-view-mode-rank-trophy-fix-
 import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
-import * as ScoreManager from "./scoreManager.js";
+import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as ViewModeManager from "./viewModeManager.js?v=20260309-public-view-fix-1";
-import * as ShareManager from "./shareManager.js?v=20260309-public-view-fix-1";
-import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-public-view-fix-1";
+import * as ShareManager from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
+import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as LayoutRuntime from "./layoutRuntime.js";
 import {
@@ -99,7 +99,7 @@ import { initProfileModalController } from "./profileModalUI.js?v=20260309-profi
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260309-flag-modal-close-fix-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
-import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260309-mobile-touch-color-fix-2";
+import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
 import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260309-modal-lang-dropdown-1";
 import { createSettingsStateController } from "./settingsStateUI.js";

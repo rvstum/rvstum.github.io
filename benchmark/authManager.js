@@ -32,7 +32,7 @@ import {
 } from "./storage.js";
 import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
 import * as UserService from "./userService.js?v=20260309-request-directory-1";
-import * as ScoreManager from "./scoreManager.js";
+import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as ProfileUI from "./profileUI.js";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
