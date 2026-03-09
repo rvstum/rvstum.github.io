@@ -8,7 +8,7 @@ import * as ProfileUI from "./profileUI.js";
 import * as Slugs from "./slugs.js";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
-import * as RankingUI from "./rankingUI.js?v=20260309-mobile-touch-color-fix-1";
+import * as RankingUI from "./rankingUI.js?v=20260309-view-mode-rank-trophy-fix-1";
 import * as RadarUI from "./radarUI.js";
 
 export async function exitViewMode(options = {}) {

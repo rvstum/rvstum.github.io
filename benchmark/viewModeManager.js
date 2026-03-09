@@ -9,7 +9,7 @@ import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as FriendsService from "./friendsService.js?v=20260309-public-view-fix-1";
 import * as RadarUI from "./radarUI.js";
-import * as RankingUI from "./rankingUI.js?v=20260309-mobile-score-center-fullbox-1";
+import * as RankingUI from "./rankingUI.js?v=20260309-view-mode-rank-trophy-fix-1";
 import * as ScoreManager from "./scoreManager.js";
 import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
 import { calculateRankFromData, calculateTotalRatingForScores } from "./scoring.js";

@@ -2291,6 +2291,9 @@ body.view-mode .cave-play-edit {
 .rank-up-icon-wrap {
     position: relative;
     height: 50px;
+    width: 29px;
+    min-width: 29px;
+    flex-shrink: 0;
     display: inline-block;
 }
 

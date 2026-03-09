@@ -3,8 +3,19 @@ import { RANK_THRESHOLDS, RANK_COLORS, RANK_NAMES, RANK_TEXT_COLORS, RANK_LINE_C
 import { isMobileViewport } from "./utils.js";
 import { calculateSingleRating, buildThresholdsFromBase } from "./scoring.js";
 import { hexToRgba, darkenColor } from "./utils/colorUtils.js";
+import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
 
 const SCORE_PER_RANK = 100;
+
+function resolveRankTrophyAssetUrl(assetPath) {
+    const raw = typeof assetPath === "string" ? assetPath.trim() : "";
+    if (!raw || typeof window === "undefined") return raw;
+    try {
+        return new URL(raw, new URL(Slugs.getBenchmarkAppEntryUrl(), window.location.origin)).toString();
+    } catch (e) {
+        return raw;
+    }
+}
 
 function getRomanSubRank(progressPercent) {
     const value = Number.isFinite(progressPercent) ? progressPercent : 0;
@@ -209,7 +220,7 @@ export function updateMainProgressBarAndRanks() {
                 rankBox.innerHTML = `
                     <div class="rank-up-content">
                         <div class="rank-up-icon-wrap">
-                            <img src="../icons/trophy.png" class="rank-up-trophy" style="filter: ${filter};">
+                            <img src="${resolveRankTrophyAssetUrl("../icons/trophy.png")}" class="rank-up-trophy" style="filter: ${filter};">
                             ${eternalLayerStyle ? `<div class="eternal-layer-main rank-up-trophy-layer" style="${eternalLayerStyle}"></div>` : ''}
                             
                         </div>
