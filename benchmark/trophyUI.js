@@ -2,6 +2,7 @@ import { state } from "./appState.js";
 import { t } from "./i18n.js";
 import { readJson, writeJson, SEASONAL_TROPHIES_STORAGE_KEY } from "./storage.js";
 import { getCachedElementById, setHidden, setFlexVisible } from "./utils/domUtils.js";
+import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
 
 const SEASONAL_TROPHY_META = [
     { key: "1st", labelKey: "seasonal_place_1st", shortKey: "seasonal_place_1st", image: "../icons/1sttrophy.png", tier: "first" },
@@ -11,6 +12,16 @@ const SEASONAL_TROPHY_META = [
 ];
 const TROPHY_DRAG_SELECTOR = ".trophy-img, .trophy-input-icon, .trophy-base, .trophy-layer, .rank-up-trophy, .friend-rank-icon";
 let trophyDragPreventionBound = false;
+
+function resolveTrophyAssetUrl(assetPath) {
+    const raw = typeof assetPath === "string" ? assetPath.trim() : "";
+    if (!raw || typeof window === "undefined") return raw;
+    try {
+        return new URL(raw, new URL(Slugs.getBenchmarkAppEntryUrl(), window.location.origin)).toString();
+    } catch (e) {
+        return raw;
+    }
+}
 
 function disableTrophyImageDragging(root = document) {
     const targetRoot = root && typeof root.querySelectorAll === "function" ? root : document;
@@ -73,7 +84,7 @@ export function renderSeasonalTrophyList(list, trophyData) {
         card.className = `trophy-card trophy-card-${meta.tier}`;
 
         const img = document.createElement("img");
-        img.src = meta.image;
+        img.src = resolveTrophyAssetUrl(meta.image);
         img.className = "trophy-img";
         img.alt = t(meta.labelKey);
         img.setAttribute("draggable", "false");

@@ -18,7 +18,17 @@ import * as UserService from "./userService.js?v=20260309-request-directory-1";
 import * as FriendsService from "./friendsService.js?v=20260309-request-metadata-1";
 import * as Slugs from "./slugs.js";
 
-const FRIEND_TROPHY_ICON_SRC = "../icons/trophy.png";
+function resolveFriendAssetUrl(assetPath) {
+    const raw = typeof assetPath === "string" ? assetPath.trim() : "";
+    if (!raw || typeof window === "undefined") return raw;
+    try {
+        return new URL(raw, new URL(Slugs.getBenchmarkAppEntryUrl(), window.location.origin)).toString();
+    } catch (e) {
+        return raw;
+    }
+}
+
+const FRIEND_TROPHY_ICON_SRC = resolveFriendAssetUrl("../icons/trophy.png");
 const friendTrophyIconPreload = primeFriendTrophyIcon();
 void friendTrophyIconPreload;
 

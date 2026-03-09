@@ -35,7 +35,7 @@ import * as UserService from "./userService.js?v=20260309-request-directory-1";
 import * as ScoreManager from "./scoreManager.js";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as ProfileUI from "./profileUI.js";
-import * as TrophyUI from "./trophyUI.js?v=20260308-trophy-no-drag-1";
+import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
 import { persistUserData } from "./persistence.js";
 

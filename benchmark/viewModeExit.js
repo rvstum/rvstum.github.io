@@ -6,7 +6,7 @@ import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as PacmanUI from "./pacmanUI.js";
 import * as ProfileUI from "./profileUI.js";
 import * as Slugs from "./slugs.js";
-import * as TrophyUI from "./trophyUI.js?v=20260308-trophy-no-drag-1";
+import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
 import * as RankingUI from "./rankingUI.js?v=20260309-mobile-touch-color-fix-1";
 import * as RadarUI from "./radarUI.js";

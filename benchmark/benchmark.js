@@ -59,13 +59,13 @@ import {
 } from "./configManager.js";
 import * as RankingUI from "./rankingUI.js?v=20260309-mobile-score-center-fullbox-1";
 import * as RadarUI from "./radarUI.js";
-import * as FriendsUI from "./friendsUI.js?v=20260309-friends-trophy-preload-1";
+import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js";
 import * as ViewModeManager from "./viewModeManager.js?v=20260309-public-view-fix-1";
 import * as ShareManager from "./shareManager.js?v=20260309-public-view-fix-1";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-public-view-fix-1";
-import * as TrophyUI from "./trophyUI.js?v=20260308-trophy-no-drag-1";
+import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as LayoutRuntime from "./layoutRuntime.js";
 import {
     MASKED_ACCOUNT_ID,
@@ -88,7 +88,7 @@ import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-vie
 import * as ProfileUI from "./profileUI.js";
 import * as AuthManager from "./authManager.js?v=20260309-public-view-fix-1";
 import * as PacmanUI from "./pacmanUI.js";
-import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-friends-trophy-preload-1";
+import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-view-mode-asset-fix-1";
 import { createHighlightsController } from "./highlightsUI.js";
 import * as UserService from "./userService.js?v=20260309-request-directory-1";
 import { initAuthLifecycle } from "./authLifecycle.js?v=20260309-public-view-fix-1";
@@ -123,6 +123,32 @@ let benchmarkAppInitialized = false;
 let moduleConfigurationsInitialized = false;
 const visibilitySelect = getCachedElementById('visibilitySelect');
 let authGateActive = false;
+
+function resolveBenchmarkAssetUrl(assetPath) {
+    const raw = typeof assetPath === "string" ? assetPath.trim() : "";
+    if (!raw || typeof window === "undefined") return raw;
+    try {
+        return new URL(raw, new URL(Slugs.getBenchmarkAppEntryUrl(), window.location.origin)).toString();
+    } catch (e) {
+        return raw;
+    }
+}
+
+function normalizeBenchmarkStaticAssetPaths(root = document) {
+    const targetRoot = root && typeof root.querySelectorAll === "function" ? root : document;
+    targetRoot.querySelectorAll('img[src], link[href], image[href]').forEach((el) => {
+        const tagName = (el.tagName || "").toLowerCase();
+        const attrName = tagName === "img" ? "src" : "href";
+        const raw = (el.getAttribute(attrName) || "").trim();
+        if (!raw.startsWith("../icons/")) return;
+        const resolved = resolveBenchmarkAssetUrl(raw);
+        if (!resolved || resolved === raw) return;
+        el.setAttribute(attrName, resolved);
+        if (tagName === "image" && el.href && typeof el.href.baseVal === "string") {
+            el.href.baseVal = resolved;
+        }
+    });
+}
 
 function clearBenchmarkVisualState() {
     document.querySelectorAll(".score-input").forEach((input) => {
@@ -427,6 +453,7 @@ function initStartupSideEffects() {
     // Remove legacy persistent account id so it no longer appears in browser local storage.
     removeItem(LEGACY_ACCOUNT_ID_STORAGE_KEY);
     Slugs.restorePathFromFallback();
+    normalizeBenchmarkStaticAssetPaths();
     window.addEventListener('resize', syncMobileHoneycombMask);
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', syncMobileHoneycombMask);
@@ -441,7 +468,7 @@ function applyMountConfigVisual(value) {
     const mountImg = getCachedElementById('mountConfigImage');
     if (mountBox) mountBox.dataset.value = mount;
     if (mountImg) {
-        mountImg.src = MOUNT_CONFIG_IMAGES[mount];
+        mountImg.src = resolveBenchmarkAssetUrl(MOUNT_CONFIG_IMAGES[mount]);
         mountImg.alt = getMountConfigLabel(mount, currentLanguage);
     }
     if (mountBox) {
@@ -449,7 +476,10 @@ function applyMountConfigVisual(value) {
             const itemValue = item.getAttribute('data-value');
             item.classList.toggle('active', itemValue === mount);
             const optionImg = item.querySelector('.mount-option-image');
-            if (optionImg && itemValue) optionImg.alt = getMountConfigLabel(itemValue, currentLanguage);
+            if (optionImg && itemValue) {
+                optionImg.src = resolveBenchmarkAssetUrl(MOUNT_CONFIG_IMAGES[itemValue] || "");
+                optionImg.alt = getMountConfigLabel(itemValue, currentLanguage);
+            }
         });
     }
 }
@@ -680,9 +710,14 @@ function applyStoredSettings() {
 }
 
 function setupMountDropdown() {
+    const mountConfigImages = Object.fromEntries(
+        Object.entries(MOUNT_CONFIG_IMAGES).map(([key, value]) => {
+            return [key, resolveBenchmarkAssetUrl(value)];
+        })
+    );
     setupMountDropdownUI({
         mountOptions: CONFIG_OPTIONS.mount,
-        mountConfigImages: MOUNT_CONFIG_IMAGES,
+        mountConfigImages,
         getMountConfigLabel,
         getLanguage: () => currentLanguage
     });
