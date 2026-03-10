@@ -5,6 +5,11 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 .is-hidden {
     display: none !important;
 }
@@ -1635,6 +1640,8 @@ body.view-mode .cave-play-edit {
     margin-bottom: 5px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 .achievements-text {
@@ -1643,6 +1650,8 @@ body.view-mode .cave-play-edit {
     color: #bbb;
     text-align: center;
     margin-top: 5px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 .achievements-percent {
@@ -4988,6 +4997,8 @@ input:-webkit-autofill:active {
     text-align: center;
     font-size: 12px;
     color: #9c9c9c;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 .achievement-list {
