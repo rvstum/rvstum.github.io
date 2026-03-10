@@ -30,6 +30,65 @@
         return true;
     }
 
+    function clearBenchmarkScoreBlurTimer() {
+        if (!benchmarkScoreBlurTimer) return;
+        clearTimeout(benchmarkScoreBlurTimer);
+        benchmarkScoreBlurTimer = 0;
+    }
+
+    function resetBenchmarkScoreKeyboardState() {
+        benchmarkScoreKeyboardWasVisible = false;
+        clearBenchmarkScoreBlurTimer();
+    }
+
+    function maybeReleaseBenchmarkScoreFocus(viewportHeight, baseHeight) {
+        if (currentKeyboardFocusType !== "benchmark-score") {
+            resetBenchmarkScoreKeyboardState();
+            return;
+        }
+
+        var active = document.activeElement;
+        if (!isScoreInputTarget(active) || typeof active.blur !== "function") {
+            resetBenchmarkScoreKeyboardState();
+            return;
+        }
+
+        var keyboardDelta = Math.max(0, (baseHeight || 0) - (viewportHeight || 0));
+        if (keyboardDelta > 120) {
+            benchmarkScoreKeyboardWasVisible = true;
+            clearBenchmarkScoreBlurTimer();
+            return;
+        }
+
+        if (!benchmarkScoreKeyboardWasVisible || keyboardDelta > 60 || benchmarkScoreBlurTimer) {
+            return;
+        }
+
+        benchmarkScoreBlurTimer = setTimeout(function () {
+            benchmarkScoreBlurTimer = 0;
+            if (currentKeyboardFocusType !== "benchmark-score") {
+                benchmarkScoreKeyboardWasVisible = false;
+                return;
+            }
+
+            var liveActive = document.activeElement;
+            if (!isScoreInputTarget(liveActive) || typeof liveActive.blur !== "function") {
+                benchmarkScoreKeyboardWasVisible = false;
+                return;
+            }
+
+            var root = document.documentElement;
+            var vv = window.visualViewport || null;
+            var liveHeight = vv && vv.height ? vv.height : (window.innerHeight || root.clientHeight || viewportHeight || 0);
+            var liveBaseHeight = parseFloat(root.style.getPropertyValue("--mobile-safe-vh-base")) || baseHeight || liveHeight;
+            var liveKeyboardDelta = Math.max(0, liveBaseHeight - liveHeight);
+            if (liveKeyboardDelta > 60) return;
+
+            benchmarkScoreKeyboardWasVisible = false;
+            liveActive.blur();
+        }, 90);
+    }
+
     function syncViewportCssVars() {
         var root = document.documentElement;
         if (!root) return;
@@ -53,6 +112,7 @@
         if (document.body) {
             document.body.classList.toggle("mobile-keyboard-open", keyboardLikelyOpen);
         }
+        maybeReleaseBenchmarkScoreFocus(height, nextBaseHeight);
     }
 
     function applyClasses() {
@@ -85,6 +145,8 @@
 
     var currentKeyboardFocus = false;
     var currentKeyboardFocusType = "";
+    var benchmarkScoreKeyboardWasVisible = false;
+    var benchmarkScoreBlurTimer = 0;
 
     function isKeyboardFocusableTarget(target) {
         if (!(target instanceof Element)) return false;
@@ -95,6 +157,9 @@
     document.addEventListener("focusin", function (event) {
         currentKeyboardFocus = isKeyboardFocusableTarget(event.target);
         currentKeyboardFocusType = isScoreInputTarget(event.target) ? "benchmark-score" : (currentKeyboardFocus ? "generic" : "");
+        if (currentKeyboardFocusType !== "benchmark-score") {
+            resetBenchmarkScoreKeyboardState();
+        }
         syncViewportCssVars();
     }, true);
 
@@ -103,6 +168,9 @@
             var active = document.activeElement;
             currentKeyboardFocus = isKeyboardFocusableTarget(active);
             currentKeyboardFocusType = isScoreInputTarget(active) ? "benchmark-score" : (currentKeyboardFocus ? "generic" : "");
+            if (currentKeyboardFocusType !== "benchmark-score") {
+                resetBenchmarkScoreKeyboardState();
+            }
             syncViewportCssVars();
         }, 50);
     }, true);
