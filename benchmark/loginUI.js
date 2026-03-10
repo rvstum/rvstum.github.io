@@ -8,7 +8,7 @@ import {
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getBenchmarkBasePath } from "./utils.js";
-import { alignMobileTitleBetweenTopAndBox } from "./authLayout.js";
+import { alignMobileTitleBetweenTopAndBox } from "./authLayout.js?v=20260310-auth-mobile-stability-1";
 import * as Slugs from "./slugs.js";
 import { getRememberedAccountIdForUid } from "./accountId.js";
 import {
@@ -49,7 +49,7 @@ async function resolveSignedInUrl(user) {
         : "";
     const resolvedAccountId = Slugs.resolveProfileAccountId(userData || {}, rememberedAccountId);
     if (!explicitSlug && !resolvedAccountId) {
-        return `${getBenchmarkBasePath()}/`;
+        return `${getBenchmarkBasePath()}/benchmark.html`;
     }
     const slug = explicitSlug || Slugs.resolveProfileSlug(userData || {}, {
         usernameFallback: user.displayName || "player",
