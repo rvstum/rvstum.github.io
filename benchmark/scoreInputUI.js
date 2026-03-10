@@ -3,7 +3,7 @@ import { state } from "./appState.js";
 import { t } from "./i18n.js";
 import { SUB_INPUT_MODE_STORAGE_KEY, writeString } from "./storage.js?v=20260310-sub-score-input-3";
 import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-load-fix-17";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
 
 function getSubInputTooltipText() {
     const alternateStat = ScoreManager.getAlternateConfig().stat;

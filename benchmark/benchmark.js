@@ -64,7 +64,7 @@ import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
 import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-load-fix-17";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
 import * as ViewModeManager from "./viewModeManager.js?v=20260310-score-load-fix-15";
 import * as ShareManager from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
@@ -548,6 +548,12 @@ function initStartupSideEffects() {
     }
 }
 
+function isLocalDebugHost() {
+    if (typeof window === "undefined" || !window.location) return false;
+    const host = window.location.hostname || "";
+    return host === "localhost" || host === "127.0.0.1";
+}
+
 function applyMountConfigVisual(value) {
     const mount = normalizeMountConfig(value);
     const mountBox = getCachedElementById('mountBox');
@@ -752,6 +758,9 @@ function applyConfig(config, options = {}) {
     };
     if (!skipSaveCurrent) {
         ScoreManager.saveCurrentScores();
+        if (isLocalDebugHost() && auth.currentUser) {
+            ScoreManager.saveSavedScores().catch(console.error);
+        }
     }
     setCurrentConfigState(resolvedConfig);
     const platformText = getCachedElementById('platformText');

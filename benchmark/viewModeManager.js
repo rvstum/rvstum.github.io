@@ -10,7 +10,7 @@ import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-vie
 import * as FriendsService from "./friendsService.js?v=20260309-public-view-fix-1";
 import * as RadarUI from "./radarUI.js";
 import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-load-fix-17";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { calculateRankFromData, calculateTotalRatingForScores } from "./scoring.js";
 import { getScoreBaseForConfigKey, DEFAULT_MOUNT_CONFIG, FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";

@@ -33,7 +33,7 @@ import {
 } from "./storage.js?v=20260310-sub-score-input-3";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-load-fix-17";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
 import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";

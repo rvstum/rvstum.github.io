@@ -410,7 +410,7 @@ function persistScoresForConfig(config, scores) {
     clearTimeout(state.saveScoresDebounceTimer);
     state.saveScoresDebounceTimer = setTimeout(() => {
         saveSavedScores().catch(console.error);
-    }, isLocalDebugHost() ? 150 : 1000);
+    }, isLocalDebugHost() ? 5 : 1000);
 }
 
 function writeScoresSnapshotLocally(scoresUpdatedAt = Date.now()) {
