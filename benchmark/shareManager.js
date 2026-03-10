@@ -1,7 +1,7 @@
 import { isMobileViewport } from "./utils.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 import { state, getCurrentConfigState } from "./appState.js";
-import * as RankingUI from "./rankingUI.js?v=20260309-view-mode-rank-trophy-fix-1";
+import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
 import { t } from "./i18n.js";
 import { generateShareScreenshotCanvas } from "./shareScreenshot.js";
 import {

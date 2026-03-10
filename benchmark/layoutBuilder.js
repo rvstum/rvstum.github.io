@@ -47,6 +47,29 @@ function createPlayIcon() {
     return svg;
 }
 
+function createLinkIcon() {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "score-link-icon");
+    svg.setAttribute("viewBox", "0 0 24 24");
+
+    const firstPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    firstPath.setAttribute("d", "M10 13a5 5 0 0 0 7.07 0l3.54-3.54a5 5 0 1 0-7.07-7.07L11 3");
+
+    const secondPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    secondPath.setAttribute("d", "M14 11a5 5 0 0 0-7.07 0L3.39 14.54a5 5 0 0 0 7.07 7.07L13 21");
+
+    const linkLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    linkLine.setAttribute("x1", "8");
+    linkLine.setAttribute("y1", "16");
+    linkLine.setAttribute("x2", "16");
+    linkLine.setAttribute("y2", "8");
+
+    svg.appendChild(firstPath);
+    svg.appendChild(secondPath);
+    svg.appendChild(linkLine);
+    return svg;
+}
+
 function createCavePlayControl(index, caveName) {
     const wrapper = createElement("span", "cave-play-wrapper");
     wrapper.dataset.index = String(index);
@@ -100,6 +123,31 @@ function createVerticalLabel({ title, titleKey, iconSrc, iconClass, boxClass }) 
     return box;
 }
 
+function createScoreLinkToggle() {
+    const button = createElement("button", "score-link-toggle");
+    button.type = "button";
+    button.dataset.tooltip = "Sub-Input for Points";
+    button.setAttribute("aria-label", "Sub-Input for Points");
+    button.appendChild(createLinkIcon());
+    return button;
+}
+
+function createSubScorePopout() {
+    const popout = createElement("div", "sub-score-popout");
+    const input = createElement("input", "sub-score-input");
+    input.type = "text";
+    input.setAttribute("inputmode", "numeric");
+    input.setAttribute("pattern", "[0-9]*");
+    input.value = "0";
+    input.maxLength = 4;
+    const overlay = createElement("div", "sub-score-text-overlay", "0");
+    const statTag = createElement("div", "sub-score-stat-tag", "pts");
+    popout.appendChild(input);
+    popout.appendChild(overlay);
+    popout.appendChild(statTag);
+    return popout;
+}
+
 export function buildBenchmarkLayout() {
     const container = document.getElementById("benchmarkGridContainer") || document.querySelector(".container");
     if (!container) return;
@@ -119,8 +167,11 @@ export function buildBenchmarkLayout() {
 
     const ratingText = createElement("div", "rating-text", "Rating");
     ratingText.setAttribute("data-i18n", "rating");
-    const scoreText = createElement("div", "score-text", "Score");
-    scoreText.setAttribute("data-i18n", "score");
+    const scoreText = createElement("div", "score-text");
+    const scoreLabel = createElement("span", "score-text-label", "Score");
+    scoreLabel.setAttribute("data-i18n", "score");
+    scoreText.appendChild(scoreLabel);
+    scoreText.appendChild(createScoreLinkToggle());
     const progressionText = createElement("div", "progression-text", "Score Threshold");
     progressionText.setAttribute("data-i18n", "progression");
     const caveText = createElement("div", "cave-text", "Cave");
@@ -152,8 +203,9 @@ export function buildBenchmarkLayout() {
     });
     container.appendChild(stack);
 
-    SCORE_ROW_TOPS.forEach((top) => {
+    SCORE_ROW_TOPS.forEach((top, index) => {
         const wrapper = createElement("div", "score-input-wrapper");
+        wrapper.dataset.rowIndex = String(index);
         wrapper.style.top = `${top}px`;
         wrapper.style.height = "38px";
         const input = createElement("input", "score-input");
@@ -165,6 +217,7 @@ export function buildBenchmarkLayout() {
         const overlay = createElement("div", "score-text-overlay", "0");
         wrapper.appendChild(input);
         wrapper.appendChild(overlay);
+        wrapper.appendChild(createSubScorePopout());
         container.appendChild(wrapper);
     });
 

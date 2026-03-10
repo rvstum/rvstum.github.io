@@ -1,7 +1,7 @@
 import { state, getRuntimeAccountId } from "./appState.js";
 import { t, tf } from "./i18n.js";
-import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
-import * as Slugs from "./slugs.js";
+import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { updateProfile, signOut, verifyBeforeUpdateEmail, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
@@ -16,7 +16,8 @@ import {
     COUNTRY_FLAG_STORAGE_KEY,
     PROFILE_PIC_ORIGINAL_STORAGE_KEY,
     GUILDS_STORAGE_KEY,
-    PROFILE_PIC_STATE_STORAGE_KEY
+    PROFILE_PIC_STATE_STORAGE_KEY,
+    VISIBILITY_STORAGE_KEY
 } from "./storage.js";
 import { escapeHtml, getFlagUrl } from "./utils.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
@@ -780,7 +781,11 @@ export async function saveOnboardingProfile(usernameRaw) {
     await UserService.syncAccountDirectoryEntry(user.uid, accountIdForSlug, {
         username,
         accountId: accountIdForSlug,
-        profile: profileData
+        profile: profileData,
+        publicSlug,
+        settings: {
+            visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")
+        }
     });
 
     originalProfileState = {

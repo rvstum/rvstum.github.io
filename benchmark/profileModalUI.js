@@ -11,8 +11,8 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import { auth, db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
 import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
-import * as Slugs from "./slugs.js";
-import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
+import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
 import { resetAccountIdVisibility } from "./accountId.js";
 import { showPageLoader, hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
@@ -25,7 +25,8 @@ import {
     PROFILE_PIC_ORIGINAL_STORAGE_KEY,
     PROFILE_PIC_STATE_STORAGE_KEY,
     COUNTRY_FLAG_STORAGE_KEY,
-    GUILDS_STORAGE_KEY
+    GUILDS_STORAGE_KEY,
+    VISIBILITY_STORAGE_KEY
 } from "./storage.js";
 
 function maskEmail(emailValue) {
@@ -383,7 +384,11 @@ export function initProfileModalController(options = {}) {
             await UserService.syncAccountDirectoryEntry(user.uid, accountId, {
                 username,
                 accountId,
-                profile: profileData
+                profile: profileData,
+                publicSlug,
+                settings: {
+                    visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")
+                }
             });
 
             ProfileUI.setDraftProfileState({ ...draft });

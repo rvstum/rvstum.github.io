@@ -3,7 +3,7 @@ import { RANK_THRESHOLDS, RANK_COLORS, RANK_NAMES, RANK_TEXT_COLORS, RANK_LINE_C
 import { isMobileViewport } from "./utils.js";
 import { calculateSingleRating, buildThresholdsFromBase } from "./scoring.js";
 import { hexToRgba, darkenColor } from "./utils/colorUtils.js";
-import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 
 const SCORE_PER_RANK = 100;
 
@@ -316,6 +316,10 @@ export function updateRowColors() {
         wrapper.style.setProperty('--score-box-accent-inline', 'transparent');
         wrapper.style.setProperty('--score-content-offset-inline', isMobile ? '0px' : '4px');
         wrapper.style.setProperty('--score-input-active-color', 'white');
+        wrapper.style.setProperty('--sub-score-box-bg', '#242424');
+        wrapper.style.setProperty('--sub-score-box-accent', 'transparent');
+        wrapper.style.setProperty('--sub-score-text-color', 'white');
+        wrapper.style.setProperty('--sub-score-input-active-color', 'white');
         overlay.style.background = '';
         overlay.style.webkitBackgroundClip = '';
         overlay.style.backgroundClip = '';
@@ -328,6 +332,10 @@ export function updateRowColors() {
             wrapper.style.setProperty('--score-input-active-color', SCORE_TEXT_COLORS[rankIndex]);
             wrapper.style.background = darkenColor(RANK_COLORS[rankIndex], 0.6);
             wrapper.style.setProperty('--score-box-accent-inline', darkenColor(RANK_COLORS[rankIndex], 0.28));
+            wrapper.style.setProperty('--sub-score-box-bg', darkenColor(RANK_COLORS[rankIndex], 0.76));
+            wrapper.style.setProperty('--sub-score-box-accent', darkenColor(RANK_COLORS[rankIndex], 0.44));
+            wrapper.style.setProperty('--sub-score-text-color', SCORE_TEXT_COLORS[rankIndex]);
+            wrapper.style.setProperty('--sub-score-input-active-color', SCORE_TEXT_COLORS[rankIndex]);
         }
     });
 

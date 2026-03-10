@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "./client.js";
 import { getBenchmarkBasePath } from "./utils.js";
 import { getRuntimeAccountId } from "./appState.js";
@@ -203,14 +203,21 @@ export async function resolveProfileDocBySlug(slug, signedInViewer) {
 
     try {
         const directQuery = signedInViewer
-            ? query(collection(db, 'users'), where('publicSlug', '==', trimmedSlug))
+            ? query(collection(db, 'publicAccountDirectory'), where('publicSlug', '==', trimmedSlug))
             : query(
-                collection(db, 'users'),
+                collection(db, 'publicAccountDirectory'),
                 where('publicSlug', '==', trimmedSlug),
-                where('settings.visibility', '==', 'everyone')
+                where('visibility', '==', 'everyone')
             );
         const directSnap = await getDocs(directQuery);
-        if (!directSnap.empty) return directSnap.docs[0];
+        if (!directSnap.empty) {
+            const directoryData = directSnap.docs[0].data() || {};
+            const uid = typeof directoryData.uid === "string" ? directoryData.uid.trim() : "";
+            if (!uid) return null;
+            const userSnap = await getDoc(doc(db, 'users', uid));
+            if (!userSnap.exists()) return null;
+            return userSnap;
+        }
     } catch (e) {
         console.warn('publicSlug query failed:', e);
     }

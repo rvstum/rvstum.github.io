@@ -590,7 +590,7 @@ export function initScoreInputsScrollSync() {
         clearRowSelection();
         scoreInputFocused = false;
         const activeElement = document.activeElement;
-        if (activeElement && activeElement.classList && activeElement.classList.contains("score-input") && typeof activeElement.blur === "function") {
+        if (isAnyScoreInputElement(activeElement) && typeof activeElement.blur === "function") {
             activeElement.blur();
         }
         setDesktopPointerEventsSuspended(true);
@@ -608,7 +608,7 @@ export function initScoreInputsScrollSync() {
             clearRowSelection();
             scoreInputFocused = false;
             const activeElement = document.activeElement;
-            if (activeElement && activeElement.classList && activeElement.classList.contains("score-input") && typeof activeElement.blur === "function") {
+            if (isAnyScoreInputElement(activeElement) && typeof activeElement.blur === "function") {
                 activeElement.blur();
             }
         };
@@ -657,15 +657,13 @@ export function initScoreInputsScrollSync() {
         return !!(
             scoreInputFocused
             || scoreBlurResetTimer
-            || (activeElement && activeElement.classList && activeElement.classList.contains("score-input"))
+            || isAnyScoreInputElement(activeElement)
         );
     };
     const blurActiveScoreInput = () => {
         const activeElement = document.activeElement;
         if (
-            activeElement
-            && activeElement.classList
-            && activeElement.classList.contains("score-input")
+            isAnyScoreInputElement(activeElement)
             && typeof activeElement.blur === "function"
         ) {
             activeElement.blur();
@@ -698,6 +696,14 @@ export function initScoreInputsScrollSync() {
         row.style.removeProperty("--row-active-outline-color");
         row.style.removeProperty("--row-active-outline-shadow");
     };
+    const isAnyScoreInputElement = (element) => !!(
+        element
+        && element.classList
+        && (
+            element.classList.contains("score-input")
+            || element.classList.contains("sub-score-input")
+        )
+    );
     const applyGroupOutlineVars = (group) => {
         if (!group || !group.length) return;
         if (window.innerWidth <= 900) {
@@ -1054,7 +1060,7 @@ export function initScoreInputsScrollSync() {
             const movingToAnotherScoreInput = !!(
                 nextTarget
                 && nextTarget.classList
-                && nextTarget.classList.contains("score-input")
+                && isAnyScoreInputElement(nextTarget)
             );
             if (movingToAnotherScoreInput || hasPendingDesktopSelectionTransfer()) {
                 clearDesktopSelectionTransfer();
@@ -1128,7 +1134,7 @@ export function initScoreInputsScrollSync() {
             scoreInputFocused = false;
             suppressDesktopInputRefocusUntilMouseUp = true;
             const activeElement = document.activeElement;
-            if (activeElement && activeElement.classList && activeElement.classList.contains("score-input") && typeof activeElement.blur === "function") {
+            if (isAnyScoreInputElement(activeElement) && typeof activeElement.blur === "function") {
                 activeElement.blur();
             }
         }
@@ -1149,7 +1155,7 @@ export function initScoreInputsScrollSync() {
         const isRatingValue = !!e.target.closest(".rating-value");
         const isPairGapArea = findPairGroupIndexByPoint(e.clientX, e.clientY) >= 0;
         const activeElement = document.activeElement;
-        const activeScoreInput = !!(activeElement && activeElement.classList && activeElement.classList.contains("score-input"));
+        const activeScoreInput = isAnyScoreInputElement(activeElement);
         if ((scoreInputFocused || activeScoreInput || scoreBlurResetTimer) && !isScoreWrapper && !isRowArea && !isRatingValue && isPairGapArea) {
             return;
         }
@@ -1161,7 +1167,7 @@ export function initScoreInputsScrollSync() {
         const isRatingValue = !!e.target.closest(".rating-value");
         const isPairGapArea = findPairGroupIndexByPoint(e.clientX, e.clientY) >= 0;
         const activeElement = document.activeElement;
-        const activeScoreInput = !!(activeElement && activeElement.classList && activeElement.classList.contains("score-input"));
+        const activeScoreInput = isAnyScoreInputElement(activeElement);
         if ((scoreInputFocused || activeScoreInput || scoreBlurResetTimer) && !isScoreWrapper && !isRowArea && !isRatingValue && isPairGapArea) {
             return;
         }

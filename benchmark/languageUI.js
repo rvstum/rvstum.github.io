@@ -215,6 +215,9 @@ export function createLanguageController(options = {}) {
         if (typeof syncResetConfigUI === "function") syncResetConfigUI();
         if (typeof updateCustomSwatches === "function") updateCustomSwatches(applyTheme);
         if (typeof updateCustomThemeUI === "function") updateCustomThemeUI(applyTheme);
+        document.dispatchEvent(new CustomEvent("benchmark:language-applied", {
+            detail: { lang }
+        }));
         if (persist && typeof saveSettings === "function") saveSettings();
     }
 

@@ -2,6 +2,7 @@ import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc, upda
 import { db } from "./client.js";
 import { normalizeFriendRequestIds } from "./utils.js";
 import { FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
+import { buildProfileSlug } from "./slugs.js?v=20260310-public-slug-directory-1";
 
 const ACCOUNT_DIRECTORY_COLLECTION = "publicAccountDirectory";
 const FRIEND_REQUESTS_COLLECTION = "friendRequests";
@@ -120,14 +121,25 @@ function derivePublicRankIndex(userData = {}) {
 function buildAccountDirectoryPreview(userData = {}) {
     const safeData = userData && typeof userData === "object" ? userData : {};
     const profile = safeData.profile && typeof safeData.profile === "object" ? safeData.profile : {};
+    const settings = safeData.settings && typeof safeData.settings === "object" ? safeData.settings : {};
     const username = typeof safeData.username === "string" && safeData.username.trim() !== ""
         ? safeData.username.trim()
         : (typeof profile.username === "string" ? profile.username.trim() : "");
+    const accountId = typeof safeData.accountId === "string" && safeData.accountId.trim() !== ""
+        ? safeData.accountId.trim()
+        : (typeof profile.accountId === "string" ? profile.accountId.trim() : "");
+    const fallbackUid = typeof safeData.uid === "string" ? safeData.uid.trim() : "";
+    const explicitPublicSlug = typeof safeData.publicSlug === "string" ? safeData.publicSlug.trim() : "";
+    const visibility = typeof settings.visibility === "string" && settings.visibility.trim() !== ""
+        ? settings.visibility.trim()
+        : "everyone";
     return {
         username,
         rankIndex: derivePublicRankIndex(safeData),
         flag: typeof profile.flag === "string" ? profile.flag.trim() : "",
-        pic: typeof profile.pic === "string" ? profile.pic.trim() : ""
+        pic: typeof profile.pic === "string" ? profile.pic.trim() : "",
+        publicSlug: explicitPublicSlug || buildProfileSlug(username || "player", accountId, fallbackUid),
+        visibility
     };
 }
 
@@ -154,12 +166,15 @@ export async function syncAccountDirectoryEntry(uid, accountId, userData = null)
     if (userData && typeof userData === "object") {
         const preview = buildAccountDirectoryPreview({
             ...userData,
-            accountId: normalizedAccountId
+            accountId: normalizedAccountId,
+            uid: targetUid
         });
         payload.username = preview.username || "";
         payload.rankIndex = preview.rankIndex;
         payload.flag = preview.flag || "";
         payload.pic = preview.pic || "";
+        payload.publicSlug = preview.publicSlug || "";
+        payload.visibility = preview.visibility || "everyone";
     }
     await setDoc(doc(db, ACCOUNT_DIRECTORY_COLLECTION, normalizedAccountId), payload, { merge: true });
     return true;

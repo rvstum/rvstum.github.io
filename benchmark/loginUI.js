@@ -9,7 +9,7 @@ import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/
 import { auth, db } from "./client.js";
 import { getBenchmarkBasePath } from "./utils.js";
 import { alignMobileTitleBetweenTopAndBox } from "./authLayout.js?v=20260310-auth-mobile-stability-1";
-import * as Slugs from "./slugs.js";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { getRememberedAccountIdForUid } from "./accountId.js";
 import {
     readString,

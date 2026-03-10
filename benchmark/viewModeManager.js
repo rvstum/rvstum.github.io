@@ -4,14 +4,14 @@ import { readJson, GUILDS_STORAGE_KEY } from "./storage.js";
 import { t } from "./i18n.js";
 import { getFlagUrl } from "./utils.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
-import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
+import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as FriendsService from "./friendsService.js?v=20260309-public-view-fix-1";
 import * as RadarUI from "./radarUI.js";
-import * as RankingUI from "./rankingUI.js?v=20260310-mobile-score-caret-fix-1";
-import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
-import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
+import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-reset-persist-12";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { calculateRankFromData, calculateTotalRatingForScores } from "./scoring.js";
 import { getScoreBaseForConfigKey, DEFAULT_MOUNT_CONFIG, FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
 import { normalizeMountConfig, getConfigLookupKeys } from "./configManager.js";
@@ -160,6 +160,7 @@ export async function canViewProfile(profileUid, profileData, viewerUser) {
 function applyViewModeChrome() {
     state.isViewMode = true;
     document.body.classList.add("view-mode");
+    document.dispatchEvent(new CustomEvent("benchmark:collapse-sub-inputs"));
     const viewedRankIndex = state.activeViewProfileContext && Number.isFinite(state.activeViewProfileContext.rankIndex)
         ? state.activeViewProfileContext.rankIndex
         : 0;
@@ -209,6 +210,7 @@ export function clearViewModeChrome() {
     state.isViewMode = false;
     state.activeViewProfileContext = null;
     document.body.classList.remove("view-mode");
+    document.dispatchEvent(new CustomEvent("benchmark:collapse-sub-inputs"));
     syncViewModeExitButtonTheme(0);
     const userMenuBox = getCachedElementById("userMenuBox");
     const settingsBtn = getCachedElementById("settingsBtn");
@@ -384,7 +386,7 @@ function applyViewModeTrophiesAchievementsAndViews(data, uid) {
 }
 
 function lockViewModeInteractiveInputs() {
-    document.querySelectorAll(".score-input").forEach((input) => {
+    document.querySelectorAll(".score-input, .sub-score-input").forEach((input) => {
         input.disabled = true;
         input.classList.add("score-input--view-locked");
     });

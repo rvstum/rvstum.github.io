@@ -21,7 +21,12 @@
     }
 
     function isScoreInputTarget(target) {
-        return target instanceof Element && target.classList && target.classList.contains("score-input");
+        return target instanceof Element
+            && target.classList
+            && (
+                target.classList.contains("score-input")
+                || target.classList.contains("sub-score-input")
+            );
     }
 
     function isBenchmarkManagedTarget(target) {

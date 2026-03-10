@@ -28,16 +28,51 @@ import {
     GUILDS_STORAGE_KEY,
     THEME_UNLOCK_STORAGE_KEY,
     AUTO_RANK_THEME_STORAGE_KEY,
-    CONFIG_THEMES_STORAGE_KEY
-} from "./storage.js";
-import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
-import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
-import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
+    CONFIG_THEMES_STORAGE_KEY,
+    SUB_INPUT_MODE_STORAGE_KEY
+} from "./storage.js?v=20260310-sub-score-input-3";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
+import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-reset-persist-12";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
 import { persistUserData } from "./persistence.js";
+
+const SCORE_RESET_PENDING_STORAGE_KEY = "benchmark_score_reset_pending";
+
+function summarizeScoresRecord(record) {
+    const safeRecord = record && typeof record === "object" ? record : {};
+    let configCount = 0;
+    let nonZeroConfigCount = 0;
+    let nonZeroEntries = 0;
+    let totalSum = 0;
+
+    Object.values(safeRecord).forEach((scores) => {
+        if (!Array.isArray(scores)) return;
+        configCount += 1;
+        let configHasNonZero = false;
+        scores.forEach((value) => {
+            const numeric = Number(value) || 0;
+            totalSum += numeric;
+            if (numeric > 0) {
+                nonZeroEntries += 1;
+                configHasNonZero = true;
+            }
+        });
+        if (configHasNonZero) {
+            nonZeroConfigCount += 1;
+        }
+    });
+
+    return {
+        configCount,
+        nonZeroConfigCount,
+        nonZeroEntries,
+        totalSum
+    };
+}
 
 export function waitForAuthInitialization(authInstance = auth) {
     return new Promise((resolve) => {
@@ -114,6 +149,14 @@ export async function loadUserProfile(user, hooks = {}) {
         const activeUid = auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "";
         return !sessionUid || activeUid !== sessionUid;
     };
+    const isLocalDebugHost = (() => {
+        try {
+            const host = window.location && window.location.hostname ? window.location.hostname : "";
+            return host === "localhost" || host === "127.0.0.1";
+        } catch (_) {
+            return false;
+        }
+    })();
 
     if (isStaleAuthSession()) return;
 
@@ -282,6 +325,18 @@ export async function loadUserProfile(user, hooks = {}) {
 
             state.pacmanModeEnabled = data.settings.pacmanMode === "true";
             syncPacmanUI();
+
+            const storedSubInputMode = readString(SUB_INPUT_MODE_STORAGE_KEY, "false");
+            const remoteSubInputMode = Object.prototype.hasOwnProperty.call(data.settings, "subInputMode")
+                ? data.settings.subInputMode
+                : storedSubInputMode;
+            const subInputModeEnabled = remoteSubInputMode === true || remoteSubInputMode === "true";
+            writeString(SUB_INPUT_MODE_STORAGE_KEY, subInputModeEnabled ? "true" : "false");
+            state.subInputModeEnabled = subInputModeEnabled;
+            state.activeSubInputRowIndex = -1;
+            document.dispatchEvent(new CustomEvent("benchmark:sub-input-mode-updated", {
+                detail: { enabled: subInputModeEnabled }
+            }));
         }
 
         if (!didApplyConfig) {
@@ -302,37 +357,117 @@ export async function loadUserProfile(user, hooks = {}) {
             initOnboarding();
         }
 
-        if (data.scores && typeof data.scores === "object") {
-            const localScoresUpdatedAt = Number(readString(SCORE_UPDATED_AT_STORAGE_KEY, "0") || 0);
-            const remoteScoresUpdatedAt = Number(data.scoresUpdatedAt || 0);
-            const localHasScores = state.savedScores && Object.keys(state.savedScores).length > 0;
+        const remoteScoresCandidate = (data.scores && typeof data.scores === "object")
+            ? ScoreManager.normalizeSavedScoresRecord(data.scores)
+            : null;
+        const remoteScores = remoteScoresCandidate && Object.keys(remoteScoresCandidate).length > 0
+            ? remoteScoresCandidate
+            : null;
+        if (data.scores && !remoteScores) {
+            console.warn("[benchmark scores] Unrecognized score data shape.", data.scores);
+        }
+        const localScoresUpdatedAt = Number(readString(SCORE_UPDATED_AT_STORAGE_KEY, "0") || 0);
+        const remoteScoresUpdatedAt = Number(data.scoresUpdatedAt || 0);
+        const localScoreSnapshot = readJson(SCORE_STORAGE_KEY, null);
+        const localHasRawScoreSnapshot = !!(
+            localScoreSnapshot
+            && typeof localScoreSnapshot === "object"
+            && !Array.isArray(localScoreSnapshot)
+        );
+        const localNormalizedScores = localHasRawScoreSnapshot
+            ? ScoreManager.normalizeSavedScoresRecord(localScoreSnapshot)
+            : null;
+        const localHasScoreSnapshot = !!(localNormalizedScores && Object.keys(localNormalizedScores).length > 0);
+        const localScoreKeyCount = localHasScoreSnapshot ? Object.keys(localNormalizedScores).length : 0;
+        const remoteScoreKeyCount = remoteScores ? Object.keys(remoteScores).length : 0;
+        const localScoreStats = summarizeScoresRecord(localNormalizedScores);
+        const remoteScoreStats = summarizeScoresRecord(remoteScores);
+        const resetPending = readString(SCORE_RESET_PENDING_STORAGE_KEY, "false") === "true";
+
+        if (remoteScores || localHasScoreSnapshot) {
+            const syncLocalScoresToRemote = () => {
+                if (state.isViewMode) return;
+                clearTimeout(state.saveScoresDebounceTimer);
+                state.saveScoresDebounceTimer = setTimeout(() => {
+                    ScoreManager.saveSavedScores({ resetIntent: resetPending }).catch(console.error);
+                }, 50);
+            };
+
             let useRemoteScores = false;
-            if (!localHasScores) {
-                useRemoteScores = true;
+            if (resetPending && localHasScoreSnapshot && localScoreKeyCount === 0 && remoteScoreKeyCount > 0) {
+                useRemoteScores = false;
+            } else if (!remoteScores) {
+                useRemoteScores = false;
             } else if (localScoresUpdatedAt > 0 && remoteScoresUpdatedAt > 0) {
                 useRemoteScores = remoteScoresUpdatedAt > localScoresUpdatedAt;
-            } else if (localScoresUpdatedAt <= 0 && remoteScoresUpdatedAt <= 0) {
-                useRemoteScores = false;
+            } else if (remoteScoresUpdatedAt > 0 && localScoresUpdatedAt <= 0) {
+                useRemoteScores = true;
             } else if (localScoresUpdatedAt > 0 && remoteScoresUpdatedAt <= 0) {
-                useRemoteScores = false;
+                useRemoteScores = remoteScoreStats.nonZeroEntries > localScoreStats.nonZeroEntries
+                    || remoteScoreStats.totalSum > localScoreStats.totalSum;
+            } else if (!localHasScoreSnapshot || localScoreKeyCount === 0) {
+                useRemoteScores = true;
             } else {
-                useRemoteScores = false;
+                useRemoteScores = remoteScoreStats.nonZeroEntries > localScoreStats.nonZeroEntries
+                    || remoteScoreStats.totalSum > localScoreStats.totalSum;
             }
 
-            if (useRemoteScores) {
-                state.savedScores = data.scores;
+            if (useRemoteScores && remoteScores) {
+                state.savedScores = remoteScores;
                 writeJson(SCORE_STORAGE_KEY, state.savedScores);
                 if (remoteScoresUpdatedAt > 0) {
                     writeString(SCORE_UPDATED_AT_STORAGE_KEY, String(remoteScoresUpdatedAt));
                 }
-            } else if (localScoresUpdatedAt > remoteScoresUpdatedAt && !state.isViewMode) {
-                clearTimeout(state.saveScoresDebounceTimer);
-                state.saveScoresDebounceTimer = setTimeout(() => {
-                    ScoreManager.saveSavedScores();
-                }, 50);
+                removeItem(SCORE_RESET_PENDING_STORAGE_KEY);
+            } else if (localHasScoreSnapshot) {
+                state.savedScores = localNormalizedScores;
+                writeJson(SCORE_STORAGE_KEY, state.savedScores);
+                if (!remoteScores || localScoresUpdatedAt > remoteScoresUpdatedAt || resetPending) {
+                    syncLocalScoresToRemote();
+                }
+            } else if (remoteScores) {
+                state.savedScores = remoteScores;
             }
+
+            const currentConfigHasVisibleScores = ScoreManager.hasNonZeroSavedScoresForConfig();
+            if (!currentConfigHasVisibleScores) {
+                const preferredSavedConfig = ScoreManager.resolvePreferredSavedConfig({ preferNonZero: true })
+                    || ScoreManager.resolvePreferredSavedConfig();
+                if (preferredSavedConfig) {
+                    applyConfig(preferredSavedConfig, { skipSaveCurrent: true });
+                }
+            }
+
             ScoreManager.loadScores();
             ThemeUI.validateRankUnlock();
+            state.scoresHydrated = true;
+            if (isLocalDebugHost) {
+                console.debug("[benchmark scores]", {
+                    source: useRemoteScores ? "remote" : (localHasScoreSnapshot ? "local" : "empty"),
+                    currentConfig: state.currentConfig ? { ...state.currentConfig } : null,
+                    remoteScoreKeyCount,
+                    localScoreKeyCount,
+                    remoteScoreStats,
+                    localScoreStats,
+                    activeScoreKeys: Object.keys(state.savedScores || {})
+                });
+            }
+        } else {
+            state.savedScores = {};
+            ScoreManager.loadScores();
+            ThemeUI.validateRankUnlock();
+            state.scoresHydrated = true;
+            if (isLocalDebugHost) {
+                console.debug("[benchmark scores]", {
+                    source: "empty",
+                    currentConfig: state.currentConfig ? { ...state.currentConfig } : null,
+                    remoteScoreKeyCount,
+                    localScoreKeyCount,
+                    remoteScoreStats,
+                    localScoreStats,
+                    activeScoreKeys: []
+                });
+            }
         }
 
         if (data.configThemes) {

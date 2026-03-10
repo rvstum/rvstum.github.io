@@ -29,8 +29,9 @@ import {
     DEFAULT_CONFIG_STORAGE_KEY,
     VISIBILITY_STORAGE_KEY,
     PACMAN_STORAGE_KEY,
-    THEME_UNLOCK_STORAGE_KEY
-} from "./storage.js";
+    THEME_UNLOCK_STORAGE_KEY,
+    SUB_INPUT_MODE_STORAGE_KEY
+} from "./storage.js?v=20260310-sub-score-input-3";
 import { calculateRankFromData } from "./scoring.js";
 import {
     normalizeCellImagePaths as normalizeCaveCellImagePaths,
@@ -48,7 +49,7 @@ import {
     MOUNT_CONFIG_IMAGES,
     CONFIG_OPTIONS
 } from "./constants.js";
-import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import {
     normalizeMountConfig,
     getMountConfigLabel,
@@ -59,12 +60,12 @@ import {
     readDefaultConfig,
     getStartupConfigDefaults
 } from "./configManager.js";
-import * as RankingUI from "./rankingUI.js?v=20260310-mobile-score-caret-fix-1";
+import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
 import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
-import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
-import * as ViewModeManager from "./viewModeManager.js?v=20260310-mobile-unified-scroll-1";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-reset-persist-12";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-sub-score-input-1";
 import * as ShareManager from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
@@ -88,21 +89,21 @@ import {
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
-import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
+import * as AuthManager from "./authManager.js?v=20260310-score-load-fix-14";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-view-mode-asset-fix-1";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260310-auth-back-guard-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260310-score-load-fix-14";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260310-onboarding-profile-preview-fix-1";
-import { handleProfileLink } from "./routeManager.js?v=20260310-auth-back-guard-1";
-import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260310-auth-back-guard-1";
+import { handleProfileLink } from "./routeManager.js?v=20260310-score-load-fix-14";
+import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260310-sub-score-input-1";
 import { initProfileModalController } from "./profileModalUI.js?v=20260310-onboarding-profile-preview-fix-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260310-flag-selection-fix-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
-import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260309-view-mode-rank-trophy-fix-2";
+import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260310-score-reset-persist-11";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
-import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260309-modal-lang-dropdown-1";
-import { createSettingsStateController } from "./settingsStateUI.js";
+import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260310-score-link-lang-sync-1";
+import { createSettingsStateController } from "./settingsStateUI.js?v=20260310-score-reset-persist-1";
 import { createTopNavController } from "./topNavUI.js";
 import { hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
 
@@ -203,6 +204,7 @@ function clearBenchmarkVisualState() {
             line.style.background = "linear-gradient(to bottom, transparent, #444 15%, #444 85%, transparent)";
         });
     }
+    document.dispatchEvent(new CustomEvent("benchmark:collapse-sub-inputs"));
 }
 
 function setAuthGateActive(active) {
@@ -308,6 +310,9 @@ function resetSessionScopedState() {
     state.allRowThresholds = [];
     state.individualRatings = [];
     state.focusedInputIndex = -1;
+    state.subInputModeEnabled = false;
+    state.activeSubInputRowIndex = -1;
+    state.scoresHydrated = false;
     state.maxUnlockedRankIndex = 0;
     if (state.ratingUpdateRafId) {
         cancelAnimationFrame(state.ratingUpdateRafId);
@@ -350,6 +355,7 @@ function resetSessionScopedState() {
     removeItem(DEFAULT_CONFIG_STORAGE_KEY);
     removeItem(VISIBILITY_STORAGE_KEY);
     removeItem(PACMAN_STORAGE_KEY);
+    removeItem(SUB_INPUT_MODE_STORAGE_KEY);
     removeItem(THEME_UNLOCK_STORAGE_KEY);
     removeItem(LEGACY_ACCOUNT_ID_STORAGE_KEY);
     try {
@@ -376,6 +382,9 @@ function resetSessionScopedState() {
     ThemeUI.setCustomThemeName("Custom");
     ThemeUI.setCustomThemeHex({});
     ThemeUI.setSavedCustomThemes([]);
+    document.dispatchEvent(new CustomEvent("benchmark:sub-input-mode-updated", {
+        detail: { enabled: false }
+    }));
     if (visibilitySelect) {
         visibilitySelect.value = "everyone";
     }
@@ -421,6 +430,7 @@ function resetSessionScopedState() {
     }
     ScoreManager.loadSavedScores();
     ScoreManager.loadSavedCaveLinks();
+    state.scoresHydrated = false;
 }
 
 function handleAuthSessionChange({ currentUid, force = false }) {
@@ -597,7 +607,8 @@ async function saveSettings() {
             saved: ThemeUI.getSavedCustomThemes()
         },
         rankThemeUnlock: String(ThemeUI.getMaxUnlockedRankIndex()),
-        pacmanMode: state.pacmanModeEnabled ? 'true' : 'false'
+        pacmanMode: state.pacmanModeEnabled ? 'true' : 'false',
+        subInputMode: state.subInputModeEnabled ? 'true' : 'false'
     };
     await saveUserData({ settings });
 }
@@ -1141,7 +1152,7 @@ function initGlobalListeners() {
     window.addEventListener('pagehide', () => {
         if (state.isViewMode) return;
         ScoreManager.saveCurrentScores();
-        ScoreManager.saveSavedScores();
+        ScoreManager.saveSavedScores().catch(console.error);
     });
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', runPostDomReadySetup, { once: true });
@@ -1165,7 +1176,8 @@ function initUIControllers() {
     runInitStep('settings UI', initSettingsUIBindings);
     runInitStep('score inputs', () => setupScoreInputHandlersUI({
         getLoginUrl: Slugs.getBenchmarkLoginUrl,
-        onRatingsUpdated: handleRatingsUpdated
+        onRatingsUpdated: handleRatingsUpdated,
+        onSubInputModeChanged: saveSettings
     }));
     runInitStep('radar tabs', () => RadarUI.setupRadarTabs());
     runInitStep('share UI', () => ShareManager.setupShareUI(refreshRadarVisuals));
@@ -1204,12 +1216,14 @@ function initBenchmarkApp() {
             if (resolvedUser) return;
             ScoreManager.loadSavedCaveLinks();
             ScoreManager.loadSavedScores();
+            state.scoresHydrated = true;
             applyStoredSettings();
         })
         .catch((err) => {
             console.warn("Auth initialization check failed; applying local settings fallback:", err);
             ScoreManager.loadSavedCaveLinks();
             ScoreManager.loadSavedScores();
+            state.scoresHydrated = true;
             applyStoredSettings();
         });
     setupMountDropdown();

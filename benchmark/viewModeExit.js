@@ -1,14 +1,14 @@
 import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
 import { readString, readJson, CACHED_VIEWS_STORAGE_KEY, ACHIEVEMENTS_STORAGE_KEY } from "./storage.js";
-import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-reset-persist-12";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as PacmanUI from "./pacmanUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
-import * as Slugs from "./slugs.js";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
-import * as RankingUI from "./rankingUI.js?v=20260309-view-mode-rank-trophy-fix-1";
+import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
 import * as RadarUI from "./radarUI.js";
 
 export async function exitViewMode(options = {}) {
@@ -46,7 +46,7 @@ export async function exitViewMode(options = {}) {
     const trophyPlaceholder = getCachedElementById("trophyPlaceholder");
     setHidden(trophyPlaceholder, false);
 
-    document.querySelectorAll(".score-input").forEach((input) => {
+    document.querySelectorAll(".score-input, .sub-score-input").forEach((input) => {
         input.disabled = false;
         input.classList.remove("score-input--view-locked");
     });

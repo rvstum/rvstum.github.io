@@ -1,10 +1,10 @@
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
-import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
-import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260310-mobile-unified-scroll-1";
-import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
+import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-sub-score-input-1";
+import * as AuthManager from "./authManager.js?v=20260310-score-load-fix-14";
 import { showPageLoader } from "./pageLoaderUI.js";
 
 export async function handleProfileLink(options = {}) {

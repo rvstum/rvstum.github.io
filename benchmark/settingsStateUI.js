@@ -6,8 +6,9 @@ import {
     LANGUAGE_STORAGE_KEY,
     THEME_STORAGE_KEY,
     THEME_USER_SELECTED_STORAGE_KEY,
-    DEFAULT_CONFIG_STORAGE_KEY
-} from "./storage.js";
+    DEFAULT_CONFIG_STORAGE_KEY,
+    SUB_INPUT_MODE_STORAGE_KEY
+} from "./storage.js?v=20260310-sub-score-input-3";
 
 export function createSettingsStateController(options = {}) {
     const {
@@ -62,7 +63,7 @@ export function createSettingsStateController(options = {}) {
         ThemeUI.updateCustomThemeUI(ThemeUI.applyTheme);
     }
 
-    function performResetCurrentScores() {
+    function performResetCurrentScores(options = {}) {
         document.querySelectorAll(".score-input").forEach((input) => {
             input.value = "0";
         });
@@ -71,7 +72,9 @@ export function createSettingsStateController(options = {}) {
         });
         const key = getConfigKey();
         delete state.savedScores[key];
-        ScoreManager.saveSavedScores();
+        if (!options.skipPersist) {
+            ScoreManager.saveSavedScores({ resetIntent: true }).catch(console.error);
+        }
         RankingUI.updateAllRatings(refreshRadarVisuals);
     }
 
@@ -90,7 +93,7 @@ export function createSettingsStateController(options = {}) {
                 performResetCurrentScores();
             } else {
                 delete state.savedScores[selectedKey];
-                ScoreManager.saveSavedScores();
+                ScoreManager.saveSavedScores({ resetIntent: true }).catch(console.error);
             }
         });
     }
@@ -98,8 +101,8 @@ export function createSettingsStateController(options = {}) {
     function resetAllConfigurations() {
         showConfirmModal(t("settings_reset_all"), t("reset_all_confirm"), () => {
             Object.keys(state.savedScores).forEach((key) => delete state.savedScores[key]);
-            ScoreManager.saveSavedScores();
-            performResetCurrentScores();
+            performResetCurrentScores({ skipPersist: true });
+            ScoreManager.saveSavedScores({ resetIntent: true }).catch(console.error);
         });
     }
 
@@ -120,6 +123,7 @@ export function createSettingsStateController(options = {}) {
         const storedTheme = readString(THEME_STORAGE_KEY, "default");
         const userSelectedTheme = readString(THEME_USER_SELECTED_STORAGE_KEY, "false") === "true";
         const themeToApply = userSelectedTheme ? storedTheme : "default";
+        const subInputModeEnabled = readString(SUB_INPUT_MODE_STORAGE_KEY, "false") === "true";
 
         ThemeUI.loadCustomThemeState();
         ThemeUI.loadSavedCustomThemes();
@@ -128,6 +132,11 @@ export function createSettingsStateController(options = {}) {
         ThemeUI.loadSavedConfigThemes();
         ThemeUI.loadAutoRankThemeSetting();
         PacmanUI.loadPacmanSetting();
+        state.subInputModeEnabled = subInputModeEnabled;
+        state.activeSubInputRowIndex = -1;
+        document.dispatchEvent(new CustomEvent("benchmark:sub-input-mode-updated", {
+            detail: { enabled: subInputModeEnabled }
+        }));
         applyLanguage(storedLang, false);
 
         const storedConfig = readDefaultConfig();

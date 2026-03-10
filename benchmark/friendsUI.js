@@ -14,9 +14,9 @@ import { normalizeFriendRequestIds, getFlagUrl, escapeHtml } from "./utils.js";
 import { getCachedElementById, setHidden } from "./utils/domUtils.js";
 import { FINAL_RANK_INDEX, RANK_NAMES, RANK_TEXT_COLORS, STELLAR_TROPHY_FILTER } from "./constants.js";
 import { t, tf } from "./i18n.js";
-import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
+import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import * as FriendsService from "./friendsService.js?v=20260309-request-metadata-1";
-import * as Slugs from "./slugs.js";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 
 function resolveFriendAssetUrl(assetPath) {
     const raw = typeof assetPath === "string" ? assetPath.trim() : "";

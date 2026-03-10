@@ -2,7 +2,7 @@ import { state } from "./appState.js";
 import { t } from "./i18n.js";
 import { readJson, writeJson, SEASONAL_TROPHIES_STORAGE_KEY } from "./storage.js";
 import { getCachedElementById, setHidden, setFlexVisible } from "./utils/domUtils.js";
-import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 
 const SEASONAL_TROPHY_META = [
     { key: "1st", labelKey: "seasonal_place_1st", shortKey: "seasonal_place_1st", image: "../icons/1sttrophy.png", tier: "first" },

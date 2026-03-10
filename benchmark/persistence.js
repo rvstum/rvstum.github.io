@@ -1,6 +1,6 @@
 import { auth } from "./client.js";
 import { state } from "./appState.js";
-import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
+import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import { readJson, writeJson } from "./storage.js";
 
 export async function persistUserAndLocal({
