@@ -63,6 +63,18 @@ export function createSettingsStateController(options = {}) {
         ThemeUI.updateCustomThemeUI(ThemeUI.applyTheme);
     }
 
+    function persistConfigThemeReset(keys, options = {}) {
+        const targetKeys = Array.isArray(keys) ? keys.filter((key) => typeof key === "string" && key !== "") : [];
+        if (!targetKeys.length) return;
+        targetKeys.forEach((key) => {
+            delete state.savedConfigThemes[key];
+        });
+        if (options.applyDefaultTheme === true) {
+            Promise.resolve(ThemeUI.applyTheme("default", false)).catch(console.error);
+        }
+        ThemeUI.saveSavedConfigThemes().catch(console.error);
+    }
+
     function performResetCurrentScores(options = {}) {
         document.querySelectorAll(".score-input").forEach((input) => {
             input.value = "0";
@@ -72,6 +84,7 @@ export function createSettingsStateController(options = {}) {
         });
         const key = getConfigKey();
         delete state.savedScores[key];
+        persistConfigThemeReset([key], { applyDefaultTheme: true });
         if (!options.skipPersist) {
             ScoreManager.saveSavedScores({ resetIntent: true }).catch(console.error);
         }
@@ -93,6 +106,7 @@ export function createSettingsStateController(options = {}) {
                 performResetCurrentScores();
             } else {
                 delete state.savedScores[selectedKey];
+                persistConfigThemeReset([selectedKey]);
                 ScoreManager.saveSavedScores({ resetIntent: true }).catch(console.error);
             }
         });
@@ -101,6 +115,7 @@ export function createSettingsStateController(options = {}) {
     function resetAllConfigurations() {
         showConfirmModal(t("settings_reset_all"), t("reset_all_confirm"), () => {
             Object.keys(state.savedScores).forEach((key) => delete state.savedScores[key]);
+            persistConfigThemeReset(Object.keys(state.savedConfigThemes), { applyDefaultTheme: true });
             performResetCurrentScores({ skipPersist: true });
             ScoreManager.saveSavedScores({ resetIntent: true }).catch(console.error);
         });

@@ -86,7 +86,7 @@ import {
     currentLanguage,
     BENCHMARK_LANGUAGE_LABELS
 } from "./i18n.js";
-import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
+import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
 import * as AuthManager from "./authManager.js?v=20260310-score-load-fix-16";
@@ -100,10 +100,10 @@ import { initProfileModalController } from "./profileModalUI.js?v=20260310-onboa
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260310-flag-selection-fix-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
-import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260310-score-load-fix-17";
+import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260310-sub-input-tab-fix-1";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
 import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260310-score-link-lang-sync-1";
-import { createSettingsStateController } from "./settingsStateUI.js?v=20260310-score-reset-persist-1";
+import { createSettingsStateController } from "./settingsStateUI.js?v=20260310-reset-theme-fix-1";
 import { createTopNavController } from "./topNavUI.js";
 import { hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
 

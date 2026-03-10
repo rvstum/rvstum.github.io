@@ -734,7 +734,7 @@ export function initCustomThemePicker(applyThemeFunc) {
     }
 }
 
-async function saveSavedConfigThemes() {
+export async function saveSavedConfigThemes() {
     await savedConfigThemesStore.save();
 }
 

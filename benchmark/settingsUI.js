@@ -1,7 +1,7 @@
 import { state } from "./appState.js";
 import { isMobileViewport } from "./utils.js";
 import { getCachedElementById } from "./utils/domUtils.js";
-import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
+import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import {
     readString,
     writeString,

@@ -108,6 +108,28 @@ export function setupScoreInputHandlers(options = {}) {
         });
     };
 
+    const syncSubInputAccessibility = (wrapper, options = {}) => {
+        if (!wrapper) return;
+        const subInput = wrapper.querySelector(".sub-score-input");
+        if (!subInput) return;
+        const expanded = !!options.expanded;
+        const enabled = !!state.subInputModeEnabled && !state.isViewMode && expanded;
+        if (!enabled && document.activeElement === subInput && typeof subInput.blur === "function") {
+            subInput.blur();
+        }
+        subInput.disabled = !enabled;
+        subInput.tabIndex = enabled ? 0 : -1;
+        wrapper.classList.toggle("sub-input-keyboard-enabled", enabled);
+    };
+
+    const syncAllSubInputAccessibility = () => {
+        scoreWrappers.forEach((wrapper, rowIndex) => {
+            syncSubInputAccessibility(wrapper, {
+                expanded: rowIndex === state.activeSubInputRowIndex
+            });
+        });
+    };
+
     const collapseSubInputs = (options = {}) => {
         const keepRowIndex = Number.isInteger(options.keepRowIndex) ? options.keepRowIndex : -1;
         scoreWrappers.forEach((wrapper, rowIndex) => {
@@ -120,6 +142,7 @@ export function setupScoreInputHandlers(options = {}) {
                 }
                 wrapper.classList.remove("sub-input-expanded");
             }
+            syncSubInputAccessibility(wrapper, { expanded: shouldKeep });
         });
         state.activeSubInputRowIndex = keepRowIndex;
     };
@@ -132,6 +155,7 @@ export function setupScoreInputHandlers(options = {}) {
         syncSubInputValue(rowIndex);
         wrapper.classList.add("sub-input-expanded");
         state.activeSubInputRowIndex = rowIndex;
+        syncSubInputAccessibility(wrapper, { expanded: true });
     };
 
     const setSubInputModeEnabled = (enabled) => {
@@ -331,6 +355,7 @@ export function setupScoreInputHandlers(options = {}) {
         } else if (state.activeSubInputRowIndex >= 0) {
             expandSubInputForRow(state.activeSubInputRowIndex);
         }
+        syncAllSubInputAccessibility();
     });
 
     document.addEventListener("benchmark:language-applied", () => {
@@ -352,4 +377,5 @@ export function setupScoreInputHandlers(options = {}) {
     updateSubInputStatTags();
     syncScoreLinkToggleState();
     scheduleScoreLinkTogglePositionSync();
+    syncAllSubInputAccessibility();
 }

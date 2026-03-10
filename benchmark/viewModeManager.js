@@ -5,7 +5,7 @@ import { t } from "./i18n.js";
 import { getFlagUrl } from "./utils.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
-import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
+import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as FriendsService from "./friendsService.js?v=20260309-public-view-fix-1";
 import * as RadarUI from "./radarUI.js";
