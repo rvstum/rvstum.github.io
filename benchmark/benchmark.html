@@ -11,7 +11,7 @@
         window.__BENCHMARK_SHARE_SERVICE_URL__ = "http://localhost:3000";
     </script>
     <script type="module" src="modernScreenshotLoader.js"></script>
-    <link rel="stylesheet" href="benchmark.css?v=20260310-mobile-viewport-guard-1">
+    <link rel="stylesheet" href="benchmark.css?v=20260310-mobile-view-copy-center-1">
 </head>
 <body>
     <div id="pageLoader" class="page-loader">
@@ -156,11 +156,13 @@
             </div>
         </div>
     </div>
-    <div class="middle-box">
-        <div class="rounded-inner-box">Unranked</div>
-        <div class="ranks-wrapper">
-            <div class="ranks-scroll">
-                <div class="ranks-labels">
+    <div class="benchmark-panels-shell">
+        <div class="benchmark-panels-scroll" id="benchmarkPanelsScroll">
+            <div class="middle-box">
+                <div class="rounded-inner-box">Unranked</div>
+                <div class="ranks-wrapper">
+                    <div class="ranks-scroll">
+                        <div class="ranks-labels">
                 <div class="rank-item">
                     <span class="rank-number">1350</span>
                     <div class="trophy-container">
@@ -269,24 +271,26 @@
                     <span class="rank-name">Aeternus</span>
                 </div>
             </div>
-                <div class="progress-stack">
-                    <div class="progress-bar">
-                        <div class="progress-fill"></div>
-                        <span class="progress-value-label">0/0</span>
-                        <div class="rank-line rank-line-1"></div>
-                        <div class="rank-line rank-line-2"></div>
-                        <div class="rank-line rank-line-3"></div>
-                        <div class="rank-line rank-line-4"></div>
-                    </div>
-                    <div class="roman-numerals-container">
-                        <span class="roman-pos-0">V</span><span class="roman-pos-1">IV</span><span class="roman-pos-2">III</span><span class="roman-pos-3">II</span><span class="roman-pos-4">I</span>
+                        <div class="progress-stack">
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                                <span class="progress-value-label">0/0</span>
+                                <div class="rank-line rank-line-1"></div>
+                                <div class="rank-line rank-line-2"></div>
+                                <div class="rank-line rank-line-3"></div>
+                                <div class="rank-line rank-line-4"></div>
+                            </div>
+                            <div class="roman-numerals-container">
+                                <span class="roman-pos-0">V</span><span class="roman-pos-1">IV</span><span class="roman-pos-2">III</span><span class="roman-pos-3">II</span><span class="roman-pos-4">I</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <div class="info-icon" id="rulesBtn">!</div>
             </div>
+            <div class="container" id="benchmarkGridContainer"></div>
         </div>
-        <div class="info-icon" id="rulesBtn">!</div>
     </div>
-    <div class="container" id="benchmarkGridContainer"></div>
     <div class="radar-box">
         <img id="radarSwordIcon" class="radar-preload-asset" src="../icons/benchmarksword.jpg" alt="">
         <img id="radarBombIcon" class="radar-preload-asset" src="../icons/benchmarkbomb.jpg" alt="">
@@ -1065,8 +1069,8 @@
 
         <script type="module" src="footer-baddy.js"></script>
         <script type="module" src="layoutBuilder.js"></script>
-        <script type="module" src="scrollSyncUI.js?v=20260309-mobile-touch-color-fix-2"></script>
-    <script type="module" src="benchmark.js?v=20260310-auth-back-guard-1"></script>
+        <script type="module" src="scrollSyncUI.js?v=20260310-mobile-row-tap-fix-1"></script>
+    <script type="module" src="benchmark.js?v=20260310-mobile-cave-touch-fix-2"></script>
 </body>
 </html>
 

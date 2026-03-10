@@ -213,6 +213,10 @@ export function setupCavePlayEditors(root = document) {
     const floatingInput = floatingPanel.querySelector("input");
     const floatingSave = floatingPanel.querySelector("button");
     const floatingError = floatingPanel.querySelector(".cave-play-error");
+    const shouldClearTouchHotState = () => (
+        window.innerWidth <= 900
+        || window.matchMedia("(hover: none), (pointer: coarse)").matches
+    );
 
     const setWrapperLinkState = (wrapper, url) => {
         if (!wrapper) return;
@@ -255,6 +259,14 @@ export function setupCavePlayEditors(root = document) {
         targetRoot.querySelectorAll(".container.cave-panel-open").forEach((container) => {
             container.classList.remove("cave-panel-open");
         });
+        if (shouldClearTouchHotState()) {
+            targetRoot.querySelectorAll(".cave-play-wrapper.is-hot").forEach((el) => {
+                el.classList.remove("is-hot");
+            });
+            targetRoot.querySelectorAll(".container.cave-tooltip-hot").forEach((container) => {
+                container.classList.remove("cave-tooltip-hot");
+            });
+        }
     };
 
     const positionFloating = () => {
@@ -372,6 +384,10 @@ export function setupCavePlayEditors(root = document) {
             const container = wrapper.closest(".container");
             if (container) container.classList.toggle("cave-tooltip-hot", nextHot);
         };
+        const clearTouchHot = () => {
+            if (wrapper.classList.contains("panel-open")) return;
+            setIconHot(false);
+        };
         wrapper.addEventListener("mouseenter", () => setIconHot(true));
         wrapper.addEventListener("mouseleave", () => setIconHot(false));
         wrapper.addEventListener("selectstart", (e) => {
@@ -383,15 +399,23 @@ export function setupCavePlayEditors(root = document) {
 
         let longPressTimer = null;
         let longPressTriggered = false;
+        let suppressNextAnchorClickUntil = 0;
+        const getPressNowTs = () => (
+            typeof performance !== "undefined" && typeof performance.now === "function"
+                ? performance.now()
+                : Date.now()
+        );
+        const shouldSuppressAnchorClick = () => getPressNowTs() <= suppressNextAnchorClickUntil;
 
         const startLongPress = () => {
             if (state.isViewMode) return;
+            setIconHot(true);
             longPressTriggered = false;
             longPressTimer = setTimeout(() => {
                 longPressTriggered = true;
                 openFloating(wrapper);
                 if (navigator.vibrate) navigator.vibrate(50);
-                setTimeout(() => { longPressTriggered = false; }, 1000);
+                setIconHot(false);
             }, 500);
         };
 
@@ -400,12 +424,24 @@ export function setupCavePlayEditors(root = document) {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
             }
+            if (longPressTriggered) {
+                suppressNextAnchorClickUntil = getPressNowTs() + 900;
+                longPressTriggered = false;
+            }
+            clearTouchHot();
         };
 
         wrapper.addEventListener("touchstart", startLongPress, { passive: true });
         wrapper.addEventListener("touchend", cancelLongPress);
         wrapper.addEventListener("touchmove", cancelLongPress);
         wrapper.addEventListener("touchcancel", cancelLongPress);
+        anchor.addEventListener("pointerdown", (e) => {
+            if (e.pointerType === "mouse") return;
+            setIconHot(true);
+        });
+        anchor.addEventListener("pointerup", clearTouchHot);
+        anchor.addEventListener("pointercancel", clearTouchHot);
+        anchor.addEventListener("lostpointercapture", clearTouchHot);
 
         wrapper.addEventListener("contextmenu", (e) => {
             e.preventDefault();
@@ -417,17 +453,21 @@ export function setupCavePlayEditors(root = document) {
         });
 
         anchor.addEventListener("click", (e) => {
-            if (longPressTriggered) {
+            if (longPressTriggered || shouldSuppressAnchorClick()) {
                 e.preventDefault();
                 e.stopPropagation();
                 longPressTriggered = false;
+                suppressNextAnchorClickUntil = 0;
+                clearTouchHot();
                 return;
             }
             e.preventDefault();
             e.stopPropagation();
             if (!handleWrapperClick(wrapper) && !state.isViewMode) {
                 openFloating(wrapper);
+                return;
             }
+            clearTouchHot();
         });
 
         const configKey = getCaveConfigKey();
@@ -440,7 +480,9 @@ export function setupCavePlayEditors(root = document) {
             if (state.isViewMode) return;
             if (activeWrapper === wrapper) {
                 closeFloating();
+                clearTouchHot();
             } else {
+                setIconHot(true);
                 openFloating(wrapper);
             }
         });

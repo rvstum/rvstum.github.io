@@ -16,6 +16,8 @@ export function initScoreInputsScrollSync() {
         || document.querySelector(".ranks-bars-stack");
     const benchmarkContainer = document.getElementById("benchmarkGridContainer")
         || document.querySelector(".container");
+    const panelsScrollEl = document.getElementById("benchmarkPanelsScroll")
+        || document.querySelector(".benchmark-panels-scroll");
     if (!scrollEl) return;
 
     const scoreWrappers = Array.from(document.querySelectorAll(".score-input-wrapper"));
@@ -120,6 +122,11 @@ export function initScoreInputsScrollSync() {
     const ranksScrollEl = ranksScroll || ranksWrapper;
     const rankBox = document.querySelector(".rounded-inner-box");
     const infoIcon = document.querySelector(".info-icon");
+    const isUnifiedMobileScrollMode = () => window.innerWidth <= 900 && !!panelsScrollEl;
+    const clearMobileFloatingOffsets = () => {
+        if (rankBox) rankBox.style.removeProperty("--mobile-rank-scroll-offset");
+        if (infoIcon) infoIcon.style.removeProperty("--mobile-info-scroll-offset");
+    };
 
     if (scrollEl) scrollEl.style.scrollBehavior = "auto";
     if (ranksScrollEl) ranksScrollEl.style.scrollBehavior = "auto";
@@ -129,6 +136,7 @@ export function initScoreInputsScrollSync() {
     let syncReleaseRaf = 0;
 
     const getSharedMaxScrollX = () => {
+        if (isUnifiedMobileScrollMode()) return getElementMaxScrollX(panelsScrollEl);
         if (!ranksScrollEl) return getElementMaxScrollX(scrollEl);
         return Math.min(getElementMaxScrollX(scrollEl), getElementMaxScrollX(ranksScrollEl));
     };
@@ -141,9 +149,8 @@ export function initScoreInputsScrollSync() {
     };
 
     const syncMobileFloatingOffsets = (value) => {
-        if (window.innerWidth > 900) {
-            if (rankBox) rankBox.style.removeProperty("--mobile-rank-scroll-offset");
-            if (infoIcon) infoIcon.style.removeProperty("--mobile-info-scroll-offset");
+        if (window.innerWidth > 900 || isUnifiedMobileScrollMode()) {
+            clearMobileFloatingOffsets();
             return;
         }
         const offsetValue = `${toWholePx(-value)}px`;
@@ -152,6 +159,12 @@ export function initScoreInputsScrollSync() {
     };
 
     const syncBothToSharedX = (value, sourceEl = null) => {
+        if (isUnifiedMobileScrollMode()) {
+            if (scrollEl.scrollLeft !== 0) scrollEl.scrollLeft = 0;
+            if (ranksScrollEl && ranksScrollEl.scrollLeft !== 0) ranksScrollEl.scrollLeft = 0;
+            syncMobileFloatingOffsets(0);
+            return panelsScrollEl ? panelsScrollEl.scrollLeft || 0 : 0;
+        }
         if (sourceEl) markSyncSource(sourceEl);
         const clamped = clampSharedScrollX(value);
         if (Math.abs(scrollEl.scrollLeft - clamped) > 0.25) {
@@ -264,6 +277,7 @@ export function initScoreInputsScrollSync() {
         ));
 
         const handleHorizontalTouchStart = (e) => {
+            if (isUnifiedMobileScrollMode()) return;
             if (!e.touches || !e.touches.length) return;
             cancelMomentum(true);
             if (wheelMomentumTimeout) {
@@ -279,6 +293,7 @@ export function initScoreInputsScrollSync() {
         };
 
         const handleHorizontalTouchMove = (e) => {
+            if (isUnifiedMobileScrollMode()) return;
             if (!e.touches || !e.touches.length) return;
             const touch = e.touches[0];
             const dx = touch.clientX - touchStartX;
@@ -302,6 +317,7 @@ export function initScoreInputsScrollSync() {
         };
 
         const handleHorizontalWheel = (e) => {
+            if (isUnifiedMobileScrollMode()) return;
             const hasDeltaX = Math.abs(e.deltaX || 0) > 0.01;
             const hasShiftedY = !hasDeltaX && e.shiftKey && Math.abs(e.deltaY || 0) > 0.01;
             if (!hasDeltaX && !hasShiftedY) return;
@@ -326,6 +342,7 @@ export function initScoreInputsScrollSync() {
         };
 
         const handleHorizontalTouchEnd = () => {
+            if (isUnifiedMobileScrollMode()) return;
             if (dragAxis === "x") {
                 markRecentMobileHorizontalScroll(220);
                 startMomentum();
@@ -334,6 +351,7 @@ export function initScoreInputsScrollSync() {
         };
 
         const handleHorizontalTouchCancel = () => {
+            if (isUnifiedMobileScrollMode()) return;
             if (dragAxis === "x") {
                 markRecentMobileHorizontalScroll(220);
             }
@@ -350,6 +368,7 @@ export function initScoreInputsScrollSync() {
         });
 
         ranksScrollEl.addEventListener("scroll", () => {
+            if (isUnifiedMobileScrollMode()) return;
             markRecentMobileHorizontalScroll(220);
             const targetLeft = ranksScrollEl.scrollLeft + syncOffset;
             syncFromSourceToTarget(ranksScrollEl, scrollEl, targetLeft);
@@ -357,6 +376,7 @@ export function initScoreInputsScrollSync() {
     }
 
     scrollEl.addEventListener("scroll", () => {
+        if (isUnifiedMobileScrollMode()) return;
         markRecentMobileHorizontalScroll(220);
         const targetLeft = scrollEl.scrollLeft - syncOffset;
         syncFromSourceToTarget(scrollEl, ranksScrollEl, targetLeft);
@@ -443,6 +463,10 @@ export function initScoreInputsScrollSync() {
     let desktopSelectionTransferUntil = 0;
     let mobileHorizontalScrollHintUntil = 0;
     let mobileBlurClearTimer = 0;
+    let recentMobileSelectionGroupKey = "";
+    let recentMobileSelectionUntil = 0;
+    let pendingMobileRowTap = null;
+    let ignoreMobileTapClicksUntil = 0;
     const getNowTs = () => (
         typeof performance !== "undefined" && typeof performance.now === "function"
             ? performance.now()
@@ -461,6 +485,54 @@ export function initScoreInputsScrollSync() {
         clearTimeout(mobileBlurClearTimer);
         mobileBlurClearTimer = 0;
     };
+    const getGroupKey = (group) => (
+        Array.isArray(group) && group.length
+            ? group.join(",")
+            : ""
+    );
+    const clearRecentMobileSelectionGroup = () => {
+        recentMobileSelectionGroupKey = "";
+        recentMobileSelectionUntil = 0;
+    };
+    const markRecentMobileSelectionGroup = (group, durationMs = 280) => {
+        if (window.innerWidth > 900) return;
+        const key = getGroupKey(group);
+        if (!key) {
+            clearRecentMobileSelectionGroup();
+            return;
+        }
+        recentMobileSelectionGroupKey = key;
+        recentMobileSelectionUntil = getNowTs() + durationMs;
+    };
+    const shouldPreserveRecentMobileSelection = (group) => (
+        window.innerWidth <= 900
+        && !!group
+        && getNowTs() <= recentMobileSelectionUntil
+        && getGroupKey(group) === recentMobileSelectionGroupKey
+    );
+    const clearPendingMobileRowTap = () => {
+        pendingMobileRowTap = null;
+    };
+    const armIgnoreMobileTapClicks = (durationMs = 420) => {
+        if (window.innerWidth > 900) return;
+        ignoreMobileTapClicksUntil = getNowTs() + durationMs;
+    };
+    const shouldIgnoreRecentMobileTapClick = () => (
+        window.innerWidth <= 900
+        && getNowTs() <= ignoreMobileTapClicksUntil
+    );
+    let lastPanelsScrollLeft = panelsScrollEl ? (panelsScrollEl.scrollLeft || 0) : 0;
+    if (panelsScrollEl) {
+        panelsScrollEl.addEventListener("scroll", () => {
+            if (!isUnifiedMobileScrollMode()) return;
+            const nextLeft = panelsScrollEl.scrollLeft || 0;
+            if (Math.abs(nextLeft - lastPanelsScrollLeft) > 1.5) {
+                markRecentMobileHorizontalScroll(220);
+            }
+            lastPanelsScrollLeft = nextLeft;
+            syncMobileFloatingOffsets(0);
+        }, { passive: true });
+    }
     const isViewModeActive = () => document.body.classList.contains("view-mode");
     const armDesktopSelectionTransfer = (duration = 220) => {
         if (window.innerWidth <= 900) return;
@@ -681,11 +753,13 @@ export function initScoreInputsScrollSync() {
             applyGroupOutlineVars(group);
         }
     };
+    const getGroupForRowIndex = (rowIndex) => stripeGroups.find((g) => g.includes(rowIndex));
     const selectGroupForRowIndex = (rowIndex) => {
         if (isDesktopDismissBlocked()) return;
-        const group = stripeGroups.find((g) => g.includes(rowIndex));
+        const group = getGroupForRowIndex(rowIndex);
         clearRowSelection();
         applyGroupSelection(group);
+        markRecentMobileSelectionGroup(group);
     };
     const prepareDesktopSelectionTransfer = () => {
         if (window.innerWidth <= 900) return;
@@ -701,10 +775,40 @@ export function initScoreInputsScrollSync() {
     };
     const handleRowSelectionToggle = (rowIndex) => {
         if (isDesktopDismissBlocked()) return;
-        const group = stripeGroups.find((g) => g.includes(rowIndex));
+        const group = getGroupForRowIndex(rowIndex);
         const isActive = groupIsSelected(group);
+        const preserveRecentMobileSelection = isActive && shouldPreserveRecentMobileSelection(group);
         clearRowSelection();
-        if (!isActive) applyGroupSelection(group);
+        if (!isActive || preserveRecentMobileSelection) {
+            applyGroupSelection(group);
+            markRecentMobileSelectionGroup(group);
+            return;
+        }
+        clearRecentMobileSelectionGroup();
+    };
+    const isMobileRowSelectionBlockedTarget = (target) => !!(
+        target
+        && target.closest
+        && (
+            target.closest(".score-input-wrapper")
+            || target.closest(".cave-play-wrapper, .cave-play-icon, .cave-play-edit, .cave-play-overlay, .cave-play-anchor")
+        )
+    );
+    const handleMobileRowSelectionRequest = (rowIndex, event) => {
+        clearPendingMobileBlurClear();
+        if (hasRecentMobileHorizontalScroll()) return false;
+        if (consumePendingBlurDismissSelection()) return false;
+        if (event && !shouldHandleSelectionInteraction(event)) return false;
+        if (consumeDesktopRowActivationSkip()) return false;
+        if (consumeSelectionClickSuppression()) return false;
+        if (scoreInputFocused) {
+            scoreInputFocused = false;
+            clearRowSelection();
+            clearRecentMobileSelectionGroup();
+            return true;
+        }
+        handleRowSelectionToggle(rowIndex);
+        return true;
     };
     const findPairGroupIndexByPoint = (clientX, clientY) => {
         for (const group of stripeGroups) {
@@ -726,6 +830,43 @@ export function initScoreInputsScrollSync() {
     };
 
     ranksBars.forEach((row, i) => {
+        row.addEventListener("pointerdown", (e) => {
+            if (window.innerWidth > 900) return;
+            if (e.pointerType === "mouse") return;
+            if (isMobileRowSelectionBlockedTarget(e.target)) return;
+            pendingMobileRowTap = {
+                rowIndex: i,
+                pointerId: e.pointerId,
+                startX: e.clientX,
+                startY: e.clientY
+            };
+        });
+        row.addEventListener("pointermove", (e) => {
+            if (!pendingMobileRowTap) return;
+            if (pendingMobileRowTap.pointerId !== e.pointerId) return;
+            const deltaX = e.clientX - pendingMobileRowTap.startX;
+            const deltaY = e.clientY - pendingMobileRowTap.startY;
+            if ((deltaX * deltaX) + (deltaY * deltaY) > 100) {
+                clearPendingMobileRowTap();
+            }
+        });
+        row.addEventListener("pointercancel", clearPendingMobileRowTap);
+        row.addEventListener("pointerup", (e) => {
+            if (window.innerWidth > 900) return;
+            if (e.pointerType === "mouse") return;
+            if (!pendingMobileRowTap) return;
+            if (pendingMobileRowTap.pointerId !== e.pointerId || pendingMobileRowTap.rowIndex !== i) return;
+            const deltaX = e.clientX - pendingMobileRowTap.startX;
+            const deltaY = e.clientY - pendingMobileRowTap.startY;
+            clearPendingMobileRowTap();
+            if ((deltaX * deltaX) + (deltaY * deltaY) > 100) return;
+            if (isMobileRowSelectionBlockedTarget(e.target)) return;
+            if (!handleMobileRowSelectionRequest(i, e)) return;
+            armIgnoreMobileTapClicks();
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+        });
         row.addEventListener("mousedown", (e) => {
             if (window.innerWidth <= 900) return;
             if (e.target.closest(".score-input-wrapper")) return;
@@ -751,29 +892,14 @@ export function initScoreInputsScrollSync() {
                 e.stopPropagation();
                 return;
             }
-            clearPendingMobileBlurClear();
-            if (consumePendingBlurDismissSelection()) {
+            if (shouldIgnoreRecentMobileTapClick()) {
                 e.stopPropagation();
                 return;
             }
-            if (!shouldHandleSelectionInteraction(e)) {
+            if (!handleMobileRowSelectionRequest(i, e)) {
                 e.stopPropagation();
                 return;
             }
-            if (consumeDesktopRowActivationSkip()) {
-                e.stopPropagation();
-                return;
-            }
-            if (consumeSelectionClickSuppression()) {
-                e.stopPropagation();
-                return;
-            }
-            if (scoreInputFocused) {
-                scoreInputFocused = false;
-                clearRowSelection();
-                return;
-            }
-            handleRowSelectionToggle(i);
         });
     });
 
@@ -784,6 +910,7 @@ export function initScoreInputsScrollSync() {
         if (e.target.closest(".score-input-wrapper")) return;
         if (e.target.closest(".cave-play-wrapper, .cave-play-icon, .cave-play-edit, .cave-play-overlay, .cave-play-anchor")) return;
         clearPendingMobileBlurClear();
+        if (hasRecentMobileHorizontalScroll()) return;
         if (consumePendingBlurDismissSelection()) return;
         if (!shouldHandleSelectionInteraction(e)) return;
         if (consumeDesktopRowActivationSkip()) return;
@@ -793,6 +920,7 @@ export function initScoreInputsScrollSync() {
         if (scoreInputFocused) {
             scoreInputFocused = false;
             clearRowSelection();
+            clearRecentMobileSelectionGroup();
             return;
         }
         handleRowSelectionToggle(rowIndex);
@@ -829,6 +957,8 @@ export function initScoreInputsScrollSync() {
         clearRowSelection();
         scoreInputFocused = false;
         clearDesktopSelectionTransfer();
+        clearRecentMobileSelectionGroup();
+        clearPendingMobileRowTap();
     });
 
     document.querySelectorAll(".score-input").forEach((input, i) => {
@@ -866,6 +996,7 @@ export function initScoreInputsScrollSync() {
                 if (!isViewModeActive()) return;
                 if (window.innerWidth > 900) return;
                 clearPendingBlurDismissSelection();
+                if (hasRecentMobileHorizontalScroll()) return;
                 if (!shouldHandleSelectionInteraction(e)) return;
                 handleRowSelectionToggle(i);
             });
@@ -896,6 +1027,7 @@ export function initScoreInputsScrollSync() {
             scoreInputFocused = true;
             if (window.innerWidth > 900) return;
             clearRowSelection();
+            clearRecentMobileSelectionGroup();
         });
         input.addEventListener("blur", (e) => {
             document.body.classList.remove("score-input-focused");
@@ -913,6 +1045,7 @@ export function initScoreInputsScrollSync() {
                     mobileBlurClearTimer = 0;
                     if (hasRecentMobileHorizontalScroll()) return;
                     clearRowSelection();
+                    clearRecentMobileSelectionGroup();
                 }, 120);
                 return;
             }
@@ -930,6 +1063,7 @@ export function initScoreInputsScrollSync() {
             }
             pendingBlurDismissSelection = true;
             clearRowSelection();
+            clearRecentMobileSelectionGroup();
             armSelectionClickSuppression();
         });
     });

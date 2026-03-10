@@ -38,7 +38,7 @@ import {
     setupCavePlayEditors as setupCavePlayEditorsModule,
     openImageViewerModal,
     closeImageViewerModal
-} from "./caveUI.js?v=20260309-remove-highlights-1";
+} from "./caveUI.js?v=20260310-mobile-cave-touch-fix-2";
 
 export { app };
 
@@ -64,7 +64,7 @@ import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
-import * as ViewModeManager from "./viewModeManager.js?v=20260310-auth-back-guard-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-mobile-unified-scroll-1";
 import * as ShareManager from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";

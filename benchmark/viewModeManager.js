@@ -391,11 +391,14 @@ function lockViewModeInteractiveInputs() {
 }
 
 function resetViewModeHorizontalScroll() {
+    const panelsScroll = getCachedElementById("benchmarkPanelsScroll")
+        || getCachedQuery("viewModeBenchmarkPanelsScroll", () => document.querySelector(".benchmark-panels-scroll"));
     const ranksBarsContainer = getCachedElementById("ranksBarsContainer")
         || getCachedQuery("viewModeRanksBarsContainerFallback", () => document.querySelector(".ranks-bars-stack"));
     const ranksWrapper = getCachedQuery("viewModeRanksWrapper", () => document.querySelector(".ranks-wrapper"));
     const ranksScroll = getCachedQuery("viewModeRanksScroll", () => document.querySelector(".ranks-scroll"));
     const applyReset = () => {
+        if (panelsScroll) panelsScroll.scrollLeft = 0;
         if (ranksBarsContainer) ranksBarsContainer.scrollLeft = 0;
         if (ranksWrapper) ranksWrapper.scrollLeft = 0;
         if (ranksScroll) ranksScroll.scrollLeft = 0;

@@ -716,6 +716,20 @@ body.modal-open {
     gap: 3px;
 }
 
+.benchmark-panels-shell {
+    width: 100%;
+    max-width: 1584px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.benchmark-panels-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -3406,8 +3420,7 @@ body.auth-gate-active .vertical-box {
     pointer-events: none;
 }
 
-.cave-play-wrapper.is-hot .cave-play-icon,
-.cave-play-icon:hover {
+.cave-play-wrapper.is-hot .cave-play-icon {
     transform: scale(1.1) translateZ(0);
     opacity: 1;
     stroke: #fff;
@@ -3423,9 +3436,20 @@ body.auth-gate-active .vertical-box {
     filter: drop-shadow(0 0 6px rgba(245, 198, 69, 0.35));
 }
 
-.cave-play-wrapper.has-link.is-hot .cave-play-icon,
-.cave-play-wrapper.has-link .cave-play-icon:hover {
+.cave-play-wrapper.has-link.is-hot .cave-play-icon {
     stroke: #ffd66b;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .cave-play-icon:hover {
+        transform: scale(1.1) translateZ(0);
+        opacity: 1;
+        stroke: #fff;
+    }
+
+    .cave-play-wrapper.has-link .cave-play-icon:hover {
+        stroke: #ffd66b;
+    }
 }
 
 .cave-play-edit {
@@ -5764,10 +5788,10 @@ body.view-mode .achievement-proof-upload.has-image {
         height: 35px;
         min-height: 35px;
         position: absolute;
-        left: auto;
+        left: 0;
         right: 0;
         bottom: calc(100% + var(--user-menu-gap));
-        width: var(--mobile-menu-width);
+        width: 100%;
     }
 
     body.view-mode .container {
@@ -6251,8 +6275,8 @@ body.view-mode .achievement-proof-upload.has-image {
 
     .roman-numerals-container {
         display: block;
-        width: 1041px;
-        left: calc(var(--mobile-cave-start) + 331px);
+        width: var(--mobile-slanted-width);
+        left: var(--mobile-slanted-left);
         top: 30px;
     }
 
@@ -7187,11 +7211,13 @@ body.mobile-layout-active {
     --mobile-slanted-width: 1036px;
     --mobile-progression-center: calc(var(--mobile-cave-start) + 850px);
     --mobile-progression-width: 240px;
-    --mobile-rating-left: calc(var(--mobile-cave-start) + 1362px);
-    --mobile-rating-width: 90px;
+    --mobile-rating-left: calc(var(--mobile-slanted-left) + var(--mobile-slanted-width) + 20px);
+    --mobile-rating-width: 80px;
     --mobile-active-outline-left: var(--mobile-cave-start);
     --mobile-active-outline-width: calc(var(--mobile-rating-left) + var(--mobile-rating-width) - var(--mobile-cave-start));
     --mobile-outline-bleed: 8px;
+    --mobile-benchmark-track-padding-right: 0px;
+    --mobile-benchmark-track-width: calc(var(--mobile-rating-left) + var(--mobile-rating-width) + var(--mobile-benchmark-track-padding-right));
     --mobile-cave-group-height: calc((var(--mobile-cave-row-height) * 7) + (var(--mobile-cave-row-gap) * 6));
     --mobile-cave-group-2-top: calc(var(--mobile-ranks-top-gap) + var(--mobile-cave-group-height) + var(--mobile-cave-row-gap));
 }
@@ -7221,6 +7247,51 @@ body.mobile-layout-active .ranks-bars {
     align-items: center !important;
 }
 
+body.mobile-layout-active .benchmark-panels-shell {
+    width: 100% !important;
+    max-width: none !important;
+    background-color: var(--panel-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--panel-border);
+    border-radius: 24px;
+    box-shadow: none;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+body.mobile-layout-active .benchmark-panels-scroll {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
+    scroll-behavior: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    touch-action: auto;
+}
+
+body.mobile-layout-active .benchmark-panels-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+body.mobile-layout-active .benchmark-panels-scroll > .middle-box,
+body.mobile-layout-active .benchmark-panels-scroll > .container {
+    width: var(--mobile-benchmark-track-width) !important;
+    min-width: var(--mobile-benchmark-track-width) !important;
+    max-width: none !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    animation: none !important;
+}
+
 body.mobile-layout-active .progress-bar {
     width: var(--mobile-slanted-width) !important;
     margin-left: var(--mobile-slanted-left) !important;
@@ -7242,8 +7313,11 @@ body.mobile-layout-active .ranks-labels > .rank-item {
 }
 
 body.mobile-layout-active .container > .ranks-bars-stack {
+    width: var(--mobile-benchmark-track-width) !important;
     padding-top: var(--mobile-ranks-top-gap) !important;
     padding-bottom: var(--mobile-outline-bleed) !important;
+    overflow: visible !important;
+    cursor: default !important;
 }
 
 body.mobile-layout-active .bg-stripe {
@@ -7288,6 +7362,59 @@ body.mobile-layout-active .rank-bar.cave-cell-label {
 body.mobile-layout-active .rank-bar.cave-cell-label img {
     width: 28px !important;
     height: 28px !important;
+}
+
+body.mobile-layout-active .middle-box {
+    padding: 24px 15px 16px !important;
+    min-height: 176px !important;
+    overflow: visible !important;
+}
+
+body.mobile-layout-active .container {
+    padding: 10px 0 12px !important;
+    overflow: visible !important;
+}
+
+body.mobile-layout-active .ranks-wrapper {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin-right: 0 !important;
+}
+
+body.mobile-layout-active .ranks-scroll {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+}
+
+body.mobile-layout-active #ranksBarsContainer {
+    width: var(--mobile-benchmark-track-width) !important;
+    min-width: var(--mobile-benchmark-track-width) !important;
+    max-width: none !important;
+}
+
+body.mobile-layout-active .ranks-scroll,
+body.mobile-layout-active #ranksBarsContainer,
+body.mobile-layout-active .container > .ranks-bars-stack {
+    overflow: visible !important;
+    -webkit-overflow-scrolling: auto !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    touch-action: auto !important;
+}
+
+body.mobile-layout-active .ranks-scroll {
+    padding-right: 0 !important;
+}
+
+body.mobile-layout-active .rounded-inner-box {
+    top: calc(50% + ((10px + var(--mobile-ranks-top-gap) + var(--mobile-cave-row-height)) / 2)) !important;
+    transform: translateY(-70%) !important;
+}
+
+body.mobile-layout-active .info-icon {
+    transform: translateY(-50%) !important;
 }
 
 body.mobile-layout-active .cave-text,
@@ -7455,4 +7582,3 @@ html.mobile-viewport-guard #responsive-wrapper {
 html.mobile-viewport-guard body.modal-open #responsive-wrapper {
     overflow: hidden !important;
 }
-

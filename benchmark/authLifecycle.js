@@ -9,7 +9,7 @@ import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260310-auth-back-guard-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-mobile-unified-scroll-1";
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf } from "./i18n.js";
 import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
