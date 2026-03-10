@@ -130,7 +130,10 @@ export function bindCaveImageViewer(options = {}) {
         if (!e) return;
         if (hasVisibleBlockingOverlay()) return;
         if (imageViewerModal && imageViewerModal.classList.contains("show")) return;
-        if (e.target && e.target.closest && e.target.closest(".cave-play-wrapper, .cave-play-icon, .cave-play-edit, .cave-play-panel")) return;
+        const targetEl = e.target instanceof Element ? e.target : null;
+        if (!targetEl) return;
+        if (targetEl.closest(".cave-play-wrapper, .cave-play-icon, .cave-play-edit, .cave-play-panel")) return;
+        if (!targetEl.closest(".rank-bar:nth-child(2)")) return;
         const img = findImageAtPoint(e.clientX, e.clientY);
         if (!img) return;
         const src = img.getAttribute("src");

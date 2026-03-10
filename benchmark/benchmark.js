@@ -38,7 +38,7 @@ import {
     setupCavePlayEditors as setupCavePlayEditorsModule,
     openImageViewerModal,
     closeImageViewerModal
-} from "./caveUI.js?v=20260310-mobile-cave-touch-fix-2";
+} from "./caveUI.js?v=20260310-exit-view-cave-click-fix-1";
 
 export { app };
 

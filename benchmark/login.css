@@ -114,6 +114,7 @@ textarea:focus {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
 }
 
 .input-group label {
@@ -132,6 +133,8 @@ textarea:focus {
     outline: none;
     transition: border-color 0.2s;
     caret-color: #fff;
+    width: 100%;
+    min-width: 0;
 }
 
 .input-group input:focus {
@@ -266,6 +269,7 @@ textarea:focus {
     text-align: center;
     position: relative;
     z-index: 1;
+    min-width: 0;
 }
 
 .legal-footer-icon-wrap {
@@ -300,6 +304,8 @@ textarea:focus {
     line-height: 1.4;
     margin: 0 auto 6px;
     max-width: 900px;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .legal-footer-links {
@@ -310,6 +316,8 @@ textarea:focus {
     gap: 8px;
     font-size: 12px;
     text-align: center;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .auth-footer .legal-footer-links {
@@ -346,6 +354,7 @@ textarea:focus {
     width: 100%;
     max-width: 400px;
     margin: 2px auto 0 !important;
+    min-width: 0;
 }
 
 .auth-lang-dropdown {
@@ -442,8 +451,8 @@ textarea:focus {
     }
 
     .login-container {
-        width: calc(100% - 12px);
-        max-width: 390px;
+        width: min(390px, calc(100vw - 12px));
+        max-width: calc(100vw - 12px);
         margin: 0 auto 4px !important;
         padding: 18px 14px;
         max-height: none;
@@ -451,8 +460,8 @@ textarea:focus {
     }
 
     .auth-lang-shell {
-        width: calc(100% - 12px);
-        max-width: 390px;
+        width: min(390px, calc(100vw - 12px));
+        max-width: calc(100vw - 12px);
         margin-top: 0 !important;
         margin-bottom: 40px;
     }
@@ -618,7 +627,10 @@ input:-moz-autofill {
 html.mobile-viewport-guard,
 html.mobile-viewport-guard body {
     height: 100%;
+    width: 100vw !important;
+    max-width: 100vw !important;
     overflow: hidden !important;
+    overflow-x: clip !important;
     overscroll-behavior: none !important;
 }
 
@@ -626,11 +638,26 @@ html.mobile-viewport-guard body {
     min-height: 100dvh;
 }
 
+html.mobile-viewport-guard body::before {
+    width: 100vw;
+    max-width: 100vw;
+}
+
 html.mobile-viewport-guard .auth-main {
-    width: 100%;
+    width: 100vw;
+    max-width: 100vw;
     min-height: 0;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     overscroll-behavior: none !important;
     -webkit-overflow-scrolling: touch;
+    contain: inline-size;
+}
+
+html.mobile-viewport-guard .login-container,
+html.mobile-viewport-guard .auth-lang-shell,
+html.mobile-viewport-guard .auth-footer,
+html.mobile-viewport-guard .auth-footer .benchmark-footer-inner {
+    max-width: 100vw !important;
+    min-width: 0 !important;
 }
