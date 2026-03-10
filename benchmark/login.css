@@ -607,7 +607,7 @@ input:-moz-autofill {
         min-height: var(--mobile-safe-vh, 100dvh);
         display: grid !important;
         grid-template-columns: minmax(0, 1fr) !important;
-        grid-template-rows: minmax(0, 1fr) auto auto !important;
+        grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr) auto !important;
         align-items: stretch !important;
         justify-content: center !important;
         justify-items: center !important;
@@ -630,6 +630,7 @@ input:-moz-autofill {
         padding-left: 0;
         padding-right: 0;
         contain: none;
+        grid-row: 3;
         justify-self: center;
         align-self: start;
     }
@@ -641,8 +642,9 @@ input:-moz-autofill {
         line-height: 0.92 !important;
         letter-spacing: 2px !important;
         -webkit-text-stroke: 2px #000 !important;
-        margin: 0 auto !important;
-        align-self: center;
+        margin: 0 auto 12px !important;
+        grid-row: 2;
+        align-self: end;
         justify-self: center;
     }
 
@@ -702,6 +704,7 @@ input:-moz-autofill {
         overflow: hidden;
         display: flex;
         justify-content: center;
+        grid-row: 5;
         justify-self: center;
         align-self: end;
     }
@@ -794,7 +797,7 @@ html.mobile-viewport-guard body {
 html.mobile-viewport-guard body {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr) auto;
     align-items: stretch;
     justify-content: center;
     justify-items: center;
@@ -823,6 +826,7 @@ html.mobile-viewport-guard .auth-main {
     overscroll-behavior-x: none !important;
     -webkit-overflow-scrolling: auto;
     contain: none;
+    grid-row: 3;
     justify-self: center;
     align-self: start;
 }
@@ -841,6 +845,7 @@ html.mobile-viewport-guard .auth-footer {
     overflow: hidden;
     display: flex;
     justify-content: center;
+    grid-row: 5;
     justify-self: center;
     align-self: end;
 }
