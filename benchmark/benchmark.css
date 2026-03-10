@@ -7430,3 +7430,29 @@ body.mobile-layout-active .mobile-exit-view-btn.mobile-exit-view-btn--visible {
     display: block !important;
 }
 
+html.mobile-viewport-guard,
+html.mobile-viewport-guard body {
+    height: 100%;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+}
+
+html.mobile-viewport-guard body {
+    min-height: 100dvh !important;
+    width: 100%;
+}
+
+html.mobile-viewport-guard #responsive-wrapper {
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: none !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+html.mobile-viewport-guard body.modal-open #responsive-wrapper {
+    overflow: hidden !important;
+}
+

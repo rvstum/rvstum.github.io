@@ -614,3 +614,23 @@ input:-moz-autofill {
         font-size: 16px !important;
     }
 }
+
+html.mobile-viewport-guard,
+html.mobile-viewport-guard body {
+    height: 100%;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+}
+
+html.mobile-viewport-guard body {
+    min-height: 100dvh;
+}
+
+html.mobile-viewport-guard .auth-main {
+    width: 100%;
+    min-height: 0;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: none !important;
+    -webkit-overflow-scrolling: touch;
+}
