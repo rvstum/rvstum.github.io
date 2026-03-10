@@ -9,7 +9,7 @@ import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260309-remove-highlights-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-own-route-fix-1";
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf } from "./i18n.js";
 import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
@@ -24,6 +24,7 @@ export function initAuthLifecycle(options = {}) {
     const {
         loadUserProfile,
         hidePageLoader,
+        hidePrivateProfileOverlay = null,
         updateNotificationVisibility,
         onAuthSessionChange = null,
         setAuthGateActive = null
@@ -94,6 +95,9 @@ export function initAuthLifecycle(options = {}) {
             if (profileId && profileId !== user.uid) {
                 hidePageLoader();
                 return;
+            }
+            if (typeof hidePrivateProfileOverlay === "function") {
+                hidePrivateProfileOverlay();
             }
             ViewModeManager.clearViewModeChrome();
 
@@ -183,7 +187,6 @@ export function initAuthLifecycle(options = {}) {
                 setAuthGateActive(false);
             }
 
-            Slugs.forceOwnSlugUrlFromAvailableData(user);
             const accountEmailDisplay = getCachedElementById("accountEmailDisplay");
             if (accountEmailDisplay) {
                 const parts = user.email.split("@");
@@ -252,7 +255,6 @@ export function initAuthLifecycle(options = {}) {
                     return;
                 }
                 const myData = myDocSnap.exists() ? (myDocSnap.data() || {}) : {};
-                Slugs.forceOwnSlugUrlFromAvailableData(user, myData);
                 Slugs.updateOwnProfileUrl(user, myData);
             } catch (urlErr) {
                 console.warn("Failed to update profile URL slug:", urlErr);

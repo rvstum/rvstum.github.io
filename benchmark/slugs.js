@@ -120,7 +120,8 @@ export function getRequestedProfileSlugFromPath() {
 export function updateOwnProfileUrl(user, data) {
     if (!user) return;
     const params = new URLSearchParams(window.location.search);
-    if (params.get('id')) return;
+    const requestedId = (params.get('id') || '').trim();
+    if (requestedId && requestedId !== user.uid) return;
     const slug = resolveProfileSlug(data || {}, {
         usernameFallback: user.displayName || 'player',
         accountIdFallback: getRuntimeAccountId(),
@@ -134,10 +135,18 @@ export function updateOwnProfileUrl(user, data) {
         }
         return;
     }
-    const targetPath = `${getBenchmarkBasePath()}/`;
-    const currentPath = (window.location.pathname || '').replace(/\/+$/, '');
-    if (currentPath !== targetPath) {
-        window.history.replaceState({}, '', `${window.location.search}${window.location.hash}`);
+    const url = new URL(window.location.href);
+    const originalPath = (url.pathname || '').replace(/\/+$/, '');
+    const originalSearch = url.search;
+    const originalHash = url.hash;
+    const targetPath = `${getBenchmarkBasePath()}/${slug}`;
+    url.pathname = targetPath;
+    url.searchParams.delete('id');
+    url.searchParams.delete('__restore');
+    const target = `${url.pathname}${url.search}${url.hash}`;
+    const current = `${originalPath}${originalSearch}${originalHash}`;
+    if (current !== target) {
+        window.history.replaceState({}, '', target);
     }
 }
 

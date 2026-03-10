@@ -10,6 +10,7 @@ import { auth, db } from "./client.js";
 import { getBenchmarkBasePath } from "./utils.js";
 import { alignMobileTitleBetweenTopAndBox } from "./authLayout.js";
 import * as Slugs from "./slugs.js";
+import { getRememberedAccountIdForUid } from "./accountId.js";
 import {
     readString,
     LANGUAGE_STORAGE_KEY,
@@ -30,25 +31,31 @@ function normalizeLoginPath() {
 
 async function resolveSignedInUrl(user) {
     if (!user) return `${getBenchmarkBasePath()}/`;
-    let username = user.displayName || "player";
-    let accountId = "";
-    let publicSlug = "";
+    const rememberedAccountId = getRememberedAccountIdForUid(user.uid);
+    let userData = null;
     try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
-            const data = userDoc.data() || {};
-            const profile = (data.profile && typeof data.profile === "object") ? data.profile : {};
-            username = data.username || profile.username || username;
-            accountId = data.accountId || accountId;
-            publicSlug = (data.publicSlug || "").toString().trim();
+            userData = userDoc.data() || {};
         }
     } catch (e) {
         console.warn("Failed to resolve signed-in profile URL, using fallback.", e);
     }
-    const slug = publicSlug || Slugs.buildProfileSlug(username, accountId, user.uid);
     if (Slugs.isLocalDevRoutingEnv()) {
         return `${getBenchmarkBasePath()}/benchmark.html`;
     }
+    const explicitSlug = userData && typeof userData.publicSlug === "string"
+        ? userData.publicSlug.trim()
+        : "";
+    const resolvedAccountId = Slugs.resolveProfileAccountId(userData || {}, rememberedAccountId);
+    if (!explicitSlug && !resolvedAccountId) {
+        return `${getBenchmarkBasePath()}/`;
+    }
+    const slug = explicitSlug || Slugs.resolveProfileSlug(userData || {}, {
+        usernameFallback: user.displayName || "player",
+        accountIdFallback: resolvedAccountId,
+        uid: user.uid
+    });
     const restoreTarget = `${getBenchmarkBasePath()}/${slug}`;
     return `${getBenchmarkBasePath()}/benchmark.html?__restore=${encodeURIComponent(restoreTarget)}`;
 }

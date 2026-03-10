@@ -3,18 +3,23 @@ import { db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
 import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
 import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260309-remove-highlights-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-own-route-fix-1";
 import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import { showPageLoader } from "./pageLoaderUI.js";
 
 export async function handleProfileLink(options = {}) {
-    const { showPrivateProfileOverlay, hidePageLoader } = options;
+    const { showPrivateProfileOverlay, hidePrivateProfileOverlay, hidePageLoader } = options;
     if (typeof showPrivateProfileOverlay !== "function") {
         throw new Error("handleProfileLink requires showPrivateProfileOverlay()");
+    }
+    if (typeof hidePrivateProfileOverlay !== "function") {
+        throw new Error("handleProfileLink requires hidePrivateProfileOverlay()");
     }
     if (typeof hidePageLoader !== "function") {
         throw new Error("handleProfileLink requires hidePageLoader()");
     }
+
+    hidePrivateProfileOverlay();
 
     const params = new URLSearchParams(window.location.search);
     let profileId = params.get("id");
@@ -34,6 +39,7 @@ export async function handleProfileLink(options = {}) {
                         uid: currentUser.uid
                     });
                     if (mySlug === requestedSlug) {
+                        hidePrivateProfileOverlay();
                         return;
                     }
                 }
@@ -53,6 +59,7 @@ export async function handleProfileLink(options = {}) {
     }
 
     if (currentUser && currentUser.uid === profileId) {
+        hidePrivateProfileOverlay();
         return;
     }
 

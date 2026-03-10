@@ -18,6 +18,7 @@ import { normalizeMountConfig, getConfigLookupKeys } from "./configManager.js";
 
 const viewModeDeps = {
     showPrivateProfileOverlay: null,
+    hidePrivateProfileOverlay: null,
     applyMountConfigVisual: null,
     syncPlatformLabelColor: null,
     renderSeasonalTrophyList: null,
@@ -408,10 +409,12 @@ function resetViewModeHorizontalScroll() {
 
 export async function enterViewMode(data, uid) {
     const showPrivateProfileOverlay = requireDep("showPrivateProfileOverlay");
+    const hidePrivateProfileOverlay = requireDep("hidePrivateProfileOverlay");
     const updateViewProfileUrl = requireDep("updateViewProfileUrl");
     const user = auth.currentUser;
 
     if (user && uid && user.uid === uid) {
+        hidePrivateProfileOverlay();
         clearViewModeChrome();
         return;
     }
@@ -422,6 +425,7 @@ export async function enterViewMode(data, uid) {
         return;
     }
 
+    hidePrivateProfileOverlay();
     ScoreManager.saveCurrentScores();
     updateViewProfileUrl(data, uid);
 

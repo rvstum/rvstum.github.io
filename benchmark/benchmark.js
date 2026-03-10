@@ -64,7 +64,7 @@ import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
-import * as ViewModeManager from "./viewModeManager.js?v=20260309-remove-highlights-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-own-route-fix-1";
 import * as ShareManager from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
@@ -91,9 +91,9 @@ import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
 import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-view-mode-asset-fix-1";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260309-remove-highlights-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260310-own-route-fix-1";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260309-remove-highlights-1";
-import { handleProfileLink } from "./routeManager.js?v=20260309-remove-highlights-1";
+import { handleProfileLink } from "./routeManager.js?v=20260310-own-route-fix-1";
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260309-remove-highlights-1";
 import { initProfileModalController } from "./profileModalUI.js?v=20260309-flag-remove-fix-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
@@ -431,6 +431,13 @@ function showPrivateProfileOverlay() {
     privatePage.classList.add('is-flex');
 }
 
+function hidePrivateProfileOverlay() {
+    const privatePage = getCachedElementById('privateProfilePage');
+    if (!privatePage) return;
+    privatePage.classList.remove('is-flex');
+    privatePage.classList.add('is-hidden');
+}
+
 function syncMobileHoneycombMask() {
     const rankBox = getCachedQuery('roundedInnerBox', () => document.querySelector('.rounded-inner-box'));
     const isMobile = isMobileViewport();
@@ -540,6 +547,7 @@ function initModuleConfigurations() {
 
     ViewModeManager.configure({
         showPrivateProfileOverlay,
+        hidePrivateProfileOverlay,
         applyMountConfigVisual,
         syncPlatformLabelColor,
         renderSeasonalTrophyList: TrophyUI.renderSeasonalTrophyList,
@@ -1104,6 +1112,7 @@ function initBenchmarkApp() {
     initAuthLifecycle({
         loadUserProfile,
         hidePageLoader,
+        hidePrivateProfileOverlay,
         updateNotificationVisibility,
         onAuthSessionChange: handleAuthSessionChange,
         setAuthGateActive
@@ -1131,6 +1140,7 @@ function initBenchmarkApp() {
     ShareManager.applyShareFromUrl();
     handleProfileLink({
         showPrivateProfileOverlay,
+        hidePrivateProfileOverlay,
         hidePageLoader
     });
     LayoutRuntime.initRankBoxResponsive();
