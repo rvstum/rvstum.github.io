@@ -24,9 +24,22 @@
         return target instanceof Element && target.classList && target.classList.contains("score-input");
     }
 
+    function isBenchmarkManagedTarget(target) {
+        return target instanceof Element
+            && !!(
+                isScoreInputTarget(target)
+                || (
+                    target.closest
+                    && target.closest(
+                        "#settingsModal, #profileModal, #friendsModal, #trophyModal, #achievementsModal, #onboardingModal, #reauthModal, #flagModal, #verificationModal"
+                    )
+                )
+            );
+    }
+
     function shouldLockKeyboardScroll() {
         if (!currentKeyboardFocus) return false;
-        if (currentKeyboardFocusType === "benchmark-score") return false;
+        if (currentKeyboardFocusType === "benchmark-score" || currentKeyboardFocusType === "benchmark-panel") return false;
         return true;
     }
 
@@ -42,13 +55,13 @@
     }
 
     function maybeReleaseBenchmarkScoreFocus(viewportHeight, baseHeight) {
-        if (currentKeyboardFocusType !== "benchmark-score") {
+        if (currentKeyboardFocusType !== "benchmark-score" && currentKeyboardFocusType !== "benchmark-panel") {
             resetBenchmarkScoreKeyboardState();
             return;
         }
 
         var active = document.activeElement;
-        if (!isScoreInputTarget(active) || typeof active.blur !== "function") {
+        if (!isBenchmarkManagedTarget(active) || typeof active.blur !== "function") {
             resetBenchmarkScoreKeyboardState();
             return;
         }
@@ -66,13 +79,13 @@
 
         benchmarkScoreBlurTimer = setTimeout(function () {
             benchmarkScoreBlurTimer = 0;
-            if (currentKeyboardFocusType !== "benchmark-score") {
+            if (currentKeyboardFocusType !== "benchmark-score" && currentKeyboardFocusType !== "benchmark-panel") {
                 benchmarkScoreKeyboardWasVisible = false;
                 return;
             }
 
             var liveActive = document.activeElement;
-            if (!isScoreInputTarget(liveActive) || typeof liveActive.blur !== "function") {
+            if (!isBenchmarkManagedTarget(liveActive) || typeof liveActive.blur !== "function") {
                 benchmarkScoreKeyboardWasVisible = false;
                 return;
             }
@@ -156,8 +169,10 @@
 
     document.addEventListener("focusin", function (event) {
         currentKeyboardFocus = isKeyboardFocusableTarget(event.target);
-        currentKeyboardFocusType = isScoreInputTarget(event.target) ? "benchmark-score" : (currentKeyboardFocus ? "generic" : "");
-        if (currentKeyboardFocusType !== "benchmark-score") {
+        currentKeyboardFocusType = isScoreInputTarget(event.target)
+            ? "benchmark-score"
+            : (isBenchmarkManagedTarget(event.target) ? "benchmark-panel" : (currentKeyboardFocus ? "generic" : ""));
+        if (currentKeyboardFocusType !== "benchmark-score" && currentKeyboardFocusType !== "benchmark-panel") {
             resetBenchmarkScoreKeyboardState();
         }
         syncViewportCssVars();
@@ -167,8 +182,10 @@
         setTimeout(function () {
             var active = document.activeElement;
             currentKeyboardFocus = isKeyboardFocusableTarget(active);
-            currentKeyboardFocusType = isScoreInputTarget(active) ? "benchmark-score" : (currentKeyboardFocus ? "generic" : "");
-            if (currentKeyboardFocusType !== "benchmark-score") {
+            currentKeyboardFocusType = isScoreInputTarget(active)
+                ? "benchmark-score"
+                : (isBenchmarkManagedTarget(active) ? "benchmark-panel" : (currentKeyboardFocus ? "generic" : ""));
+            if (currentKeyboardFocusType !== "benchmark-score" && currentKeyboardFocusType !== "benchmark-panel") {
                 resetBenchmarkScoreKeyboardState();
             }
             syncViewportCssVars();
