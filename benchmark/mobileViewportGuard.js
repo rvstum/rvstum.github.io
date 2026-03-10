@@ -42,6 +42,11 @@
             );
     }
 
+    function isCropperTarget(target) {
+        return target instanceof Element
+            && !!(target.closest && target.closest("#cropperContainer"));
+    }
+
     function shouldLockKeyboardScroll() {
         if (!currentKeyboardFocus) return false;
         if (currentKeyboardFocusType === "benchmark-score" || currentKeyboardFocusType === "benchmark-panel") return false;
@@ -204,6 +209,9 @@
     var lastTouchEndAt = 0;
 
     document.addEventListener("touchmove", function (event) {
+        if (isCropperTarget(event.target)) {
+            return;
+        }
         var keyboardLocked = document.documentElement.classList.contains("mobile-keyboard-open")
             || (document.body && document.body.classList.contains("mobile-keyboard-open"));
         if (keyboardLocked) {
@@ -217,12 +225,19 @@
 
     ["gesturestart", "gesturechange", "gestureend"].forEach(function (eventName) {
         document.addEventListener(eventName, function (event) {
+            if (isCropperTarget(event.target)) {
+                return;
+            }
             event.preventDefault();
         }, { passive: false });
     });
 
     document.addEventListener("touchend", function (event) {
         var now = Date.now();
+        if (isCropperTarget(event.target)) {
+            lastTouchEndAt = 0;
+            return;
+        }
         if (now - lastTouchEndAt <= 300) {
             event.preventDefault();
         }

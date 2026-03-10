@@ -169,6 +169,18 @@ export function initProfileModalController(options = {}) {
     let dragStartY = 0;
     let dragOriginX = 0;
     let dragOriginY = 0;
+    let activeCropTouchMode = "";
+    let activeCropTouchId = null;
+    let cropTouchStartX = 0;
+    let cropTouchStartY = 0;
+    let cropTouchOriginX = 0;
+    let cropTouchOriginY = 0;
+    let cropPinchStartDistance = 0;
+    let cropPinchStartCenterX = 0;
+    let cropPinchStartCenterY = 0;
+    let cropPinchStartScale = 1;
+    let cropPinchOriginX = 0;
+    let cropPinchOriginY = 0;
 
     function setStatusMessage(el, message, type = "note") {
         if (!el) return;
@@ -236,6 +248,80 @@ export function initProfileModalController(options = {}) {
         };
     }
 
+    function resetCropTouchGesture() {
+        activeCropTouchMode = "";
+        activeCropTouchId = null;
+        cropPinchStartDistance = 0;
+    }
+
+    function getCropTouchList(event) {
+        if (!event) return [];
+        const touchList = event.targetTouches && event.targetTouches.length
+            ? event.targetTouches
+            : event.touches;
+        return Array.from(touchList || []);
+    }
+
+    function getTouchDistance(touchA, touchB) {
+        if (!touchA || !touchB) return 0;
+        return Math.hypot(touchB.clientX - touchA.clientX, touchB.clientY - touchA.clientY);
+    }
+
+    function getTouchCenter(touchA, touchB) {
+        if (!touchA || !touchB) {
+            return { x: 0, y: 0 };
+        }
+        return {
+            x: (touchA.clientX + touchB.clientX) / 2,
+            y: (touchA.clientY + touchB.clientY) / 2
+        };
+    }
+
+    function beginCropTouchDrag(touch) {
+        if (!touch) return;
+        activeCropTouchMode = "drag";
+        activeCropTouchId = touch.identifier;
+        cropTouchStartX = touch.clientX;
+        cropTouchStartY = touch.clientY;
+        cropTouchOriginX = cropState.x;
+        cropTouchOriginY = cropState.y;
+        cropPinchStartDistance = 0;
+    }
+
+    function updateCropTouchDrag(touch) {
+        if (!touch) return;
+        cropState.x = cropTouchOriginX + (touch.clientX - cropTouchStartX);
+        cropState.y = cropTouchOriginY + (touch.clientY - cropTouchStartY);
+        applyCropTransform();
+    }
+
+    function beginCropTouchPinch(touchA, touchB) {
+        if (!touchA || !touchB) return;
+        const center = getTouchCenter(touchA, touchB);
+        activeCropTouchMode = "pinch";
+        activeCropTouchId = null;
+        cropPinchStartDistance = getTouchDistance(touchA, touchB);
+        cropPinchStartCenterX = center.x;
+        cropPinchStartCenterY = center.y;
+        cropPinchStartScale = cropState.scale;
+        cropPinchOriginX = cropState.x;
+        cropPinchOriginY = cropState.y;
+    }
+
+    function updateCropTouchPinch(touchA, touchB) {
+        if (!touchA || !touchB || !(cropPinchStartDistance > 0)) return;
+        const { min, max } = getCropScaleBounds();
+        const distance = getTouchDistance(touchA, touchB);
+        const center = getTouchCenter(touchA, touchB);
+        const nextScale = Math.max(min, Math.min(max, cropPinchStartScale * (distance / cropPinchStartDistance)));
+        const scaleRatio = cropPinchStartScale > 0 ? nextScale / cropPinchStartScale : 1;
+        cropState.scale = nextScale;
+        cropState.x = (cropPinchOriginX * scaleRatio) + (center.x - cropPinchStartCenterX);
+        cropState.y = (cropPinchOriginY * scaleRatio) + (center.y - cropPinchStartCenterY);
+        if (cropperZoom) cropperZoom.value = String(nextScale);
+        applyCropTransform();
+    }
+
     function setCropScale(nextScale, anchorToCrosshair = true) {
         const { min, max } = getCropScaleBounds();
         const currentScale = Number(cropState.scale) > 0 ? Number(cropState.scale) : 1;
@@ -254,6 +340,8 @@ export function initProfileModalController(options = {}) {
     function openCropper(sourceUrl, options = {}) {
         if (!cropperContainer || !cropperImage || !sourceUrl) return;
         const resetPosition = options.resetPosition !== false;
+        resetCropTouchGesture();
+        isCropDragging = false;
         cropperImage.src = sourceUrl;
         cropperImage.dataset.originalSrc = sourceUrl;
         cropperImage.draggable = false;
@@ -270,6 +358,8 @@ export function initProfileModalController(options = {}) {
 
     function closeCropper() {
         if (!cropperContainer || !cropperImage) return;
+        resetCropTouchGesture();
+        isCropDragging = false;
         setHidden(cropperContainer, true);
         cropperImage.removeAttribute("src");
         delete cropperImage.dataset.originalSrc;
@@ -593,9 +683,11 @@ export function initProfileModalController(options = {}) {
     }
 
     if (cropperZoom) {
-        cropperZoom.addEventListener("input", () => {
+        const syncCropperZoom = () => {
             setCropScale(Number(cropperZoom.value), true);
-        });
+        };
+        cropperZoom.addEventListener("input", syncCropperZoom);
+        cropperZoom.addEventListener("change", syncCropperZoom);
     }
     if (centerImageBtn) {
         centerImageBtn.addEventListener("click", () => {
@@ -640,7 +732,7 @@ export function initProfileModalController(options = {}) {
             setCropScale(cropState.scale * factor, true);
         }, { passive: false });
         cropperArea.addEventListener("pointerdown", (event) => {
-            if (!cropperImage || !cropperImage.getAttribute("src")) return;
+            if (!cropperImage || !cropperImage.getAttribute("src") || event.pointerType === "touch") return;
             isCropDragging = true;
             dragStartX = event.clientX;
             dragStartY = event.clientY;
@@ -651,13 +743,13 @@ export function initProfileModalController(options = {}) {
             } catch (e) {}
         });
         cropperArea.addEventListener("pointermove", (event) => {
-            if (!isCropDragging) return;
+            if (event.pointerType === "touch" || !isCropDragging) return;
             cropState.x = dragOriginX + (event.clientX - dragStartX);
             cropState.y = dragOriginY + (event.clientY - dragStartY);
             applyCropTransform();
         });
         const stopDragging = (event) => {
-            if (!isCropDragging) return;
+            if (event.pointerType === "touch" || !isCropDragging) return;
             isCropDragging = false;
             try {
                 cropperArea.releasePointerCapture(event.pointerId);
@@ -665,6 +757,50 @@ export function initProfileModalController(options = {}) {
         };
         cropperArea.addEventListener("pointerup", stopDragging);
         cropperArea.addEventListener("pointercancel", stopDragging);
+        cropperArea.addEventListener("touchstart", (event) => {
+            if (!cropperImage || !cropperImage.getAttribute("src")) return;
+            const touches = getCropTouchList(event);
+            if (!touches.length) return;
+            if (event.cancelable) event.preventDefault();
+            if (touches.length >= 2) {
+                beginCropTouchPinch(touches[0], touches[1]);
+                updateCropTouchPinch(touches[0], touches[1]);
+                return;
+            }
+            beginCropTouchDrag(touches[0]);
+        }, { passive: false });
+        cropperArea.addEventListener("touchmove", (event) => {
+            if (!cropperImage || !cropperImage.getAttribute("src")) return;
+            const touches = getCropTouchList(event);
+            if (!touches.length) return;
+            if (event.cancelable) event.preventDefault();
+            if (touches.length >= 2) {
+                if (activeCropTouchMode !== "pinch" || !(cropPinchStartDistance > 0)) {
+                    beginCropTouchPinch(touches[0], touches[1]);
+                }
+                updateCropTouchPinch(touches[0], touches[1]);
+                return;
+            }
+            const touch = touches[0];
+            if (activeCropTouchMode !== "drag" || activeCropTouchId !== touch.identifier) {
+                beginCropTouchDrag(touch);
+            }
+            updateCropTouchDrag(touch);
+        }, { passive: false });
+        const handleCropTouchEnd = (event) => {
+            const touches = getCropTouchList(event);
+            if (touches.length >= 2) {
+                beginCropTouchPinch(touches[0], touches[1]);
+                return;
+            }
+            if (touches.length === 1) {
+                beginCropTouchDrag(touches[0]);
+                return;
+            }
+            resetCropTouchGesture();
+        };
+        cropperArea.addEventListener("touchend", handleCropTouchEnd, { passive: true });
+        cropperArea.addEventListener("touchcancel", handleCropTouchEnd, { passive: true });
     }
 
     if (changeEmailBtn && emailChangeContainer) {

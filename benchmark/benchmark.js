@@ -96,7 +96,7 @@ import { initAuthLifecycle } from "./authLifecycle.js?v=20260310-score-load-fix-
 import { initOnboardingUI } from "./onboardingUI.js?v=20260310-onboarding-profile-preview-fix-1";
 import { handleProfileLink } from "./routeManager.js?v=20260310-score-load-fix-16";
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260310-score-load-fix-15";
-import { initProfileModalController } from "./profileModalUI.js?v=20260310-onboarding-profile-preview-fix-1";
+import { initProfileModalController } from "./profileModalUI.js?v=20260310-mobile-cropper-fix-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260310-flag-selection-fix-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
