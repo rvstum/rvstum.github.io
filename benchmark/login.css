@@ -606,6 +606,7 @@ input:-moz-autofill {
         height: var(--mobile-safe-vh, 100dvh);
         min-height: var(--mobile-safe-vh, 100dvh);
         display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
         grid-template-rows: minmax(0, 1fr) auto auto !important;
         align-items: stretch !important;
         justify-content: center !important;
@@ -640,8 +641,8 @@ input:-moz-autofill {
         line-height: 0.92 !important;
         letter-spacing: 2px !important;
         -webkit-text-stroke: 2px #000 !important;
-        margin: 0 auto 10px !important;
-        align-self: end;
+        margin: 0 auto !important;
+        align-self: center;
         justify-self: center;
     }
 
@@ -792,6 +793,7 @@ html.mobile-viewport-guard body {
 
 html.mobile-viewport-guard body {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr) auto auto;
     align-items: stretch;
     justify-content: center;
