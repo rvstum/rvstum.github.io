@@ -645,7 +645,15 @@ export function updateMainHeaderLayout() {
     const flagEl = getNationalityFlagElement();
     const userMenuBoxIcon = getUserMenuAvatarElement();
     const userMenuBox = getCachedProfileElementById('userMenuBox');
+    const userMenuName = getCachedProfileElementById('userMenuUsername');
     const userMenuWrapper = getUserMenuWrapperElement();
+    const userMenuLabel = String(
+        (userMenuName && typeof userMenuName.textContent === 'string' ? userMenuName.textContent : '')
+        || (circle && circle.getAttribute && circle.getAttribute('aria-label'))
+        || (getProfileNameElement() && getProfileNameElement().textContent)
+        || 'Player'
+    ).trim();
+    const userMenuInitial = (userMenuLabel.charAt(0) || 'P').toUpperCase();
 
     if (!circle || !flagEl) return;
 
@@ -670,6 +678,7 @@ export function updateMainHeaderLayout() {
             userMenuBoxIcon.style.backgroundImage = `url(${pic})`;
             userMenuBoxIcon.style.backgroundSize = 'cover';
             userMenuBoxIcon.style.backgroundColor = 'transparent';
+            userMenuBoxIcon.textContent = '';
         }
     } else {
         circle.style.backgroundColor = 'transparent';
@@ -679,6 +688,7 @@ export function updateMainHeaderLayout() {
         if (userMenuBoxIcon) {
             userMenuBoxIcon.style.backgroundImage = '';
             userMenuBoxIcon.style.backgroundColor = '#0a0a0a';
+            userMenuBoxIcon.textContent = userMenuInitial;
         }
         
         if (flag) {

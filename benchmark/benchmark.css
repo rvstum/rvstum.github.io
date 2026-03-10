@@ -525,6 +525,13 @@ html {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     margin-right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f2f2f2;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .progress-value-label {
@@ -5947,28 +5954,25 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 
     .user-menu-wrapper.user-menu-wrapper--no-avatar {
-        width: auto;
-        max-width: min(58vw, 210px);
+        width: var(--mobile-menu-width);
+        max-width: var(--mobile-menu-width);
     }
 
     #userMenuBox.user-menu-box--no-avatar {
-        width: auto !important;
+        width: var(--mobile-menu-width) !important;
         min-width: var(--mobile-menu-width);
-        max-width: min(58vw, 210px);
-        padding: 0 26px 0 0;
+        max-width: var(--mobile-menu-width);
+        padding: 0 8px;
         justify-content: center !important;
     }
 
     #userMenuBox.user-menu-box--no-avatar #userMenuUsername {
-        display: block;
-        flex: 1 1 auto;
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        text-align: center;
+        display: none;
+    }
+
+    #userMenuBox.user-menu-box--no-avatar > .user-menu-avatar-placeholder {
+        display: flex;
+        background-image: none !important;
     }
 
     #userMenuBox > .user-menu-avatar-placeholder {

@@ -10,7 +10,7 @@ import {
 import { doc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
-import * as ProfileUI from "./profileUI.js?v=20260310-profile-save-fix-2";
+import * as ProfileUI from "./profileUI.js?v=20260310-profile-mobile-ui-fix-3";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
@@ -230,6 +230,7 @@ export function initProfileModalController(options = {}) {
     }
 
     function closeProfileModalUI() {
+        closeCropper();
         if (profileModal) profileModal.classList.remove("show");
         resetProfileSensitiveVisibility();
     }
@@ -542,7 +543,6 @@ export function initProfileModalController(options = {}) {
             });
         } catch (e) {
             console.error("Error saving profile:", e);
-            alert(t("profile_save_failed"));
         } finally {
             if (saveProfileBtn) {
                 saveProfileBtn.disabled = false;
