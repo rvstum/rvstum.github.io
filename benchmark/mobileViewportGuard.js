@@ -124,6 +124,10 @@
         root.classList.toggle("mobile-keyboard-open", keyboardLikelyOpen);
         if (document.body) {
             document.body.classList.toggle("mobile-keyboard-open", keyboardLikelyOpen);
+            document.body.classList.toggle(
+                "benchmark-keyboard-open",
+                keyboardLikelyOpen && (currentKeyboardFocusType === "benchmark-score" || currentKeyboardFocusType === "benchmark-panel")
+            );
         }
         maybeReleaseBenchmarkScoreFocus(height, nextBaseHeight);
     }

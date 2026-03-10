@@ -7593,3 +7593,19 @@ html.mobile-viewport-guard #responsive-wrapper {
 html.mobile-viewport-guard body.modal-open #responsive-wrapper {
     overflow: hidden !important;
 }
+
+html.mobile-viewport-guard body.benchmark-keyboard-open .share-modal-overlay.show {
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+html.mobile-viewport-guard body.benchmark-keyboard-open .share-modal-overlay.show .settings-content-box,
+html.mobile-viewport-guard body.benchmark-keyboard-open .share-modal-overlay.show .rules-content-box,
+html.mobile-viewport-guard body.benchmark-keyboard-open .share-modal-overlay.show .share-modal-content {
+    max-height: calc(var(--mobile-safe-vh, 100dvh) - 24px) !important;
+    overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
+}
