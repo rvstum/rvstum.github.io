@@ -5973,6 +5973,20 @@ body.view-mode .achievement-proof-upload.has-image {
     #userMenuBox.user-menu-box--no-avatar > .user-menu-avatar-placeholder {
         display: flex;
         background-image: none !important;
+        background-color: transparent !important;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        width: auto;
+        height: auto;
+        min-width: 0;
+        padding: 0;
+        margin: 0;
+        position: static;
+        left: auto;
+        top: auto;
+        transform: none;
+        line-height: 1;
     }
 
     #userMenuBox > .user-menu-avatar-placeholder {
