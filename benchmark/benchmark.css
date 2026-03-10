@@ -5985,7 +5985,7 @@ body.view-mode .achievement-proof-upload.has-image {
         position: static;
         left: auto;
         top: auto;
-        transform: translateX(-4px);
+        transform: translateX(-10px);
         line-height: 1;
     }
 
