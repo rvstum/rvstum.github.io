@@ -34,7 +34,7 @@ import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
 import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
-import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-onboarding-profile-preview-fix-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
 import { persistUserData } from "./persistence.js";

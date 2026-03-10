@@ -266,6 +266,7 @@ export function updateProfilePicPreview(picUrl) {
     const profilePreviewCircle = getCachedProfileElementById('profilePreviewCircle');
     const profilePreviewBox = getCachedProfileElementById('profilePreviewBox');
     const onboardingProfilePreviewCircle = getCachedProfileElementById('onboardingProfilePreviewCircle');
+    const onboardingProfilePreviewBox = getCachedProfileElementById('onboardingProfilePreviewBox');
     const uploadProfilePicBtn = getCachedProfileElementById('uploadProfilePicBtn');
     const onboardingUploadProfilePicBtn = getCachedProfileElementById('onboardingUploadProfilePicBtn');
     const editProfilePicBtn = getCachedProfileElementById('editProfilePicBtn');
@@ -277,6 +278,7 @@ export function updateProfilePicPreview(picUrl) {
         if (profilePreviewCircle) profilePreviewCircle.style.backgroundImage = `url(${picUrl})`;
         if (profilePreviewBox) profilePreviewBox.style.backgroundImage = `url(${picUrl})`;
         if (onboardingProfilePreviewCircle) onboardingProfilePreviewCircle.style.backgroundImage = `url(${picUrl})`;
+        if (onboardingProfilePreviewBox) onboardingProfilePreviewBox.style.backgroundImage = `url(${picUrl})`;
         if (uploadProfilePicBtn) uploadProfilePicBtn.textContent = t('replace_image');
         if (onboardingUploadProfilePicBtn) onboardingUploadProfilePicBtn.textContent = t('replace_image');
         if (editProfilePicBtn) setHidden(editProfilePicBtn, false);
@@ -287,6 +289,7 @@ export function updateProfilePicPreview(picUrl) {
         if (profilePreviewCircle) profilePreviewCircle.style.backgroundImage = '';
         if (profilePreviewBox) profilePreviewBox.style.backgroundImage = '';
         if (onboardingProfilePreviewCircle) onboardingProfilePreviewCircle.style.backgroundImage = '';
+        if (onboardingProfilePreviewBox) onboardingProfilePreviewBox.style.backgroundImage = '';
         if (uploadProfilePicBtn) uploadProfilePicBtn.textContent = t('upload_image');
         if (onboardingUploadProfilePicBtn) onboardingUploadProfilePicBtn.textContent = t('upload_image');
         if (editProfilePicBtn) setHidden(editProfilePicBtn, true);

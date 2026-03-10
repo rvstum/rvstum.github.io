@@ -11,7 +11,7 @@
         window.__BENCHMARK_SHARE_SERVICE_URL__ = "http://localhost:3000";
     </script>
     <script type="module" src="modernScreenshotLoader.js"></script>
-    <link rel="stylesheet" href="benchmark.css?v=20260310-mobile-score-caret-fix-2">
+    <link rel="stylesheet" href="benchmark.css?v=20260310-onboarding-spacing-fix-1">
 </head>
 <body>
     <div id="pageLoader" class="page-loader">
@@ -626,8 +626,9 @@
                     <div class="profile-pic-section">
                         <div class="profile-pic-preview-container">
                             <div class="profile-circle-preview" id="onboardingProfilePreviewCircle"></div>
+                            <div class="profile-box-preview" id="onboardingProfilePreviewBox"></div>
                         </div>
-                        <div class="row-gap-8">
+                        <div class="profile-pic-actions row-gap-8">
                             <button class="settings-btn" id="onboardingUploadProfilePicBtn" data-i18n="upload_image">Upload Image</button>
                             <button class="settings-btn is-hidden" id="onboardingEditProfilePicBtn" data-i18n="edit_image">Edit Image</button>
                             <button class="settings-btn danger is-hidden" id="onboardingRemoveProfilePicBtn" data-i18n="remove_image">Remove Image</button>
@@ -640,7 +641,7 @@
                     <input type="text" class="settings-select" id="onboardingUsernameInput" maxlength="20" placeholder="Player" data-i18n-placeholder="username_placeholder" autocomplete="off" spellcheck="false">
                 </div>
 
-                <div class="settings-field">
+                <div class="settings-field onboarding-field-spaced">
                     <label class="settings-label settings-label--tight" data-i18n="guilds_max">Guilds (Max 6)</label>
                     <div id="onboardingGuildListContainer" class="guild-list-stack is-hidden"></div>
                     <div class="row-gap-8" id="onboardingAddGuildRow">
@@ -649,7 +650,7 @@
                     </div>
                 </div>
 
-                <div class="settings-field">
+                <div class="settings-field onboarding-field-spaced">
                     <label class="settings-label" data-i18n="country_flag">Country Flag</label>
                     <div class="flag-selector-box" id="onboardingFlagSelectorBox"></div>
                 </div>

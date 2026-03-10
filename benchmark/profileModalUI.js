@@ -10,7 +10,7 @@ import {
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
-import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-onboarding-profile-preview-fix-1";
 import * as Slugs from "./slugs.js";
 import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
@@ -126,6 +126,9 @@ export function initProfileModalController(options = {}) {
     const uploadProfilePicBtn = getCachedElementById("uploadProfilePicBtn");
     const editProfilePicBtn = getCachedElementById("editProfilePicBtn");
     const removeProfilePicBtn = getCachedElementById("removeProfilePicBtn");
+    const onboardingUploadProfilePicBtn = getCachedElementById("onboardingUploadProfilePicBtn");
+    const onboardingEditProfilePicBtn = getCachedElementById("onboardingEditProfilePicBtn");
+    const onboardingRemoveProfilePicBtn = getCachedElementById("onboardingRemoveProfilePicBtn");
     const profilePicMessage = getCachedElementById("profilePicMessage");
     const removeFlagBtn = getCachedElementById("removeFlagBtn");
 
@@ -521,6 +524,9 @@ export function initProfileModalController(options = {}) {
     if (uploadProfilePicBtn && profilePicInput) {
         uploadProfilePicBtn.addEventListener("click", () => profilePicInput.click());
     }
+    if (onboardingUploadProfilePicBtn && profilePicInput) {
+        onboardingUploadProfilePicBtn.addEventListener("click", () => profilePicInput.click());
+    }
     if (editProfilePicBtn) {
         editProfilePicBtn.addEventListener("click", () => {
             const draft = readDraftProfileState();
@@ -532,8 +538,27 @@ export function initProfileModalController(options = {}) {
             openCropper(source, { resetPosition: false });
         });
     }
+    if (onboardingEditProfilePicBtn) {
+        onboardingEditProfilePicBtn.addEventListener("click", () => {
+            const draft = readDraftProfileState();
+            const source = draft.originalPic || draft.pic;
+            if (!source) {
+                if (profilePicInput) profilePicInput.click();
+                return;
+            }
+            openCropper(source, { resetPosition: false });
+        });
+    }
     if (removeProfilePicBtn) {
         removeProfilePicBtn.addEventListener("click", () => {
+            updateDraftProfileState({ pic: "", originalPic: "", cropState: null });
+            ProfileUI.updateProfilePicPreview("");
+            ProfileUI.updateProfileButtons();
+            closeCropper();
+        });
+    }
+    if (onboardingRemoveProfilePicBtn) {
+        onboardingRemoveProfilePicBtn.addEventListener("click", () => {
             updateDraftProfileState({ pic: "", originalPic: "", cropState: null });
             ProfileUI.updateProfilePicPreview("");
             ProfileUI.updateProfileButtons();

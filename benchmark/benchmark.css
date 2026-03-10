@@ -77,6 +77,10 @@ html {
     color: #ccc;
 }
 
+.onboarding-field-spaced {
+    margin-top: 8px;
+}
+
 .modal-lang-shell {
     width: 96%;
     position: relative;
@@ -4275,6 +4279,12 @@ input:-webkit-autofill:active {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+#onboardingModal .profile-pic-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .profile-circle-preview {

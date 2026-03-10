@@ -1,13 +1,12 @@
 import { auth } from "./client.js";
-import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-onboarding-profile-preview-fix-1";
 import { getCachedElementById } from "./utils/domUtils.js";
 
 export function initOnboardingUI(options = {}) {
-    const { t, profilePicInput, onOnboardingVisibilityChange = null } = options;
+    const { t, onOnboardingVisibilityChange = null } = options;
 
     const onboardingModal = getCachedElementById("onboardingModal");
     const onboardingUsernameInput = getCachedElementById("onboardingUsernameInput");
-    const onboardingUploadProfilePicBtn = getCachedElementById("onboardingUploadProfilePicBtn");
     const onboardingNewGuildInput = getCachedElementById("onboardingNewGuildInput");
     const onboardingAddGuildBtn = getCachedElementById("onboardingAddGuildBtn");
     const saveOnboardingBtn = getCachedElementById("saveOnboardingBtn");
@@ -28,10 +27,6 @@ export function initOnboardingUI(options = {}) {
         if (typeof onOnboardingVisibilityChange === "function") {
             onOnboardingVisibilityChange(true);
         }
-    }
-
-    if (onboardingUploadProfilePicBtn && profilePicInput) {
-        onboardingUploadProfilePicBtn.addEventListener("click", () => profilePicInput.click());
     }
 
     if (onboardingAddGuildBtn && onboardingNewGuildInput) {
