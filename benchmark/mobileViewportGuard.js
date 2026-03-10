@@ -94,6 +94,12 @@
     var lastTouchEndAt = 0;
 
     document.addEventListener("touchmove", function (event) {
+        var keyboardLocked = document.documentElement.classList.contains("mobile-keyboard-open")
+            || (document.body && document.body.classList.contains("mobile-keyboard-open"));
+        if (keyboardLocked) {
+            event.preventDefault();
+            return;
+        }
         if (event.touches && event.touches.length > 1) {
             event.preventDefault();
         }
