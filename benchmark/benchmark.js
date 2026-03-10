@@ -87,7 +87,7 @@ import {
 } from "./i18n.js";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
-import * as ProfileUI from "./profileUI.js?v=20260310-onboarding-profile-preview-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
 import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-view-mode-asset-fix-1";
@@ -97,7 +97,7 @@ import { handleProfileLink } from "./routeManager.js?v=20260310-auth-back-guard-
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260310-auth-back-guard-1";
 import { initProfileModalController } from "./profileModalUI.js?v=20260310-onboarding-profile-preview-fix-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
-import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260309-remove-highlights-1";
+import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260310-flag-selection-fix-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
 import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";

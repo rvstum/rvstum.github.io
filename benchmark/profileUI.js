@@ -303,18 +303,21 @@ export function updateFlagPreview(code) {
     const flagSelectorBox = getCachedProfileElementById('flagSelectorBox');
     const removeFlagBtn = getCachedProfileElementById('removeFlagBtn');
     const onboardingFlagSelectorBox = getCachedProfileElementById('onboardingFlagSelectorBox');
+    const nextCode = typeof code === 'string' ? code.trim() : '';
+    const backgroundImage = nextCode ? `url(${getFlagUrl(nextCode)})` : '';
 
     if (flagSelectorBox) {
-        if (code) {
-            flagSelectorBox.textContent = '';
-            flagSelectorBox.style.backgroundImage = `url(${getFlagUrl(code)})`;
-            if (removeFlagBtn) setHidden(removeFlagBtn, false);
-            if (onboardingFlagSelectorBox) onboardingFlagSelectorBox.style.backgroundImage = `url(${getFlagUrl(code)})`;
-        } else {
-            flagSelectorBox.style.backgroundImage = '';
-            if (removeFlagBtn) setHidden(removeFlagBtn, true);
-            if (onboardingFlagSelectorBox) onboardingFlagSelectorBox.style.backgroundImage = '';
-        }
+        flagSelectorBox.textContent = '';
+        flagSelectorBox.style.backgroundImage = backgroundImage;
+    }
+
+    if (onboardingFlagSelectorBox) {
+        onboardingFlagSelectorBox.textContent = '';
+        onboardingFlagSelectorBox.style.backgroundImage = backgroundImage;
+    }
+
+    if (removeFlagBtn) {
+        setHidden(removeFlagBtn, !nextCode);
     }
 }
 
@@ -609,8 +612,12 @@ export function setFlag(code) {
 }
 
 export function handleFlagSelection(code) {
-    draftProfileState.flag = code;
-    updateFlagPreview(code);
+    const nextCode = typeof code === 'string' ? code.trim() : '';
+    setDraftProfileState({
+        ...(draftProfileState && typeof draftProfileState === 'object' ? draftProfileState : {}),
+        flag: nextCode
+    });
+    updateFlagPreview(nextCode);
     updateProfileButtons();
 }
 

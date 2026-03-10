@@ -8,7 +8,7 @@ import * as Slugs from "./slugs.js";
 import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import * as RadarUI from "./radarUI.js";
-import * as ProfileUI from "./profileUI.js?v=20260310-onboarding-profile-preview-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
 import * as ViewModeManager from "./viewModeManager.js?v=20260310-mobile-unified-scroll-1";
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf } from "./i18n.js";
