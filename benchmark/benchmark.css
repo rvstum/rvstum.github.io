@@ -2625,6 +2625,7 @@ html[data-benchmark-lang='pt-PT'] .rating-text {
 
 .score-input-wrapper {
     --score-content-offset: 4px;
+    --score-input-active-color: white;
     position: absolute;
     left: 360px;
     right: auto;
@@ -2692,6 +2693,21 @@ body:not(.mobile-layout-active) .score-input-wrapper:focus-within {
     color: white;
     pointer-events: none;
     z-index: 1;
+}
+
+body.mobile-layout-active .score-input-wrapper:focus-within {
+    --score-content-offset-inline: 0px;
+}
+
+body.mobile-layout-active .score-input-wrapper:focus-within .score-input {
+    color: var(--score-input-active-color, white);
+    caret-color: var(--score-input-active-color, white);
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+body.mobile-layout-active .score-input-wrapper:focus-within .score-text-overlay {
+    opacity: 0;
 }
 
 .score-text {

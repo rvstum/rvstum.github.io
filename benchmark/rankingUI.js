@@ -315,6 +315,7 @@ export function updateRowColors() {
         wrapper.style.background = '';
         wrapper.style.setProperty('--score-box-accent-inline', 'transparent');
         wrapper.style.setProperty('--score-content-offset-inline', isMobile ? '0px' : '4px');
+        wrapper.style.setProperty('--score-input-active-color', 'white');
         overlay.style.background = '';
         overlay.style.webkitBackgroundClip = '';
         overlay.style.backgroundClip = '';
@@ -324,6 +325,7 @@ export function updateRowColors() {
 
         if (rankIndex > 0) {
             overlay.style.color = SCORE_TEXT_COLORS[rankIndex];
+            wrapper.style.setProperty('--score-input-active-color', SCORE_TEXT_COLORS[rankIndex]);
             wrapper.style.background = darkenColor(RANK_COLORS[rankIndex], 0.6);
             wrapper.style.setProperty('--score-box-accent-inline', darkenColor(RANK_COLORS[rankIndex], 0.28));
         }

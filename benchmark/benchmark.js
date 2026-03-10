@@ -59,7 +59,7 @@ import {
     readDefaultConfig,
     getStartupConfigDefaults
 } from "./configManager.js";
-import * as RankingUI from "./rankingUI.js?v=20260309-view-mode-rank-trophy-fix-1";
+import * as RankingUI from "./rankingUI.js?v=20260310-mobile-score-caret-fix-1";
 import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";

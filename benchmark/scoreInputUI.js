@@ -1,6 +1,6 @@
 import { auth } from "./client.js";
 import { state } from "./appState.js";
-import * as RankingUI from "./rankingUI.js?v=20260309-view-mode-rank-trophy-fix-1";
+import * as RankingUI from "./rankingUI.js?v=20260310-mobile-score-caret-fix-1";
 import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 
 export function setupScoreInputHandlers(options = {}) {
