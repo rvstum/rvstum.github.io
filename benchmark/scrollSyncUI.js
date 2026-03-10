@@ -1025,6 +1025,7 @@ export function initScoreInputsScrollSync() {
             clearPendingBlurDismissSelection();
             clearSelectionClickSuppression();
             scoreInputFocused = true;
+            document.body.classList.add("score-input-focused");
             if (window.innerWidth > 900) return;
             clearRowSelection();
             clearRecentMobileSelectionGroup();

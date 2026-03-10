@@ -20,6 +20,16 @@
         );
     }
 
+    function isScoreInputTarget(target) {
+        return target instanceof Element && target.classList && target.classList.contains("score-input");
+    }
+
+    function shouldLockKeyboardScroll() {
+        if (!currentKeyboardFocus) return false;
+        if (currentKeyboardFocusType === "benchmark-score") return false;
+        return true;
+    }
+
     function syncViewportCssVars() {
         var root = document.documentElement;
         if (!root) return;
@@ -27,7 +37,7 @@
         var width = vv && vv.width ? vv.width : (window.innerWidth || root.clientWidth || 0);
         var height = vv && vv.height ? vv.height : (window.innerHeight || root.clientHeight || 0);
         if (!width || !height) return;
-        var keyboardLockActive = currentKeyboardFocus;
+        var keyboardLockActive = shouldLockKeyboardScroll();
         var existingWidth = parseFloat(root.style.getPropertyValue("--mobile-safe-vw")) || 0;
         var currentBaseHeight = parseFloat(root.style.getPropertyValue("--mobile-safe-vh-base")) || 0;
         var nextBaseHeight = height > currentBaseHeight ? height : currentBaseHeight;
@@ -74,6 +84,7 @@
     }
 
     var currentKeyboardFocus = false;
+    var currentKeyboardFocusType = "";
 
     function isKeyboardFocusableTarget(target) {
         if (!(target instanceof Element)) return false;
@@ -83,6 +94,7 @@
 
     document.addEventListener("focusin", function (event) {
         currentKeyboardFocus = isKeyboardFocusableTarget(event.target);
+        currentKeyboardFocusType = isScoreInputTarget(event.target) ? "benchmark-score" : (currentKeyboardFocus ? "generic" : "");
         syncViewportCssVars();
     }, true);
 
@@ -90,6 +102,7 @@
         setTimeout(function () {
             var active = document.activeElement;
             currentKeyboardFocus = isKeyboardFocusableTarget(active);
+            currentKeyboardFocusType = isScoreInputTarget(active) ? "benchmark-score" : (currentKeyboardFocus ? "generic" : "");
             syncViewportCssVars();
         }, 50);
     }, true);
