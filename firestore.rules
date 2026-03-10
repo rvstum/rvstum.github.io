@@ -71,7 +71,6 @@ service cloud.firestore {
 
     function validProfileViewCountUpdate(userId) {
       return request.resource.data.diff(resource.data).changedKeys().hasOnly(['profile'])
-        && signedIn()
         && !isOwner(userId)
         && canReadUserDoc(userId)
         && profileMap(request.resource.data).diff(profileMap(resource.data)).changedKeys().hasOnly(['views'])
