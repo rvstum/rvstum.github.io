@@ -2700,6 +2700,7 @@ body.mobile-layout-active .score-input-wrapper:focus-within {
 }
 
 body.mobile-layout-active .score-input-wrapper:focus-within .score-input {
+    font-size: 12px !important;
     color: var(--score-input-active-color, white);
     caret-color: var(--score-input-active-color, white);
     padding-left: 0 !important;
