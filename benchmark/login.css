@@ -50,6 +50,7 @@ html {
     text-size-adjust: 100%;
     --mobile-safe-vw: 100vw;
     --mobile-safe-vh: 100dvh;
+    --mobile-safe-vh-base: 100dvh;
 }
 
 a:focus,
@@ -603,8 +604,8 @@ input:-moz-autofill {
     }
 
     body {
-        height: var(--mobile-safe-vh, 100dvh);
-        min-height: var(--mobile-safe-vh, 100dvh);
+        height: var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh));
+        min-height: var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh));
         display: grid !important;
         grid-template-columns: minmax(0, 1fr) !important;
         grid-template-rows: minmax(0, 1fr) auto auto minmax(0, 1fr) auto !important;
@@ -784,8 +785,8 @@ input:-moz-autofill {
 
 html.mobile-viewport-guard,
 html.mobile-viewport-guard body {
-    height: var(--mobile-safe-vh, 100dvh);
-    min-height: var(--mobile-safe-vh, 100dvh);
+    height: var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh));
+    min-height: var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh));
     width: 100% !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
@@ -801,13 +802,13 @@ html.mobile-viewport-guard body {
     align-items: stretch;
     justify-content: center;
     justify-items: center;
-    min-height: var(--mobile-safe-vh, 100dvh);
+    min-height: var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh));
 }
 
 html.mobile-viewport-guard body::before {
     width: 100%;
     max-width: 100%;
-    height: var(--mobile-safe-vh, 100dvh);
+    height: var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh));
 }
 
 html.mobile-viewport-guard .auth-main {
@@ -868,4 +869,12 @@ html.mobile-viewport-guard .auth-footer .benchmark-footer-inner {
 html.mobile-viewport-guard body.auth-lang-menu-open,
 html.mobile-viewport-guard body.auth-lang-menu-open .auth-main {
     overflow: visible !important;
+}
+
+html.mobile-viewport-guard.mobile-keyboard-open,
+html.mobile-viewport-guard.mobile-keyboard-open body,
+html.mobile-viewport-guard body.mobile-keyboard-open,
+html.mobile-viewport-guard body.mobile-keyboard-open .auth-main {
+    overflow-y: hidden !important;
+    overscroll-behavior-y: none !important;
 }

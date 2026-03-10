@@ -27,8 +27,19 @@
         var width = vv && vv.width ? vv.width : (window.innerWidth || root.clientWidth || 0);
         var height = vv && vv.height ? vv.height : (window.innerHeight || root.clientHeight || 0);
         if (!width || !height) return;
+        var currentBaseHeight = parseFloat(root.style.getPropertyValue("--mobile-safe-vh-base")) || 0;
+        var nextBaseHeight = height > currentBaseHeight ? height : currentBaseHeight;
         root.style.setProperty("--mobile-safe-vw", width + "px");
         root.style.setProperty("--mobile-safe-vh", height + "px");
+        root.style.setProperty("--mobile-safe-vh-base", nextBaseHeight + "px");
+        var keyboardLikelyOpen = currentKeyboardFocus && nextBaseHeight > 0 && (nextBaseHeight - height) > 120;
+        root.classList.toggle("mobile-keyboard-open", keyboardLikelyOpen);
+        if (document.body) {
+            document.body.classList.toggle("mobile-keyboard-open", keyboardLikelyOpen);
+        }
+        if (keyboardLikelyOpen) {
+            window.scrollTo(0, 0);
+        }
     }
 
     function applyClasses() {
@@ -58,6 +69,27 @@
         window.visualViewport.addEventListener("resize", syncViewportCssVars, { passive: true });
         window.visualViewport.addEventListener("scroll", syncViewportCssVars, { passive: true });
     }
+
+    var currentKeyboardFocus = false;
+
+    function isKeyboardFocusableTarget(target) {
+        if (!(target instanceof Element)) return false;
+        if (target.matches("input, textarea, select")) return true;
+        return target.hasAttribute("contenteditable");
+    }
+
+    document.addEventListener("focusin", function (event) {
+        currentKeyboardFocus = isKeyboardFocusableTarget(event.target);
+        syncViewportCssVars();
+    }, true);
+
+    document.addEventListener("focusout", function () {
+        setTimeout(function () {
+            var active = document.activeElement;
+            currentKeyboardFocus = isKeyboardFocusableTarget(active);
+            syncViewportCssVars();
+        }, 50);
+    }, true);
 
     var lastTouchEndAt = 0;
 
