@@ -10,7 +10,7 @@ import {
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
-import * as ProfileUI from "./profileUI.js";
+import * as ProfileUI from "./profileUI.js?v=20260309-flag-remove-fix-1";
 import * as Slugs from "./slugs.js";
 import * as UserService from "./userService.js?v=20260309-request-directory-1";
 import { compressImageFileToDataUrl } from "./imageUtils.js";

@@ -1,5 +1,5 @@
 import { auth } from "./client.js";
-import * as ProfileUI from "./profileUI.js";
+import * as ProfileUI from "./profileUI.js?v=20260309-flag-remove-fix-1";
 import { getCachedElementById } from "./utils/domUtils.js";
 
 export function initOnboardingUI(options = {}) {

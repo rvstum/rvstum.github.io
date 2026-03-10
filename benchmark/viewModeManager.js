@@ -360,6 +360,8 @@ function applyViewModeProfileHeader(data) {
             flagEl.style.backgroundImage = `url(${getFlagUrl(profile.flag)})`;
             setFlexVisible(flagEl, true);
         } else {
+            flagEl.textContent = "";
+            flagEl.style.backgroundImage = "";
             setFlexVisible(flagEl, false);
         }
     }

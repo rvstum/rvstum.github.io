@@ -245,34 +245,21 @@ export async function initProfileModalState(profileModal, accountEmailDisplay, t
 
 export function cleanProfileData(draft, guilds) {
     const cleanGuilds = normalizeGuildList(guilds);
-    
-    const profileData = {};
-    
-    if (cleanGuilds.length > 0) {
-        profileData.guilds = cleanGuilds;
-    }
-    
-    if (draft.flag) {
-        profileData.flag = draft.flag;
-    }
-    
-    if (draft.pic) {
-        profileData.pic = draft.pic;
-    }
-    
-    if (draft.originalPic) {
-        profileData.originalPic = draft.originalPic;
-    }
-    
-    if (draft.cropState && typeof draft.cropState === 'object') {
-        profileData.cropState = {
-            x: Number(draft.cropState.x) || 0,
-            y: Number(draft.cropState.y) || 0,
-            scale: Number(draft.cropState.scale) || 1
-        };
-    }
+    const safeDraft = draft && typeof draft === 'object' ? draft : {};
 
-    return profileData;
+    return {
+        guilds: cleanGuilds,
+        flag: typeof safeDraft.flag === 'string' ? safeDraft.flag.trim() : '',
+        pic: typeof safeDraft.pic === 'string' ? safeDraft.pic : '',
+        originalPic: typeof safeDraft.originalPic === 'string' ? safeDraft.originalPic : '',
+        cropState: safeDraft.cropState && typeof safeDraft.cropState === 'object'
+            ? {
+                x: Number(safeDraft.cropState.x) || 0,
+                y: Number(safeDraft.cropState.y) || 0,
+                scale: Number(safeDraft.cropState.scale) || 1
+            }
+            : null
+    };
 }
 
 export function updateProfilePicPreview(picUrl) {
@@ -647,9 +634,14 @@ export function updateMainHeaderLayout() {
 
     circle.className = 'profile-circle';
     circle.style.backgroundImage = '';
+    circle.style.backgroundSize = '';
+    circle.style.backgroundPosition = '';
     circle.classList.remove('is-hidden');
-    flagEl.classList.remove('is-hidden');
-    flagEl.classList.add('is-flex');
+    flagEl.textContent = '';
+    flagEl.style.backgroundImage = '';
+    flagEl.style.backgroundSize = '';
+    flagEl.style.backgroundPosition = '';
+    setFlexVisible(flagEl, false);
 
     if (pic) {
         circle.style.backgroundImage = `url(${pic})`;
@@ -680,10 +672,11 @@ export function updateMainHeaderLayout() {
     }
 
     if (flag) {
-        flagEl.textContent = '';
         flagEl.style.backgroundImage = `url(${getFlagUrl(flag)})`;
+        setFlexVisible(flagEl, true);
     } else {
-        flagEl.classList.add('is-hidden');
+        flagEl.style.backgroundImage = '';
+        setFlexVisible(flagEl, false);
     }
     syncUserMenuDropdownWidth();
 }
@@ -760,9 +753,13 @@ export async function saveOnboardingProfile(usernameRaw) {
     if (userMenuName) userMenuName.textContent = username;
 
     if (draftProfileState.pic) writeString(PROFILE_PIC_STORAGE_KEY, draftProfileState.pic);
+    else removeItem(PROFILE_PIC_STORAGE_KEY);
     if (draftProfileState.flag) writeString(COUNTRY_FLAG_STORAGE_KEY, draftProfileState.flag);
+    else removeItem(COUNTRY_FLAG_STORAGE_KEY);
     if (draftProfileState.originalPic) writeString(PROFILE_PIC_ORIGINAL_STORAGE_KEY, draftProfileState.originalPic);
+    else removeItem(PROFILE_PIC_ORIGINAL_STORAGE_KEY);
     if (draftProfileState.cropState) writeJson(PROFILE_PIC_STATE_STORAGE_KEY, draftProfileState.cropState);
+    else removeItem(PROFILE_PIC_STATE_STORAGE_KEY);
     writeJson(GUILDS_STORAGE_KEY, editingGuilds);
 
     updateMainPageGuildDisplay();
