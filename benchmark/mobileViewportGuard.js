@@ -27,18 +27,21 @@
         var width = vv && vv.width ? vv.width : (window.innerWidth || root.clientWidth || 0);
         var height = vv && vv.height ? vv.height : (window.innerHeight || root.clientHeight || 0);
         if (!width || !height) return;
+        var keyboardLockActive = currentKeyboardFocus;
+        var existingWidth = parseFloat(root.style.getPropertyValue("--mobile-safe-vw")) || 0;
         var currentBaseHeight = parseFloat(root.style.getPropertyValue("--mobile-safe-vh-base")) || 0;
         var nextBaseHeight = height > currentBaseHeight ? height : currentBaseHeight;
-        root.style.setProperty("--mobile-safe-vw", width + "px");
-        root.style.setProperty("--mobile-safe-vh", height + "px");
-        root.style.setProperty("--mobile-safe-vh-base", nextBaseHeight + "px");
-        var keyboardLikelyOpen = currentKeyboardFocus && nextBaseHeight > 0 && (nextBaseHeight - height) > 120;
+        if (!keyboardLockActive || existingWidth <= 0) {
+            root.style.setProperty("--mobile-safe-vw", width + "px");
+        }
+        if (!keyboardLockActive || currentBaseHeight <= 0) {
+            root.style.setProperty("--mobile-safe-vh", height + "px");
+            root.style.setProperty("--mobile-safe-vh-base", nextBaseHeight + "px");
+        }
+        var keyboardLikelyOpen = keyboardLockActive;
         root.classList.toggle("mobile-keyboard-open", keyboardLikelyOpen);
         if (document.body) {
             document.body.classList.toggle("mobile-keyboard-open", keyboardLikelyOpen);
-        }
-        if (keyboardLikelyOpen) {
-            window.scrollTo(0, 0);
         }
     }
 
