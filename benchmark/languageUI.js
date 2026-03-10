@@ -73,7 +73,6 @@ export function createLanguageController(options = {}) {
     const {
         maskedAccountId,
         setupMobileSettingsDropdowns,
-        renderHighlights,
         renderTrophies,
         renderAchievementsIfOpen,
         refreshAchievementsProgress,
@@ -193,9 +192,6 @@ export function createLanguageController(options = {}) {
                 : tForLang(lang, "hide");
         }
 
-        try {
-            if (typeof renderHighlights === "function") renderHighlights();
-        } catch (e) {}
         try {
             if (typeof renderTrophies === "function") renderTrophies();
         } catch (e) {}

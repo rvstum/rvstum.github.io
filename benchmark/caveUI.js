@@ -1,43 +1,10 @@
 import { state, getCurrentConfigState } from "./appState.js";
 import { t } from "./i18n.js";
 import { escapeHtml, isMobileViewport, getBenchmarkBasePath } from "./utils.js";
-import { getCachedElementById, setHidden } from "./utils/domUtils.js";
+import { getCachedElementById } from "./utils/domUtils.js";
 import { writeJson, CAVE_LINKS_STORAGE_KEY } from "./storage.js";
 import { DEFAULT_MOUNT_CONFIG } from "./constants.js";
 import { persistUserAndLocal } from "./persistence.js";
-
-export function resetHighlightModalFields({
-    highlightTitleInput,
-    highlightDescInput,
-    highlightPreviewImg,
-    highlightUploadText,
-    highlightFileInput,
-    highlightErrorMessage
-}) {
-    if (highlightTitleInput) highlightTitleInput.value = "";
-    if (highlightDescInput) highlightDescInput.value = "";
-    if (highlightPreviewImg) {
-        highlightPreviewImg.removeAttribute("src");
-        setHidden(highlightPreviewImg, true);
-    }
-    if (highlightUploadText) setHidden(highlightUploadText, false);
-    if (highlightFileInput) highlightFileInput.value = "";
-    if (highlightErrorMessage) {
-        highlightErrorMessage.textContent = "";
-        setHidden(highlightErrorMessage, true);
-    }
-}
-
-export function showHighlightErrorMessage(highlightErrorMessage, message) {
-    if (!highlightErrorMessage) return;
-    highlightErrorMessage.textContent = message;
-    setHidden(highlightErrorMessage, false);
-}
-
-export function setModalVisibility(modalEl, visible) {
-    if (!modalEl) return;
-    modalEl.classList.toggle("show", !!visible);
-}
 
 export function openImageViewerModal({ imageViewerModal, imageViewerImg, imageViewerTitle }, src, title = "") {
     if (!imageViewerModal || !imageViewerImg) return;

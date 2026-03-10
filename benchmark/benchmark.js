@@ -1,5 +1,5 @@
 import { app, auth } from "./client.js";
-import { isMobileViewport, escapeHtml } from "./utils.js";
+import { isMobileViewport } from "./utils.js";
 import { getCachedElementById, getCachedQuery } from "./utils/domUtils.js";
 import {
     readJson,
@@ -35,8 +35,10 @@ import { calculateRankFromData } from "./scoring.js";
 import {
     normalizeCellImagePaths as normalizeCaveCellImagePaths,
     bindCaveImageViewer as bindCaveCellImageViewer,
-    setupCavePlayEditors as setupCavePlayEditorsModule
-} from "./caveUI.js?v=20260305-mobile-touch-fix-1";
+    setupCavePlayEditors as setupCavePlayEditorsModule,
+    openImageViewerModal,
+    closeImageViewerModal
+} from "./caveUI.js?v=20260309-remove-highlights-1";
 
 export { app };
 
@@ -62,7 +64,7 @@ import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
-import * as ViewModeManager from "./viewModeManager.js?v=20260309-public-view-fix-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260309-remove-highlights-1";
 import * as ShareManager from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
@@ -85,19 +87,17 @@ import {
 } from "./i18n.js";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
-import * as ProfileUI from "./profileUI.js?v=20260309-flag-remove-fix-1";
-import * as AuthManager from "./authManager.js?v=20260309-flag-remove-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
+import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-view-mode-asset-fix-1";
-import { createHighlightsController } from "./highlightsUI.js";
-import * as UserService from "./userService.js?v=20260309-request-directory-1";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260309-flag-remove-fix-1";
-import { initOnboardingUI } from "./onboardingUI.js?v=20260309-flag-remove-fix-1";
-import { handleProfileLink } from "./routeManager.js?v=20260309-public-view-fix-1";
-import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260309-flag-remove-fix-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260309-remove-highlights-1";
+import { initOnboardingUI } from "./onboardingUI.js?v=20260309-remove-highlights-1";
+import { handleProfileLink } from "./routeManager.js?v=20260309-remove-highlights-1";
+import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260309-remove-highlights-1";
 import { initProfileModalController } from "./profileModalUI.js?v=20260309-flag-remove-fix-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
-import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260309-flag-remove-fix-1";
+import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260309-remove-highlights-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
 import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
@@ -110,7 +110,6 @@ const PAGE_LOADER_MIN_VISIBLE_MS = 1300;
 const LAST_ACTIVE_AUTH_UID_STORAGE_KEY = "benchmark_last_active_user_uid";
 let settingsUIController = null;
 let friendsModalController = null;
-let highlightsController = null;
 let confirmModalController = null;
 let onboardingUI = null;
 let languageController = null;
@@ -224,9 +223,6 @@ function resetSessionScopedState() {
     state.savedScores = {};
     state.savedCaveLinks = {};
     state.savedConfigThemes = {};
-    state.userHighlights = [];
-    state.highlightLikes = {};
-    state.likedHighlights = {};
     state.currentFriendRequests = [];
     state.hasPendingRequests = false;
     state.userAchievements = {};
@@ -328,9 +324,6 @@ function resetSessionScopedState() {
     if (friendPageAccountIdDisplay) friendPageAccountIdDisplay.dataset.realValue = "";
     resetFriendAccountIdVisibility();
 
-    if (typeof renderHighlights === "function") {
-        renderHighlights();
-    }
     if (typeof ProfileUI?.updateMainHeaderLayout === "function") {
         ProfileUI.updateMainHeaderLayout();
     }
@@ -550,7 +543,6 @@ function initModuleConfigurations() {
         applyMountConfigVisual,
         syncPlatformLabelColor,
         renderSeasonalTrophyList: TrophyUI.renderSeasonalTrophyList,
-        renderHighlights,
         openImageViewer,
         showConfirmModal,
         updateViewProfileUrl: Slugs.updateViewProfileUrl
@@ -574,7 +566,6 @@ function initModuleConfigurations() {
                 settingsUIController.setupMobileSettingsDropdowns();
             }
         },
-        renderHighlights,
         renderTrophies: TrophyUI.renderTrophies,
         renderAchievementsIfOpen: () => {
             const achievementsModalEl = getCachedElementById("achievementsModal");
@@ -859,7 +850,6 @@ function initFriendsModalBindings() {
             await runExitViewMode({
                 user: auth.currentUser,
                 exitViewModeContainer,
-                renderHighlights,
                 loadUserProfile,
                 applyStoredSettings
             });
@@ -874,59 +864,21 @@ function initTrophyUI() {
     });
 }
 
-function renderHighlights() {
-    if (!highlightsController) return;
-    highlightsController.renderHighlights();
-}
-
 function openImageViewer(src, title = '') {
-    if (!highlightsController) return;
-    highlightsController.openImageViewer(src, title);
+    openImageViewerModal(
+        {
+            imageViewerModal: getCachedElementById("imageViewerModal"),
+            imageViewerImg: getCachedElementById("imageViewerImg"),
+            imageViewerTitle: getCachedElementById("imageViewerTitle")
+        },
+        src,
+        title
+    );
 }
 
-function initHighlightsUI() {
-    highlightsController = createHighlightsController({
-        state,
-        auth,
-        t,
-        escapeHtml,
-        showConfirmModal,
-        bindModalOverlayQuickClose,
-        getLoginUrl: Slugs.getBenchmarkLoginUrl,
-        saveHighlights: async () => {
-            if (state.isViewMode) return;
-            await saveUserData({
-                highlights: state.userHighlights,
-                highlightLikes: state.highlightLikes
-            });
-        },
-        toggleHighlightLike: async ({ highlightId, currentLiked, currentCount }) => {
-            const viewerUid = auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "";
-            if (!viewerUid) {
-                throw new Error("Like requires an authenticated user.");
-            }
-            const ownerUid = state.isViewMode
-                ? ((state.activeViewProfileContext && state.activeViewProfileContext.uid) || "")
-                : viewerUid;
-            if (!ownerUid) {
-                throw new Error("Unable to resolve highlight owner for like update.");
-            }
-            const result = await UserService.toggleHighlightLike(ownerUid, highlightId, viewerUid, {
-                currentLiked,
-                currentCount
-            });
-            if (result && result.likeKey) {
-                if (!state.likedHighlights || typeof state.likedHighlights !== "object" || Array.isArray(state.likedHighlights)) {
-                    state.likedHighlights = {};
-                }
-                if (result.liked) {
-                    state.likedHighlights[result.likeKey] = true;
-                } else {
-                    delete state.likedHighlights[result.likeKey];
-                }
-            }
-            return result;
-        }
+function closeImageViewerUI() {
+    closeImageViewerModal({
+        imageViewerModal: getCachedElementById("imageViewerModal")
     });
 }
 
@@ -954,7 +906,6 @@ async function loadUserProfile(user) {
         applyConfig,
         syncSettingsUI,
         syncPacmanUI: () => PacmanUI.syncPacmanUI(refreshRadarVisuals),
-        renderHighlights,
         applyActiveAccountId,
         rememberAccountIdForUid,
         getRememberedAccountIdForUid,
@@ -1037,6 +988,15 @@ function initModalControllers() {
         bindModalOverlayQuickClose
     });
 
+    const imageViewerModal = getCachedElementById("imageViewerModal");
+    const closeImageViewerModalBtn = getCachedElementById("closeImageViewerModal");
+    if (closeImageViewerModalBtn) {
+        closeImageViewerModalBtn.addEventListener("click", closeImageViewerUI);
+    }
+    if (imageViewerModal) {
+        bindModalOverlayQuickClose(imageViewerModal, closeImageViewerUI);
+    }
+
     initSecondaryModals({
         openImageViewer,
         showConfirmModal,
@@ -1075,10 +1035,6 @@ function initOnboarding() {
 }
 
 function runPostDomReadySetup() {
-    if (typeof ProfileUI.restructureHighlightsLayout === 'function') {
-        ProfileUI.restructureHighlightsLayout();
-    }
-
     const savedAchievements = readJson(ACHIEVEMENTS_STORAGE_KEY, null);
     if (savedAchievements && typeof savedAchievements === 'object' && !Array.isArray(savedAchievements)) {
         state.userAchievements = savedAchievements;
@@ -1131,7 +1087,6 @@ function initUIControllers() {
     runInitStep('private home button', initPrivateHomeBinding);
     runInitStep('friends modal', initFriendsModalBindings);
     runInitStep('trophy UI', initTrophyUI);
-    runInitStep('highlights UI', initHighlightsUI);
     runInitStep('cave enhancements', initCaveEnhancements);
     runInitStep('account id UI', initAccountIdUIBindings);
     runInitStep('profile modal', initModalControllers);
@@ -1150,7 +1105,6 @@ function initBenchmarkApp() {
         loadUserProfile,
         hidePageLoader,
         updateNotificationVisibility,
-        renderHighlights,
         onAuthSessionChange: handleAuthSessionChange,
         setAuthGateActive
     });

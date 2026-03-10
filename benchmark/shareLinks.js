@@ -4,7 +4,7 @@ import { getBenchmarkBasePath } from "./utils.js";
 import { getCurrentConfig } from "./configManager.js";
 import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
-import * as UserService from "./userService.js";
+import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 
 const shareLinkDeps = {
     applyConfig: null

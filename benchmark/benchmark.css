@@ -326,11 +326,6 @@
     color: #fff;
 }
 
-.highlight-upload-text {
-    color: #888;
-    font-size: 13px;
-}
-
 .textarea-no-resize {
     resize: none;
 }
@@ -601,8 +596,7 @@
     .top-box,
     .container,
     .controls-container,
-    .radar-box,
-    .highlights-box {
+    .radar-box {
         max-width: 1000px;
     }
 
@@ -761,21 +755,6 @@ body.modal-open {
     overflow: hidden;
 }
 
-.highlights-box {
-    width: 100%;
-    max-width: 1584px;
-    background-color: var(--panel-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--panel-border);
-    border-radius: 24px;
-    padding: 22px;
-    box-shadow: none;
-    animation: gradualBlur 1.5s ease-out forwards;
-    position: relative;
-    overflow: hidden;
-    margin-top: 0;
-}
-
 .legal-footer {
     text-align: center;
 }
@@ -929,414 +908,6 @@ body.modal-open {
     .benchmark-footer .legal-divider {
         display: none;
     }
-}
-
-.highlights-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-.highlights-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 0.04em;
-}
-
-.add-highlight-btn {
-    background: #f5c645;
-    color: #111;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-weight: bold;
-    font-size: 12px;
-    cursor: pointer;
-    transition: transform 0.15s ease, filter 0.15s ease;
-}
-
-.add-highlight-btn:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.1);
-}
-
-.highlights-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 25px;
-}
-
-.highlights-grid.empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 260px;
-    width: 100%;
-}
-
-.highlights-empty-state {
-    width: 100%;
-    text-align: center;
-    color: #666;
-    font-weight: 700;
-}
-
-.highlights-inner {
-    background-color: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    border-radius: 20px;
-    padding: 25px;
-    margin-top: 10px;
-}
-
-.highlight-item-shell {
-    --highlight-like-overlap-space: 24px;
-    position: relative;
-    overflow: visible;
-    padding-bottom: var(--highlight-like-overlap-space);
-}
-
-.highlight-item {
-    background: var(--config-box-bg);
-    border: 1px solid var(--config-box-border);
-    border-radius: 16px;
-    overflow: hidden;
-    transition: border-color 0.2s ease, background 0.2s ease;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    box-shadow: none;
-}
-
-.highlight-item:hover {
-    transform: none;
-    box-shadow: none;
-    border-color: var(--config-box-border-hover);
-    background: var(--config-box-bg-hover);
-}
-
-.highlight-item.preview-opening,
-.highlight-item.preview-opening:hover {
-    transition: none !important;
-    transform: none !important;
-    border-color: var(--config-box-border) !important;
-    background: var(--config-box-bg) !important;
-}
-
-.highlight-item.preview-opening .highlight-img {
-    transition: none !important;
-    transform: none !important;
-}
-
-.highlight-img-container {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    position: relative;
-    cursor: zoom-in;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    -webkit-touch-callout: none;
-    user-select: none;
-}
-
-.highlight-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    transition: none;
-}
-
-.highlight-item:hover .highlight-img {
-    transform: none;
-}
-
-body.highlight-viewer-open .highlight-item,
-body.highlight-viewer-open .highlight-img {
-    transition: none !important;
-}
-
-body.highlight-viewer-open .highlight-item:hover,
-body.highlight-viewer-open .highlight-item:hover .highlight-img {
-    transform: none !important;
-}
-
-.highlight-info {
-    padding: 16px 20px 20px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    text-align: center;
-    gap: 4px;
-    background: rgba(0, 0, 0, 0.2);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.highlight-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.highlight-desc {
-    font-size: 13px;
-    color: #b0b0b0;
-    line-height: 1.6;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    word-wrap: break-word;
-}
-
-.highlight-like-wrap {
-    position: absolute;
-    right: 2px;
-    bottom: var(--highlight-like-overlap-space, 24px);
-    left: auto;
-    top: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transform: translate(50%, 50%);
-    gap: 5px;
-    z-index: 12;
-}
-
-.highlight-like-btn {
-    position: relative;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    background: rgba(0, 0, 0, 0.55);
-    color: #9a9a9a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    backdrop-filter: blur(2px);
-}
-
-body.view-mode .highlight-like-btn:hover {
-    transform: translateY(-1px);
-    color: #dedede;
-    border-color: rgba(255, 255, 255, 0.6);
-}
-
-.highlight-like-btn .highlight-like-icon {
-    font-size: 15px;
-    line-height: 1;
-    transform: translateY(1px);
-}
-
-.highlight-like-btn.is-liked {
-    color: #ff3b5c;
-    border-color: #ff3b5c;
-    background: rgba(255, 59, 92, 0.18);
-    box-shadow: 0 0 10px rgba(255, 59, 92, 0.35);
-}
-
-.highlight-like-btn.like-burst .highlight-like-icon {
-    animation: highlight-heart-pop 520ms cubic-bezier(0.25, 0.85, 0.3, 1.2);
-}
-
-.highlight-like-btn.like-burst::after {
-    content: "";
-    position: absolute;
-    inset: -4px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 59, 92, 0.75);
-    animation: highlight-heart-ring 520ms ease-out forwards;
-    pointer-events: none;
-}
-
-.highlight-like-btn:disabled {
-    cursor: default;
-}
-
-.highlight-like-btn.is-self-disabled {
-    cursor: default;
-}
-
-.highlight-like-count {
-    min-height: 0;
-    line-height: 1.2;
-    font-size: 11px;
-    font-weight: 700;
-    margin-top: 1px;
-    color: #f1f1f1;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
-    user-select: none;
-}
-
-@keyframes highlight-heart-pop {
-    0% {
-        transform: scale(1);
-    }
-    32% {
-        transform: scale(1.38);
-    }
-    60% {
-        transform: scale(0.92);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-@keyframes highlight-heart-ring {
-    0% {
-        transform: scale(0.6);
-        opacity: 0.85;
-    }
-    100% {
-        transform: scale(1.38);
-        opacity: 0;
-    }
-}
-
-.highlight-delete-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 28px;
-    height: 28px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: all 0.2s ease;
-    z-index: 2;
-    font-size: 18px;
-    line-height: 1;
-    padding-bottom: 2px;
-}
-
-.highlight-item:hover .highlight-delete-btn {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-}
-
-.highlight-item.preview-opening .highlight-delete-btn,
-.highlight-item.preview-opening .highlight-edit-btn {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-}
-
-.highlight-delete-btn:hover {
-    background: #d32f2f;
-    border-color: #d32f2f;
-}
-
-.highlight-edit-btn {
-    position: absolute;
-    top: 10px;
-    right: 45px;
-    width: 28px;
-    height: 28px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: all 0.2s ease;
-    z-index: 2;
-    padding: 6px;
-}
-
-.highlight-item:hover .highlight-edit-btn {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-}
-
-.highlight-edit-btn:hover {
-    background: #2196F3;
-    border-color: #2196F3;
-}
-
-.highlight-upload-area {
-    width: 100%;
-    height: 200px;
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
-    background: rgba(255, 255, 255, 0.02);
-    overflow: hidden;
-    position: relative;
-}
-
-#highlightModal .highlight-upload-area {
-    margin-bottom: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-#highlightModal .settings-field {
-    margin-bottom: 10px;
-}
-
-#highlightModal .settings-select {
-    padding: 12px 14px;
-    font-size: 14px;
-    background: rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-.highlight-upload-area:hover {
-    border-color: rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.highlight-upload-area img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-body.view-mode .add-highlight-btn {
-    display: none;
-}
-
-body.view-mode .highlight-delete-btn {
-    display: none !important;
-}
-
-body.view-mode .highlight-edit-btn {
-    display: none !important;
 }
 
 body.view-mode .trophy-list {
@@ -6289,10 +5860,6 @@ body.view-mode .achievement-proof-upload.has-image {
             height: 760px;
         }
 
-        .add-highlight-btn {
-            padding: 6px 9px;
-            font-size: 11px;
-        }
     }
 
     @media (min-width: 700px) and (max-width: 820px) and (min-height: 960px) and (max-height: 1100px) {
@@ -6730,15 +6297,6 @@ body.view-mode .achievement-proof-upload.has-image {
         width: 100%;
     }
 
-    .highlights-box {
-        padding: 15px !important;
-    }
-
-    .highlights-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 12px !important;
-    }
-
     .achievements-title-modal,
     .trophy-modal-header {
         text-align: center;
@@ -7118,8 +6676,7 @@ body.view-mode .achievement-proof-upload.has-image {
     .top-box,
     .middle-box,
     .container,
-    .radar-box,
-    .highlights-box {
+    .radar-box {
         border-radius: 16px;
     }
 
@@ -7184,72 +6741,6 @@ body.view-mode .achievement-proof-upload.has-image {
         padding: 6px 8px;
     }
 
-    .highlights-box {
-        padding: 12px;
-    }
-
-    .add-highlight-btn {
-        padding: 5px 8px;
-        font-size: 10px;
-        border-radius: 7px;
-    }
-
-    .highlights-grid {
-        gap: 8px;
-    }
-
-    .highlights-grid.empty {
-        min-height: 220px;
-    }
-
-    .highlights-empty-state {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 220px;
-    }
-
-    .highlight-info {
-        padding: 10px 10px 12px;
-    }
-
-    .highlight-title {
-        font-size: 13px;
-    }
-
-    .highlight-desc {
-        font-size: 11px;
-        line-height: 1.35;
-    }
-
-    .highlight-like-wrap {
-        right: 2px;
-        bottom: var(--highlight-like-overlap-space, 24px);
-        left: auto;
-        top: auto;
-        transform: translate(50%, 50%);
-        gap: 4px;
-    }
-
-    .highlight-item-shell {
-        --highlight-like-overlap-space: 20px;
-    }
-
-    .highlight-like-btn {
-        width: 24px;
-        height: 24px;
-    }
-
-    .highlight-like-btn .highlight-like-icon {
-        font-size: 13px;
-    }
-
-    .highlight-like-count {
-        min-height: 0;
-        font-size: 10px;
-        margin-top: 1px;
-    }
-
     #mobileCopyLinkBtn > span,
     #mobileOptionsLink > span {
         font-size: 9px;
@@ -7257,14 +6748,6 @@ body.view-mode .achievement-proof-upload.has-image {
 }
 
 @media (max-width: 360px) {
-    .add-highlight-btn {
-        padding: 4px 7px;
-        height: 24px;
-        line-height: 1;
-        font-size: 9px;
-        border-radius: 6px;
-    }
-
     .mobile-top-links .mobile-link > span,
     #mobileCopyLinkBtn > span,
     #mobileOptionsLink > span {
@@ -7282,12 +6765,6 @@ body.view-mode .achievement-proof-upload.has-image {
 }
 
 @media (min-width: 400px) and (max-width: 430px) and (min-height: 880px) and (max-height: 940px) {
-    .add-highlight-btn {
-        padding: 6px 10px;
-        font-size: 11px;
-        border-radius: 7px;
-    }
-
     .mobile-top-links .mobile-link > span,
     #mobileCopyLinkBtn > span,
     #mobileOptionsLink > span,
@@ -7601,14 +7078,6 @@ body.view-mode .achievement-proof-upload.has-image {
 }
 
 @media (min-width: 390px) and (max-width: 430px) {
-    .add-highlight-btn {
-        padding: 4px 8px;
-        height: 24px;
-        line-height: 1;
-        font-size: 9px;
-        border-radius: 6px;
-    }
-
     .mobile-top-links .mobile-link > span,
     #mobileCopyLinkBtn > span,
     #mobileOptionsLink > span,

@@ -4,7 +4,7 @@ import { readString, readJson, CACHED_VIEWS_STORAGE_KEY, ACHIEVEMENTS_STORAGE_KE
 import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as PacmanUI from "./pacmanUI.js";
-import * as ProfileUI from "./profileUI.js?v=20260309-flag-remove-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
 import * as Slugs from "./slugs.js";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
@@ -15,7 +15,6 @@ export async function exitViewMode(options = {}) {
     const {
         user,
         exitViewModeContainer,
-        renderHighlights,
         loadUserProfile,
         applyStoredSettings
     } = options;
@@ -107,12 +106,6 @@ export async function exitViewMode(options = {}) {
         ? savedAchievements
         : {};
     AchievementsUI.updateAchievementsProgress();
-
-    state.userHighlights = [];
-    state.highlightLikes = {};
-    if (typeof renderHighlights === "function") {
-        renderHighlights();
-    }
 
     if (typeof loadUserProfile === "function") {
         await loadUserProfile(user);

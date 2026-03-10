@@ -5,11 +5,11 @@ import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden } from "./utils/domUtils.js";
 import { getBenchmarkBasePath, normalizeFriendRequestIds } from "./utils.js";
 import * as Slugs from "./slugs.js";
-import * as UserService from "./userService.js";
-import * as AuthManager from "./authManager.js?v=20260309-flag-remove-fix-1";
+import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
+import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import * as RadarUI from "./radarUI.js";
-import * as ProfileUI from "./profileUI.js?v=20260309-flag-remove-fix-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260309-public-view-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260309-remove-highlights-1";
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf } from "./i18n.js";
 import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
@@ -25,7 +25,6 @@ export function initAuthLifecycle(options = {}) {
         loadUserProfile,
         hidePageLoader,
         updateNotificationVisibility,
-        renderHighlights = null,
         onAuthSessionChange = null,
         setAuthGateActive = null
     } = options;
@@ -196,14 +195,6 @@ export function initAuthLifecycle(options = {}) {
             let hasUserRequestsSnapshot = false;
             let hasIncomingEdgeSnapshot = false;
             const applyCombinedFriendRequestState = (userDocData = null) => {
-                if (!state.isViewMode && userDocData) {
-                    state.highlightLikes = UserService.normalizeHighlightLikes(userDocData.highlightLikes);
-                    state.likedHighlights = UserService.normalizeLikedHighlights(userDocData.likedHighlights);
-                    if (typeof renderHighlights === "function") {
-                        renderHighlights();
-                    }
-                }
-
                 if (!hasUserRequestsSnapshot || !hasIncomingEdgeSnapshot) {
                     updateNotificationVisibility();
                     return;

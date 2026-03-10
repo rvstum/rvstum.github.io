@@ -31,10 +31,10 @@ import {
     CONFIG_THEMES_STORAGE_KEY
 } from "./storage.js";
 import * as Slugs from "./slugs.js?v=20260309-public-view-fix-1";
-import * as UserService from "./userService.js?v=20260309-request-directory-1";
+import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
-import * as ProfileUI from "./profileUI.js?v=20260309-flag-remove-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
 import { persistUserData } from "./persistence.js";
@@ -104,7 +104,6 @@ export async function loadUserProfile(user, hooks = {}) {
         applyConfig = () => {},
         syncSettingsUI = () => {},
         syncPacmanUI = () => {},
-        renderHighlights = () => {},
         applyActiveAccountId = () => {},
         rememberAccountIdForUid = () => {},
         getRememberedAccountIdForUid = () => null,
@@ -187,27 +186,6 @@ export async function loadUserProfile(user, hooks = {}) {
                 removeItem(ACHIEVEMENTS_STORAGE_KEY);
             }
             AchievementsUI.updateAchievementsProgress();
-        }
-
-        state.userHighlights = Array.isArray(data.highlights) ? data.highlights : [];
-        state.highlightLikes = UserService.normalizeHighlightLikes(data.highlightLikes);
-        state.likedHighlights = UserService.normalizeLikedHighlights(data.likedHighlights);
-        UserService.backfillLikedHighlightEdges(sessionUid, state.likedHighlights).catch((err) => {
-            console.error("Error backfilling liked highlight edges:", err);
-        });
-        renderHighlights();
-        {
-            const expectedUid = sessionUid;
-            UserService.resolveAggregatedHighlightLikes(expectedUid, state.userHighlights, state.highlightLikes)
-                .then((resolvedLikes) => {
-                    const currentUid = auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "";
-                    if (state.isViewMode || currentUid !== expectedUid) return;
-                    state.highlightLikes = UserService.normalizeHighlightLikes(resolvedLikes);
-                    renderHighlights();
-                })
-                .catch((err) => {
-                    console.error("Error aggregating highlight likes for profile load:", err);
-                });
         }
 
         const directoryPreviewData = {

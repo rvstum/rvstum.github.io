@@ -4,7 +4,7 @@ import { readJson, GUILDS_STORAGE_KEY } from "./storage.js";
 import { t } from "./i18n.js";
 import { getFlagUrl } from "./utils.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
-import * as UserService from "./userService.js";
+import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as FriendsService from "./friendsService.js?v=20260309-public-view-fix-1";
@@ -21,7 +21,6 @@ const viewModeDeps = {
     applyMountConfigVisual: null,
     syncPlatformLabelColor: null,
     renderSeasonalTrophyList: null,
-    renderHighlights: null,
     openImageViewer: null,
     showConfirmModal: null,
     updateViewProfileUrl: null
@@ -243,26 +242,6 @@ function applyViewModeDataSnapshot(data) {
         state.pacmanModeEnabled = settings.pacmanMode === "true";
     }
 
-    state.userHighlights = Array.isArray(data.highlights) ? data.highlights : [];
-    state.highlightLikes = UserService.normalizeHighlightLikes(data.highlightLikes);
-    const renderHighlights = requireDep("renderHighlights");
-    renderHighlights();
-    const expectedOwnerUid = state.activeViewProfileContext && state.activeViewProfileContext.uid
-        ? state.activeViewProfileContext.uid
-        : "";
-    if (!expectedOwnerUid) return;
-    UserService.resolveAggregatedHighlightLikes(expectedOwnerUid, state.userHighlights, state.highlightLikes)
-        .then((resolvedLikes) => {
-            const activeOwnerUid = state.activeViewProfileContext && state.activeViewProfileContext.uid
-                ? state.activeViewProfileContext.uid
-                : "";
-            if (!state.isViewMode || !activeOwnerUid || activeOwnerUid !== expectedOwnerUid) return;
-            state.highlightLikes = UserService.normalizeHighlightLikes(resolvedLikes);
-            renderHighlights();
-        })
-        .catch((err) => {
-            console.error("Error aggregating highlight likes for view mode:", err);
-        });
 }
 
 function resolveBestViewModeConfig(data) {

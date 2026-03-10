@@ -1,6 +1,6 @@
 import { state, getRuntimeAccountId } from "./appState.js";
 import { t, tf } from "./i18n.js";
-import * as UserService from "./userService.js?v=20260309-request-directory-1";
+import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 import * as Slugs from "./slugs.js";
 import { updateProfile, signOut, verifyBeforeUpdateEmail, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -679,14 +679,6 @@ export function updateMainHeaderLayout() {
         setFlexVisible(flagEl, false);
     }
     syncUserMenuDropdownWidth();
-}
-
-export function restructureHighlightsLayout() {
-    const highlightsGrid = getCachedProfileElementById('highlightsGrid');
-    if (!highlightsGrid) return;
-    const highlightsBox = highlightsGrid.closest('.highlights-box');
-    if (!highlightsBox) return;
-    highlightsBox.classList.add('highlights-ready');
 }
 
 export function setupVerticalBoxClasses() {

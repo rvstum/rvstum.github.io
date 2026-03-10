@@ -119,7 +119,7 @@ export const DESKTOP_CAPTURE_OVERRIDE_CSS = `
     }
     .cave-play-overlay, .cave-play-edit, .cave-play-panel { display: none !important; }
     .mobile-top-links, .mobile-exit-view-btn, .share-modal-overlay { display: none !important; }
-    .highlights-box, .benchmark-footer { display: none !important; }
+    .benchmark-footer { display: none !important; }
 `;
 
 export function createScreenshotOverrideStyle() {

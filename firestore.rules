@@ -1,0 +1,233 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function asList(value) {
+      return value is list ? value : [];
+    }
+
+    function profileGuildsFromData(data) {
+      return (data.profile is map && data.profile.guilds is list)
+        ? data.profile.guilds
+        : [];
+    }
+
+    function visibilityFromData(data) {
+      return (data.settings is map && data.settings.visibility is string)
+        ? data.settings.visibility
+        : "everyone";
+    }
+
+    function sameGuild(targetData) {
+      return signedIn() && profileGuildsFromData(targetData).hasAny(
+        profileGuildsFromData(
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+        )
+      );
+    }
+
+    function canReadUserDoc(userId) {
+      return
+        visibilityFromData(resource.data) == "everyone"
+        || isOwner(userId)
+        || (
+          signedIn()
+          && visibilityFromData(resource.data) == "friends"
+          && (
+            asList(resource.data.friends).hasAny([request.auth.uid])
+            || sameGuild(resource.data)
+          )
+        );
+    }
+
+    function selfArrayMutation(oldList, newList) {
+      return newList == oldList
+        || (
+          newList.hasAll(oldList) &&
+          newList.size() <= oldList.size() + 1 &&
+          newList.hasAny([request.auth.uid])
+        )
+        || (
+          oldList.hasAll(newList) &&
+          oldList.size() <= newList.size() + 1 &&
+          !newList.hasAny([request.auth.uid])
+        );
+    }
+
+    function profileMap(data) {
+      return data.profile is map ? data.profile : {};
+    }
+
+    function profileViews(data) {
+      return profileMap(data).get('views', 0);
+    }
+
+    function validProfileViewCountUpdate(userId) {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly(['profile'])
+        && signedIn()
+        && !isOwner(userId)
+        && canReadUserDoc(userId)
+        && profileMap(request.resource.data).diff(profileMap(resource.data)).changedKeys().hasOnly(['views'])
+        && profileViews(resource.data) is int
+        && profileViews(request.resource.data) is int
+        && profileViews(request.resource.data) == profileViews(resource.data) + 1;
+    }
+
+    function friendshipDocExists(userA, userB) {
+      return exists(/databases/$(database)/documents/friendships/$(userA + "__" + userB))
+        || exists(/databases/$(database)/documents/friendships/$(userB + "__" + userA));
+    }
+
+    function incomingFriendRequestExists(fromUid, toUid) {
+      return exists(/databases/$(database)/documents/friendRequests/$(fromUid + "__" + toUid));
+    }
+
+    function validRemoteRequestMirrorUpdate(userId) {
+      return signedIn()
+        && !isOwner(userId)
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'friendRequests',
+          'sentFriendRequests'
+        ])
+        && selfArrayMutation(
+          asList(resource.data.friendRequests),
+          asList(request.resource.data.friendRequests)
+        )
+        && selfArrayMutation(
+          asList(resource.data.sentFriendRequests),
+          asList(request.resource.data.sentFriendRequests)
+        )
+        && incomingFriendRequestExists(request.auth.uid, userId)
+          == asList(request.resource.data.friendRequests).hasAny([request.auth.uid])
+        && incomingFriendRequestExists(userId, request.auth.uid)
+          == asList(request.resource.data.sentFriendRequests).hasAny([request.auth.uid]);
+    }
+
+    function validRemoteFriendMirrorUpdate(userId) {
+      return signedIn()
+        && !isOwner(userId)
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'friends',
+          'sentFriendRequests'
+        ])
+        && selfArrayMutation(
+          asList(resource.data.friends),
+          asList(request.resource.data.friends)
+        )
+        && selfArrayMutation(
+          asList(resource.data.sentFriendRequests),
+          asList(request.resource.data.sentFriendRequests)
+        )
+        && !asList(request.resource.data.sentFriendRequests).hasAny([request.auth.uid])
+        && friendshipDocExists(userId, request.auth.uid)
+          == asList(request.resource.data.friends).hasAny([request.auth.uid]);
+    }
+
+    match /users/{userId} {
+      allow read: if canReadUserDoc(userId);
+      allow create, delete: if isOwner(userId);
+
+      allow update: if isOwner(userId)
+        || validRemoteRequestMirrorUpdate(userId)
+        || validRemoteFriendMirrorUpdate(userId)
+        || validProfileViewCountUpdate(userId);
+
+      match /{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /publicAccountDirectory/{accountId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.uid is string
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.accountId is string
+        && request.resource.data.accountId == accountId;
+      allow update: if signedIn()
+        && resource.data.uid is string
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid is string
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.accountId is string
+        && request.resource.data.accountId == accountId;
+      allow delete: if false;
+    }
+
+    match /friendRequests/{requestId} {
+      allow read: if signedIn()
+        && (
+          (resource.data.fromUid is string && resource.data.fromUid == request.auth.uid)
+          || (resource.data.toUid is string && resource.data.toUid == request.auth.uid)
+        );
+
+      allow create: if signedIn()
+        && request.resource.data.fromUid is string
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.toUid is string
+        && request.resource.data.toUid != request.auth.uid
+        && requestId == request.resource.data.fromUid + "__" + request.resource.data.toUid
+        && !friendshipDocExists(request.resource.data.fromUid, request.resource.data.toUid);
+
+      allow update: if signedIn()
+        && (
+          (resource.data.fromUid is string && resource.data.fromUid == request.auth.uid)
+          || (resource.data.toUid is string && resource.data.toUid == request.auth.uid)
+        );
+
+      allow delete: if signedIn()
+        && (
+          (resource.data.fromUid is string && resource.data.fromUid == request.auth.uid)
+          || (resource.data.toUid is string && resource.data.toUid == request.auth.uid)
+        );
+    }
+
+    match /friendships/{friendshipId} {
+      allow read: if signedIn()
+        && resource.data.users is list
+        && resource.data.users.hasAny([request.auth.uid]);
+
+      allow create: if signedIn()
+        && request.resource.data.users is list
+        && request.resource.data.users.size() == 2
+        && request.resource.data.users[0] is string
+        && request.resource.data.users[1] is string
+        && request.resource.data.users[0] != request.resource.data.users[1]
+        && (
+          friendshipId == request.resource.data.users[0] + "__" + request.resource.data.users[1]
+          || friendshipId == request.resource.data.users[1] + "__" + request.resource.data.users[0]
+        )
+        && request.resource.data.users.hasAny([request.auth.uid])
+        && (
+          (
+            request.resource.data.users[0] == request.auth.uid
+            && incomingFriendRequestExists(request.resource.data.users[1], request.auth.uid)
+          )
+          || (
+            request.resource.data.users[1] == request.auth.uid
+            && incomingFriendRequestExists(request.resource.data.users[0], request.auth.uid)
+          )
+        );
+
+      allow update: if signedIn()
+        && resource.data.users is list
+        && resource.data.users.hasAny([request.auth.uid])
+        && request.resource.data.users == resource.data.users;
+
+      allow delete: if signedIn()
+        && resource.data.users is list
+        && resource.data.users.hasAny([request.auth.uid]);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

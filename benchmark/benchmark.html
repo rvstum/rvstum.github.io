@@ -325,13 +325,6 @@
             </div>
         </div>
     </div>
-    <div class="highlights-box hidden-default">
-        <div class="highlights-header">
-            <div class="highlights-title" data-i18n="highlights_title">Highlights</div>
-            <button class="add-highlight-btn" id="addHighlightBtn" data-i18n="add_highlight_btn">+ Add Highlight</button>
-        </div>
-        <div class="highlights-grid" id="highlightsGrid"></div>
-    </div>
     <footer class="legal-footer benchmark-footer">
         <div class="benchmark-footer-top">
             <div class="benchmark-footer-inner">
@@ -900,37 +893,6 @@
         </div>
     </div>
 
-    <!-- Highlight Modal -->
-    <div class="share-modal-overlay" id="highlightModal">
-        <div class="settings-content-box modal-box-500">
-            <span class="share-modal-close modal-close-sm" id="closeHighlightModal">&times;</span>
-            <div class="settings-header">
-                <div class="settings-title" data-i18n="highlight_modal_title">Add Highlight</div>
-            </div>
-            <div class="settings-field">
-                <label class="settings-label" data-i18n="highlight_label_image">Image</label>
-                <div class="highlight-upload-area" id="highlightUploadArea">
-                    <span id="highlightUploadText" class="highlight-upload-text" data-i18n="highlight_click_upload">Click to upload image</span>
-                    <img id="highlightPreviewImg" class="hidden-default">
-                </div>
-                <input type="file" id="highlightFileInput" accept="image/*" class="is-hidden">
-            </div>
-            <div class="settings-field">
-                <label class="settings-label" data-i18n="highlight_title_required_label">Title (Required)</label>
-                <input type="text" id="highlightTitleInput" class="settings-select" maxlength="50" placeholder="Enter a title..." data-i18n-placeholder="highlight_title_placeholder" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-            </div>
-            <div class="settings-field">
-                <label class="settings-label" data-i18n="highlight_desc_optional_label">Description (Optional)</label>
-                <textarea id="highlightDescInput" class="settings-select textarea-no-resize" rows="3" maxlength="200" placeholder="Enter a description..." data-i18n-placeholder="highlight_desc_placeholder"></textarea>
-            </div>
-            <div id="highlightErrorMessage" class="hidden-default message-error"></div>
-            <div class="settings-actions settings-actions--top5 settings-actions--end">
-                <button class="settings-btn" id="cancelHighlightBtn" data-i18n="cancel">Cancel</button>
-                <button class="settings-btn primary" id="saveHighlightBtn" data-i18n="save">Save</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Image Viewer Modal -->
     <div class="share-modal-overlay" id="imageViewerModal">
             <span class="share-modal-close modal-close-muted image-viewer-close" id="closeImageViewerModal">&times;</span>
@@ -1103,7 +1065,7 @@
         <script type="module" src="footer-baddy.js"></script>
         <script type="module" src="layoutBuilder.js"></script>
         <script type="module" src="scrollSyncUI.js?v=20260309-mobile-touch-color-fix-2"></script>
-    <script type="module" src="benchmark.js?v=20260309-flag-remove-fix-1"></script>
+    <script type="module" src="benchmark.js?v=20260309-remove-highlights-1"></script>
 </body>
 </html>
 

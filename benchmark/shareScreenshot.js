@@ -25,7 +25,6 @@ const MOBILE_CAPTURE_ATTEMPTS = [
 const HIDE_CLASS_NAMES = new Set([
     "share-modal-overlay",
     "benchmark-footer",
-    "highlights-box",
     "trophy-placeholder",
     "page-loader"
 ]);
@@ -36,7 +35,6 @@ const HIDE_IDS = new Set([
     "trophyModal",
     "profileModal",
     "friendsModal",
-    "highlightModal",
     "imageViewerModal",
     "flagModal",
     "achievementsModal",
@@ -227,9 +225,6 @@ function getScreenshotBackgroundColor() {
 }
 
 function getCropMetricsForDocument(doc, captureTarget) {
-    const highlightsBoxEl = doc === document
-        ? getCachedQuery("highlightsBox", () => document.querySelector(".highlights-box"))
-        : doc.querySelector(".highlights-box");
     const radarBoxEl = doc === document
         ? getCachedQuery("radarBox", () => document.querySelector(".radar-box"))
         : doc.querySelector(".radar-box");
@@ -239,10 +234,8 @@ function getCropMetricsForDocument(doc, captureTarget) {
 
     const elementRect = captureTarget.getBoundingClientRect();
     const captureSourceWidthPx = Math.max(1, elementRect.width || 0);
-    const highlightsTop = highlightsBoxEl ? highlightsBoxEl.getBoundingClientRect().top : null;
     const radarBottom = radarBoxEl ? radarBoxEl.getBoundingClientRect().bottom : null;
     const cropAnchorY = [
-        Number.isFinite(highlightsTop) ? highlightsTop : null,
         Number.isFinite(radarBottom) ? radarBottom : null
     ].reduce((max, value) => (value !== null && value > max ? value : max), 0);
     const rawHeight = cropAnchorY > 0 ? (cropAnchorY - elementRect.top) : 0;
@@ -485,7 +478,6 @@ function injectCloneResetStyle(doc, screenshotBgColor) {
         .cave-play-panel,
         .mobile-top-links,
         .mobile-exit-view-btn,
-        .highlights-box,
         .benchmark-footer {
             display: none !important;
         }
