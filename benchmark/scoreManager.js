@@ -159,6 +159,12 @@ function isSignedInUser() {
     return !!(auth && auth.currentUser && auth.currentUser.uid);
 }
 
+function isLocalDebugHost() {
+    if (typeof window === "undefined" || !window.location) return false;
+    const host = window.location.hostname || "";
+    return host === "localhost" || host === "127.0.0.1";
+}
+
 function canSaveSignedInScores(resetIntent = false) {
     if (!isSignedInUser()) return true;
     return resetIntent || state.scoresHydrated === true;
@@ -321,6 +327,13 @@ function normalizeScoresRecord(value) {
     return normalized;
 }
 
+function hasAnyNonZeroSavedScoreEntries(value) {
+    return Object.values(normalizeScoresRecord(value)).some((scores) => (
+        Array.isArray(scores)
+        && scores.some((entry) => normalizeNumericScoreValue(entry) > 0)
+    ));
+}
+
 const savedScoresStore = createSyncedStore({
     storageKey: SCORE_STORAGE_KEY,
     firestoreField: "scores",
@@ -390,13 +403,14 @@ function persistScoresForConfig(config, scores) {
         resolvedConfig.mount
     );
     state.savedScores[key] = cloneScoresArray(scores);
+    state.scoresDirty = true;
     removeItem(SCORE_RESET_PENDING_STORAGE_KEY);
     writeString(SCORE_UPDATED_AT_STORAGE_KEY, String(Date.now()));
     writeJson(SCORE_STORAGE_KEY, state.savedScores);
     clearTimeout(state.saveScoresDebounceTimer);
     state.saveScoresDebounceTimer = setTimeout(() => {
         saveSavedScores().catch(console.error);
-    }, 1000);
+    }, isLocalDebugHost() ? 150 : 1000);
 }
 
 function writeScoresSnapshotLocally(scoresUpdatedAt = Date.now()) {
@@ -450,6 +464,7 @@ export function configure(deps = {}) {
 
 export function loadSavedScores() {
     savedScoresStore.load();
+    state.scoresDirty = false;
 }
 
 export async function saveSavedScores(options = {}) {
@@ -459,6 +474,10 @@ export async function saveSavedScores(options = {}) {
         return false;
     }
     writeScoresSnapshotLocally(scoresUpdatedAt);
+    if (!resetIntent && !hasAnyNonZeroSavedScoreEntries(state.savedScores)) {
+        state.scoresDirty = false;
+        return true;
+    }
     if (resetIntent) {
         writeString(SCORE_RESET_PENDING_STORAGE_KEY, "true");
     } else {
@@ -467,6 +486,7 @@ export async function saveSavedScores(options = {}) {
     const success = await savedScoresStore.save({ scoresUpdatedAt });
     if (success) {
         removeItem(SCORE_RESET_PENDING_STORAGE_KEY);
+        state.scoresDirty = false;
     }
     return success;
 }

@@ -64,8 +64,8 @@ import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
 import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-reset-persist-12";
-import * as ViewModeManager from "./viewModeManager.js?v=20260310-sub-score-input-1";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-load-fix-17";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-score-load-fix-15";
 import * as ShareManager from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
@@ -89,18 +89,18 @@ import {
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
-import * as AuthManager from "./authManager.js?v=20260310-score-load-fix-14";
+import * as AuthManager from "./authManager.js?v=20260310-score-load-fix-16";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-view-mode-asset-fix-1";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260310-score-load-fix-14";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260310-score-load-fix-16";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260310-onboarding-profile-preview-fix-1";
-import { handleProfileLink } from "./routeManager.js?v=20260310-score-load-fix-14";
-import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260310-sub-score-input-1";
+import { handleProfileLink } from "./routeManager.js?v=20260310-score-load-fix-16";
+import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260310-score-load-fix-15";
 import { initProfileModalController } from "./profileModalUI.js?v=20260310-onboarding-profile-preview-fix-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260310-flag-selection-fix-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
-import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260310-score-reset-persist-11";
+import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260310-score-load-fix-17";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
 import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260310-score-link-lang-sync-1";
 import { createSettingsStateController } from "./settingsStateUI.js?v=20260310-score-reset-persist-1";
@@ -313,6 +313,7 @@ function resetSessionScopedState() {
     state.subInputModeEnabled = false;
     state.activeSubInputRowIndex = -1;
     state.scoresHydrated = false;
+    state.scoresDirty = false;
     state.maxUnlockedRankIndex = 0;
     if (state.ratingUpdateRafId) {
         cancelAnimationFrame(state.ratingUpdateRafId);
@@ -1151,6 +1152,7 @@ function initGlobalListeners() {
     window.addEventListener('popstate', handleAuthenticatedBackNavigationPopState);
     window.addEventListener('pagehide', () => {
         if (state.isViewMode) return;
+        if (!state.scoresDirty) return;
         ScoreManager.saveCurrentScores();
         ScoreManager.saveSavedScores().catch(console.error);
     });

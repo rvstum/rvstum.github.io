@@ -33,7 +33,7 @@ import {
 } from "./storage.js?v=20260310-sub-score-input-3";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-reset-persist-12";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-load-fix-17";
 import * as ThemeUI from "./themeUI.js?v=20260308-cave-save-btn-dark-3";
 import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
@@ -394,7 +394,9 @@ export async function loadUserProfile(user, hooks = {}) {
             };
 
             let useRemoteScores = false;
-            if (resetPending && localHasScoreSnapshot && localScoreKeyCount === 0 && remoteScoreKeyCount > 0) {
+            if (isLocalDebugHost && remoteScores) {
+                useRemoteScores = true;
+            } else if (resetPending && localHasScoreSnapshot && localScoreKeyCount === 0 && remoteScoreKeyCount > 0) {
                 useRemoteScores = false;
             } else if (!remoteScores) {
                 useRemoteScores = false;
@@ -422,7 +424,7 @@ export async function loadUserProfile(user, hooks = {}) {
             } else if (localHasScoreSnapshot) {
                 state.savedScores = localNormalizedScores;
                 writeJson(SCORE_STORAGE_KEY, state.savedScores);
-                if (!remoteScores || localScoresUpdatedAt > remoteScoresUpdatedAt || resetPending) {
+                if (!isLocalDebugHost && (!remoteScores || localScoresUpdatedAt > remoteScoresUpdatedAt || resetPending)) {
                     syncLocalScoresToRemote();
                 }
             } else if (remoteScores) {
@@ -441,6 +443,7 @@ export async function loadUserProfile(user, hooks = {}) {
             ScoreManager.loadScores();
             ThemeUI.validateRankUnlock();
             state.scoresHydrated = true;
+            state.scoresDirty = false;
             if (isLocalDebugHost) {
                 console.debug("[benchmark scores]", {
                     source: useRemoteScores ? "remote" : (localHasScoreSnapshot ? "local" : "empty"),
@@ -457,6 +460,7 @@ export async function loadUserProfile(user, hooks = {}) {
             ScoreManager.loadScores();
             ThemeUI.validateRankUnlock();
             state.scoresHydrated = true;
+            state.scoresDirty = false;
             if (isLocalDebugHost) {
                 console.debug("[benchmark scores]", {
                     source: "empty",

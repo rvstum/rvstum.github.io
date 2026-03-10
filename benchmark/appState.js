@@ -11,6 +11,7 @@ export const state = {
     currentFriendRequests: [],
     saveScoresDebounceTimer: null,
     scoresHydrated: false,
+    scoresDirty: false,
     ratingUpdateRafId: null,
     pacmanModeEnabled: false,
     userAchievements: {},

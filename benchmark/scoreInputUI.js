@@ -3,7 +3,7 @@ import { state } from "./appState.js";
 import { t } from "./i18n.js";
 import { SUB_INPUT_MODE_STORAGE_KEY, writeString } from "./storage.js?v=20260310-sub-score-input-3";
 import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-reset-persist-12";
+import * as ScoreManager from "./scoreManager.js?v=20260310-score-load-fix-17";
 
 function getSubInputTooltipText() {
     const alternateStat = ScoreManager.getAlternateConfig().stat;
@@ -31,6 +31,14 @@ export function setupScoreInputHandlers(options = {}) {
     const scoreWrappers = Array.from(document.querySelectorAll(".score-input-wrapper"));
     const scoreLinkToggle = document.querySelector(".score-link-toggle");
     const scoreText = document.querySelector(".score-text");
+    const isLocalDebugHost = (() => {
+        try {
+            const host = window.location && window.location.hostname ? window.location.hostname : "";
+            return host === "localhost" || host === "127.0.0.1";
+        } catch (_) {
+            return false;
+        }
+    })();
 
     const redirectToLoginIfNeeded = () => {
         if (state.isViewMode) return true;
@@ -246,6 +254,9 @@ export function setupScoreInputHandlers(options = {}) {
             }
             RankingUI.updateAllRatings(onRatingsUpdated);
             ScoreManager.saveCurrentScores();
+            if (isLocalDebugHost && auth.currentUser) {
+                ScoreManager.saveSavedScores().catch(console.error);
+            }
         });
 
         subInput.addEventListener("focus", function () {
@@ -286,6 +297,9 @@ export function setupScoreInputHandlers(options = {}) {
             const overlay = wrapper.querySelector(".sub-score-text-overlay");
             if (overlay) overlay.textContent = this.value;
             ScoreManager.setAlternateScoreValueForRow(index, this.value);
+            if (isLocalDebugHost && auth.currentUser) {
+                ScoreManager.saveSavedScores().catch(console.error);
+            }
         });
     });
 

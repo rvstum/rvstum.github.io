@@ -6,7 +6,7 @@ import { getCachedElementById, getCachedQuery, setHidden } from "./utils/domUtil
 import { getBenchmarkBasePath, normalizeFriendRequestIds } from "./utils.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
-import * as AuthManager from "./authManager.js?v=20260310-score-load-fix-14";
+import * as AuthManager from "./authManager.js?v=20260310-score-load-fix-16";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
 import * as ViewModeManager from "./viewModeManager.js?v=20260310-sub-score-input-1";
