@@ -3,7 +3,7 @@ import { t, tf } from "./i18n.js";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { updateProfile, signOut, verifyBeforeUpdateEmail, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
 import {
@@ -244,15 +244,15 @@ export async function initProfileModalState(profileModal, accountEmailDisplay, t
     if (content) content.scrollTop = 0;
 }
 
-export function cleanProfileData(draft, guilds) {
+export function cleanProfileData(draft, guilds, options = {}) {
     const cleanGuilds = normalizeGuildList(guilds);
     const safeDraft = draft && typeof draft === 'object' ? draft : {};
+    const includeOriginalPic = options.includeOriginalPic !== false;
 
-    return {
+    const profileData = {
         guilds: cleanGuilds,
         flag: typeof safeDraft.flag === 'string' ? safeDraft.flag.trim() : '',
         pic: typeof safeDraft.pic === 'string' ? safeDraft.pic : '',
-        originalPic: typeof safeDraft.originalPic === 'string' ? safeDraft.originalPic : '',
         cropState: safeDraft.cropState && typeof safeDraft.cropState === 'object'
             ? {
                 x: Number(safeDraft.cropState.x) || 0,
@@ -261,6 +261,12 @@ export function cleanProfileData(draft, guilds) {
             }
             : null
     };
+
+    if (includeOriginalPic) {
+        profileData.originalPic = typeof safeDraft.originalPic === 'string' ? safeDraft.originalPic : '';
+    }
+
+    return profileData;
 }
 
 export function updateProfilePicPreview(picUrl) {
@@ -769,19 +775,23 @@ export async function saveOnboardingProfile(usernameRaw) {
     updateMainHeaderLayout();
 
     const profileData = cleanProfileData(draftProfileState, editingGuilds);
+    const remoteProfileData = cleanProfileData(draftProfileState, editingGuilds, { includeOriginalPic: false });
     const accountIdForSlug = getSlugAccountId();
     const publicSlug = Slugs.buildProfileSlug(username, accountIdForSlug, user.uid);
 
     await setDoc(doc(db, 'users', user.uid), {
         username,
-        profile: profileData,
+        profile: remoteProfileData,
         publicSlug,
         isNewUser: false
     }, { merge: true });
+    await updateDoc(doc(db, 'users', user.uid), {
+        'profile.originalPic': deleteField()
+    });
     await UserService.syncAccountDirectoryEntry(user.uid, accountIdForSlug, {
         username,
         accountId: accountIdForSlug,
-        profile: profileData,
+        profile: remoteProfileData,
         publicSlug,
         settings: {
             visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")

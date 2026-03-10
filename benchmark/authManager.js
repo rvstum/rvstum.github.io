@@ -35,7 +35,7 @@ import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
 import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
-import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-profile-save-fix-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
 import { persistUserData } from "./persistence.js";
@@ -191,15 +191,24 @@ export async function loadUserProfile(user, hooks = {}) {
         }
 
         if (data.profile) {
+            const incomingProfilePic = typeof data.profile.pic === "string" ? data.profile.pic : "";
+            const existingLocalProfilePic = readString(PROFILE_PIC_STORAGE_KEY, "");
+            const existingLocalOriginalPic = readString(PROFILE_PIC_ORIGINAL_STORAGE_KEY, "");
+            const hasRemoteOriginalPic = Object.prototype.hasOwnProperty.call(data.profile, "originalPic");
+
             if (data.profile.guilds) writeJson(GUILDS_STORAGE_KEY, data.profile.guilds);
             if (data.profile.flag) writeString(COUNTRY_FLAG_STORAGE_KEY, data.profile.flag);
             else removeItem(COUNTRY_FLAG_STORAGE_KEY);
 
-            if (data.profile.pic) writeString(PROFILE_PIC_STORAGE_KEY, data.profile.pic);
+            if (incomingProfilePic) writeString(PROFILE_PIC_STORAGE_KEY, incomingProfilePic);
             else removeItem(PROFILE_PIC_STORAGE_KEY);
 
-            if (data.profile.originalPic) writeString(PROFILE_PIC_ORIGINAL_STORAGE_KEY, data.profile.originalPic);
-            else removeItem(PROFILE_PIC_ORIGINAL_STORAGE_KEY);
+            if (hasRemoteOriginalPic) {
+                if (data.profile.originalPic) writeString(PROFILE_PIC_ORIGINAL_STORAGE_KEY, data.profile.originalPic);
+                else removeItem(PROFILE_PIC_ORIGINAL_STORAGE_KEY);
+            } else if (!existingLocalOriginalPic || !incomingProfilePic || incomingProfilePic !== existingLocalProfilePic) {
+                removeItem(PROFILE_PIC_ORIGINAL_STORAGE_KEY);
+            }
 
             if (data.profile.cropState) writeJson(PROFILE_PIC_STATE_STORAGE_KEY, data.profile.cropState);
             else removeItem(PROFILE_PIC_STATE_STORAGE_KEY);

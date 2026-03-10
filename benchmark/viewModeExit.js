@@ -4,7 +4,7 @@ import { readString, readJson, CACHED_VIEWS_STORAGE_KEY, ACHIEVEMENTS_STORAGE_KE
 import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
 import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as PacmanUI from "./pacmanUI.js";
-import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-profile-save-fix-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";

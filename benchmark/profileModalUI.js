@@ -7,10 +7,10 @@ import {
     reauthenticateWithCredential,
     deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
-import * as ProfileUI from "./profileUI.js?v=20260310-flag-selection-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-profile-save-fix-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
@@ -181,6 +181,7 @@ export function initProfileModalController(options = {}) {
     let cropPinchStartScale = 1;
     let cropPinchOriginX = 0;
     let cropPinchOriginY = 0;
+    let isCropSliderDragging = false;
 
     function setStatusMessage(el, message, type = "note") {
         if (!el) return;
@@ -275,6 +276,37 @@ export function initProfileModalController(options = {}) {
             x: (touchA.clientX + touchB.clientX) / 2,
             y: (touchA.clientY + touchB.clientY) / 2
         };
+    }
+
+    function normalizeCropSliderValue(rawValue) {
+        const { min, max } = getCropScaleBounds();
+        const numeric = Number(rawValue);
+        const fallback = Number(cropState.scale) > 0 ? Number(cropState.scale) : min;
+        const clamped = Math.max(min, Math.min(max, Number.isFinite(numeric) ? numeric : fallback));
+        const step = cropperZoom ? Number(cropperZoom.step) : 0;
+        if (!Number.isFinite(step) || step <= 0) {
+            return clamped;
+        }
+        const stepped = Math.round((clamped - min) / step) * step + min;
+        return Math.max(min, Math.min(max, Number(stepped.toFixed(4))));
+    }
+
+    function setCropSliderValue(rawValue) {
+        const normalized = normalizeCropSliderValue(rawValue);
+        if (cropperZoom) {
+            cropperZoom.value = String(normalized);
+        }
+        setCropScale(normalized, true);
+    }
+
+    function updateCropSliderFromClientX(clientX) {
+        if (!cropperZoom || !Number.isFinite(clientX)) return;
+        const rect = cropperZoom.getBoundingClientRect();
+        if (!rect || rect.width <= 0) return;
+        const { min, max } = getCropScaleBounds();
+        const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        const nextValue = min + ((max - min) * ratio);
+        setCropSliderValue(nextValue);
     }
 
     function beginCropTouchDrag(touch) {
@@ -463,18 +495,22 @@ export function initProfileModalController(options = {}) {
             writeJson(GUILDS_STORAGE_KEY, guilds);
 
             const profileData = ProfileUI.cleanProfileData(draft, guilds);
+            const remoteProfileData = ProfileUI.cleanProfileData(draft, guilds, { includeOriginalPic: false });
             const accountId = getSlugAccountId();
             const publicSlug = Slugs.buildProfileSlug(username, accountId, user.uid);
 
             await setDoc(doc(db, "users", user.uid), {
                 username,
-                profile: profileData,
+                profile: remoteProfileData,
                 publicSlug
             }, { merge: true });
+            await updateDoc(doc(db, "users", user.uid), {
+                "profile.originalPic": deleteField()
+            });
             await UserService.syncAccountDirectoryEntry(user.uid, accountId, {
                 username,
                 accountId,
-                profile: profileData,
+                profile: remoteProfileData,
                 publicSlug,
                 settings: {
                     visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")
@@ -684,10 +720,46 @@ export function initProfileModalController(options = {}) {
 
     if (cropperZoom) {
         const syncCropperZoom = () => {
-            setCropScale(Number(cropperZoom.value), true);
+            setCropSliderValue(cropperZoom.value);
         };
         cropperZoom.addEventListener("input", syncCropperZoom);
         cropperZoom.addEventListener("change", syncCropperZoom);
+        cropperZoom.addEventListener("pointerdown", (event) => {
+            if (event.pointerType !== "touch") return;
+            isCropSliderDragging = true;
+            updateCropSliderFromClientX(event.clientX);
+            if (event.cancelable) event.preventDefault();
+        });
+        cropperZoom.addEventListener("pointermove", (event) => {
+            if (event.pointerType !== "touch" || !isCropSliderDragging) return;
+            updateCropSliderFromClientX(event.clientX);
+            if (event.cancelable) event.preventDefault();
+        });
+        const stopCropSliderPointerDrag = (event) => {
+            if (event.pointerType !== "touch") return;
+            isCropSliderDragging = false;
+        };
+        cropperZoom.addEventListener("pointerup", stopCropSliderPointerDrag);
+        cropperZoom.addEventListener("pointercancel", stopCropSliderPointerDrag);
+        cropperZoom.addEventListener("touchstart", (event) => {
+            const touch = event.touches && event.touches[0];
+            if (!touch) return;
+            isCropSliderDragging = true;
+            updateCropSliderFromClientX(touch.clientX);
+            if (event.cancelable) event.preventDefault();
+        }, { passive: false });
+        cropperZoom.addEventListener("touchmove", (event) => {
+            if (!isCropSliderDragging) return;
+            const touch = event.touches && event.touches[0];
+            if (!touch) return;
+            updateCropSliderFromClientX(touch.clientX);
+            if (event.cancelable) event.preventDefault();
+        }, { passive: false });
+        const stopCropSliderTouchDrag = () => {
+            isCropSliderDragging = false;
+        };
+        cropperZoom.addEventListener("touchend", stopCropSliderTouchDrag, { passive: true });
+        cropperZoom.addEventListener("touchcancel", stopCropSliderTouchDrag, { passive: true });
     }
     if (centerImageBtn) {
         centerImageBtn.addEventListener("click", () => {
