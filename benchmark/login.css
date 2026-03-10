@@ -48,6 +48,8 @@ body::before {
 html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    --mobile-safe-vw: 100vw;
+    --mobile-safe-vh: 100dvh;
 }
 
 a:focus,
@@ -448,11 +450,13 @@ textarea:focus {
     }
 
     .app-title {
-        font-size: clamp(42px, 11vw, 58px);
-        letter-spacing: 2px;
-        -webkit-text-stroke: 2px #000;
-        transform: translateY(6px);
-        margin: 4px 0 8px;
+        font-size: clamp(34px, 8.8vw, 44px);
+        line-height: 0.92;
+        letter-spacing: 1.5px;
+        -webkit-text-stroke: 1.5px #000;
+        transform: none;
+        margin: 4px auto 6px;
+        max-width: min(300px, calc(var(--mobile-safe-vw, 100vw) - 16px));
     }
 
     .login-container {
@@ -599,48 +603,95 @@ input:-moz-autofill {
     }
 
     body {
-        height: auto;
+        height: var(--mobile-safe-vh, 100dvh);
+        min-height: var(--mobile-safe-vh, 100dvh);
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
         justify-content: flex-start !important;
         grid-template-rows: none;
-        min-height: 100svh;
-        min-height: 100dvh;
+        overflow: hidden !important;
     }
 
     .auth-main {
         width: 100%;
         max-width: 100%;
         min-height: 0;
-        overflow: visible !important;
-        overscroll-behavior: auto !important;
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
         -webkit-overflow-scrolling: auto;
         position: relative;
         z-index: 2;
-        flex: 1 0 auto;
         padding-left: 6px;
         padding-right: 6px;
         contain: none;
     }
 
+    .app-title {
+        width: auto !important;
+        max-width: min(300px, calc(var(--mobile-safe-vw, 100vw) - 16px)) !important;
+        font-size: clamp(34px, 8.8vw, 44px) !important;
+        line-height: 0.92 !important;
+        letter-spacing: 1.5px !important;
+        -webkit-text-stroke: 1.5px #000 !important;
+        margin: 4px auto 6px !important;
+    }
+
     .login-container {
-        width: min(390px, calc(100vw - 12px));
-        max-width: calc(100vw - 12px);
-        max-height: none;
+        width: min(390px, calc(var(--mobile-safe-vw, 100vw) - 12px));
+        max-width: calc(var(--mobile-safe-vw, 100vw) - 12px);
+        max-height: min(360px, calc(var(--mobile-safe-vh, 100dvh) - 200px));
         min-width: 0;
+        padding: 14px 12px;
+        gap: 12px;
+        overflow-y: auto;
     }
 
     .auth-lang-shell {
-        width: min(390px, calc(100vw - 12px));
-        max-width: calc(100vw - 12px);
+        width: min(390px, calc(var(--mobile-safe-vw, 100vw) - 12px));
+        max-width: calc(var(--mobile-safe-vw, 100vw) - 12px);
         min-width: 0;
+        margin-bottom: 8px;
     }
 
     .auth-footer {
         width: 100%;
         max-width: 100%;
         margin-top: auto;
+        padding: 8px 10px 6px;
+        flex: 0 0 auto;
+        overflow: hidden;
+    }
+
+    .legal-footer-icon-wrap {
+        margin-bottom: 4px;
+    }
+
+    .legal-baddy-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .auth-footer .legal-footer-text {
+        font-size: 10px;
+        margin-bottom: 3px;
+    }
+
+    .auth-footer .legal-footer-disclaimer {
+        font-size: 8px;
+        line-height: 1.28;
+        margin-bottom: 4px;
+    }
+
+    .auth-footer .legal-footer-links {
+        gap: 4px;
+        font-size: 9px;
+        padding-top: 4px;
     }
 
     .auth-footer .benchmark-footer-inner,
@@ -649,6 +700,10 @@ input:-moz-autofill {
     .auth-footer .legal-footer-links a {
         max-width: 100%;
         min-width: 0;
+    }
+
+    body.auth-lang-menu-open .auth-main {
+        overflow: visible !important;
     }
 
     body.auth-lang-menu-open .auth-lang-shell {
@@ -681,13 +736,13 @@ input:-moz-autofill {
 
 html.mobile-viewport-guard,
 html.mobile-viewport-guard body {
-    height: auto;
-    min-height: 100%;
+    height: var(--mobile-safe-vh, 100dvh);
+    min-height: var(--mobile-safe-vh, 100dvh);
     width: 100% !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior-y: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-y: none !important;
     overscroll-behavior-x: none !important;
 }
 
@@ -696,13 +751,13 @@ html.mobile-viewport-guard body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    min-height: 100svh;
-    min-height: 100dvh;
+    min-height: var(--mobile-safe-vh, 100dvh);
 }
 
 html.mobile-viewport-guard body::before {
     width: 100%;
     max-width: 100%;
+    height: var(--mobile-safe-vh, 100dvh);
 }
 
 html.mobile-viewport-guard .auth-main {
@@ -712,9 +767,13 @@ html.mobile-viewport-guard .auth-main {
     flex: 1 0 auto;
     padding-left: 6px;
     padding-right: 6px;
-    overflow-y: visible !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-y: hidden !important;
     overflow-x: hidden !important;
-    overscroll-behavior-y: auto !important;
+    overscroll-behavior-y: none !important;
     overscroll-behavior-x: none !important;
     -webkit-overflow-scrolling: auto;
     contain: none;
@@ -723,8 +782,8 @@ html.mobile-viewport-guard .auth-main {
 html.mobile-viewport-guard .login-container,
 html.mobile-viewport-guard .auth-lang-shell,
 html.mobile-viewport-guard .auth-footer .benchmark-footer-inner {
-    width: min(390px, calc(100vw - 12px));
-    max-width: calc(100vw - 12px) !important;
+    width: min(390px, calc(var(--mobile-safe-vw, 100vw) - 12px));
+    max-width: calc(var(--mobile-safe-vw, 100vw) - 12px) !important;
     min-width: 0 !important;
 }
 
@@ -732,6 +791,7 @@ html.mobile-viewport-guard .auth-footer {
     width: 100% !important;
     max-width: 100% !important;
     margin-top: auto;
+    overflow: hidden;
 }
 
 html.mobile-viewport-guard .auth-footer .benchmark-footer-inner,
@@ -740,4 +800,9 @@ html.mobile-viewport-guard .auth-footer .legal-footer-links,
 html.mobile-viewport-guard .auth-footer .legal-footer-links a {
     max-width: 100% !important;
     min-width: 0 !important;
+}
+
+html.mobile-viewport-guard body.auth-lang-menu-open,
+html.mobile-viewport-guard body.auth-lang-menu-open .auth-main {
+    overflow: visible !important;
 }

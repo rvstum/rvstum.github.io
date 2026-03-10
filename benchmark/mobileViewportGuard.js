@@ -20,6 +20,17 @@
         );
     }
 
+    function syncViewportCssVars() {
+        var root = document.documentElement;
+        if (!root) return;
+        var vv = window.visualViewport || null;
+        var width = vv && vv.width ? vv.width : (window.innerWidth || root.clientWidth || 0);
+        var height = vv && vv.height ? vv.height : (window.innerHeight || root.clientHeight || 0);
+        if (!width || !height) return;
+        root.style.setProperty("--mobile-safe-vw", width + "px");
+        root.style.setProperty("--mobile-safe-vh", height + "px");
+    }
+
     function applyClasses() {
         document.documentElement.classList.add("mobile-viewport-guard");
         if (document.body) {
@@ -31,9 +42,21 @@
 
     applyViewportMeta();
     applyClasses();
+    syncViewportCssVars();
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", applyClasses, { once: true });
+        document.addEventListener("DOMContentLoaded", function () {
+            applyClasses();
+            syncViewportCssVars();
+        }, { once: true });
+    }
+
+    window.addEventListener("resize", syncViewportCssVars, { passive: true });
+    window.addEventListener("orientationchange", syncViewportCssVars, { passive: true });
+    window.addEventListener("pageshow", syncViewportCssVars, { passive: true });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", syncViewportCssVars, { passive: true });
+        window.visualViewport.addEventListener("scroll", syncViewportCssVars, { passive: true });
     }
 
     var lastTouchEndAt = 0;
