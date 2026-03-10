@@ -4380,6 +4380,39 @@ input:-webkit-autofill:active {
     gap: 10px;
 }
 
+@media (max-width: 900px), (max-device-width: 900px) {
+    .cropper-action-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        height: auto;
+    }
+
+    .cropper-center-btn {
+        position: static;
+        left: auto;
+        transform: none;
+        width: 100%;
+    }
+
+    .cropper-center-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .cropper-action-buttons {
+        margin-left: 0;
+        width: 100%;
+        display: flex;
+        gap: 10px;
+    }
+
+    .cropper-action-buttons .settings-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
+    }
+}
+
 .cropper-overlay {
     position: absolute;
     top: 0;
