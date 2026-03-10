@@ -10,7 +10,7 @@ import {
 import { doc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
-import * as ProfileUI from "./profileUI.js?v=20260310-profile-save-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-profile-save-fix-2";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
@@ -480,6 +480,16 @@ export function initProfileModalController(options = {}) {
             const userMenuName = getCachedElementById("userMenuUsername");
             if (userMenuName) userMenuName.textContent = username;
 
+            const remoteProfileData = ProfileUI.cleanProfileData(draft, guilds, { includeOriginalPic: false });
+            const accountId = getSlugAccountId();
+            const publicSlug = Slugs.buildProfileSlug(username, accountId, user.uid);
+
+            await setDoc(doc(db, "users", user.uid), {
+                username,
+                profile: remoteProfileData,
+                publicSlug
+            }, { merge: true });
+
             if (draft.pic) writeString(PROFILE_PIC_STORAGE_KEY, draft.pic);
             else removeItem(PROFILE_PIC_STORAGE_KEY);
 
@@ -493,29 +503,6 @@ export function initProfileModalController(options = {}) {
             else removeItem(PROFILE_PIC_STATE_STORAGE_KEY);
 
             writeJson(GUILDS_STORAGE_KEY, guilds);
-
-            const profileData = ProfileUI.cleanProfileData(draft, guilds);
-            const remoteProfileData = ProfileUI.cleanProfileData(draft, guilds, { includeOriginalPic: false });
-            const accountId = getSlugAccountId();
-            const publicSlug = Slugs.buildProfileSlug(username, accountId, user.uid);
-
-            await setDoc(doc(db, "users", user.uid), {
-                username,
-                profile: remoteProfileData,
-                publicSlug
-            }, { merge: true });
-            await updateDoc(doc(db, "users", user.uid), {
-                "profile.originalPic": deleteField()
-            });
-            await UserService.syncAccountDirectoryEntry(user.uid, accountId, {
-                username,
-                accountId,
-                profile: remoteProfileData,
-                publicSlug,
-                settings: {
-                    visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")
-                }
-            });
 
             ProfileUI.setDraftProfileState({ ...draft });
             ProfileUI.setOriginalProfileState({
@@ -532,6 +519,27 @@ export function initProfileModalController(options = {}) {
             ProfileUI.renderGuildsList(addGuildBtn);
             updateAddGuildVisibility();
             ProfileUI.updateProfileButtons();
+
+            const followUpResults = await Promise.allSettled([
+                updateDoc(doc(db, "users", user.uid), {
+                    "profile.originalPic": deleteField()
+                }),
+                UserService.syncAccountDirectoryEntry(user.uid, accountId, {
+                    username,
+                    accountId,
+                    profile: remoteProfileData,
+                    publicSlug,
+                    settings: {
+                        visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")
+                    }
+                })
+            ]);
+            followUpResults.forEach((result, index) => {
+                if (result.status === "rejected") {
+                    const label = index === 0 ? "profile cleanup" : "account directory sync";
+                    console.error(`Non-critical ${label} error:`, result.reason);
+                }
+            });
         } catch (e) {
             console.error("Error saving profile:", e);
             alert(t("profile_save_failed"));

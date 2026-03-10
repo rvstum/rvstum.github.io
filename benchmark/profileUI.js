@@ -761,6 +761,17 @@ export async function saveOnboardingProfile(usernameRaw) {
     const userMenuName = getCachedProfileElementById('userMenuUsername');
     if (userMenuName) userMenuName.textContent = username;
 
+    const remoteProfileData = cleanProfileData(draftProfileState, editingGuilds, { includeOriginalPic: false });
+    const accountIdForSlug = getSlugAccountId();
+    const publicSlug = Slugs.buildProfileSlug(username, accountIdForSlug, user.uid);
+
+    await setDoc(doc(db, 'users', user.uid), {
+        username,
+        profile: remoteProfileData,
+        publicSlug,
+        isNewUser: false
+    }, { merge: true });
+
     if (draftProfileState.pic) writeString(PROFILE_PIC_STORAGE_KEY, draftProfileState.pic);
     else removeItem(PROFILE_PIC_STORAGE_KEY);
     if (draftProfileState.flag) writeString(COUNTRY_FLAG_STORAGE_KEY, draftProfileState.flag);
@@ -774,30 +785,6 @@ export async function saveOnboardingProfile(usernameRaw) {
     updateMainPageGuildDisplay();
     updateMainHeaderLayout();
 
-    const profileData = cleanProfileData(draftProfileState, editingGuilds);
-    const remoteProfileData = cleanProfileData(draftProfileState, editingGuilds, { includeOriginalPic: false });
-    const accountIdForSlug = getSlugAccountId();
-    const publicSlug = Slugs.buildProfileSlug(username, accountIdForSlug, user.uid);
-
-    await setDoc(doc(db, 'users', user.uid), {
-        username,
-        profile: remoteProfileData,
-        publicSlug,
-        isNewUser: false
-    }, { merge: true });
-    await updateDoc(doc(db, 'users', user.uid), {
-        'profile.originalPic': deleteField()
-    });
-    await UserService.syncAccountDirectoryEntry(user.uid, accountIdForSlug, {
-        username,
-        accountId: accountIdForSlug,
-        profile: remoteProfileData,
-        publicSlug,
-        settings: {
-            visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")
-        }
-    });
-
     originalProfileState = {
         username,
         pic: draftProfileState.pic,
@@ -806,6 +793,27 @@ export async function saveOnboardingProfile(usernameRaw) {
         guilds: [...editingGuilds],
         cropState: draftProfileState.cropState
     };
+
+    const followUpResults = await Promise.allSettled([
+        updateDoc(doc(db, 'users', user.uid), {
+            'profile.originalPic': deleteField()
+        }),
+        UserService.syncAccountDirectoryEntry(user.uid, accountIdForSlug, {
+            username,
+            accountId: accountIdForSlug,
+            profile: remoteProfileData,
+            publicSlug,
+            settings: {
+                visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")
+            }
+        })
+    ]);
+    followUpResults.forEach((result, index) => {
+        if (result.status === 'rejected') {
+            const label = index === 0 ? 'profile cleanup' : 'account directory sync';
+            console.error(`Non-critical ${label} error:`, result.reason);
+        }
+    });
 
     return {
         username,

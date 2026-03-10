@@ -1,5 +1,5 @@
 import { auth } from "./client.js";
-import * as ProfileUI from "./profileUI.js?v=20260310-profile-save-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260310-profile-save-fix-2";
 import { getCachedElementById } from "./utils/domUtils.js";
 
 export function initOnboardingUI(options = {}) {
