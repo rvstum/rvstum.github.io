@@ -9,7 +9,7 @@ import * as UserService from "./userService.js?v=20260309-remove-highlights-1";
 import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260310-own-route-fix-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-auth-back-guard-1";
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf } from "./i18n.js";
 import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
@@ -25,6 +25,7 @@ export function initAuthLifecycle(options = {}) {
         loadUserProfile,
         hidePageLoader,
         hidePrivateProfileOverlay = null,
+        syncAuthenticatedBackNavigationGuard = null,
         updateNotificationVisibility,
         onAuthSessionChange = null,
         setAuthGateActive = null
@@ -78,6 +79,9 @@ export function initAuthLifecycle(options = {}) {
             try {
                 const requestedDoc = await Slugs.resolveProfileDocBySlug(requestedSlug, !!user);
                 if (requestedDoc && requestedDoc.id !== user.uid) {
+                    if (typeof syncAuthenticatedBackNavigationGuard === "function") {
+                        syncAuthenticatedBackNavigationGuard({ enabled: true });
+                    }
                     hidePageLoader();
                     return;
                 }
@@ -93,6 +97,9 @@ export function initAuthLifecycle(options = {}) {
             }
 
             if (profileId && profileId !== user.uid) {
+                if (typeof syncAuthenticatedBackNavigationGuard === "function") {
+                    syncAuthenticatedBackNavigationGuard({ enabled: true });
+                }
                 hidePageLoader();
                 return;
             }
@@ -167,7 +174,7 @@ export function initAuthLifecycle(options = {}) {
                             showPageLoader();
                             signOut(auth)
                                 .then(() => {
-                                    window.location.href = Slugs.getBenchmarkLoginUrl();
+                                    window.location.replace(Slugs.getBenchmarkLoginUrl());
                                 })
                                 .catch((signOutErr) => {
                                     console.error("Error signing out from verification modal:", signOutErr);
@@ -267,10 +274,16 @@ export function initAuthLifecycle(options = {}) {
             }
             RadarUI.setRadarMode("combined", false);
             ProfileUI.syncUserMenuDropdownWidth();
+            if (typeof syncAuthenticatedBackNavigationGuard === "function") {
+                syncAuthenticatedBackNavigationGuard({ enabled: true });
+            }
             hidePageLoader();
             return;
         }
 
+        if (typeof syncAuthenticatedBackNavigationGuard === "function") {
+            syncAuthenticatedBackNavigationGuard({ enabled: false });
+        }
         if (profileId) {
             hidePageLoader();
             return;

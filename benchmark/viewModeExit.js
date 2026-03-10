@@ -16,11 +16,12 @@ export async function exitViewMode(options = {}) {
         user,
         exitViewModeContainer,
         loadUserProfile,
-        applyStoredSettings
+        applyStoredSettings,
+        syncAuthenticatedBackNavigationGuard = null
     } = options;
 
     if (!user) {
-        window.location.href = Slugs.getBenchmarkLoginUrl();
+        window.location.replace(Slugs.getBenchmarkLoginUrl());
         return;
     }
 
@@ -92,6 +93,9 @@ export async function exitViewMode(options = {}) {
         accountId: getRuntimeAccountId(),
         profile: {}
     });
+    if (typeof syncAuthenticatedBackNavigationGuard === "function") {
+        syncAuthenticatedBackNavigationGuard({ enabled: true });
+    }
 
     const cachedViews = readString(CACHED_VIEWS_STORAGE_KEY, "");
     const viewCountEl = getCachedElementById("viewCount");

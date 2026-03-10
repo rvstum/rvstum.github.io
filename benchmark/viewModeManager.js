@@ -19,6 +19,7 @@ import { normalizeMountConfig, getConfigLookupKeys } from "./configManager.js";
 const viewModeDeps = {
     showPrivateProfileOverlay: null,
     hidePrivateProfileOverlay: null,
+    syncAuthenticatedBackNavigationGuard: null,
     applyMountConfigVisual: null,
     syncPlatformLabelColor: null,
     renderSeasonalTrophyList: null,
@@ -410,6 +411,7 @@ function resetViewModeHorizontalScroll() {
 export async function enterViewMode(data, uid) {
     const showPrivateProfileOverlay = requireDep("showPrivateProfileOverlay");
     const hidePrivateProfileOverlay = requireDep("hidePrivateProfileOverlay");
+    const syncAuthenticatedBackNavigationGuard = requireDep("syncAuthenticatedBackNavigationGuard");
     const updateViewProfileUrl = requireDep("updateViewProfileUrl");
     const user = auth.currentUser;
 
@@ -428,6 +430,9 @@ export async function enterViewMode(data, uid) {
     hidePrivateProfileOverlay();
     ScoreManager.saveCurrentScores();
     updateViewProfileUrl(data, uid);
+    if (user) {
+        syncAuthenticatedBackNavigationGuard({ enabled: true });
+    }
 
     const profile = (data && typeof data.profile === "object" && data.profile) ? data.profile : {};
     const resolvedUsername = Slugs.resolveProfileUsername(data, profile.username || "player");

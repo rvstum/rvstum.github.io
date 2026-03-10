@@ -450,7 +450,7 @@ export function initProfileModalController(options = {}) {
                 const targetUrl = typeof getLoginUrl === "function"
                     ? getLoginUrl()
                     : Slugs.getBenchmarkLoginUrl();
-                window.location.href = targetUrl;
+                window.location.replace(targetUrl);
             } catch (e) {
                 hidePageLoaderUI({ immediate: true }, 0);
                 console.error("Error signing out:", e);
@@ -747,7 +747,7 @@ export function initProfileModalController(options = {}) {
                     const targetUrl = typeof getLoginUrl === "function"
                         ? getLoginUrl()
                         : Slugs.getBenchmarkLoginUrl();
-                    window.location.href = targetUrl;
+                    window.location.replace(targetUrl);
                 };
                 await withReauth(action, (e) => {
                     console.error("Error deleting account:", e);

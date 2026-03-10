@@ -1,5 +1,5 @@
 import { app, auth } from "./client.js";
-import { isMobileViewport } from "./utils.js";
+import { getBenchmarkBasePath, isMobileViewport } from "./utils.js";
 import { getCachedElementById, getCachedQuery } from "./utils/domUtils.js";
 import {
     readJson,
@@ -42,7 +42,7 @@ import {
 
 export { app };
 
-import { state, setCurrentConfigState, setRuntimeAccountId } from "./appState.js";
+import { state, getRuntimeAccountId, setCurrentConfigState, setRuntimeAccountId } from "./appState.js";
 import {
     DEFAULT_MOUNT_CONFIG,
     MOUNT_CONFIG_IMAGES,
@@ -64,7 +64,7 @@ import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260309-view-mode-rank-trophy-fix-2";
-import * as ViewModeManager from "./viewModeManager.js?v=20260310-own-route-fix-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260310-auth-back-guard-1";
 import * as ShareManager from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
@@ -91,11 +91,11 @@ import * as ProfileUI from "./profileUI.js?v=20260309-remove-highlights-1";
 import * as AuthManager from "./authManager.js?v=20260309-remove-highlights-1";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-view-mode-asset-fix-1";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260310-own-route-fix-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260310-auth-back-guard-1";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260309-remove-highlights-1";
-import { handleProfileLink } from "./routeManager.js?v=20260310-own-route-fix-1";
-import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260309-remove-highlights-1";
-import { initProfileModalController } from "./profileModalUI.js?v=20260309-flag-remove-fix-1";
+import { handleProfileLink } from "./routeManager.js?v=20260310-auth-back-guard-1";
+import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260310-auth-back-guard-1";
+import { initProfileModalController } from "./profileModalUI.js?v=20260310-auth-back-guard-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260309-remove-highlights-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
@@ -122,6 +122,8 @@ let benchmarkAppInitialized = false;
 let moduleConfigurationsInitialized = false;
 const visibilitySelect = getCachedElementById('visibilitySelect');
 let authGateActive = false;
+let authenticatedBackNavigationGuardActive = false;
+let authenticatedBackNavigationGuardHasSentinel = false;
 
 function resolveBenchmarkAssetUrl(assetPath) {
     const raw = typeof assetPath === "string" ? assetPath.trim() : "";
@@ -211,6 +213,78 @@ function setAuthGateActive(active) {
     if (nextActive) {
         clearBenchmarkVisualState();
     }
+}
+
+function getCurrentRelativeLocation() {
+    return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+}
+
+function resolveAuthenticatedBackNavigationTargetUrl() {
+    const user = auth.currentUser;
+    if (!user) return "";
+
+    const params = new URLSearchParams(window.location.search || "");
+    const requestedSlug = Slugs.getRequestedProfileSlugFromPath();
+    if (requestedSlug && !params.has("__restore") && !params.has("id")) {
+        return getCurrentRelativeLocation();
+    }
+
+    if (Slugs.isLocalDevRoutingEnv()) {
+        return `${getBenchmarkBasePath()}/benchmark.html`;
+    }
+
+    const accountIdDisplay = getCachedElementById("accountIdDisplay");
+    const accountIdFromDataset = accountIdDisplay && accountIdDisplay.dataset
+        ? (accountIdDisplay.dataset.realValue || "").trim()
+        : "";
+    const accountId = getRuntimeAccountId() || accountIdFromDataset;
+    if (!accountId) {
+        return getCurrentRelativeLocation();
+    }
+
+    const profileName = getCachedQuery("profileName", () => document.querySelector(".profile-name"));
+    const username = (profileName && profileName.textContent ? profileName.textContent : user.displayName || "player").trim() || "player";
+    const slug = Slugs.resolveProfileSlug({
+        username,
+        accountId,
+        profile: {}
+    }, {
+        usernameFallback: username,
+        accountIdFallback: accountId,
+        uid: user.uid
+    });
+    return `${getBenchmarkBasePath()}/${slug}`;
+}
+
+function syncAuthenticatedBackNavigationGuard(options = {}) {
+    const enabled = Object.prototype.hasOwnProperty.call(options, "enabled")
+        ? !!options.enabled
+        : !!auth.currentUser;
+
+    if (!enabled) {
+        authenticatedBackNavigationGuardActive = false;
+        authenticatedBackNavigationGuardHasSentinel = false;
+        return;
+    }
+
+    const targetUrl = resolveAuthenticatedBackNavigationTargetUrl();
+    if (!targetUrl) return;
+
+    authenticatedBackNavigationGuardActive = true;
+    const currentUrl = getCurrentRelativeLocation();
+    if (currentUrl !== targetUrl) {
+        window.history.replaceState(window.history.state || {}, "", targetUrl);
+    }
+
+    if (authenticatedBackNavigationGuardHasSentinel) return;
+    authenticatedBackNavigationGuardHasSentinel = true;
+    window.history.pushState({ benchmarkAuthBackGuard: true }, "", targetUrl);
+}
+
+function handleAuthenticatedBackNavigationPopState() {
+    if (!authenticatedBackNavigationGuardActive || !auth.currentUser) return;
+    const targetUrl = resolveAuthenticatedBackNavigationTargetUrl() || getCurrentRelativeLocation();
+    window.history.pushState({ benchmarkAuthBackGuard: true }, "", targetUrl);
 }
 
 function resetSessionScopedState() {
@@ -363,6 +437,7 @@ function handleAuthSessionChange({ currentUid, force = false }) {
     } else {
         resetSessionScopedState();
         removeItem(LAST_ACTIVE_AUTH_UID_STORAGE_KEY);
+        syncAuthenticatedBackNavigationGuard({ enabled: false });
     }
 }
 
@@ -548,6 +623,7 @@ function initModuleConfigurations() {
     ViewModeManager.configure({
         showPrivateProfileOverlay,
         hidePrivateProfileOverlay,
+        syncAuthenticatedBackNavigationGuard,
         applyMountConfigVisual,
         syncPlatformLabelColor,
         renderSeasonalTrophyList: TrophyUI.renderSeasonalTrophyList,
@@ -859,7 +935,8 @@ function initFriendsModalBindings() {
                 user: auth.currentUser,
                 exitViewModeContainer,
                 loadUserProfile,
-                applyStoredSettings
+                applyStoredSettings,
+                syncAuthenticatedBackNavigationGuard
             });
         });
     }
@@ -1060,6 +1137,7 @@ function initGlobalListeners() {
     if (globalListenersInitialized) return;
     globalListenersInitialized = true;
     window.addEventListener('resize', ProfileUI.syncUserMenuDropdownWidth);
+    window.addEventListener('popstate', handleAuthenticatedBackNavigationPopState);
     window.addEventListener('pagehide', () => {
         if (state.isViewMode) return;
         ScoreManager.saveCurrentScores();
@@ -1113,6 +1191,7 @@ function initBenchmarkApp() {
         loadUserProfile,
         hidePageLoader,
         hidePrivateProfileOverlay,
+        syncAuthenticatedBackNavigationGuard,
         updateNotificationVisibility,
         onAuthSessionChange: handleAuthSessionChange,
         setAuthGateActive
