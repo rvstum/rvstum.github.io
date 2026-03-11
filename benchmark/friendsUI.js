@@ -15,7 +15,7 @@ import { getCachedElementById, setHidden } from "./utils/domUtils.js";
 import { FINAL_RANK_INDEX, RANK_NAMES, RANK_TEXT_COLORS, STELLAR_TROPHY_FILTER } from "./constants.js";
 import { t, tf } from "./i18n.js";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
-import * as FriendsService from "./friendsService.js?v=20260309-request-metadata-1";
+import * as FriendsService from "./friendsService.js?v=20260311-friendship-profile-fallback-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 
 function resolveFriendAssetUrl(assetPath) {
@@ -422,6 +422,18 @@ function buildFriendRequestProfileSnapshotFromDirectoryEntry(rawEntry = {}, fall
     }, fallbackIdentifier);
 }
 
+function buildFriendRequestProfileSnapshotFromFriendshipEntry(rawEntry = {}, friendUid = "", fallbackIdentifier = "") {
+    const safeEntry = rawEntry && typeof rawEntry === "object" ? rawEntry : {};
+    const safeFriendUid = typeof friendUid === "string" ? friendUid.trim() : "";
+    const profilesByUid = safeEntry.profilesByUid && typeof safeEntry.profilesByUid === "object"
+        ? safeEntry.profilesByUid
+        : {};
+    const profileEntry = safeFriendUid && profilesByUid[safeFriendUid] && typeof profilesByUid[safeFriendUid] === "object"
+        ? profilesByUid[safeFriendUid]
+        : {};
+    return normalizeFriendRequestProfileSnapshot(profileEntry, fallbackIdentifier || safeFriendUid);
+}
+
 function mergeFriendRequestProfileSnapshots(...profiles) {
     const merged = {
         username: "",
@@ -618,12 +630,20 @@ export async function loadFriendsList(options = {}) {
         const userData = userDoc.exists() ? (userDoc.data() || {}) : {};
         const storedFriends = normalizeFriendRequestIds(userData.friends).filter((uid) => typeof uid === "string" && uid.trim() !== "");
         let edgeFriends = [];
+        const friendshipProfileByUid = new Map();
         try {
             const friendshipDocs = await FriendsService.listFriendships(user.uid);
             edgeFriends = normalizeFriendRequestIds(friendshipDocs.map((snap) => {
                 const data = snap.data() || {};
                 const users = Array.isArray(data.users) ? data.users : [];
-                return users.find((uidValue) => typeof uidValue === "string" && uidValue.trim() !== "" && uidValue !== user.uid) || "";
+                const friendUid = users.find((uidValue) => typeof uidValue === "string" && uidValue.trim() !== "" && uidValue !== user.uid) || "";
+                if (friendUid && !friendshipProfileByUid.has(friendUid)) {
+                    friendshipProfileByUid.set(
+                        friendUid,
+                        buildFriendRequestProfileSnapshotFromFriendshipEntry(data, friendUid, friendUid)
+                    );
+                }
+                return friendUid;
             }));
         } catch (e) {
             console.error("Error loading friendship edges:", e);
@@ -676,12 +696,14 @@ export async function loadFriendsList(options = {}) {
                     identifier: normalizedIdentifier,
                     snap: snap && snap.exists() ? snap : null,
                     resolvedUid: (resolvedUid || normalizedIdentifier || "").trim(),
-                    directoryProfile
+                    directoryProfile,
+                    friendshipProfile: friendshipProfileByUid.get((resolvedUid || normalizedIdentifier || "").trim()) || null
                 };
             })
         );
 
         const renderableFriends = [];
+        const renderedFriendUids = new Set();
         const interactionState = getFriendListInteractionState(friendList);
         if (interactionState) {
             interactionState.payloadByUid.clear();
@@ -695,19 +717,24 @@ export async function loadFriendsList(options = {}) {
             const friendIdentifier = typeof result.value.identifier === "string" ? result.value.identifier.trim() : "";
             const friendDoc = result.value.snap;
             const friendUid = typeof result.value.resolvedUid === "string" ? result.value.resolvedUid.trim() : "";
-            if (!friendUid) return;
+            if (!friendUid || renderedFriendUids.has(friendUid)) return;
+            renderedFriendUids.add(friendUid);
             try {
                 const data = friendDoc ? (friendDoc.data() || {}) : {};
                 const profile = (data && typeof data.profile === "object" && data.profile) ? data.profile : {};
-                const fallbackMeta = buildFriendRequestProfileSnapshotFromDirectoryEntry(
+                const friendshipMeta = normalizeFriendRequestProfileSnapshot(
+                    result.value.friendshipProfile,
+                    friendIdentifier || friendUid
+                );
+                const directoryMeta = buildFriendRequestProfileSnapshotFromDirectoryEntry(
                     result.value.directoryProfile,
                     friendIdentifier || friendUid
                 );
-                const displayIdentifier = data.accountId || fallbackMeta.accountId || friendIdentifier || friendUid;
+                const fallbackMeta = mergeFriendRequestProfileSnapshots(friendshipMeta, directoryMeta);
                 const name = data.username
                     || profile.username
                     || fallbackMeta.username
-                    || (displayIdentifier ? `ID: ${displayIdentifier}` : t("unknown_player"));
+                    || t("unknown_player");
                 const maxRankIndex = friendDoc ? getRankIndex(data) : fallbackMeta.rankIndex;
                 const rankName = RANK_NAMES[maxRankIndex] || RANK_NAMES[0];
                 const filter = getRankFilter(maxRankIndex);
@@ -948,6 +975,14 @@ export async function loadFriendRequests(options = {}) {
                             await FriendsService.declineFriendRequest(user.uid, requesterUid);
                         }
                         removeRenderedRequest(requesterUid, requestIdentifier, item);
+                        if (action === "accept") {
+                            void loadFriendsList(options).catch((refreshErr) => {
+                                console.error("Error refreshing friends list after acceptance:", refreshErr);
+                            });
+                            void loadRemoveFriendsList(options).catch((refreshErr) => {
+                                console.error("Error refreshing remove-friends list after acceptance:", refreshErr);
+                            });
+                        }
                     } catch (e) {
                         if (action === "accept") {
                             console.error("Error accepting friend", e);
@@ -1005,20 +1040,26 @@ export async function loadRemoveFriendsList(options = {}) {
             : (typeof currentProfile.accountId === "string" ? currentProfile.accountId.trim() : "");
         let friends = [];
         let edgeFriends = [];
+        const friendshipProfileByUid = new Map();
         try {
             const friendshipDocs = await FriendsService.listFriendships(user.uid);
             edgeFriends = normalizeFriendRequestIds(friendshipDocs.map((snap) => {
                 const data = snap.data() || {};
                 const users = Array.isArray(data.users) ? data.users : [];
-                return users.find((uidValue) => typeof uidValue === "string" && uidValue.trim() !== "" && uidValue !== user.uid) || "";
+                const friendUid = users.find((uidValue) => typeof uidValue === "string" && uidValue.trim() !== "" && uidValue !== user.uid) || "";
+                if (friendUid && !friendshipProfileByUid.has(friendUid)) {
+                    friendshipProfileByUid.set(
+                        friendUid,
+                        buildFriendRequestProfileSnapshotFromFriendshipEntry(data, friendUid, friendUid)
+                    );
+                }
+                return friendUid;
             }));
         } catch (e) {
             console.error("Error loading remove-friends edges:", e);
         }
-        if (storedFriends.length) {
-            friends = storedFriends;
-        } else if (edgeFriends.length) {
-            friends = edgeFriends;
+        friends = normalizeFriendRequestIds([...storedFriends, ...edgeFriends]);
+        if (edgeFriends.length) {
             await selfHealAcceptedFriends(user.uid, edgeFriends);
         }
 
@@ -1037,12 +1078,14 @@ export async function loadRemoveFriendsList(options = {}) {
                 return {
                     identifier: normalizedIdentifier,
                     snap: snap && snap.exists() ? snap : null,
-                    resolvedUid: typeof resolvedUid === "string" ? resolvedUid.trim() : ""
+                    resolvedUid: typeof resolvedUid === "string" ? resolvedUid.trim() : "",
+                    friendshipProfile: friendshipProfileByUid.get((typeof resolvedUid === "string" ? resolvedUid.trim() : "") || normalizedIdentifier) || null
                 };
             })
         );
 
         removeFriendsList.innerHTML = "";
+        const renderedFriendUids = new Set();
         friendDocResults.forEach((result) => {
             if (result.status !== "fulfilled") return;
             const friendIdentifier = typeof result.value.identifier === "string" ? result.value.identifier.trim() : "";
@@ -1050,21 +1093,24 @@ export async function loadRemoveFriendsList(options = {}) {
             const friendUid = typeof result.value.resolvedUid === "string" && result.value.resolvedUid.trim() !== ""
                 ? result.value.resolvedUid.trim()
                 : friendIdentifier;
-            if (!friendUid) return;
+            if (!friendUid || renderedFriendUids.has(friendUid)) return;
+            renderedFriendUids.add(friendUid);
 
             const data = friendDoc ? (friendDoc.data() || {}) : {};
             const profile = data && typeof data.profile === "object" && data.profile ? data.profile : {};
-            const friendAccountId = typeof data.accountId === "string" && data.accountId.trim() !== ""
-                ? data.accountId.trim()
-                : (typeof profile.accountId === "string" ? profile.accountId.trim() : "");
-            const displayIdentifier = friendAccountId || friendIdentifier || friendUid;
-            const name = data.username || profile.username || (displayIdentifier ? `ID: ${displayIdentifier}` : t("unknown_player"));
-            const maxRankIndex = friendDoc ? getRankIndex(data) : 0;
+            const friendshipMeta = normalizeFriendRequestProfileSnapshot(
+                result.value.friendshipProfile,
+                friendIdentifier || friendUid
+            );
+            const name = data.username || profile.username || friendshipMeta.username || t("unknown_player");
+            const maxRankIndex = friendDoc ? getRankIndex(data) : friendshipMeta.rankIndex;
             const rankName = RANK_NAMES[maxRankIndex] || RANK_NAMES[0];
             const rankStyle = getRankTextStyle(maxRankIndex);
-            const picHtml = friendDoc ? buildFriendProfilePicHtml(profile) : "";
+            const picHtml = friendDoc
+                ? buildFriendProfilePicHtml(profile)
+                : buildFriendProfilePicHtml({ pic: friendshipMeta.pic });
 
-            const flag = profile.flag;
+            const flag = friendDoc ? profile.flag : friendshipMeta.flag;
             let flagHtml = "";
             if (flag) {
                 flagHtml = `<div style="width: 20px; height: 13px; background-image: url('${getFlagUrl(flag)}'); background-size: cover; background-position: center; border-radius: 2px; margin-left: 6px; flex-shrink: 0;"></div>`;

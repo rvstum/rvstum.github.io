@@ -63,6 +63,46 @@ function buildFriendshipPayload(userA, userB) {
     };
 }
 
+function normalizeFriendshipProfileSnapshot(rawProfile = {}, fallbackIdentifier = "") {
+    const safeProfile = rawProfile && typeof rawProfile === "object" ? rawProfile : {};
+    const parsedRankIndex = Number(safeProfile.rankIndex);
+    return {
+        username: typeof safeProfile.username === "string" ? safeProfile.username.trim() : "",
+        accountId: typeof safeProfile.accountId === "string" && safeProfile.accountId.trim() !== ""
+            ? safeProfile.accountId.trim()
+            : ((fallbackIdentifier || "").toString().trim()),
+        rankIndex: Number.isFinite(parsedRankIndex) ? Math.max(0, Math.floor(parsedRankIndex)) : 0,
+        flag: typeof safeProfile.flag === "string" ? safeProfile.flag.trim() : "",
+        pic: typeof safeProfile.pic === "string" ? safeProfile.pic.trim() : ""
+    };
+}
+
+function buildFriendshipProfileMap(userA, userB, rawProfiles = {}) {
+    const safeProfiles = rawProfiles && typeof rawProfiles === "object" ? rawProfiles : {};
+    const profileMap = {};
+    [
+        (userA || "").toString().trim(),
+        (userB || "").toString().trim()
+    ].forEach((uid) => {
+        if (!uid) return;
+        const snapshot = normalizeFriendshipProfileSnapshot(safeProfiles[uid], uid);
+        if (!snapshot.username && !snapshot.accountId && !snapshot.flag && !snapshot.pic && snapshot.rankIndex === 0) {
+            return;
+        }
+        profileMap[uid] = snapshot;
+    });
+    return profileMap;
+}
+
+function buildFriendshipPayloadWithProfiles(userA, userB, rawProfiles = {}) {
+    const payload = buildFriendshipPayload(userA, userB);
+    const profileMap = buildFriendshipProfileMap(userA, userB, rawProfiles);
+    if (Object.keys(profileMap).length) {
+        payload.profilesByUid = profileMap;
+    }
+    return payload;
+}
+
 function readProfileViewCooldowns() {
     const raw = readJson(PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, {});
     return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
@@ -264,13 +304,31 @@ export async function acceptFriendRequest(userId, requesterUid) {
     const sourceUid = typeof requesterUid === "string" ? requesterUid.trim() : "";
     if (!targetUid || !sourceUid) return;
 
+    const requestRef = doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(sourceUid, targetUid));
+    let requestData = {};
     try {
-        await setDoc(doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(targetUid, sourceUid)), buildFriendshipPayload(targetUid, sourceUid), { merge: true });
+        const requestSnap = await getDoc(requestRef);
+        if (requestSnap && requestSnap.exists()) {
+            requestData = requestSnap.data() || {};
+        }
+    } catch (e) {
+        if (!isPermissionLikeError(e)) throw e;
+    }
+
+    try {
+        await setDoc(
+            doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(targetUid, sourceUid)),
+            buildFriendshipPayloadWithProfiles(targetUid, sourceUid, {
+                [targetUid]: requestData.toProfile,
+                [sourceUid]: requestData.fromProfile
+            }),
+            { merge: true }
+        );
     } catch (e) {
         if (!isPermissionLikeError(e)) throw e;
     }
     try {
-        await deleteDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(sourceUid, targetUid)));
+        await deleteDoc(requestRef);
     } catch (e) {
         if (!isPermissionLikeError(e)) throw e;
     }
