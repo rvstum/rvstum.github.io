@@ -1,4 +1,4 @@
-import * as FriendsUI from "./friendsUI.js?v=20260311-friend-list-fix-1";
+import * as FriendsUI from "./friendsUI.js?v=20260311-remove-friend-fix-1";
 import { resetFriendAccountIdVisibility } from "./accountId.js";
 import { setHidden, setFlexVisible } from "./utils/domUtils.js";
 

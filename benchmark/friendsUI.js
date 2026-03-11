@@ -1102,6 +1102,11 @@ export async function loadRemoveFriendsList(options = {}) {
                 result.value.friendshipProfile,
                 friendIdentifier || friendUid
             );
+            const friendAccountId = typeof data.accountId === "string" && data.accountId.trim() !== ""
+                ? data.accountId.trim()
+                : (typeof profile.accountId === "string" && profile.accountId.trim() !== ""
+                    ? profile.accountId.trim()
+                    : friendshipMeta.accountId);
             const name = data.username || profile.username || friendshipMeta.username || t("unknown_player");
             const maxRankIndex = friendDoc ? getRankIndex(data) : friendshipMeta.rankIndex;
             const rankName = RANK_NAMES[maxRankIndex] || RANK_NAMES[0];
@@ -1154,7 +1159,10 @@ export async function loadRemoveFriendsList(options = {}) {
                                     friendAliases: [friendIdentifier, friendAccountId],
                                     currentUserAliases: [currentUserAccountId]
                                 });
-                                await loadRemoveFriendsList(options);
+                                await Promise.all([
+                                    loadRemoveFriendsList(options),
+                                    loadFriendsList(options)
+                                ]);
                             } catch (err) {
                                 console.error("Error removing friend:", err);
                                 alert(t("remove_friend_failed"));
