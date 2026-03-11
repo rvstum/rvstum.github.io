@@ -95,7 +95,7 @@ import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-frien
 import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-view-mode-compare-2";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
 import { handleProfileLink } from "./routeManager.js?v=20260311-view-mode-compare-2";
-import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-view-mode-compare-2";
+import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-exit-slug-fix-1";
 import { initProfileModalController } from "./profileModalUI.js?v=20260311-profile-original-sync-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260311-profile-original-sync-1";

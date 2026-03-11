@@ -104,12 +104,6 @@ export async function exitViewMode(options = {}) {
         const userMenuName = getCachedElementById("userMenuUsername");
         if (userMenuName) userMenuName.textContent = user.displayName;
     }
-    const profileName = getCachedQuery("profileName", () => document.querySelector(".profile-name"));
-    Slugs.updateOwnProfileUrl(user, {
-        username: user.displayName || (profileName ? profileName.textContent : "player"),
-        accountId: getRuntimeAccountId(),
-        profile: {}
-    });
     if (typeof syncAuthenticatedBackNavigationGuard === "function") {
         syncAuthenticatedBackNavigationGuard({ enabled: true });
     }
@@ -130,6 +124,19 @@ export async function exitViewMode(options = {}) {
 
     if (typeof loadUserProfile === "function") {
         await loadUserProfile(user);
+    }
+
+    {
+        const profileName = getCachedQuery("profileName", () => document.querySelector(".profile-name"));
+        const accountIdDisplay = getCachedElementById("accountIdDisplay");
+        const accountIdFromDataset = accountIdDisplay && accountIdDisplay.dataset
+            ? (accountIdDisplay.dataset.realValue || "").trim()
+            : "";
+        Slugs.updateOwnProfileUrl(user, {
+            username: user.displayName || (profileName ? profileName.textContent : "player"),
+            accountId: accountIdFromDataset || getRuntimeAccountId(),
+            profile: {}
+        });
     }
 
     if (typeof applyStoredSettings === "function") {
