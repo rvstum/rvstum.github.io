@@ -3,8 +3,8 @@ import { db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260310-sub-score-input-1";
-import * as AuthManager from "./authManager.js?v=20260310-profile-mobile-ui-fix-3";
+import * as ViewModeManager from "./viewModeManager.js?v=20260311-exit-view-text-1";
+import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
 import { showPageLoader } from "./pageLoaderUI.js";
 
 export async function handleProfileLink(options = {}) {

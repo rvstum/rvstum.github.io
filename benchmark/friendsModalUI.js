@@ -1,177 +1,152 @@
-import * as FriendsUI from "./friendsUI.js?v=20260311-friends-rewrite-1";
 import { resetFriendAccountIdVisibility } from "./accountId.js";
-import { setHidden, setFlexVisible } from "./utils/domUtils.js";
+import {
+    addFriendByAccountId,
+    clearAddFriendMessage,
+    loadFriendRequests,
+    loadFriendsList,
+    loadRemoveFriendsList,
+    loadFriendRequestsTab,
+    setActiveTab
+} from "./friendsUI.js?v=20260311-friends-layout-8";
+import { getCachedElementById, setFlexVisible, setHidden } from "./utils/domUtils.js";
 
 function bindTapOrClick(element, handler) {
     if (!element || typeof handler !== "function") return;
-    let suppressClickUntil = 0;
+    let lastTouchTime = 0;
 
-    const run = (event) => {
-        if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        handler();
-    };
-
-    element.addEventListener("pointerup", (event) => {
-        suppressClickUntil = Date.now() + 400;
-        run(event);
-    });
+    element.addEventListener("touchend", (event) => {
+        lastTouchTime = Date.now();
+        handler(event);
+    }, { passive: true });
 
     element.addEventListener("click", (event) => {
-        if (Date.now() < suppressClickUntil) return;
-        run(event);
+        if (Date.now() - lastTouchTime < 500) return;
+        handler(event);
     });
 }
 
-function clearAddFriendMessage(addFriendMessage) {
-    if (!addFriendMessage) return;
-    addFriendMessage.textContent = "";
-    addFriendMessage.style.color = "#ccc";
-    setHidden(addFriendMessage, true);
-}
-
-function resetAddFriendInput(friendIdInput) {
-    if (!friendIdInput) return;
-    friendIdInput.value = "";
+function resetAddFriendInput() {
+    const input = getCachedElementById("friendIdInput");
+    if (input) input.value = "";
+    clearAddFriendMessage();
 }
 
 export function initFriendsModalController(options = {}) {
-    const {
-        friendsMenuBtn,
-        friendsModal,
-        closeFriendsModal,
-        friendIdInput,
-        addFriendBtn,
-        addFriendMessage,
-        friendList,
-        sentRequestsList,
-        friendRequestsList,
-        tabFriendsList,
-        tabFriendRequests,
-        tabRemoveFriends,
-        friendsListContent,
-        friendRequestsContent,
-        removeFriendsContent,
-        removeFriendsList,
-        bindModalOverlayQuickClose,
-        updateNotificationVisibility,
-        markCurrentFriendRequestsViewed
-    } = options;
+    const bindModalOverlayQuickClose = typeof options.bindModalOverlayQuickClose === "function"
+        ? options.bindModalOverlayQuickClose
+        : null;
 
-    let addFriendTimeout = null;
+    const friendsModal = getCachedElementById("friendsModal");
+    const openButtons = [
+        getCachedElementById("friendsMenuBtn"),
+        getCachedElementById("friendsBtn"),
+        getCachedElementById("openFriendsModalBtn")
+    ].filter(Boolean);
+    const closeButton = getCachedElementById("closeFriendsModal");
+    const addFriendBtn = getCachedElementById("addFriendBtn");
+    const friendInput = getCachedElementById("friendIdInput");
+    const tabFriends = getCachedElementById("tabFriendsList");
+    const tabRequests = getCachedElementById("tabFriendRequests");
+    const tabRemove = getCachedElementById("tabRemoveFriends");
 
-    const updateNotifications = () => {
-        if (typeof updateNotificationVisibility === "function") {
-            updateNotificationVisibility();
-        }
-    };
-
-    const closeFriendsModalUI = () => {
-        if (friendsModal) friendsModal.classList.remove("show");
-        if (addFriendTimeout) {
-            clearTimeout(addFriendTimeout);
-            addFriendTimeout = null;
-        }
-        resetAddFriendInput(friendIdInput);
-        clearAddFriendMessage(addFriendMessage);
+    function closeFriendsModal() {
+        if (!friendsModal) return;
+        friendsModal.classList.add("closing");
+        setTimeout(() => {
+            friendsModal.classList.remove("show");
+            friendsModal.classList.remove("closing");
+            setHidden(friendsModal, true);
+            setFlexVisible(friendsModal, false);
+        }, 200);
+        resetAddFriendInput();
         resetFriendAccountIdVisibility();
-        updateNotifications();
-    };
+    }
 
-    const openFriendsListTab = () => {
-        if (tabFriendsList) tabFriendsList.classList.add("active");
-        if (tabFriendRequests) tabFriendRequests.classList.remove("active");
-        if (tabRemoveFriends) tabRemoveFriends.classList.remove("active");
-        setFlexVisible(friendsListContent, true);
-        setFlexVisible(friendRequestsContent, false);
-        setFlexVisible(removeFriendsContent, false);
-        FriendsUI.loadFriendsList({ friendList });
-        updateNotifications();
-    };
+    async function openFriendsModal(defaultTab = "friends") {
+        if (!friendsModal) return;
+        setHidden(friendsModal, false);
+        setFlexVisible(friendsModal, true);
+        friendsModal.classList.add("show");
+        resetFriendAccountIdVisibility();
 
-    const openFriendRequestsTab = () => {
-        if (tabFriendRequests) tabFriendRequests.classList.add("active");
-        if (tabFriendsList) tabFriendsList.classList.remove("active");
-        if (tabRemoveFriends) tabRemoveFriends.classList.remove("active");
-        setFlexVisible(friendRequestsContent, true);
-        setFlexVisible(friendsListContent, false);
-        setFlexVisible(removeFriendsContent, false);
-        if (typeof markCurrentFriendRequestsViewed === "function") {
-            markCurrentFriendRequestsViewed();
+        if (defaultTab === "requests") {
+            await loadFriendRequestsTab();
+            return;
         }
-        FriendsUI.loadFriendRequestsTab({
-            friendRequestsList,
-            sentRequestsList,
-            tabFriendRequests,
-            friendList,
-            removeFriendsList
+        if (defaultTab === "remove") {
+            setActiveTab("remove");
+            await loadRemoveFriendsList();
+            return;
+        }
+        setActiveTab("friends");
+        await loadFriendsList();
+    }
+
+    async function refreshActiveTab() {
+        if (tabRequests && tabRequests.classList.contains("active")) {
+            await loadFriendRequests();
+            return;
+        }
+        if (tabRemove && tabRemove.classList.contains("active")) {
+            await loadRemoveFriendsList();
+            return;
+        }
+        await loadFriendsList();
+    }
+
+    openButtons.forEach((button) => {
+        bindTapOrClick(button, () => {
+            openFriendsModal("friends");
         });
-        updateNotifications();
-    };
+    });
 
-    const openRemoveFriendsTab = () => {
-        if (tabRemoveFriends) tabRemoveFriends.classList.add("active");
-        if (tabFriendsList) tabFriendsList.classList.remove("active");
-        if (tabFriendRequests) tabFriendRequests.classList.remove("active");
-        setFlexVisible(removeFriendsContent, true);
-        setFlexVisible(friendsListContent, false);
-        setFlexVisible(friendRequestsContent, false);
-        FriendsUI.loadRemoveFriendsList({ removeFriendsList, friendList });
-        updateNotifications();
-    };
-
-    if (friendsMenuBtn) {
-        friendsMenuBtn.addEventListener("click", () => {
-            resetFriendAccountIdVisibility();
-            if (addFriendTimeout) {
-                clearTimeout(addFriendTimeout);
-                addFriendTimeout = null;
-            }
-            resetAddFriendInput(friendIdInput);
-            clearAddFriendMessage(addFriendMessage);
-            if (friendsModal) friendsModal.classList.add("show");
-            openFriendsListTab();
+    if (closeButton) {
+        bindTapOrClick(closeButton, () => {
+            closeFriendsModal();
         });
     }
 
-    bindTapOrClick(tabFriendsList, openFriendsListTab);
-    bindTapOrClick(tabFriendRequests, openFriendRequestsTab);
-    bindTapOrClick(tabRemoveFriends, openRemoveFriendsTab);
-
-    if (closeFriendsModal) {
-        closeFriendsModal.addEventListener("click", closeFriendsModalUI);
+    if (bindModalOverlayQuickClose && friendsModal) {
+        bindModalOverlayQuickClose(friendsModal, closeFriendsModal);
     }
 
-    if (typeof bindModalOverlayQuickClose === "function") {
-        bindModalOverlayQuickClose(friendsModal, closeFriendsModalUI);
+    if (tabFriends) {
+        bindTapOrClick(tabFriends, () => {
+            setActiveTab("friends");
+            loadFriendsList();
+        });
+    }
+
+    if (tabRequests) {
+        bindTapOrClick(tabRequests, () => {
+            loadFriendRequestsTab();
+        });
+    }
+
+    if (tabRemove) {
+        bindTapOrClick(tabRemove, () => {
+            setActiveTab("remove");
+            loadRemoveFriendsList();
+        });
     }
 
     if (addFriendBtn) {
-        addFriendBtn.addEventListener("click", async () => {
-            await FriendsUI.addFriendByAccountId({
-                friendIdInput,
-                addFriendBtn,
-                addFriendMessage,
-                sentRequestsList,
-                getAddFriendTimeout: () => addFriendTimeout,
-                setAddFriendTimeout: (value) => {
-                    addFriendTimeout = value;
-                }
-            });
+        bindTapOrClick(addFriendBtn, () => {
+            addFriendByAccountId();
         });
     }
 
-    if (friendIdInput) {
-        friendIdInput.addEventListener("keydown", (event) => {
+    if (friendInput) {
+        friendInput.addEventListener("keydown", (event) => {
             if (event.key !== "Enter") return;
             event.preventDefault();
-            if (addFriendBtn) addFriendBtn.click();
+            addFriendByAccountId();
         });
     }
 
     return {
-        closeFriendsModalUI
+        openFriendsModal,
+        closeFriendsModal,
+        refreshActiveTab
     };
 }

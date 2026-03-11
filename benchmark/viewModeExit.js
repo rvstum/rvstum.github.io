@@ -11,6 +11,13 @@ import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k"
 import * as RankingUI from "./rankingUI.js?v=20260311-aeternus-complete-locale-2";
 import * as RadarUI from "./radarUI.js";
 
+function closeOverlayModal(id) {
+    const modal = getCachedElementById(id);
+    if (!modal) return;
+    modal.classList.remove("show");
+    modal.classList.remove("closing");
+}
+
 export async function exitViewMode(options = {}) {
     const {
         user,
@@ -29,6 +36,8 @@ export async function exitViewMode(options = {}) {
     state.activeViewProfileContext = null;
     document.body.classList.remove("view-mode");
     document.body.style.removeProperty("--exit-view-btn-text");
+    closeOverlayModal("achievementsModal");
+    closeOverlayModal("imageViewerModal");
 
     const userMenuBox = getCachedElementById("userMenuBox");
     const settingsBtn = getCachedElementById("settingsBtn");

@@ -60,14 +60,14 @@ import {
     readDefaultConfig,
     getStartupConfigDefaults
 } from "./configManager.js";
-import * as RankingUI from "./rankingUI.js?v=20260311-aeternus-complete-locale-2";
+import * as RankingUI from "./rankingUI.js?v=20260311-rank-animation-phase-1";
 import * as RadarUI from "./radarUI.js";
-import * as FriendsUI from "./friendsUI.js?v=20260311-friends-rewrite-1";
+import * as FriendsUI from "./friendsUI.js?v=20260311-friends-layout-8";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
-import * as ViewModeManager from "./viewModeManager.js?v=20260310-score-load-fix-15";
-import * as ShareManager from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
-import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260309-view-mode-rank-trophy-fix-2";
+import * as ViewModeManager from "./viewModeManager.js?v=20260311-exit-view-text-1";
+import * as ShareManager from "./shareManager.js?v=20260311-desktop-screenshot-warmup-4";
+import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260311-desktop-screenshot-warmup-4";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as LayoutRuntime from "./layoutRuntime.js";
 import {
@@ -91,19 +91,19 @@ import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-vie
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
 import * as PacmanUI from "./pacmanUI.js";
-import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-friends-rewrite-1";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-profile-original-sync-1";
+import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-friends-layout-8";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-view-mode-profile-load-1";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
-import { handleProfileLink } from "./routeManager.js?v=20260310-profile-mobile-ui-fix-3";
-import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-aeternus-complete-locale-2";
+import { handleProfileLink } from "./routeManager.js?v=20260311-view-mode-profile-load-1";
+import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-exit-view-modal-cleanup-1";
 import { initProfileModalController } from "./profileModalUI.js?v=20260311-profile-original-sync-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260311-profile-original-sync-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
-import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260310-sub-input-tab-fix-1";
+import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260311-score-link-floating-tooltip-2";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
 import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260310-score-link-lang-sync-1";
-import { createSettingsStateController } from "./settingsStateUI.js?v=20260310-reset-theme-fix-1";
+import { createSettingsStateController } from "./settingsStateUI.js?v=20260311-pacman-settings-desktop-1";
 import { createTopNavController } from "./topNavUI.js";
 import { hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
 
@@ -653,7 +653,7 @@ function initModuleConfigurations() {
     FriendsUI.configure({
         calculateRankFromData,
         enterViewMode: ViewModeManager.enterViewMode,
-        closeFriendsModalUI,
+        closeFriendsModal: closeFriendsModalUI,
         showConfirmModal,
         updateNotificationVisibility,
         onFriendRequestsLoaded: (uid, requests, requestsTabActive) => {
@@ -679,13 +679,15 @@ function initModuleConfigurations() {
         refreshFriendsModalIfOpen: () => {
             const friendsModalEl = getCachedElementById("friendsModal");
             if (friendsModalEl && friendsModalEl.classList.contains("show")) {
-                FriendsUI.loadFriendsList({ friendList });
-                FriendsUI.loadFriendRequests({
-                    friendRequestsList,
-                    tabFriendRequests
-                });
-                FriendsUI.loadRemoveFriendsList({ removeFriendsList });
-                FriendsUI.loadSentFriendRequests({ sentRequestsList });
+                if (friendsModalController && typeof friendsModalController.refreshActiveTab === "function") {
+                    friendsModalController.refreshActiveTab().catch(console.error);
+                    return;
+                }
+                Promise.all([
+                    FriendsUI.loadFriendsList(),
+                    FriendsUI.loadFriendRequests(),
+                    FriendsUI.loadRemoveFriendsList()
+                ]).catch(console.error);
             }
         },
         renderGuildsList: () => {
@@ -918,8 +920,8 @@ const removeFriendsContent = getCachedElementById('removeFriendsContent');
 const removeFriendsList = getCachedElementById('removeFriendsList');
 
 function closeFriendsModalUI() {
-    if (friendsModalController && typeof friendsModalController.closeFriendsModalUI === 'function') {
-        friendsModalController.closeFriendsModalUI();
+    if (friendsModalController && typeof friendsModalController.closeFriendsModal === 'function') {
+        friendsModalController.closeFriendsModal();
         return;
     }
     if (friendsModal) friendsModal.classList.remove('show');

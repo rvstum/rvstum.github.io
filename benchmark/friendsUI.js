@@ -1,7 +1,6 @@
 import { auth } from "./client.js";
-import { getCachedElementById, setHidden } from "./utils/domUtils.js";
-import { t, tf } from "./i18n.js";
-import * as FriendsService from "./friendsService.js?v=20260311-friends-rewrite-1";
+import { t } from "./i18n.js";
+import * as FriendsService from "./friendsService.js?v=20260311-friends-layout-8";
 import {
     buildActionItem,
     buildSnapshotFromUserData,
@@ -12,7 +11,6 @@ import {
     loadHydratedIncomingRequests,
     loadHydratedSentRequests,
     mergeProfileSnapshots,
-    normalizeUid,
     normalizeUidList,
     publishIncomingRequestState,
     readCurrentUserData,
@@ -21,326 +19,393 @@ import {
     resolveTargetUidFromIdentifier,
     setLoading,
     showRemoveFriendConfirmModal
-} from "./friendsCoreUI.js?v=20260311-friends-rewrite-1";
+} from "./friendsCoreUI.js?v=20260311-friends-layout-8";
+import { getCachedElementById, setHidden } from "./utils/domUtils.js";
 
-export const configure = configureCore;
-
-export async function loadFriendsList(options = {}) {
-    const friendList = options.friendList || getCachedElementById("friendList");
-    const user = auth.currentUser;
-    if (!user || !friendList) return;
-
-    setLoading(friendList);
-
-    try {
-        const entries = await loadHydratedFriendEntries(user.uid, t("unknown_player"));
-        if (!entries.length) {
-            renderState(friendList, t("friends_none"));
-            return;
-        }
-        renderFriendViewEntries(friendList, entries);
-    } catch (err) {
-        console.error("Error loading friends list:", err);
-        renderState(friendList, t("friends_error_loading"), "#ff6666");
-    }
+function getFriendsListContent() {
+    return getCachedElementById("friendsListContent");
 }
 
-export async function loadFriendRequests(options = {}) {
-    const friendRequestsList = options.friendRequestsList || getCachedElementById("friendRequestsList");
-    const tabFriendRequests = options.tabFriendRequests || getCachedElementById("tabFriendRequests");
-    const user = auth.currentUser;
-    if (!user || !friendRequestsList) return;
+function getFriendRequestsContent() {
+    return getCachedElementById("friendRequestsContent");
+}
 
-    setLoading(friendRequestsList);
+function getRemoveFriendsContent() {
+    return getCachedElementById("removeFriendsContent");
+}
 
-    try {
-        const { requestUids, entries } = await loadHydratedIncomingRequests(user.uid, t("unknown_player"));
-        publishIncomingRequestState(user.uid, requestUids, tabFriendRequests);
+function getFriendInput() {
+    return getCachedElementById("friendIdInput");
+}
 
-        friendRequestsList.innerHTML = "";
-        if (!entries.length) {
-            renderState(friendRequestsList, t("friend_requests_none"));
-            return;
-        }
+function ensureAddFriendMessageElement() {
+    let messageEl = getCachedElementById("addFriendMessage");
+    if (messageEl) return messageEl;
 
-        entries.forEach(({ requesterUid, identity }) => {
-            let inFlight = false;
-            const item = buildActionItem(identity, [
-                {
+    const input = getFriendInput();
+    if (!input || !input.parentElement) return null;
+
+    messageEl = document.createElement("div");
+    messageEl.id = "addFriendMessage";
+    messageEl.className = "friend-status";
+    messageEl.style.marginTop = "8px";
+
+    const parent = input.parentElement.parentElement || input.parentElement;
+    parent.appendChild(messageEl);
+    return messageEl;
+}
+
+function clearAddFriendMessage() {
+    const messageEl = ensureAddFriendMessageElement();
+    if (!messageEl) return;
+    messageEl.textContent = "";
+    messageEl.style.color = "";
+    messageEl.classList.add("is-hidden");
+}
+
+function setAddFriendMessage(message, tone = "neutral") {
+    const messageEl = ensureAddFriendMessageElement();
+    if (!messageEl) return;
+    messageEl.textContent = message;
+    messageEl.classList.remove("is-hidden");
+    if (tone === "error") {
+        messageEl.style.color = "#ff8f8f";
+        return;
+    }
+    if (tone === "success") {
+        messageEl.style.color = "#9fdc7a";
+        return;
+    }
+    messageEl.style.color = "";
+}
+
+function getTabs() {
+    return {
+        friends: getCachedElementById("tabFriendsList"),
+        requests: getCachedElementById("tabFriendRequests"),
+        remove: getCachedElementById("tabRemoveFriends")
+    };
+}
+
+function setActiveTab(tabName) {
+    const tabs = getTabs();
+    const friendsContent = getFriendsListContent();
+    const requestsContent = getFriendRequestsContent();
+    const removeContent = getRemoveFriendsContent();
+
+    Object.entries(tabs).forEach(([name, tabEl]) => {
+        if (!tabEl) return;
+        tabEl.classList.toggle("active", name === tabName);
+    });
+
+    setHidden(friendsContent, tabName !== "friends");
+    setHidden(requestsContent, tabName !== "requests");
+    setHidden(removeContent, tabName !== "remove");
+}
+
+function createSection(titleText) {
+    const section = document.createElement("section");
+    section.className = "friend-request-section";
+    const title = document.createElement("div");
+    title.className = "settings-card-title";
+    title.textContent = titleText;
+    const body = document.createElement("div");
+    body.className = "friend-request-section-body";
+    section.appendChild(title);
+    section.appendChild(body);
+    return { section, body };
+}
+
+function renderRequestSections(container, incomingEntries, sentEntries, handlers) {
+    if (!container) return;
+    container.innerHTML = "";
+
+    const incomingSection = createSection(t("received_friend_requests"));
+    if (incomingEntries.length) {
+        renderFriendViewEntries(incomingSection.body, incomingEntries, {
+            pending: true,
+            allowOpen: false,
+            showRankTrophy: false,
+            inlineActions: true,
+            buildActions: (entry) => [
+                buildActionItem({
                     label: t("accept"),
-                    className: "friend-request-btn accept",
-                    onClick: async (event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        if (inFlight) return;
-                        inFlight = true;
-                        try {
-                            await FriendsService.acceptFriendRequest(user.uid, requesterUid);
-                            await Promise.all([
-                                loadFriendRequests({
-                                    friendRequestsList,
-                                    tabFriendRequests
-                                }),
-                                loadFriendsList({ friendList: options.friendList }),
-                                loadRemoveFriendsList({ removeFriendsList: options.removeFriendsList })
-                            ]);
-                        } catch (err) {
-                            console.error("Error accepting friend request:", err);
-                        } finally {
-                            inFlight = false;
-                        }
-                    }
-                },
-                {
+                    className: "accept",
+                    onClick: () => handlers.accept(entry)
+                }),
+                buildActionItem({
                     label: t("decline"),
-                    className: "friend-request-btn decline",
-                    onClick: async (event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        if (inFlight) return;
-                        inFlight = true;
-                        try {
-                            await FriendsService.declineFriendRequest(user.uid, requesterUid);
-                            await loadFriendRequests({
-                                friendRequestsList,
-                                tabFriendRequests
-                            });
-                        } catch (err) {
-                            console.error("Error declining friend request:", err);
-                        } finally {
-                            inFlight = false;
-                        }
-                    }
-                }
-            ]);
-            friendRequestsList.appendChild(item);
+                    className: "decline",
+                    onClick: () => handlers.decline(entry)
+                })
+            ]
         });
-    } catch (err) {
-        console.error("Error loading incoming friend requests:", err);
-        renderState(friendRequestsList, t("friend_requests_error_loading"), "#ff6666");
+    } else {
+        renderState(incomingSection.body, t("friend_requests_none"));
     }
-}
 
-export async function loadRemoveFriendsList(options = {}) {
-    const removeFriendsList = options.removeFriendsList || getCachedElementById("removeFriendsList");
-    const user = auth.currentUser;
-    if (!user || !removeFriendsList) return;
-
-    setLoading(removeFriendsList);
-
-    try {
-        const [entries, currentUserData] = await Promise.all([
-            loadHydratedFriendEntries(user.uid, t("unknown_player")),
-            readCurrentUserData()
-        ]);
-        const currentUserAccountId = getCurrentUserAccountId(currentUserData);
-
-        removeFriendsList.innerHTML = "";
-        if (!entries.length) {
-            renderState(removeFriendsList, t("remove_friends_none"));
-            return;
-        }
-
-        entries.forEach((entry) => {
-            let inFlight = false;
-            const item = buildActionItem(entry, [
-                {
+    const sentSection = createSection(t("sent_friend_requests"));
+    if (sentEntries.length) {
+        renderFriendViewEntries(sentSection.body, sentEntries, {
+            pending: true,
+            allowOpen: false,
+            showRankTrophy: false,
+            inlineActions: true,
+            buildActions: (entry) => [
+                buildActionItem({
                     label: t("remove"),
-                    className: "friend-request-btn decline",
-                    style: "padding: 6px 12px;",
-                    onClick: (event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        if (inFlight) return;
-
-                        showRemoveFriendConfirmModal(
-                            t("remove_friend_title"),
-                            tf("remove_friend_confirm", { name: entry.name }),
-                            async () => {
-                                if (inFlight) return;
-                                inFlight = true;
-                                try {
-                                    await FriendsService.removeFriend(user.uid, entry.uid, {
-                                        friendAliases: normalizeUidList([entry.snapshot?.accountId]),
-                                        currentUserAliases: normalizeUidList([currentUserAccountId])
-                                    });
-                                    await Promise.all([
-                                        loadRemoveFriendsList({ removeFriendsList }),
-                                        loadFriendsList({ friendList: options.friendList })
-                                    ]);
-                                } catch (err) {
-                                    console.error("Error removing friend:", err);
-                                    alert(t("remove_friend_failed"));
-                                } finally {
-                                    inFlight = false;
-                                }
-                            }
-                        );
-                    }
-                }
-            ]);
-            removeFriendsList.appendChild(item);
+                    className: "decline",
+                    onClick: () => handlers.cancel(entry)
+                })
+            ]
         });
-    } catch (err) {
-        console.error("Error loading remove friends list:", err);
-        renderState(removeFriendsList, t("friends_error_loading"), "#ff6666");
+    } else {
+        renderState(sentSection.body, t("sent_requests_none"));
     }
+
+    container.appendChild(incomingSection.section);
+    container.appendChild(sentSection.section);
 }
 
-export async function loadSentFriendRequests(options = {}) {
-    const sentRequestsList = options.sentRequestsList || getCachedElementById("sentRequestsList");
-    const user = auth.currentUser;
-    if (!user || !sentRequestsList) return;
-
-    setLoading(sentRequestsList);
-
-    try {
-        const entries = await loadHydratedSentRequests(user.uid, t("unknown_player"));
-        sentRequestsList.innerHTML = "";
-        if (!entries.length) {
-            renderState(sentRequestsList, t("sent_requests_none"), "#888", "10px 20px");
-            return;
-        }
-
-        entries.forEach(({ targetUid, identity }) => {
-            let inFlight = false;
-            const item = buildActionItem(identity, [
-                {
-                    label: t("cancel"),
-                    className: "friend-request-btn decline",
-                    onClick: async (event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        if (inFlight) return;
-                        inFlight = true;
-                        try {
-                            await FriendsService.cancelFriendRequest(user.uid, targetUid);
-                            await loadSentFriendRequests({ sentRequestsList });
-                        } catch (err) {
-                            console.error("Error cancelling sent request:", err);
-                        } finally {
-                            inFlight = false;
-                        }
-                    }
-                }
-            ]);
-            sentRequestsList.appendChild(item);
-        });
-    } catch (err) {
-        console.error("Error loading sent friend requests:", err);
-        renderState(sentRequestsList, t("sent_requests_error_loading"), "#ff6666");
-    }
-}
-
-export async function loadFriendRequestsTab(options = {}) {
+async function refreshAllFriendsViews() {
     await Promise.all([
-        loadFriendRequests({
-            friendRequestsList: options.friendRequestsList,
-            tabFriendRequests: options.tabFriendRequests,
-            friendList: options.friendList,
-            removeFriendsList: options.removeFriendsList
-        }),
-        loadSentFriendRequests({
-            sentRequestsList: options.sentRequestsList
-        })
+        loadFriendsList(),
+        loadFriendRequests(),
+        loadRemoveFriendsList()
     ]);
 }
 
-export async function addFriendByAccountId(options = {}) {
-    const friendIdInput = options.friendIdInput || getCachedElementById("friendIdInput");
-    const addFriendBtn = options.addFriendBtn || getCachedElementById("addFriendBtn");
-    const addFriendMessage = options.addFriendMessage || getCachedElementById("addFriendMessage");
-    const sentRequestsList = options.sentRequestsList || getCachedElementById("sentRequestsList");
-    const getAddFriendTimeout = typeof options.getAddFriendTimeout === "function" ? options.getAddFriendTimeout : () => null;
-    const setAddFriendTimeout = typeof options.setAddFriendTimeout === "function" ? options.setAddFriendTimeout : () => {};
-    const user = auth.currentUser;
+async function handleAccept(entry) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    const currentUserData = await readCurrentUserData();
+    const currentSnapshot = buildSnapshotFromUserData(currentUserData || {}, {
+        uid: currentUser.uid,
+        accountId: getCurrentUserAccountId(currentUserData)
+    });
+    await FriendsService.acceptFriendRequest(currentUser.uid, entry.uid, {
+        currentSnapshot
+    });
+    await refreshAllFriendsViews();
+}
 
-    if (!user || !friendIdInput || !addFriendBtn || !addFriendMessage) return;
+async function handleDecline(entry) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    await FriendsService.declineFriendRequest(currentUser.uid, entry.uid);
+    await loadFriendRequests();
+}
 
-    const rawIdentifier = normalizeUid(friendIdInput.value);
-    if (!rawIdentifier) return;
+async function handleCancel(entry) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    await FriendsService.cancelFriendRequest(currentUser.uid, entry.uid);
+    await loadFriendRequests();
+}
 
-    addFriendBtn.disabled = true;
-    setHidden(addFriendMessage, true);
+async function handleRemove(entry) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    const currentUserData = await readCurrentUserData();
+    const currentUserAccountId = getCurrentUserAccountId(currentUserData);
+    showRemoveFriendConfirmModal(entry, async () => {
+        try {
+            await FriendsService.removeFriend(currentUser.uid, entry.uid, {
+                friendAliases: normalizeUidList([entry && entry.snapshot && entry.snapshot.accountId]),
+                currentUserAliases: normalizeUidList([currentUserAccountId])
+            });
+            await Promise.all([
+                loadFriendsList(),
+                loadRemoveFriendsList()
+            ]);
+        } catch (error) {
+            console.error("Failed to remove friend:", error);
+            const container = getRemoveFriendsContent();
+            if (container) renderState(container, t("remove_friend_failed"));
+        }
+    });
+}
 
+export function configure(deps = {}) {
+    configureCore(deps);
+}
+
+export async function loadFriendsList() {
+    const container = getFriendsListContent();
+    if (!container) return [];
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        renderState(container, t("friends_none"));
+        return [];
+    }
+
+    setLoading(container, "Loading...");
     try {
-        const [currentUserData, targetUid] = await Promise.all([
-            readCurrentUserData(),
-            resolveTargetUidFromIdentifier(rawIdentifier)
-        ]);
-
-        if (!targetUid) {
-            addFriendMessage.textContent = t("add_friend_user_not_found");
-            addFriendMessage.style.color = "#ff6666";
-            setHidden(addFriendMessage, false);
-            return;
+        const entries = await loadHydratedFriendEntries(currentUser.uid);
+        if (!entries.length) {
+            renderState(container, t("friends_none"));
+            return [];
         }
-
-        if (targetUid === user.uid) {
-            addFriendMessage.textContent = t("add_friend_self");
-            addFriendMessage.style.color = "#ff6666";
-            setHidden(addFriendMessage, false);
-            return;
-        }
-
-        const [alreadyFriends, sentRequestDoc, receivedRequestDoc, targetRecord] = await Promise.all([
-            FriendsService.areFriends(user.uid, targetUid),
-            FriendsService.getFriendRequestDocument(user.uid, targetUid),
-            FriendsService.getFriendRequestDocument(targetUid, user.uid),
-            hydrateUserRecord(targetUid)
-        ]);
-
-        if (alreadyFriends) {
-            addFriendMessage.textContent = t("add_friend_already_friends");
-            addFriendMessage.style.color = "#ff6666";
-            setHidden(addFriendMessage, false);
-            return;
-        }
-
-        if (sentRequestDoc && sentRequestDoc.exists()) {
-            addFriendMessage.textContent = t("add_friend_already_sent");
-            addFriendMessage.style.color = "#ffcc00";
-            setHidden(addFriendMessage, false);
-            return;
-        }
-
-        if (receivedRequestDoc && receivedRequestDoc.exists()) {
-            addFriendMessage.textContent = t("add_friend_check_requests");
-            addFriendMessage.style.color = "#ffcc00";
-            setHidden(addFriendMessage, false);
-            return;
-        }
-
-        const targetSnapshot = mergeProfileSnapshots(
-            targetRecord ? targetRecord.snapshot : null,
-            { accountId: rawIdentifier }
-        );
-        await FriendsService.sendFriendRequest(user.uid, targetUid, {
-            fromProfile: buildSnapshotFromUserData(currentUserData, user.uid),
-            toProfile: targetSnapshot
-        });
-
-        addFriendMessage.textContent = t("add_friend_sent");
-        addFriendMessage.style.color = "#4caf50";
-        setHidden(addFriendMessage, false);
-        friendIdInput.value = "";
-
-        if (sentRequestsList) {
-            await loadSentFriendRequests({ sentRequestsList });
-        }
-
-        const existingTimeout = getAddFriendTimeout();
-        if (existingTimeout) clearTimeout(existingTimeout);
-        const timeoutId = setTimeout(() => {
-            setHidden(addFriendMessage, true);
-        }, 5000);
-        setAddFriendTimeout(timeoutId);
-    } catch (err) {
-        console.error("Error adding friend:", err);
-        addFriendMessage.textContent = t("add_friend_error");
-        addFriendMessage.style.color = "#ff6666";
-        setHidden(addFriendMessage, false);
-    } finally {
-        addFriendBtn.disabled = false;
+        renderFriendViewEntries(container, entries);
+        return entries;
+    } catch (error) {
+        console.error("Failed to load friends list:", error);
+        renderState(container, t("friends_error_loading"));
+        return [];
     }
 }
+
+export async function loadFriendRequests() {
+    const container = getFriendRequestsContent();
+    if (!container) return [];
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        renderState(container, t("friend_requests_none"));
+        return [];
+    }
+
+    setLoading(container, "Loading...");
+    try {
+        const [incomingEntries, sentEntries] = await Promise.all([
+            loadHydratedIncomingRequests(currentUser.uid),
+            loadHydratedSentRequests(currentUser.uid)
+        ]);
+        publishIncomingRequestState(incomingEntries);
+        renderRequestSections(container, incomingEntries, sentEntries, {
+            accept: handleAccept,
+            decline: handleDecline,
+            cancel: handleCancel
+        });
+        return incomingEntries;
+    } catch (error) {
+        console.error("Failed to load friend requests:", error);
+        renderState(container, t("friend_requests_error_loading"));
+        return [];
+    }
+}
+
+export async function loadRemoveFriendsList() {
+    const container = getRemoveFriendsContent();
+    if (!container) return [];
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        renderState(container, t("remove_friends_none"));
+        return [];
+    }
+
+    setLoading(container, "Loading...");
+    try {
+        const entries = await loadHydratedFriendEntries(currentUser.uid);
+        if (!entries.length) {
+            renderState(container, t("remove_friends_none"));
+            return [];
+        }
+        renderFriendViewEntries(container, entries, {
+            allowOpen: false,
+            showRankTrophy: false,
+            inlineActions: true,
+            buildActions: (entry) => [
+                buildActionItem({
+                    label: t("remove"),
+                    className: "decline",
+                    onClick: () => handleRemove(entry)
+                })
+            ]
+        });
+        return entries;
+    } catch (error) {
+        console.error("Failed to load removable friends:", error);
+        renderState(container, t("remove_friend_failed"));
+        return [];
+    }
+}
+
+export async function loadSentFriendRequests() {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return [];
+    try {
+        return await loadHydratedSentRequests(currentUser.uid);
+    } catch (error) {
+        console.error("Failed to load sent friend requests:", error);
+        return [];
+    }
+}
+
+export async function loadFriendRequestsTab() {
+    setActiveTab("requests");
+    return loadFriendRequests();
+}
+
+export async function addFriendByAccountId(rawIdentifier = null) {
+    const currentUser = auth.currentUser;
+    const input = getFriendInput();
+    const addFriendBtn = getCachedElementById("addFriendBtn");
+    const identifier = rawIdentifier == null
+        ? (input ? input.value : "")
+        : rawIdentifier;
+    const safeIdentifier = typeof identifier === "string" ? identifier.trim() : "";
+
+    if (!currentUser || !safeIdentifier) {
+        setAddFriendMessage(t("add_friend_error"), "error");
+        return false;
+    }
+
+    if (addFriendBtn) addFriendBtn.disabled = true;
+
+    try {
+        const currentUserData = await readCurrentUserData();
+        const targetUid = await resolveTargetUidFromIdentifier(safeIdentifier, currentUserData);
+        if (!targetUid) {
+            setAddFriendMessage(t("add_friend_user_not_found"), "error");
+            return false;
+        }
+        if (targetUid === currentUser.uid) {
+            setAddFriendMessage(t("add_friend_self"), "error");
+            return false;
+        }
+
+        const targetRecord = await hydrateUserRecord(targetUid);
+        const currentSnapshot = buildSnapshotFromUserData(currentUserData || {}, {
+            uid: currentUser.uid,
+            accountId: getCurrentUserAccountId(currentUserData)
+        });
+        const targetSnapshot = mergeProfileSnapshots(
+            targetRecord ? targetRecord.snapshot : null,
+            { uid: targetUid, accountId: safeIdentifier }
+        );
+
+        await FriendsService.sendFriendRequest(currentUser.uid, targetUid, {
+            fromSnapshot: currentSnapshot,
+            toSnapshot: targetSnapshot
+        });
+
+        if (input) input.value = "";
+        setAddFriendMessage(t("add_friend_sent"), "success");
+        await loadFriendRequests();
+        return true;
+    } catch (error) {
+        const errorCode = typeof error?.code === "string" ? error.code : "";
+        if (errorCode === "friend/already-friends") {
+            setAddFriendMessage(t("add_friend_already_friends"), "error");
+            return false;
+        }
+        if (errorCode === "friend/already-sent") {
+            setAddFriendMessage(t("add_friend_already_sent"), "error");
+            return false;
+        }
+        if (errorCode === "friend/incoming-exists") {
+            setAddFriendMessage(t("add_friend_check_requests"), "error");
+            return false;
+        }
+        console.error("Failed to send friend request:", error);
+        setAddFriendMessage(t("add_friend_error"), "error");
+        return false;
+    } finally {
+        if (addFriendBtn) addFriendBtn.disabled = false;
+    }
+}
+
+export { clearAddFriendMessage, setActiveTab };

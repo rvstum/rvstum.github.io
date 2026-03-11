@@ -6,19 +6,20 @@ import {
     doc,
     getDoc,
     getDocs,
-    increment,
     query,
     setDoc,
     updateDoc,
     where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "./client.js";
-import { readJson, writeJson, PROFILE_VIEW_COOLDOWNS_STORAGE_KEY } from "./storage.js";
+import { FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
+import { calculateRankFromData } from "./scoring.js";
+import * as UserService from "./userService.js";
+import { resolveProfileAccountId, resolveProfileSlug, resolveProfileUsername } from "./slugs.js";
 
 const USERS_COLLECTION = "users";
 const FRIEND_REQUESTS_COLLECTION = "friendRequests";
 const FRIENDSHIPS_COLLECTION = "friendships";
-const PROFILE_VIEW_COOLDOWN_MS = 20 * 60 * 1000;
 
 function normalizeUid(value) {
     return typeof value === "string" ? value.trim() : "";
@@ -26,348 +27,651 @@ function normalizeUid(value) {
 
 function normalizeUidList(values) {
     if (!Array.isArray(values)) return [];
-    return [...new Set(values
-        .map((value) => normalizeUid(value))
-        .filter(Boolean))];
+    return [...new Set(values.map(normalizeUid).filter((value) => value !== ""))];
 }
 
-function sanitizeSegment(value) {
-    return (value || "")
-        .toString()
-        .trim()
-        .replace(/[^a-zA-Z0-9_-]/g, "_")
-        .replace(/_+/g, "_")
-        .replace(/^_+|_+$/g, "");
-}
-
-function isPermissionLikeError(err) {
-    if (!err || typeof err !== "object") return false;
-    const code = typeof err.code === "string" ? err.code : "";
+function isPermissionLikeError(error) {
+    if (!error || typeof error !== "object") return false;
+    const code = typeof error.code === "string" ? error.code : "";
     return code === "permission-denied" || code === "not-found";
 }
 
-function normalizeProfileSnapshot(rawProfile = {}, fallbackIdentifier = "") {
-    const safeProfile = rawProfile && typeof rawProfile === "object" ? rawProfile : {};
-    const parsedRankIndex = Number(safeProfile.rankIndex);
-    return {
-        username: typeof safeProfile.username === "string" ? safeProfile.username.trim() : "",
-        accountId: typeof safeProfile.accountId === "string" && safeProfile.accountId.trim() !== ""
-            ? safeProfile.accountId.trim()
-            : normalizeUid(fallbackIdentifier),
-        rankIndex: Number.isFinite(parsedRankIndex) ? Math.max(0, Math.floor(parsedRankIndex)) : 0,
-        flag: typeof safeProfile.flag === "string" ? safeProfile.flag.trim() : "",
-        pic: typeof safeProfile.pic === "string" ? safeProfile.pic.trim() : ""
-    };
+function safeObject(value) {
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
-function buildFriendshipPayload(userA, userB, profileSnapshots = {}) {
-    const users = normalizeUidList([userA, userB]).sort();
-    const payload = {
-        users,
-        createdAt: Date.now()
-    };
+function pickNonEmpty(...values) {
+    for (const value of values) {
+        if (typeof value === "string" && value.trim() !== "") return value.trim();
+        if (typeof value === "number" && Number.isFinite(value)) return value;
+        if (typeof value === "boolean") return value;
+    }
+    return "";
+}
 
-    const profilesByUid = {};
-    users.forEach((uid) => {
-        const snapshot = normalizeProfileSnapshot(profileSnapshots[uid], uid);
-        if (!snapshot.username && !snapshot.accountId && !snapshot.flag && !snapshot.pic && snapshot.rankIndex === 0) {
-            return;
-        }
-        profilesByUid[uid] = snapshot;
+function clampRankIndex(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return 0;
+    return Math.max(0, Math.min(FINAL_RANK_INDEX, Math.floor(parsed)));
+}
+
+function parseRankIndexFromTheme(themeName) {
+    const value = typeof themeName === "string" ? themeName.trim().toLowerCase() : "";
+    if (!value.startsWith("rank-")) return 0;
+    return clampRankIndex(value.slice(5));
+}
+
+function parseRankIndexFromName(rankName) {
+    const lower = typeof rankName === "string" ? rankName.trim().toLowerCase() : "";
+    if (!lower) return 0;
+    for (let index = FINAL_RANK_INDEX; index >= 1; index -= 1) {
+        const known = String(RANK_NAMES[index] || "").trim().toLowerCase();
+        if (known && lower.includes(known)) return index;
+    }
+    return 0;
+}
+
+function deriveRankIndex(userData = {}) {
+    const safeData = safeObject(userData);
+    const profile = safeObject(safeData.profile);
+    const settings = safeObject(safeData.settings);
+    let best = clampRankIndex(calculateRankFromData(safeData));
+
+    [
+        safeData.rankIndex,
+        safeData.maxRankIndex,
+        profile.rankIndex,
+        profile.maxRankIndex,
+        settings.rankThemeUnlock
+    ].forEach((value) => {
+        const candidate = clampRankIndex(value);
+        if (candidate > best) best = candidate;
     });
 
-    if (Object.keys(profilesByUid).length) {
-        payload.profilesByUid = profilesByUid;
-    }
+    const themedRank = parseRankIndexFromTheme(settings.theme);
+    if (themedRank > best) best = themedRank;
 
-    return payload;
-}
-
-async function bestEffortMergeUserDoc(uid, data) {
-    const targetUid = normalizeUid(uid);
-    if (!targetUid || !data || typeof data !== "object") return false;
-    try {
-        await setDoc(doc(db, USERS_COLLECTION, targetUid), data, { merge: true });
-        return true;
-    } catch (err) {
-        if (!isPermissionLikeError(err)) throw err;
-        return false;
-    }
-}
-
-async function bestEffortDeleteDoc(docRef) {
-    try {
-        await deleteDoc(docRef);
-        return true;
-    } catch (err) {
-        if (!isPermissionLikeError(err)) throw err;
-        return false;
-    }
-}
-
-function readProfileViewCooldowns() {
-    const raw = readJson(PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, {});
-    return raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
-}
-
-function writeProfileViewCooldowns(map) {
-    writeJson(PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, map && typeof map === "object" ? map : {});
-}
-
-function pruneExpiredProfileViewCooldowns(map, now = Date.now()) {
-    const next = {};
-    Object.entries(map || {}).forEach(([uid, rawValue]) => {
-        const targetUid = normalizeUid(uid);
-        const viewedAt = Number(rawValue);
-        if (!targetUid || !Number.isFinite(viewedAt)) return;
-        if ((now - viewedAt) > PROFILE_VIEW_COOLDOWN_MS) return;
-        next[targetUid] = viewedAt;
+    [
+        safeData.currentRank,
+        profile.currentRank
+    ].forEach((value) => {
+        const candidate = parseRankIndexFromName(value);
+        if (candidate > best) best = candidate;
     });
-    return next;
+
+    return best;
 }
 
-export function buildFriendRequestId(fromUid, toUid) {
-    const fromPart = sanitizeSegment(fromUid) || "from";
-    const toPart = sanitizeSegment(toUid) || "to";
-    return `${fromPart}__${toPart}`;
-}
-
-export function buildFriendshipId(userA, userB) {
-    const ids = [sanitizeSegment(userA) || "userA", sanitizeSegment(userB) || "userB"].sort();
-    return `${ids[0]}__${ids[1]}`;
-}
-
-export async function incrementViewCount(targetUid) {
-    const profileUid = normalizeUid(targetUid);
-    if (!profileUid) return false;
-
-    const now = Date.now();
-    const cooldowns = pruneExpiredProfileViewCooldowns(readProfileViewCooldowns(), now);
-    const lastViewedAt = Number(cooldowns[profileUid]) || 0;
-    if (lastViewedAt > 0 && (now - lastViewedAt) < PROFILE_VIEW_COOLDOWN_MS) {
-        writeProfileViewCooldowns(cooldowns);
-        return false;
-    }
-
-    try {
-        await updateDoc(doc(db, USERS_COLLECTION, profileUid), {
-            "profile.views": increment(1)
+function mergeSnapshots(...snapshots) {
+    const merged = {};
+    snapshots.forEach((snapshot) => {
+        const safeSnapshot = safeObject(snapshot);
+        Object.keys(safeSnapshot).forEach((key) => {
+            const value = safeSnapshot[key];
+            if (typeof value === "string") {
+                const trimmed = value.trim();
+                if (trimmed !== "") merged[key] = trimmed;
+                return;
+            }
+            if (typeof value === "number" && Number.isFinite(value)) {
+                merged[key] = value;
+                return;
+            }
+            if (typeof value === "boolean") {
+                merged[key] = value;
+            }
         });
-    } catch (err) {
-        if (!isPermissionLikeError(err)) throw err;
-        return false;
-    }
-
-    cooldowns[profileUid] = now;
-    writeProfileViewCooldowns(cooldowns);
-    return true;
+    });
+    return merged;
 }
 
-export async function getFriendshipDocument(userA, userB) {
-    const firstUid = normalizeUid(userA);
-    const secondUid = normalizeUid(userB);
-    if (!firstUid || !secondUid) return null;
+function buildSnapshotFromUserData(uid, userData = {}, directoryData = null) {
+    const safeData = safeObject(userData);
+    const profile = safeObject(safeData.profile);
+    const safeDirectoryData = safeObject(directoryData);
+    const accountId = pickNonEmpty(
+        resolveProfileAccountId(safeData, ""),
+        safeDirectoryData.accountId
+    );
+    return {
+        uid: normalizeUid(uid),
+        username: pickNonEmpty(
+            resolveProfileUsername(safeData, "player"),
+            safeDirectoryData.username,
+            "Unknown Player"
+        ),
+        accountId,
+        rankIndex: clampRankIndex(
+            pickNonEmpty(
+                safeData.rankIndex,
+                safeData.maxRankIndex,
+                profile.rankIndex,
+                profile.maxRankIndex,
+                safeDirectoryData.rankIndex,
+                deriveRankIndex(safeData)
+            )
+        ),
+        rankName: pickNonEmpty(
+            safeData.currentRank,
+            profile.currentRank,
+            RANK_NAMES[deriveRankIndex(safeData)] || RANK_NAMES[0]
+        ),
+        flag: pickNonEmpty(profile.flag, safeDirectoryData.flag),
+        pic: pickNonEmpty(profile.pic, safeDirectoryData.pic),
+        publicSlug: pickNonEmpty(
+            resolveProfileSlug(safeData, {
+                usernameFallback: resolveProfileUsername(safeData, "player"),
+                accountIdFallback: accountId,
+                uid
+            }),
+            safeDirectoryData.publicSlug
+        ),
+        visibility: pickNonEmpty(safeObject(safeData.settings).visibility, safeDirectoryData.visibility, "everyone"),
+        updatedAt: Date.now()
+    };
+}
+
+async function getReadableUserData(uid) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return null;
     try {
-        return await getDoc(doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(firstUid, secondUid)));
-    } catch (err) {
-        if (!isPermissionLikeError(err)) throw err;
+        const userSnap = await UserService.getUserDocument(normalizedUid);
+        if (!userSnap || !userSnap.exists()) return null;
+        return userSnap.data() || {};
+    } catch (error) {
+        if (!isPermissionLikeError(error)) throw error;
         return null;
     }
 }
 
+function getUidListField(data, field) {
+    return normalizeUidList(safeObject(data)[field]);
+}
+
+function hasUidInField(data, field, uid) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return false;
+    return getUidListField(data, field).includes(normalizedUid);
+}
+
+async function readMirrorRelationshipState(userA, userB) {
+    const first = normalizeUid(userA);
+    const second = normalizeUid(userB);
+    if (!first || !second || first === second) {
+        return {
+            areFriends: false,
+            outgoingRequest: false,
+            incomingRequest: false
+        };
+    }
+
+    const [firstData, secondData] = await Promise.all([
+        getReadableUserData(first),
+        getReadableUserData(second)
+    ]);
+
+    const firstFriends = hasUidInField(firstData, "friends", second);
+    const secondFriends = hasUidInField(secondData, "friends", first);
+    const outgoingRequest = hasUidInField(firstData, "sentFriendRequests", second)
+        || hasUidInField(secondData, "friendRequests", first);
+    const incomingRequest = hasUidInField(firstData, "friendRequests", second)
+        || hasUidInField(secondData, "sentFriendRequests", first);
+
+    return {
+        areFriends: firstFriends || secondFriends,
+        outgoingRequest,
+        incomingRequest
+    };
+}
+
+async function getDirectoryDataByUid(uid) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return null;
+    try {
+        return await UserService.resolveAccountDirectoryEntryByUid(normalizedUid);
+    } catch (error) {
+        if (!isPermissionLikeError(error)) throw error;
+        return null;
+    }
+}
+
+async function resolveSnapshotForUid(uid, preferredSnapshot = null) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return null;
+    const [userData, directoryData] = await Promise.all([
+        getReadableUserData(normalizedUid),
+        getDirectoryDataByUid(normalizedUid)
+    ]);
+    const resolvedSnapshot = buildSnapshotFromUserData(normalizedUid, userData || {}, directoryData || null);
+    return mergeSnapshots(resolvedSnapshot, preferredSnapshot);
+}
+
+async function resolveUidCandidate(primaryValue, aliases = []) {
+    const candidates = normalizeUidList([primaryValue, ...aliases]);
+    for (const candidate of candidates) {
+        try {
+            const directSnap = await getDoc(doc(db, USERS_COLLECTION, candidate));
+            if (directSnap.exists()) return candidate;
+        } catch (error) {
+            if (!isPermissionLikeError(error)) throw error;
+        }
+
+        try {
+            const resolvedUid = await UserService.resolveUidByAccountId(candidate);
+            if (resolvedUid) return normalizeUid(resolvedUid);
+        } catch (error) {
+            if (!isPermissionLikeError(error)) throw error;
+        }
+    }
+    return normalizeUid(primaryValue);
+}
+
+function getFriendshipIdCandidates(userA, userB) {
+    const first = normalizeUid(userA);
+    const second = normalizeUid(userB);
+    if (!first || !second || first === second) return [];
+    const sorted = [first, second].sort();
+    return [...new Set([
+        `${sorted[0]}__${sorted[1]}`,
+        `${first}__${second}`,
+        `${second}__${first}`
+    ])];
+}
+
+async function deleteDocIfExists(ref) {
+    try {
+        const snap = await getDoc(ref);
+        if (!snap.exists()) return false;
+        await deleteDoc(ref);
+        return true;
+    } catch (error) {
+        if (!isPermissionLikeError(error)) throw error;
+        return false;
+    }
+}
+
+async function bestEffortUpdateUser(uid, payload) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid || !payload || typeof payload !== "object") return false;
+    try {
+        await updateDoc(doc(db, USERS_COLLECTION, normalizedUid), payload);
+        return true;
+    } catch (error) {
+        if (!isPermissionLikeError(error)) throw error;
+        return false;
+    }
+}
+
+function mapQueryDocs(snapshot) {
+    if (!snapshot || snapshot.empty) return [];
+    return snapshot.docs.map((entryDoc) => ({
+        id: entryDoc.id,
+        ...safeObject(entryDoc.data())
+    }));
+}
+
+export function buildFriendRequestId(fromUid, toUid) {
+    const from = normalizeUid(fromUid);
+    const to = normalizeUid(toUid);
+    if (!from || !to || from === to) return "";
+    return `${from}__${to}`;
+}
+
+export function buildFriendshipId(userA, userB) {
+    const ids = getFriendshipIdCandidates(userA, userB);
+    return ids.length ? ids[0] : "";
+}
+
+export async function incrementViewCount(uid) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return false;
+    try {
+        const userSnap = await getDoc(doc(db, USERS_COLLECTION, normalizedUid));
+        if (!userSnap.exists()) return false;
+        const data = userSnap.data() || {};
+        const profile = safeObject(data.profile);
+        const currentViews = Number(profile.views) || 0;
+        await updateDoc(doc(db, USERS_COLLECTION, normalizedUid), {
+            "profile.views": currentViews + 1
+        });
+        return true;
+    } catch (error) {
+        if (!isPermissionLikeError(error)) {
+            console.warn("Failed to increment benchmark views:", error);
+        }
+        return false;
+    }
+}
+
+export async function getFriendshipDocument(userA, userB) {
+    const ids = getFriendshipIdCandidates(userA, userB);
+    for (const id of ids) {
+        try {
+            const friendshipSnap = await getDoc(doc(db, FRIENDSHIPS_COLLECTION, id));
+            if (friendshipSnap.exists()) return friendshipSnap;
+        } catch (error) {
+            if (!isPermissionLikeError(error)) throw error;
+        }
+    }
+    return null;
+}
+
 export async function areFriends(userA, userB) {
-    const friendshipSnap = await getFriendshipDocument(userA, userB);
+    const first = normalizeUid(userA);
+    const second = normalizeUid(userB);
+    if (!first || !second || first === second) return false;
+    const friendshipSnap = await getFriendshipDocument(first, second);
     return !!(friendshipSnap && friendshipSnap.exists());
 }
 
 export async function getFriendRequestDocument(fromUid, toUid) {
-    const senderUid = normalizeUid(fromUid);
-    const receiverUid = normalizeUid(toUid);
-    if (!senderUid || !receiverUid) return null;
+    const requestId = buildFriendRequestId(fromUid, toUid);
+    if (!requestId) return null;
     try {
-        return await getDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(senderUid, receiverUid)));
-    } catch (err) {
-        if (!isPermissionLikeError(err)) throw err;
+        const requestSnap = await getDoc(doc(db, FRIEND_REQUESTS_COLLECTION, requestId));
+        return requestSnap.exists() ? requestSnap : null;
+    } catch (error) {
+        if (!isPermissionLikeError(error)) throw error;
         return null;
     }
 }
 
-export async function listIncomingFriendRequests(userUid) {
-    const targetUid = normalizeUid(userUid);
-    if (!targetUid) return [];
-    try {
-        const snap = await getDocs(query(collection(db, FRIEND_REQUESTS_COLLECTION), where("toUid", "==", targetUid)));
-        return snap.docs;
-    } catch (err) {
-        if (!isPermissionLikeError(err)) throw err;
-        return [];
-    }
+export async function listIncomingFriendRequests(uid) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return [];
+    const requestQuery = query(collection(db, FRIEND_REQUESTS_COLLECTION), where("toUid", "==", normalizedUid));
+    return mapQueryDocs(await getDocs(requestQuery));
 }
 
-export async function listSentFriendRequests(userUid) {
-    const senderUid = normalizeUid(userUid);
-    if (!senderUid) return [];
-    try {
-        const snap = await getDocs(query(collection(db, FRIEND_REQUESTS_COLLECTION), where("fromUid", "==", senderUid)));
-        return snap.docs;
-    } catch (err) {
-        if (!isPermissionLikeError(err)) throw err;
-        return [];
-    }
+export async function listSentFriendRequests(uid) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return [];
+    const requestQuery = query(collection(db, FRIEND_REQUESTS_COLLECTION), where("fromUid", "==", normalizedUid));
+    return mapQueryDocs(await getDocs(requestQuery));
 }
 
-export async function listFriendships(userUid) {
-    const targetUid = normalizeUid(userUid);
-    if (!targetUid) return [];
-    try {
-        const snap = await getDocs(query(collection(db, FRIENDSHIPS_COLLECTION), where("users", "array-contains", targetUid)));
-        return snap.docs;
-    } catch (err) {
-        if (!isPermissionLikeError(err)) throw err;
-        return [];
-    }
+export async function listFriendships(uid) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return [];
+    const friendshipQuery = query(collection(db, FRIENDSHIPS_COLLECTION), where("users", "array-contains", normalizedUid));
+    return mapQueryDocs(await getDocs(friendshipQuery));
 }
 
 export async function sendFriendRequest(fromUid, toUid, options = {}) {
     const senderUid = normalizeUid(fromUid);
-    const receiverUid = normalizeUid(toUid);
-    if (!senderUid || !receiverUid || senderUid === receiverUid) {
-        throw new Error("sendFriendRequest requires two distinct uids");
+    const targetUid = normalizeUid(toUid);
+    if (!senderUid || !targetUid) {
+        throw new Error("sendFriendRequest requires both UIDs");
+    }
+    if (senderUid === targetUid) {
+        const error = new Error("Cannot send a friend request to yourself");
+        error.code = "friend/self";
+        throw error;
+    }
+    if (await areFriends(senderUid, targetUid)) {
+        const error = new Error("Users are already friends");
+        error.code = "friend/already-friends";
+        throw error;
     }
 
-    const requestPayload = {
+    const mirrorState = await readMirrorRelationshipState(senderUid, targetUid);
+    if (mirrorState.areFriends) {
+        const error = new Error("Users are already friends");
+        error.code = "friend/already-friends";
+        throw error;
+    }
+
+    const existingOutgoing = await getFriendRequestDocument(senderUid, targetUid);
+    if (existingOutgoing) {
+        const error = new Error("Friend request already exists");
+        error.code = "friend/already-sent";
+        throw error;
+    }
+
+    const existingIncoming = await getFriendRequestDocument(targetUid, senderUid);
+    if (existingIncoming) {
+        const error = new Error("Target user already sent a friend request");
+        error.code = "friend/incoming-exists";
+        throw error;
+    }
+
+    if (mirrorState.outgoingRequest) {
+        const error = new Error("Friend request already exists");
+        error.code = "friend/already-sent";
+        throw error;
+    }
+
+    if (mirrorState.incomingRequest) {
+        const error = new Error("Target user already sent a friend request");
+        error.code = "friend/incoming-exists";
+        throw error;
+    }
+
+    const requestId = buildFriendRequestId(senderUid, targetUid);
+    const [senderSnapshot, targetSnapshot] = await Promise.all([
+        resolveSnapshotForUid(senderUid, options.fromSnapshot || options.senderSnapshot || null),
+        resolveSnapshotForUid(targetUid, options.toSnapshot || options.targetSnapshot || null)
+    ]);
+
+    let usedMirrorFallback = false;
+    try {
+        await setDoc(doc(db, FRIEND_REQUESTS_COLLECTION, requestId), {
+            fromUid: senderUid,
+            toUid: targetUid,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            fromSnapshot: senderSnapshot || null,
+            toSnapshot: targetSnapshot || null
+        });
+    } catch (error) {
+        if (!isPermissionLikeError(error)) throw error;
+        usedMirrorFallback = true;
+    }
+
+    const [senderUpdated, targetUpdated] = await Promise.all([
+        bestEffortUpdateUser(senderUid, {
+            sentFriendRequests: arrayUnion(targetUid)
+        }),
+        bestEffortUpdateUser(targetUid, {
+            friendRequests: arrayUnion(senderUid)
+        })
+    ]);
+
+    if (usedMirrorFallback && (!senderUpdated || !targetUpdated)) {
+        await Promise.all([
+            senderUpdated
+                ? bestEffortUpdateUser(senderUid, { sentFriendRequests: arrayRemove(targetUid) })
+                : Promise.resolve(false),
+            targetUpdated
+                ? bestEffortUpdateUser(targetUid, { friendRequests: arrayRemove(senderUid) })
+                : Promise.resolve(false)
+        ]);
+        const error = new Error("Friend request write failed");
+        error.code = "friend/request-write-failed";
+        throw error;
+    }
+
+    return {
+        id: requestId,
         fromUid: senderUid,
-        toUid: receiverUid,
-        createdAt: Date.now(),
-        fromProfile: normalizeProfileSnapshot(options.fromProfile, senderUid),
-        toProfile: normalizeProfileSnapshot(options.toProfile, receiverUid)
+        toUid: targetUid,
+        fromSnapshot: senderSnapshot || null,
+        toSnapshot: targetSnapshot || null,
+        mirrorOnly: usedMirrorFallback
     };
-
-    await setDoc(
-        doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(senderUid, receiverUid)),
-        requestPayload,
-        { merge: true }
-    );
-
-    await bestEffortMergeUserDoc(senderUid, {
-        sentFriendRequests: arrayUnion(receiverUid)
-    });
-
-    const mirroredToTarget = await bestEffortMergeUserDoc(receiverUid, {
-        friendRequests: arrayUnion(senderUid)
-    });
-
-    return { mirroredToTarget };
 }
 
 export async function cancelFriendRequest(fromUid, toUid) {
     const senderUid = normalizeUid(fromUid);
-    const receiverUid = normalizeUid(toUid);
-    if (!senderUid || !receiverUid) return;
+    const targetUid = normalizeUid(toUid);
+    const requestId = buildFriendRequestId(senderUid, targetUid);
+    if (!requestId) return false;
 
-    await bestEffortDeleteDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(senderUid, receiverUid)));
-
-    await bestEffortMergeUserDoc(senderUid, {
-        sentFriendRequests: arrayRemove(receiverUid)
-    });
-
-    await bestEffortMergeUserDoc(receiverUid, {
-        friendRequests: arrayRemove(senderUid)
-    });
-}
-
-export async function declineFriendRequest(userId, requesterUid) {
-    const targetUid = normalizeUid(userId);
-    const sourceUid = normalizeUid(requesterUid);
-    if (!targetUid || !sourceUid) return;
-
-    await bestEffortDeleteDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(sourceUid, targetUid)));
-
-    await bestEffortMergeUserDoc(targetUid, {
-        friendRequests: arrayRemove(sourceUid)
-    });
-
-    await bestEffortMergeUserDoc(sourceUid, {
-        sentFriendRequests: arrayRemove(targetUid)
-    });
-}
-
-export async function acceptFriendRequest(userId, requesterUid) {
-    const targetUid = normalizeUid(userId);
-    const sourceUid = normalizeUid(requesterUid);
-    if (!targetUid || !sourceUid || targetUid === sourceUid) return;
-
-    const requestRef = doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(sourceUid, targetUid));
-    let requestData = {};
-    try {
-        const requestSnap = await getDoc(requestRef);
-        if (requestSnap && requestSnap.exists()) {
-            requestData = requestSnap.data() || {};
-        }
-    } catch (err) {
-        if (!isPermissionLikeError(err)) throw err;
-    }
-
-    await setDoc(
-        doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(targetUid, sourceUid)),
-        buildFriendshipPayload(targetUid, sourceUid, {
-            [targetUid]: requestData.toProfile,
-            [sourceUid]: requestData.fromProfile
+    await deleteDocIfExists(doc(db, FRIEND_REQUESTS_COLLECTION, requestId));
+    await Promise.all([
+        bestEffortUpdateUser(senderUid, {
+            sentFriendRequests: arrayRemove(targetUid)
         }),
-        { merge: true }
-    );
-
-    await bestEffortDeleteDoc(requestRef);
-
-    await bestEffortMergeUserDoc(targetUid, {
-        friends: arrayUnion(sourceUid),
-        friendRequests: arrayRemove(sourceUid),
-        sentFriendRequests: arrayRemove(sourceUid)
-    });
-
-    await bestEffortMergeUserDoc(sourceUid, {
-        friends: arrayUnion(targetUid),
-        friendRequests: arrayRemove(targetUid),
-        sentFriendRequests: arrayRemove(targetUid)
-    });
-}
-
-export async function pruneSentFriendRequests(userId, targetUids) {
-    const ownerUid = normalizeUid(userId);
-    const staleTargets = normalizeUidList(targetUids);
-    if (!ownerUid || !staleTargets.length) return;
-
-    await bestEffortMergeUserDoc(ownerUid, {
-        sentFriendRequests: arrayRemove(...staleTargets)
-    });
-}
-
-export async function removeFriend(userId, friendUid, options = {}) {
-    const ownerUid = normalizeUid(userId);
-    const targetUid = normalizeUid(friendUid);
-    if (!ownerUid || !targetUid || ownerUid === targetUid) return;
-
-    await bestEffortDeleteDoc(doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(ownerUid, targetUid)));
-
-    const ownerRemovalValues = normalizeUidList([
-        targetUid,
-        ...(Array.isArray(options.friendAliases) ? options.friendAliases : [])
+        bestEffortUpdateUser(targetUid, {
+            friendRequests: arrayRemove(senderUid)
+        })
     ]);
-    if (ownerRemovalValues.length) {
-        await bestEffortMergeUserDoc(ownerUid, {
-            friends: arrayRemove(...ownerRemovalValues)
-        });
+    return true;
+}
+
+export async function declineFriendRequest(userUid, fromUid) {
+    const currentUid = normalizeUid(userUid);
+    const requesterUid = normalizeUid(fromUid);
+    const requestId = buildFriendRequestId(requesterUid, currentUid);
+    if (!requestId) return false;
+
+    await deleteDocIfExists(doc(db, FRIEND_REQUESTS_COLLECTION, requestId));
+    await Promise.all([
+        bestEffortUpdateUser(currentUid, {
+            friendRequests: arrayRemove(requesterUid)
+        }),
+        bestEffortUpdateUser(requesterUid, {
+            sentFriendRequests: arrayRemove(currentUid)
+        })
+    ]);
+    return true;
+}
+
+export async function acceptFriendRequest(userUid, fromUid, options = {}) {
+    const currentUid = normalizeUid(userUid);
+    const requesterUid = normalizeUid(fromUid);
+    if (!currentUid || !requesterUid || currentUid === requesterUid) {
+        throw new Error("acceptFriendRequest requires two distinct UIDs");
     }
 
-    await bestEffortMergeUserDoc(targetUid, {
-        friends: arrayRemove(ownerUid)
+    const requestSnap = await getFriendRequestDocument(requesterUid, currentUid);
+    const mirrorState = await readMirrorRelationshipState(currentUid, requesterUid);
+    if (!requestSnap && !mirrorState.incomingRequest) {
+        const error = new Error("Friend request not found");
+        error.code = "friend/request-not-found";
+        throw error;
+    }
+
+    const requestData = requestSnap ? (requestSnap.data() || {}) : {};
+    const [requesterSnapshot, currentSnapshot] = await Promise.all([
+        resolveSnapshotForUid(requesterUid, safeObject(requestData.fromSnapshot)),
+        resolveSnapshotForUid(currentUid, mergeSnapshots(
+            safeObject(requestData.toSnapshot),
+            options.currentSnapshot || null
+        ))
+    ]);
+
+    const friendshipRef = doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(currentUid, requesterUid));
+    let friendshipCreated = false;
+    try {
+        await setDoc(friendshipRef, {
+            users: [currentUid, requesterUid].sort(),
+            createdAt: pickNonEmpty(requestData.createdAt, Date.now()),
+            updatedAt: Date.now(),
+            snapshotByUid: {
+                [requesterUid]: requesterSnapshot || null,
+                [currentUid]: currentSnapshot || null
+            }
+        });
+        friendshipCreated = true;
+    } catch (error) {
+        if (!isPermissionLikeError(error)) throw error;
+    }
+
+    if (requestSnap) {
+        await deleteDocIfExists(requestSnap.ref);
+    }
+
+    const reverseRequestRef = doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(currentUid, requesterUid));
+    const reverseRequestDeleted = await deleteDocIfExists(reverseRequestRef);
+
+    const currentUserPayload = {
+        friends: arrayUnion(requesterUid),
+        friendRequests: arrayRemove(requesterUid)
+    };
+    if (reverseRequestDeleted) {
+        currentUserPayload.sentFriendRequests = arrayRemove(requesterUid);
+    }
+
+    const requesterPayload = {
+        friends: arrayUnion(currentUid),
+        sentFriendRequests: arrayRemove(currentUid)
+    };
+    if (reverseRequestDeleted) {
+        requesterPayload.friendRequests = arrayRemove(currentUid);
+    }
+
+    const [currentUpdated, requesterUpdated] = await Promise.all([
+        bestEffortUpdateUser(currentUid, currentUserPayload),
+        bestEffortUpdateUser(requesterUid, requesterPayload)
+    ]);
+
+    if (!friendshipCreated && !currentUpdated && !requesterUpdated) {
+        const error = new Error("Friend acceptance write failed");
+        error.code = "friend/accept-write-failed";
+        throw error;
+    }
+
+    return {
+        friendshipId: friendshipRef.id,
+        users: [currentUid, requesterUid],
+        mirrorOnly: !friendshipCreated
+    };
+}
+
+export async function pruneSentFriendRequests(uid) {
+    const currentUid = normalizeUid(uid);
+    if (!currentUid) return [];
+
+    const userSnap = await getReadableUserData(currentUid);
+    const sentRequestUids = normalizeUidList(safeObject(userSnap).sentFriendRequests);
+    if (!sentRequestUids.length) return [];
+
+    const staleUids = [];
+    for (const targetUid of sentRequestUids) {
+        const requestSnap = await getFriendRequestDocument(currentUid, targetUid);
+        if (!requestSnap) staleUids.push(targetUid);
+    }
+
+    if (!staleUids.length) return [];
+
+    await bestEffortUpdateUser(currentUid, {
+        sentFriendRequests: arrayRemove(...staleUids)
     });
+    return staleUids;
+}
 
-    const remoteAliases = normalizeUidList(Array.isArray(options.currentUserAliases) ? options.currentUserAliases : []);
-    for (const alias of remoteAliases) {
-        if (!alias || alias === ownerUid) continue;
-        await bestEffortMergeUserDoc(targetUid, {
-            friends: arrayRemove(alias)
-        });
+export async function removeFriend(userUid, targetValue, options = {}) {
+    const currentUid = await resolveUidCandidate(userUid, options.currentUserAliases || []);
+    const targetUid = await resolveUidCandidate(targetValue, options.friendAliases || []);
+    if (!currentUid || !targetUid || currentUid === targetUid) {
+        throw new Error("removeFriend requires two distinct users");
     }
+
+    const friendshipIds = getFriendshipIdCandidates(currentUid, targetUid);
+    await Promise.all(friendshipIds.map((id) => deleteDocIfExists(doc(db, FRIENDSHIPS_COLLECTION, id))));
+
+    await Promise.all([
+        deleteDocIfExists(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(currentUid, targetUid))),
+        deleteDocIfExists(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(targetUid, currentUid)))
+    ]);
+
+    await Promise.all([
+        bestEffortUpdateUser(currentUid, {
+            friends: arrayRemove(targetUid),
+            friendRequests: arrayRemove(targetUid),
+            sentFriendRequests: arrayRemove(targetUid)
+        }),
+        bestEffortUpdateUser(targetUid, {
+            friends: arrayRemove(currentUid),
+            friendRequests: arrayRemove(currentUid),
+            sentFriendRequests: arrayRemove(currentUid)
+        })
+    ]);
+
+    return {
+        removed: true,
+        userUid: currentUid,
+        targetUid
+    };
 }

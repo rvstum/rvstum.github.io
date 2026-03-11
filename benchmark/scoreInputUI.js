@@ -17,6 +17,83 @@ function getSubInputStatTagText() {
     return ScoreManager.getAlternateConfig().stat === "Baddy Points" ? "pts" : "bks";
 }
 
+const SCORE_LINK_TOOLTIP_ID = "scoreLinkFloatingTooltip";
+let activeScoreLinkTooltipTarget = null;
+let scoreLinkTooltipListenersBound = false;
+
+function getScoreLinkTooltipElement() {
+    if (typeof document === "undefined" || !document.body) return null;
+    let tooltip = document.getElementById(SCORE_LINK_TOOLTIP_ID);
+    if (tooltip) return tooltip;
+    tooltip = document.createElement("div");
+    tooltip.id = SCORE_LINK_TOOLTIP_ID;
+    tooltip.className = "score-link-tooltip-floating";
+    tooltip.setAttribute("aria-hidden", "true");
+    document.body.appendChild(tooltip);
+    return tooltip;
+}
+
+function hideScoreLinkTooltip(target = null) {
+    if (target && activeScoreLinkTooltipTarget !== target) return;
+    activeScoreLinkTooltipTarget = null;
+    const tooltip = getScoreLinkTooltipElement();
+    if (!tooltip) return;
+    tooltip.classList.remove("show");
+    tooltip.setAttribute("aria-hidden", "true");
+}
+
+function updateScoreLinkTooltipPosition() {
+    if (!activeScoreLinkTooltipTarget || !activeScoreLinkTooltipTarget.isConnected) {
+        hideScoreLinkTooltip();
+        return;
+    }
+
+    const tooltip = getScoreLinkTooltipElement();
+    if (!tooltip) return;
+
+    const anchorRect = activeScoreLinkTooltipTarget.getBoundingClientRect();
+    const viewportPadding = 8;
+    const anchorGap = 4;
+
+    tooltip.style.left = `${Math.round(anchorRect.left + (anchorRect.width / 2))}px`;
+    tooltip.style.top = `${Math.round(anchorRect.top - anchorGap)}px`;
+
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const halfTooltipWidth = tooltipRect.width / 2;
+    const minCenterX = viewportPadding + halfTooltipWidth;
+    const maxCenterX = window.innerWidth - viewportPadding - halfTooltipWidth;
+    const centeredX = anchorRect.left + (anchorRect.width / 2);
+    const clampedCenterX = Math.max(minCenterX, Math.min(maxCenterX, centeredX));
+    const minTop = viewportPadding + tooltipRect.height;
+    const clampedTop = Math.max(minTop, anchorRect.top - anchorGap);
+
+    tooltip.style.left = `${Math.round(clampedCenterX)}px`;
+    tooltip.style.top = `${Math.round(clampedTop)}px`;
+}
+
+function showScoreLinkTooltip(target, text) {
+    if (!target) return;
+    const tooltip = getScoreLinkTooltipElement();
+    if (!tooltip) return;
+    activeScoreLinkTooltipTarget = target;
+    tooltip.textContent = text || "";
+    tooltip.classList.add("show");
+    tooltip.setAttribute("aria-hidden", "false");
+    updateScoreLinkTooltipPosition();
+}
+
+function bindScoreLinkTooltipViewportListeners() {
+    if (scoreLinkTooltipListenersBound || typeof window === "undefined") return;
+    scoreLinkTooltipListenersBound = true;
+
+    window.addEventListener("resize", updateScoreLinkTooltipPosition, { passive: true });
+    window.addEventListener("scroll", updateScoreLinkTooltipPosition, { passive: true, capture: true });
+    document.addEventListener("pointerdown", (event) => {
+        if (activeScoreLinkTooltipTarget && activeScoreLinkTooltipTarget.contains(event.target)) return;
+        hideScoreLinkTooltip();
+    }, { capture: true, passive: true });
+}
+
 export function setupScoreInputHandlers(options = {}) {
     const getLoginUrl = typeof options.getLoginUrl === "function"
         ? options.getLoginUrl
@@ -53,6 +130,9 @@ export function setupScoreInputHandlers(options = {}) {
         scoreLinkToggle.dataset.tooltip = tooltip;
         scoreLinkToggle.setAttribute("aria-label", tooltip);
         scoreLinkToggle.removeAttribute("title");
+        if (activeScoreLinkTooltipTarget === scoreLinkToggle) {
+            showScoreLinkTooltip(scoreLinkToggle, tooltip);
+        }
     };
 
     const syncScoreLinkToggleState = () => {
@@ -192,11 +272,19 @@ export function setupScoreInputHandlers(options = {}) {
     };
 
     if (scoreLinkToggle) {
+        bindScoreLinkTooltipViewportListeners();
         const refreshToggleTooltip = () => {
             updateScoreLinkToggleText();
+            showScoreLinkTooltip(scoreLinkToggle, scoreLinkToggle.dataset.tooltip || getSubInputTooltipText());
         };
         scoreLinkToggle.addEventListener("pointerenter", refreshToggleTooltip);
         scoreLinkToggle.addEventListener("focus", refreshToggleTooltip);
+        scoreLinkToggle.addEventListener("pointerleave", () => {
+            hideScoreLinkTooltip(scoreLinkToggle);
+        });
+        scoreLinkToggle.addEventListener("blur", () => {
+            hideScoreLinkTooltip(scoreLinkToggle);
+        });
         scoreLinkToggle.addEventListener("click", (event) => {
             updateScoreLinkToggleText();
             if (redirectToLoginIfNeeded()) return;

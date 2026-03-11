@@ -921,7 +921,9 @@ async function runIframeHtml2CanvasAttempt(context, attempt) {
     }
 }
 
-async function captureDataUrl(context) {
+async function captureDataUrl(context, options = {}) {
+    const forceOffscreenDesktop = !!options.forceOffscreenDesktop;
+    const allowLiveDesktopFallback = options.allowLiveDesktopFallback !== false;
     let lastError = null;
     const attempts = isMobileViewport() ? MOBILE_CAPTURE_ATTEMPTS : DESKTOP_CAPTURE_ATTEMPTS;
 
@@ -945,6 +947,21 @@ async function captureDataUrl(context) {
                         } catch (directModernError) {
                             lastError = directModernError;
                             return await runDirectHtml2CanvasAttempt(context, attempt);
+                        }
+                    }
+                }
+            }
+            if (forceOffscreenDesktop) {
+                try {
+                    return await runIframeCaptureAttempt(context, attempt);
+                } catch (iframeError) {
+                    lastError = iframeError;
+                    try {
+                        return await runIframeHtml2CanvasAttempt(context, attempt);
+                    } catch (iframeCanvasError) {
+                        lastError = iframeCanvasError;
+                        if (!allowLiveDesktopFallback) {
+                            continue;
                         }
                     }
                 }
@@ -999,15 +1016,24 @@ async function cropCapturedImage(dataUrl, captureSourceWidthPx, cropToRadarPx, s
     return canvas;
 }
 
-export async function generateShareScreenshotCanvas() {
+export async function generateShareScreenshotCanvas(options = {}) {
+    const offscreenOnly = !!options.offscreenOnly;
     const context = buildCaptureContext();
-    const overrideStyle = createScreenshotOverrideStyle();
-    const restoreMainRankStyles = applyTemporaryMainRankScreenshotOverrides();
+    const shouldUseLiveDocumentOverrides = !(offscreenOnly && !isMobileViewport());
+    const overrideStyle = shouldUseLiveDocumentOverrides ? createScreenshotOverrideStyle() : null;
+    const restoreMainRankStyles = shouldUseLiveDocumentOverrides
+        ? applyTemporaryMainRankScreenshotOverrides()
+        : () => {};
 
-    document.head.appendChild(overrideStyle);
+    if (overrideStyle) {
+        document.head.appendChild(overrideStyle);
+    }
 
     try {
-        const captureResult = await captureDataUrl(context);
+        const captureResult = await captureDataUrl(context, {
+            forceOffscreenDesktop: offscreenOnly && !isMobileViewport(),
+            allowLiveDesktopFallback: !offscreenOnly
+        });
         return await cropCapturedImage(
             captureResult.dataUrl,
             captureResult.captureSourceWidthPx,

@@ -2,6 +2,7 @@ import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc, upda
 import { db } from "./client.js";
 import { normalizeFriendRequestIds } from "./utils.js";
 import { FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
+import { calculateRankFromData } from "./scoring.js";
 import { buildProfileSlug } from "./slugs.js?v=20260310-public-slug-directory-1";
 
 const ACCOUNT_DIRECTORY_COLLECTION = "publicAccountDirectory";
@@ -90,6 +91,7 @@ function derivePublicRankIndex(userData = {}) {
     const safeData = userData && typeof userData === "object" ? userData : {};
     const settings = safeData.settings && typeof safeData.settings === "object" ? safeData.settings : {};
     const profile = safeData.profile && typeof safeData.profile === "object" ? safeData.profile : {};
+    let best = clampRankIndex(calculateRankFromData(safeData));
     const numericCandidates = [
         safeData.maxRankIndex,
         safeData.rankIndex,
@@ -98,7 +100,6 @@ function derivePublicRankIndex(userData = {}) {
         profile.rankIndex
     ];
 
-    let best = 0;
     numericCandidates.forEach((value) => {
         const rank = clampRankIndex(value);
         if (rank > best) best = rank;

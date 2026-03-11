@@ -1,7 +1,7 @@
 import { isMobileViewport } from "./utils.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 import { state, getCurrentConfigState } from "./appState.js";
-import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
+import * as RankingUI from "./rankingUI.js?v=20260311-rank-animation-phase-1";
 import { t } from "./i18n.js";
 import { generateShareScreenshotCanvas } from "./shareScreenshot.js";
 import {
@@ -19,7 +19,8 @@ import {
 export { buildShareUrl, buildCopyLinkUrl, applyShareFromUrl };
 
 const SCREENSHOT_CACHE_VERSION = "share-rebuild-v22";
-const MIN_SCREENSHOT_LOADING_MS = 650;
+const MOBILE_MIN_SCREENSHOT_LOADING_MS = 650;
+const DESKTOP_MIN_SCREENSHOT_LOADING_MS = 0;
 
 export function configure(deps = {}) {
     configureShareLinks(deps);
@@ -60,7 +61,9 @@ function renderScreenshotImage(container, imageUrl) {
         };
         img.className = "share-screenshot-preview";
         img.alt = t("share_preview_alt");
-        img.decoding = "async";
+        img.decoding = "sync";
+        img.loading = "eager";
+        img.fetchPriority = "high";
         img.onload = () => {
             settle(() => {
                 container.innerHTML = "";
@@ -220,6 +223,12 @@ function delay(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
+}
+
+function getMinScreenshotLoadingMs() {
+    return isMobileViewport()
+        ? MOBILE_MIN_SCREENSHOT_LOADING_MS
+        : DESKTOP_MIN_SCREENSHOT_LOADING_MS;
 }
 
 let modalLockScrollY = 0;
@@ -410,7 +419,7 @@ export function setupShareUI(refreshRadarVisuals) {
         hasShareServiceConfigured() && (force || !shareServiceTemporarilyDisabled)
     );
 
-    const generateCanvasResult = (cacheKey, promiseKey) => generateShareScreenshotCanvas()
+    const generateCanvasResult = (cacheKey, promiseKey, { offscreenOnly = false } = {}) => generateShareScreenshotCanvas({ offscreenOnly })
         .then((canvas) => {
             if (activeScreenshotPromiseKey === promiseKey) {
                 currentScreenshotCanvas = canvas;
@@ -420,8 +429,9 @@ export function setupShareUI(refreshRadarVisuals) {
             return { kind: "canvas", value: canvas };
         });
 
-    const getScreenshotForKey = (cacheKey, { force = false } = {}) => {
+    const getScreenshotForKey = (cacheKey, { force = false, background = false } = {}) => {
         const useShareService = shouldUseShareService({ force });
+        const useOffscreenLocalCapture = background && !isMobileViewport();
 
         if (useShareService) {
             if (!force && currentScreenshotImageUrl && currentScreenshotCacheKey === cacheKey) {
@@ -447,7 +457,7 @@ export function setupShareUI(refreshRadarVisuals) {
                 .catch((error) => {
                     shareServiceTemporarilyDisabled = true;
                     console.warn("Share service unavailable; using in-browser share renderer.", error);
-                    return generateCanvasResult(cacheKey, promiseKey);
+                    return generateCanvasResult(cacheKey, promiseKey, { offscreenOnly: useOffscreenLocalCapture });
                 })
                 .finally(() => {
                     if (activeScreenshotPromise === requestPromise) {
@@ -471,7 +481,7 @@ export function setupShareUI(refreshRadarVisuals) {
 
         const promiseKey = force ? `${cacheKey}::refresh::${Date.now()}` : cacheKey;
         activeScreenshotPromiseKey = promiseKey;
-        const requestPromise = generateCanvasResult(cacheKey, promiseKey)
+        const requestPromise = generateCanvasResult(cacheKey, promiseKey, { offscreenOnly: useOffscreenLocalCapture })
             .finally(() => {
                 if (activeScreenshotPromise === requestPromise) {
                     activeScreenshotPromise = null;
@@ -490,8 +500,6 @@ export function setupShareUI(refreshRadarVisuals) {
 
     const requestScreenshotPreview = async ({ force = false } = {}) => {
         if (shareModal) shareModal.classList.add("show");
-        renderLoadingScreenshot(screenshotContainer);
-        updateScreenshotUiState({ busy: true, tone: "loading", message: t("generating_screenshot") });
         RankingUI.updateAllRatings(refreshRadarVisuals);
         const useShareService = shouldUseShareService({ force });
         const effectiveForce = force || useShareService;
@@ -499,6 +507,14 @@ export function setupShareUI(refreshRadarVisuals) {
 
         const cacheKey = buildScreenshotCacheKey();
         const requestId = ++latestScreenshotRequestId;
+        const hasCachedScreenshot = !effectiveForce
+            && currentScreenshotCacheKey === cacheKey
+            && !!(currentScreenshotCanvas || currentScreenshotImageUrl);
+
+        if (!hasCachedScreenshot) {
+            renderLoadingScreenshot(screenshotContainer);
+            updateScreenshotUiState({ busy: true, tone: "loading", message: t("generating_screenshot") });
+        }
 
         if (effectiveForce) {
             currentScreenshotCanvas = null;
@@ -525,7 +541,7 @@ export function setupShareUI(refreshRadarVisuals) {
         try {
             const result = await getScreenshotForKey(cacheKey, { force: effectiveForce });
             if (requestId !== latestScreenshotRequestId) return;
-            const remainingLoadingMs = MIN_SCREENSHOT_LOADING_MS - (Date.now() - loadingStartedAt);
+            const remainingLoadingMs = getMinScreenshotLoadingMs() - (Date.now() - loadingStartedAt);
             if (remainingLoadingMs > 0) {
                 await delay(remainingLoadingMs);
                 if (requestId !== latestScreenshotRequestId) return;

@@ -61,6 +61,12 @@ export function createSettingsStateController(options = {}) {
         syncResetConfigUI();
         ThemeUI.updateCustomSwatches(ThemeUI.applyTheme);
         ThemeUI.updateCustomThemeUI(ThemeUI.applyTheme);
+        PacmanUI.injectPacmanSettingUI({
+            onSave: saveSettings,
+            onRadarUpdate: refreshRadarVisuals,
+            reapplyLanguage: () => applyLanguage(getCurrentLanguage(), false)
+        });
+        PacmanUI.syncPacmanUI();
     }
 
     function persistConfigThemeReset(keys, options = {}) {

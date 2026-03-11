@@ -7,6 +7,15 @@ import { hexToRgba, darkenColor } from "./utils/colorUtils.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 
 const SCORE_PER_RANK = 100;
+const ETERNAL_SHIMMER_DURATION_MS = 2500;
+
+function getEternalAnimationDelay() {
+    const nowMs = (typeof performance !== "undefined" && typeof performance.now === "function")
+        ? performance.now()
+        : Date.now();
+    const normalizedMs = ((nowMs % ETERNAL_SHIMMER_DURATION_MS) + ETERNAL_SHIMMER_DURATION_MS) % ETERNAL_SHIMMER_DURATION_MS;
+    return `-${(normalizedMs / 1000).toFixed(3)}s`;
+}
 
 function resolveRankTrophyAssetUrl(assetPath) {
     const raw = typeof assetPath === "string" ? assetPath.trim() : "";
@@ -192,6 +201,7 @@ export function updateMainProgressBarAndRanks() {
             let filter = '';
             let eternalLayerStyle = '';
             let textStyle = `color: ${RANK_TEXT_COLORS[currentRankIndex]};`;
+            const eternalAnimationDelay = getEternalAnimationDelay();
 
             switch(currentRankIndex) {
                 case 1: filter = 'grayscale(100%)'; break;
@@ -206,18 +216,18 @@ export function updateMainProgressBarAndRanks() {
                 case 10: filter = 'sepia(1) hue-rotate(120deg) saturate(2) brightness(0.9)'; break;
                 case 11: 
                     filter = STELLAR_TROPHY_FILTER; 
-                    eternalLayerStyle = `background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%); background-size: 200% auto; animation: eternalTrophyShimmer 2.5s linear infinite;`;
-                    textStyle = `background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite;`;
+                    eternalLayerStyle = `background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%); background-size: 200% auto; animation: eternalTrophyShimmer 2.5s linear infinite; animation-delay: ${eternalAnimationDelay};`;
+                    textStyle = `background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite; animation-delay: ${eternalAnimationDelay};`;
                     break;
                 case 12: 
                     filter = 'sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9)'; 
-                    eternalLayerStyle = `background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%); background-size: 300% auto; animation: eternalTrophyShimmer 2.5s linear infinite;`;
-                    textStyle = `background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite;`;
+                    eternalLayerStyle = `background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%); background-size: 300% auto; animation: eternalTrophyShimmer 2.5s linear infinite; animation-delay: ${eternalAnimationDelay};`;
+                    textStyle = `background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite; animation-delay: ${eternalAnimationDelay};`;
                     break;
                 case 13: 
                     filter = 'sepia(1) hue-rotate(2deg) saturate(0.74) brightness(1.16)'; 
-                    eternalLayerStyle = `background: linear-gradient(110deg, #b6a26a 20%, #d4c18a 35%, #ead9a6 48%, #f8ecc0 50%, #ead9a6 52%, #d4c18a 65%, #b6a26a 80%); background-size: 200% auto; animation: eternalTrophyShimmer 2.5s linear infinite;`;
-                    textStyle = `background: linear-gradient(110deg, #cab98a 20%, #e5d9b6 35%, #f2e9cf 48%, #fff7e5 50%, #f2e9cf 52%, #e5d9b6 65%, #cab98a 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite;`;
+                    eternalLayerStyle = `background: linear-gradient(110deg, #b6a26a 20%, #d4c18a 35%, #ead9a6 48%, #f8ecc0 50%, #ead9a6 52%, #d4c18a 65%, #b6a26a 80%); background-size: 200% auto; animation: eternalTrophyShimmer 2.5s linear infinite; animation-delay: ${eternalAnimationDelay};`;
+                    textStyle = `background: linear-gradient(110deg, #cab98a 20%, #e5d9b6 35%, #f2e9cf 48%, #fff7e5 50%, #f2e9cf 52%, #e5d9b6 65%, #cab98a 80%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: eternalShimmer 2.5s linear infinite; animation-delay: ${eternalAnimationDelay};`;
                     break;
             }
 

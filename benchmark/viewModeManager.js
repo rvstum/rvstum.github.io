@@ -93,8 +93,8 @@ function resolveViewModeRankIndex(data = {}) {
 }
 
 function syncViewModeExitButtonTheme(rankIndex = 0) {
-    if (rankIndex >= FINAL_RANK_INDEX) {
-        document.body.style.setProperty("--exit-view-btn-text", "#0a0a0a");
+    if (rankIndex > 0) {
+        document.body.style.setProperty("--exit-view-btn-text", "#ffffff");
         return;
     }
     document.body.style.removeProperty("--exit-view-btn-text");
