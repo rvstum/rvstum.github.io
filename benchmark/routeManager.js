@@ -1,15 +1,43 @@
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
 import { getRememberedAccountIdForUid } from "./accountId.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import * as ViewModeManager from "./viewModeManager.js?v=20260311-view-mode-compare-2";
 import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
+import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";
 import { showPageLoader } from "./pageLoaderUI.js";
 
+async function resolveViewerDocData(currentUser) {
+    if (!currentUser || !currentUser.uid) return null;
+    try {
+        const viewerDoc = await UserService.getUserDocument(currentUser.uid);
+        if (!viewerDoc.exists()) return null;
+        return viewerDoc.data() || {};
+    } catch (error) {
+        console.warn("Failed to resolve viewer document for profile route:", error);
+        return null;
+    }
+}
+
+function resolvePreferredLanguage(viewerData = null) {
+    const candidate = viewerData
+        && viewerData.settings
+        && typeof viewerData.settings === "object"
+        ? viewerData.settings.language
+        : "";
+    if (typeof candidate === "string" && candidate.trim()) {
+        return candidate.trim();
+    }
+    return readString(LANGUAGE_STORAGE_KEY, "en") || "en";
+}
+
 export async function handleProfileLink(options = {}) {
-    const { showPrivateProfileOverlay, hidePrivateProfileOverlay, hidePageLoader } = options;
+    const {
+        showPrivateProfileOverlay,
+        hidePrivateProfileOverlay,
+        hidePageLoader,
+        applyLanguage = null
+    } = options;
     if (typeof showPrivateProfileOverlay !== "function") {
         throw new Error("handleProfileLink requires showPrivateProfileOverlay()");
     }
@@ -27,37 +55,38 @@ export async function handleProfileLink(options = {}) {
     const requestedSlug = Slugs.getRequestedProfileSlugFromPath();
     let profileDocFromSlug = null;
     const currentUser = await AuthManager.waitForAuthInitialization();
+    const viewerData = await resolveViewerDocData(currentUser);
+    if (typeof applyLanguage === "function") {
+        applyLanguage(resolvePreferredLanguage(viewerData), false);
+    }
 
     if (!profileId && requestedSlug) {
         if (currentUser) {
             try {
-                const myDoc = await getDoc(doc(db, "users", currentUser.uid));
-                if (myDoc.exists()) {
-                    const mine = myDoc.data() || {};
-                    const rememberedAccountId = getRememberedAccountIdForUid(currentUser.uid);
-                    const slugCandidates = new Set([
-                        Slugs.resolveProfileSlug(mine, {
-                            usernameFallback: currentUser.displayName || "player",
-                            accountIdFallback: rememberedAccountId || getRuntimeAccountId(),
-                            uid: currentUser.uid
-                        }),
-                        Slugs.resolveProfileSlug({
-                            ...mine,
-                            accountId: rememberedAccountId || mine.accountId,
-                            profile: {
-                                ...(mine.profile && typeof mine.profile === "object" ? mine.profile : {}),
-                                accountId: rememberedAccountId || (mine.profile && mine.profile.accountId) || ""
-                            }
-                        }, {
-                            usernameFallback: currentUser.displayName || "player",
-                            accountIdFallback: rememberedAccountId || getRuntimeAccountId(),
-                            uid: currentUser.uid
-                        })
-                    ]);
-                    if (slugCandidates.has(requestedSlug)) {
-                        hidePrivateProfileOverlay();
-                        return;
-                    }
+                const mine = viewerData && typeof viewerData === "object" ? viewerData : {};
+                const rememberedAccountId = getRememberedAccountIdForUid(currentUser.uid);
+                const slugCandidates = new Set([
+                    Slugs.resolveProfileSlug(mine, {
+                        usernameFallback: currentUser.displayName || "player",
+                        accountIdFallback: rememberedAccountId || getRuntimeAccountId(),
+                        uid: currentUser.uid
+                    }),
+                    Slugs.resolveProfileSlug({
+                        ...mine,
+                        accountId: rememberedAccountId || mine.accountId,
+                        profile: {
+                            ...(mine.profile && typeof mine.profile === "object" ? mine.profile : {}),
+                            accountId: rememberedAccountId || (mine.profile && mine.profile.accountId) || ""
+                        }
+                    }, {
+                        usernameFallback: currentUser.displayName || "player",
+                        accountIdFallback: rememberedAccountId || getRuntimeAccountId(),
+                        uid: currentUser.uid
+                    })
+                ]);
+                if (slugCandidates.has(requestedSlug)) {
+                    hidePrivateProfileOverlay();
+                    return;
                 }
             } catch (ownResolveErr) {
                 console.warn("Failed to resolve own slug fallback:", ownResolveErr);

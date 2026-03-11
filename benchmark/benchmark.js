@@ -30,7 +30,8 @@ import {
     VISIBILITY_STORAGE_KEY,
     PACMAN_STORAGE_KEY,
     THEME_UNLOCK_STORAGE_KEY,
-    SUB_INPUT_MODE_STORAGE_KEY
+    SUB_INPUT_MODE_STORAGE_KEY,
+    LANGUAGE_STORAGE_KEY
 } from "./storage.js?v=20260310-sub-score-input-3";
 import { calculateRankFromData } from "./scoring.js";
 import {
@@ -92,9 +93,9 @@ import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-friends-layout-8";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-view-mode-language-fix-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-view-mode-language-fix-2";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
-import { handleProfileLink } from "./routeManager.js?v=20260311-own-slug-refresh-fix-1";
+import { handleProfileLink } from "./routeManager.js?v=20260311-view-mode-language-fix-2";
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-exit-slug-fix-1";
 import { initProfileModalController } from "./profileModalUI.js?v=20260311-profile-original-sync-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
@@ -744,6 +745,11 @@ function applyLanguage(lang, persist = true) {
     languageController.applyLanguage(lang, persist);
 }
 
+function applyStoredStartupLanguage() {
+    const storedLang = readString(LANGUAGE_STORAGE_KEY, "en") || "en";
+    applyLanguage(storedLang, false);
+}
+
 function syncResetConfigUI() {
     if (!settingsStateController) return;
     settingsStateController.syncResetConfigUI();
@@ -1220,6 +1226,7 @@ function initBenchmarkApp() {
     initStartupSideEffects();
     initModuleConfigurations();
     initUIControllers();
+    applyStoredStartupLanguage();
     initAuthLifecycle({
         loadUserProfile,
         hidePageLoader,
@@ -1256,7 +1263,8 @@ function initBenchmarkApp() {
     handleProfileLink({
         showPrivateProfileOverlay,
         hidePrivateProfileOverlay,
-        hidePageLoader
+        hidePageLoader,
+        applyLanguage
     });
     LayoutRuntime.initRankBoxResponsive();
 }
