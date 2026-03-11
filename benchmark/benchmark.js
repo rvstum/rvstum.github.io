@@ -60,7 +60,7 @@ import {
     readDefaultConfig,
     getStartupConfigDefaults
 } from "./configManager.js";
-import * as RankingUI from "./rankingUI.js?v=20260311-aeternus-complete-locale-1";
+import * as RankingUI from "./rankingUI.js?v=20260311-aeternus-complete-locale-2";
 import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
@@ -95,7 +95,7 @@ import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-view-
 import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-profile-original-sync-1";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
 import { handleProfileLink } from "./routeManager.js?v=20260310-profile-mobile-ui-fix-3";
-import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-aeternus-complete-locale-1";
+import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-aeternus-complete-locale-2";
 import { initProfileModalController } from "./profileModalUI.js?v=20260311-profile-original-sync-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260311-profile-original-sync-1";

@@ -384,6 +384,12 @@ export function updateRowColors() {
     });
 }
 
+if (typeof document !== "undefined") {
+    document.addEventListener("benchmark:language-applied", () => {
+        updateMainProgressBarAndRanks();
+    });
+}
+
 function recomputeIndividualRatings(scoreInputs) {
     scoreInputs.forEach((input, index) => {
         const score = Number(input.value);

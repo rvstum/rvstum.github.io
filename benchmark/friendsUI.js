@@ -617,7 +617,6 @@ export async function loadFriendsList(options = {}) {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const userData = userDoc.exists() ? (userDoc.data() || {}) : {};
         const storedFriends = normalizeFriendRequestIds(userData.friends).filter((uid) => typeof uid === "string" && uid.trim() !== "");
-        let friends = [];
         let edgeFriends = [];
         try {
             const friendshipDocs = await FriendsService.listFriendships(user.uid);
@@ -630,13 +629,9 @@ export async function loadFriendsList(options = {}) {
             console.error("Error loading friendship edges:", e);
         }
 
-        if (storedFriends.length) {
-            friends = storedFriends;
-        } else if (edgeFriends.length) {
-            friends = edgeFriends;
+        let friends = normalizeFriendRequestIds([...storedFriends, ...edgeFriends]);
+        if (edgeFriends.length) {
             await selfHealAcceptedFriends(user.uid, edgeFriends);
-        } else {
-            friends = [];
         }
 
         const legacySentRequests = normalizeFriendRequestIds(userData.sentFriendRequests || []);
@@ -654,7 +649,36 @@ export async function loadFriendsList(options = {}) {
         }
 
         const friendDocResults = await Promise.allSettled(
-            friends.map(async (identifier) => ({ identifier, snap: await UserService.resolveUserDocByIdentifier(identifier) }))
+            friends.map(async (identifier) => {
+                const normalizedIdentifier = typeof identifier === "string" ? identifier.trim() : "";
+                let snap = normalizedIdentifier
+                    ? await UserService.resolveUserDocByIdentifier(normalizedIdentifier)
+                    : null;
+                let resolvedUid = snap && snap.exists()
+                    ? snap.id
+                    : "";
+
+                if (!resolvedUid && normalizedIdentifier) {
+                    resolvedUid = await resolveUserUidByAccountId(normalizedIdentifier);
+                    if (resolvedUid) {
+                        snap = await UserService.resolveUserDocByIdentifier(resolvedUid);
+                    }
+                }
+
+                const directoryProfile = (!snap || !snap.exists())
+                    ? await resolveDirectoryRequestProfile({
+                        accountId: normalizedIdentifier,
+                        uid: resolvedUid || normalizedIdentifier
+                    })
+                    : null;
+
+                return {
+                    identifier: normalizedIdentifier,
+                    snap: snap && snap.exists() ? snap : null,
+                    resolvedUid: (resolvedUid || normalizedIdentifier || "").trim(),
+                    directoryProfile
+                };
+            })
         );
 
         const renderableFriends = [];
@@ -668,22 +692,32 @@ export async function loadFriendsList(options = {}) {
 
         friendDocResults.forEach((result) => {
             if (result.status !== "fulfilled") return;
+            const friendIdentifier = typeof result.value.identifier === "string" ? result.value.identifier.trim() : "";
             const friendDoc = result.value.snap;
-            if (!friendDoc || !friendDoc.exists()) return;
+            const friendUid = typeof result.value.resolvedUid === "string" ? result.value.resolvedUid.trim() : "";
+            if (!friendUid) return;
             try {
-                const data = friendDoc.data() || {};
+                const data = friendDoc ? (friendDoc.data() || {}) : {};
                 const profile = (data && typeof data.profile === "object" && data.profile) ? data.profile : {};
-                const name = data.username || profile.username || (data.accountId ? `ID: ${data.accountId}` : t("unknown_player"));
-                const maxRankIndex = getRankIndex(data);
+                const fallbackMeta = buildFriendRequestProfileSnapshotFromDirectoryEntry(
+                    result.value.directoryProfile,
+                    friendIdentifier || friendUid
+                );
+                const displayIdentifier = data.accountId || fallbackMeta.accountId || friendIdentifier || friendUid;
+                const name = data.username
+                    || profile.username
+                    || fallbackMeta.username
+                    || (displayIdentifier ? `ID: ${displayIdentifier}` : t("unknown_player"));
+                const maxRankIndex = friendDoc ? getRankIndex(data) : fallbackMeta.rankIndex;
                 const rankName = RANK_NAMES[maxRankIndex] || RANK_NAMES[0];
                 const filter = getRankFilter(maxRankIndex);
                 const rankStyle = getRankTextStyle(maxRankIndex);
 
                 renderableFriends.push({
-                    uid: friendDoc.id,
+                    uid: friendUid,
                     name,
-                    data,
-                    profile,
+                    data: friendDoc ? data : null,
+                    profile: friendDoc ? profile : fallbackMeta,
                     rankName,
                     rankStyle,
                     filter
