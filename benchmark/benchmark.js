@@ -92,7 +92,7 @@ import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-friends-layout-8";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-view-mode-compare-2";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-view-mode-language-fix-1";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
 import { handleProfileLink } from "./routeManager.js?v=20260311-own-slug-refresh-fix-1";
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-exit-slug-fix-1";
@@ -1227,7 +1227,8 @@ function initBenchmarkApp() {
         syncAuthenticatedBackNavigationGuard,
         updateNotificationVisibility,
         onAuthSessionChange: handleAuthSessionChange,
-        setAuthGateActive
+        setAuthGateActive,
+        applyLanguage
     });
     ThemeUI.initCustomThemePicker(ThemeUI.applyTheme);
     AuthManager.waitForAuthInitialization()

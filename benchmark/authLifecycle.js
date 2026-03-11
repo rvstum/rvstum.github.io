@@ -12,6 +12,7 @@ import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as ViewModeManager from "./viewModeManager.js?v=20260311-view-mode-compare-2";
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf } from "./i18n.js";
+import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";
 import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
 
 const AUTH_REFERRER_BLOCK_HINT = "The request is blocked by Firebase API key restrictions (check authorized domains / API key HTTP referrers).";
@@ -28,7 +29,8 @@ export function initAuthLifecycle(options = {}) {
         syncAuthenticatedBackNavigationGuard = null,
         updateNotificationVisibility,
         onAuthSessionChange = null,
-        setAuthGateActive = null
+        setAuthGateActive = null,
+        applyLanguage = null
     } = options;
 
     if (typeof loadUserProfile !== "function") {
@@ -40,6 +42,12 @@ export function initAuthLifecycle(options = {}) {
     if (typeof updateNotificationVisibility !== "function") {
         throw new Error("initAuthLifecycle requires updateNotificationVisibility()");
     }
+
+    const applyStoredLanguageForLinkedView = () => {
+        if (typeof applyLanguage !== "function") return;
+        const storedLang = readString(LANGUAGE_STORAGE_KEY, "en") || "en";
+        applyLanguage(storedLang, false);
+    };
 
     onAuthStateChanged(auth, async (user) => {
         if (typeof setAuthGateActive === "function") {
@@ -79,6 +87,7 @@ export function initAuthLifecycle(options = {}) {
             try {
                 const requestedDoc = await Slugs.resolveProfileDocBySlug(requestedSlug, !!user);
                 if (requestedDoc && requestedDoc.id !== user.uid) {
+                    applyStoredLanguageForLinkedView();
                     if (typeof syncAuthenticatedBackNavigationGuard === "function") {
                         syncAuthenticatedBackNavigationGuard({ enabled: true });
                     }
@@ -97,6 +106,7 @@ export function initAuthLifecycle(options = {}) {
             }
 
             if (profileId && profileId !== user.uid) {
+                applyStoredLanguageForLinkedView();
                 if (typeof syncAuthenticatedBackNavigationGuard === "function") {
                     syncAuthenticatedBackNavigationGuard({ enabled: true });
                 }
