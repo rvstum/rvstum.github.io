@@ -1182,19 +1182,31 @@ body.view-mode .cave-play-edit {
 .profile-circle {
     width: 60px;
     height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    flex: 0 0 60px;
+    aspect-ratio: 1 / 1;
     background-color: #0a0a0a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     margin-right: 15px;
     position: relative;
+    flex-shrink: 0;
 }
 
 /* Layout for when there is no profile picture but there is a flag */
 .profile-circle.no-pic-has-flag {
     width: auto;
     height: auto;
+    min-width: 0;
+    min-height: 0;
+    flex: 0 0 auto;
+    aspect-ratio: auto;
     background: none;
-    border: none;
+    box-shadow: none;
     margin-right: 10px;
     border-radius: 0;
 }
@@ -4500,12 +4512,17 @@ input:-webkit-autofill:active {
 .profile-circle-preview {
     width: 70px;
     height: 70px;
-    border-radius: 50%;
+    min-width: 70px;
+    min-height: 70px;
+    flex: 0 0 70px;
+    aspect-ratio: 1 / 1;
+    border-radius: 999px;
     background-color: #0a0a0a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    flex-shrink: 0;
 }
 
 .profile-box-preview {
@@ -4561,6 +4578,7 @@ input:-webkit-autofill:active {
     user-select: none;
     -webkit-user-drag: none;
     touch-action: none;
+    pointer-events: none;
 }
 
 .cropper-zoom-input {

@@ -10,7 +10,7 @@ import {
 import { doc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
-import * as ProfileUI from "./profileUI.js?v=20260310-profile-mobile-ui-fix-3";
+import * as ProfileUI from "./profileUI.js?v=20260311-profile-cropper-gesture-fix-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
@@ -33,6 +33,8 @@ function maskEmail(emailValue) {
     const parts = String(emailValue || "").split("@");
     return `**************@${parts[1] || "gmail.com"}`;
 }
+
+const CROPPER_ZOOM_STEP = 0.01;
 
 function parseCropState(state) {
     const raw = state && typeof state === "object" ? state : {};
@@ -237,7 +239,7 @@ export function initProfileModalController(options = {}) {
 
     function applyCropTransform() {
         if (!cropperImage) return;
-        cropperImage.style.transform = `translate(${cropState.x}px, ${cropState.y}px) scale(${cropState.scale})`;
+        cropperImage.style.transform = `translate3d(${cropState.x}px, ${cropState.y}px, 0) scale(${cropState.scale})`;
         ProfileUI.setCropperState(cropState);
     }
 
@@ -257,11 +259,8 @@ export function initProfileModalController(options = {}) {
     }
 
     function getCropTouchList(event) {
-        if (!event) return [];
-        const touchList = event.targetTouches && event.targetTouches.length
-            ? event.targetTouches
-            : event.touches;
-        return Array.from(touchList || []);
+        if (!event || !cropperArea) return [];
+        return Array.from(event.touches || []).filter((touch) => cropperArea.contains(touch.target));
     }
 
     function getTouchDistance(touchA, touchB) {
@@ -727,6 +726,7 @@ export function initProfileModalController(options = {}) {
     }
 
     if (cropperZoom) {
+        cropperZoom.step = String(CROPPER_ZOOM_STEP);
         const syncCropperZoom = () => {
             setCropSliderValue(cropperZoom.value);
         };

@@ -143,7 +143,7 @@ function getUserMenuWrapperElement() {
 
 function updateCropperTransform(cropperImage) {
     if (!cropperImage) return;
-    cropperImage.style.transform = `translate(${cropperState.x}px, ${cropperState.y}px) scale(${cropperState.scale})`;
+    cropperImage.style.transform = `translate3d(${cropperState.x}px, ${cropperState.y}px, 0) scale(${cropperState.scale})`;
 }
 
 function getCroppedImage(cropperImage) {
@@ -661,6 +661,9 @@ export function updateMainHeaderLayout() {
     circle.style.backgroundImage = '';
     circle.style.backgroundSize = '';
     circle.style.backgroundPosition = '';
+    circle.style.backgroundRepeat = '';
+    circle.style.border = '';
+    circle.style.boxShadow = '';
     circle.classList.remove('is-hidden');
     flagEl.textContent = '';
     flagEl.style.backgroundImage = '';
@@ -683,6 +686,7 @@ export function updateMainHeaderLayout() {
     } else {
         circle.style.backgroundColor = 'transparent';
         circle.style.border = 'none';
+        circle.style.boxShadow = 'none';
         if (userMenuBox) userMenuBox.classList.add('user-menu-box--no-avatar');
         if (userMenuWrapper) userMenuWrapper.classList.add('user-menu-wrapper--no-avatar');
         if (userMenuBoxIcon) {
