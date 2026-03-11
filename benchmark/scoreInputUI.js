@@ -1,9 +1,9 @@
 import { auth } from "./client.js";
 import { state } from "./appState.js";
 import { t } from "./i18n.js";
-import { SUB_INPUT_MODE_STORAGE_KEY, writeString } from "./storage.js?v=20260310-sub-score-input-3";
-import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
+import { SCORE_STORAGE_KEY, SUB_INPUT_MODE_STORAGE_KEY, readJson, writeString } from "./storage.js?v=20260310-sub-score-input-3";
+import * as RankingUI from "./rankingUI.js?v=20260311-compare-theme-colors-1";
+import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
 
 function getSubInputTooltipText() {
     const alternateStat = ScoreManager.getAlternateConfig().stat;
@@ -108,6 +108,13 @@ export function setupScoreInputHandlers(options = {}) {
     const scoreWrappers = Array.from(document.querySelectorAll(".score-input-wrapper"));
     const scoreLinkToggle = document.querySelector(".score-link-toggle");
     const scoreText = document.querySelector(".score-text");
+    const compareViewBtn = document.getElementById("compareViewBtn");
+    const compareViewDesktopShell = document.getElementById("compareViewDesktopShell");
+    const compareViewDesktopPrompt = document.getElementById("compareViewDesktopPrompt");
+    const mobileCompareBtn = document.getElementById("mobileCompareBtn");
+    const mobileCompareShell = document.getElementById("mobileCompareShell");
+    const mobileComparePrompt = document.getElementById("mobileComparePrompt");
+    let comparePromptTimer = 0;
     const isLocalDebugHost = (() => {
         try {
             const host = window.location && window.location.hostname ? window.location.hostname : "";
@@ -122,6 +129,117 @@ export function setupScoreInputHandlers(options = {}) {
         if (auth.currentUser) return false;
         window.location.href = getLoginUrl();
         return true;
+    };
+
+    const clearComparePromptTimer = () => {
+        if (!comparePromptTimer) return;
+        window.clearTimeout(comparePromptTimer);
+        comparePromptTimer = 0;
+    };
+
+    const hideComparePrompt = (promptEl = null) => {
+        [compareViewDesktopPrompt, mobileComparePrompt].forEach((candidate) => {
+            if (!candidate) return;
+            if (promptEl && candidate !== promptEl) return;
+            candidate.classList.remove("show");
+            candidate.setAttribute("aria-hidden", "true");
+        });
+        if (!promptEl) {
+            clearComparePromptTimer();
+        }
+    };
+
+    const showComparePrompt = (promptEl) => {
+        if (!promptEl) return;
+        clearComparePromptTimer();
+        hideComparePrompt();
+        promptEl.textContent = t("compare_sign_in_required");
+        promptEl.classList.add("show");
+        promptEl.setAttribute("aria-hidden", "false");
+        comparePromptTimer = window.setTimeout(() => {
+            hideComparePrompt(promptEl);
+            comparePromptTimer = 0;
+        }, 1600);
+    };
+
+    const setCompareShellVisible = (shell, visible) => {
+        if (!shell) return;
+        shell.classList.toggle("initially-hidden", !visible);
+    };
+
+    const getCompareScoresForCurrentConfig = () => {
+        const inMemoryScores = ScoreManager.getScoresForConfigRecord(state.viewerCompareScores);
+        if (inMemoryScores.length > 0) {
+            return inMemoryScores;
+        }
+        const localSnapshot = readJson(SCORE_STORAGE_KEY, null);
+        const localScores = ScoreManager.getScoresForConfigRecord(localSnapshot);
+        if (localScores.length > 0) {
+            state.viewerCompareScores = ScoreManager.normalizeSavedScoresRecord(localSnapshot);
+            return localScores;
+        }
+        return [];
+    };
+
+    const syncComparePopoutValues = () => {
+        const compareScores = getCompareScoresForCurrentConfig();
+        scoreWrappers.forEach((wrapper, index) => {
+            const overlay = wrapper.querySelector(".compare-score-text-overlay");
+            const comparePopout = wrapper.querySelector(".compare-score-popout");
+            if (!overlay) return;
+            const compareValue = Number(compareScores[index]) || 0;
+            overlay.textContent = String(compareValue);
+            const theme = RankingUI.getScoreBoxThemeForRow(index, compareValue);
+            wrapper.style.setProperty('--compare-score-box-bg', theme.background);
+            wrapper.style.setProperty('--compare-score-box-accent', theme.accent);
+            wrapper.style.setProperty('--compare-score-text-color', theme.text);
+            if (comparePopout) {
+                comparePopout.dataset.rankIndex = String(theme.rankIndex || 0);
+            }
+        });
+    };
+
+    const syncComparePopoutVisibility = () => {
+        const visible = !!state.isViewMode && !!state.compareViewEnabled && !!auth.currentUser;
+        scoreWrappers.forEach((wrapper) => {
+            wrapper.classList.toggle("compare-view-visible", visible);
+        });
+    };
+
+    const syncCompareButtons = () => {
+        if (!auth.currentUser && state.compareViewEnabled) {
+            state.compareViewEnabled = false;
+        }
+        const showControls = !!state.isViewMode;
+        const isActive = showControls && !!state.compareViewEnabled && !!auth.currentUser;
+        setCompareShellVisible(compareViewDesktopShell, showControls);
+        setCompareShellVisible(mobileCompareShell, showControls);
+        [compareViewBtn, mobileCompareBtn].forEach((button) => {
+            if (!button) return;
+            button.classList.toggle("compare-control-btn--active", isActive);
+        });
+        if (!showControls || auth.currentUser) {
+            hideComparePrompt();
+        }
+        syncComparePopoutValues();
+        syncComparePopoutVisibility();
+    };
+
+    const setCompareViewEnabled = (enabled) => {
+        state.compareViewEnabled = !!enabled && !!state.isViewMode && !!auth.currentUser;
+        syncCompareButtons();
+    };
+
+    const handleCompareButtonClick = (event, promptEl) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!state.isViewMode) return;
+        if (!auth.currentUser) {
+            showComparePrompt(promptEl);
+            return;
+        }
+        hideComparePrompt();
+        setCompareViewEnabled(!state.compareViewEnabled);
     };
 
     const updateScoreLinkToggleText = () => {
@@ -294,6 +412,18 @@ export function setupScoreInputHandlers(options = {}) {
         });
     }
 
+    if (compareViewBtn) {
+        compareViewBtn.addEventListener("click", (event) => {
+            handleCompareButtonClick(event, compareViewDesktopPrompt);
+        });
+    }
+
+    if (mobileCompareBtn) {
+        mobileCompareBtn.addEventListener("click", (event) => {
+            handleCompareButtonClick(event, mobileComparePrompt);
+        });
+    }
+
     scoreWrappers.forEach((wrapper, index) => {
         const input = wrapper.querySelector(".score-input");
         const subInput = wrapper.querySelector(".sub-score-input");
@@ -422,6 +552,7 @@ export function setupScoreInputHandlers(options = {}) {
         if (state.activeSubInputRowIndex >= 0) {
             syncSubInputValue(state.activeSubInputRowIndex);
         }
+        syncCompareButtons();
     });
 
     document.addEventListener("benchmark:clear-row-selection", () => {
@@ -448,6 +579,25 @@ export function setupScoreInputHandlers(options = {}) {
 
     document.addEventListener("benchmark:language-applied", () => {
         scheduleScoreLinkTogglePositionSync();
+        if (compareViewDesktopPrompt && compareViewDesktopPrompt.classList.contains("show")) {
+            compareViewDesktopPrompt.textContent = t("compare_sign_in_required");
+        }
+        if (mobileComparePrompt && mobileComparePrompt.classList.contains("show")) {
+            mobileComparePrompt.textContent = t("compare_sign_in_required");
+        }
+        syncCompareButtons();
+    });
+
+    document.addEventListener("benchmark:view-mode-state-changed", (event) => {
+        const active = !!(event && event.detail && event.detail.active);
+        if (!active) {
+            state.compareViewEnabled = false;
+        }
+        syncCompareButtons();
+    });
+
+    document.addEventListener("benchmark:auth-session-changed", () => {
+        syncCompareButtons();
     });
 
     window.addEventListener("resize", syncScoreLinkTogglePosition);
@@ -466,4 +616,5 @@ export function setupScoreInputHandlers(options = {}) {
     syncScoreLinkToggleState();
     scheduleScoreLinkTogglePositionSync();
     syncAllSubInputAccessibility();
+    syncCompareButtons();
 }

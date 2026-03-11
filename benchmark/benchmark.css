@@ -497,6 +497,14 @@ html {
     gap: 4px;
 }
 
+.mobile-top-links button.mobile-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+}
+
 .mobile-top-links .mobile-link .nav-icon {
     margin-right: 0;
     align-self: center;
@@ -682,6 +690,31 @@ html {
     --desktop-active-outline-row-step: 40px;
     --platform-mobile-color: #2196F3;
     --platform-pc-color: #F44336;
+}
+
+@media (min-width: 901px) {
+    html {
+        scrollbar-color: var(--panel-border) var(--app-bg);
+        scrollbar-width: thin;
+    }
+
+    html::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    html::-webkit-scrollbar-track {
+        background: var(--app-bg);
+    }
+
+    html::-webkit-scrollbar-thumb {
+        background: var(--panel-border);
+        border-radius: 999px;
+        border: 2px solid var(--app-bg);
+    }
+
+    html::-webkit-scrollbar-thumb:hover {
+        background: var(--config-box-border-hover);
+    }
 }
 
 body {
@@ -2030,6 +2063,115 @@ body:not(.auth-gate-active) .rank-threshold-value {
     display: none;
 }
 
+.compare-control-shell {
+    position: relative;
+    align-items: center;
+    overflow: visible;
+}
+
+.compare-control-shell:not(.initially-hidden) {
+    display: flex;
+}
+
+#compareViewDesktopShell {
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+#compareViewBtn {
+    min-width: 108px;
+    padding: 0 16px;
+    gap: 0;
+    justify-content: center;
+}
+
+#compareViewBtn > span {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.compare-control-btn {
+    color: #ffffff;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.compare-control-btn.small-inner-box {
+    margin-right: 0;
+}
+
+.compare-control-btn--active {
+    background-color: rgba(245, 198, 69, 0.12);
+    border-color: rgba(245, 198, 69, 0.5);
+    color: #fff6d4;
+    box-shadow: 0 0 16px rgba(245, 198, 69, 0.16);
+}
+
+.compare-control-btn--mobile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--config-box-border);
+    border-radius: 12px;
+    background: var(--config-box-bg);
+    cursor: pointer;
+}
+
+#mobileCompareBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0;
+    min-width: 92px;
+    padding: 0 12px;
+    border: 1px solid var(--config-box-border);
+    border-radius: 12px;
+    background: var(--config-box-bg);
+    color: #ffffff;
+    box-sizing: border-box;
+}
+
+#mobileCompareBtn > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    line-height: 1;
+    text-align: center;
+}
+
+.compare-control-prompt {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 4px);
+    transform: translate(-50%, 4px);
+    color: #ff6666;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.16s ease, transform 0.16s ease;
+    z-index: 20;
+}
+
+.compare-control-prompt.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+body.view-mode:not(.mobile-layout-active) .user-menu-wrapper {
+    margin-left: 8px;
+}
+
 .small-inner-box:hover {
     background-color: var(--config-box-bg-hover);
     border-color: var(--config-box-border-hover);
@@ -2750,6 +2892,55 @@ body:not(.mobile-layout-active) .score-input-wrapper:focus-within {
 .score-input-wrapper.sub-input-expanded,
 .score-input-wrapper.sub-input-expanded:focus-within {
     z-index: 240 !important;
+}
+
+.compare-score-popout {
+    position: absolute;
+    top: 50%;
+    left: calc(100% - 10px);
+    width: 100%;
+    height: calc(100% - 10px);
+    box-sizing: border-box;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--compare-score-box-bg, #161616);
+    box-shadow: inset 4px 0 0 var(--compare-score-box-accent, rgba(255, 255, 255, 0.08)), 0 10px 24px rgba(0, 0, 0, 0.18);
+    transform: translate(-18px, -50%) scaleX(0.82);
+    transform-origin: left center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), filter 0.22s ease;
+    z-index: 2;
+}
+
+.score-input-wrapper.compare-view-visible .compare-score-popout {
+    opacity: 1;
+    transform: translate(0, -50%) scaleX(1);
+}
+
+.score-input-wrapper.compare-view-visible,
+.score-input-wrapper.compare-view-visible:focus-within {
+    z-index: 235 !important;
+}
+
+.compare-score-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    color: var(--compare-score-text-color, rgba(255, 255, 255, 0.94));
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+    z-index: 1;
 }
 
 .sub-score-input {
@@ -4964,6 +5155,11 @@ input:-webkit-autofill:active {
     gap: 10px;
 }
 
+#friendsModal #friendRequestsContent > .settings-card-title:first-child,
+#friendsModal #friendRequestsContent > .friend-request-section:first-child {
+    margin-top: 6px;
+}
+
 #friendsModal #friendRequestsContent .friend-request-section {
     display: flex;
     flex-direction: column;
@@ -6292,17 +6488,20 @@ body.view-mode .achievement-proof-upload.has-image {
     body.view-mode .mobile-top-links {
         display: flex;
         position: absolute;
-        left: 50%;
-        right: auto;
+        left: 0;
+        right: 0;
         top: 50%;
         bottom: auto;
-        width: max-content;
+        width: 100%;
         max-width: none;
-        transform: translate(-50%, -50%);
-        justify-content: center;
+        transform: translateY(-50%);
+        justify-content: flex-start;
         margin-bottom: 0;
         padding-top: 0;
         padding-bottom: 0;
+        padding-left: 6px;
+        padding-right: 6px;
+        gap: 12px;
         z-index: 2;
     }
 
@@ -6321,6 +6520,21 @@ body.view-mode .achievement-proof-upload.has-image {
         position: relative;
         top: 0;
         left: 0;
+        flex: 0 1 auto;
+        min-width: 0;
+        margin-right: auto;
+        justify-content: flex-start;
+    }
+
+    body.view-mode #mobileCompareShell {
+        display: flex;
+        flex: 0 0 auto;
+        margin-left: auto;
+        justify-content: flex-end;
+    }
+
+    body.view-mode #compareViewDesktopShell {
+        display: none !important;
     }
 
     body.view-mode .mobile-top-links .mobile-link-divider {
@@ -6349,8 +6563,10 @@ body.view-mode .achievement-proof-upload.has-image {
 
     @media (max-width: 400px) {
         html[data-benchmark-lang='pt-BR'] #mobileCopyLinkBtn > span,
+        html[data-benchmark-lang='pt-BR'] #mobileCompareBtn > span,
         html[data-benchmark-lang='pt-BR'] #mobileOptionsLink > span,
         html[data-benchmark-lang='pt-PT'] #mobileCopyLinkBtn > span,
+        html[data-benchmark-lang='pt-PT'] #mobileCompareBtn > span,
         html[data-benchmark-lang='pt-PT'] #mobileOptionsLink > span {
             font-size: 10px;
         }
@@ -8024,6 +8240,10 @@ body.mobile-layout-active .ranks-bars > .score-input-wrapper {
 
 body.mobile-layout-active .sub-score-popout {
     left: calc(100% - 12px);
+}
+
+body.mobile-layout-active .compare-score-popout {
+    left: calc(100% - 8px);
 }
 
 body.mobile-layout-active .ranks-bars.row-active-single::before {

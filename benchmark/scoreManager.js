@@ -20,7 +20,7 @@ import {
     buildConfigKey
 } from "./configManager.js";
 import { CONFIG_OPTIONS, DEFAULT_MOUNT_CONFIG, getScoreBaseForConfigKey } from "./constants.js";
-import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
+import * as RankingUI from "./rankingUI.js?v=20260311-compare-theme-colors-1";
 import { createSyncedStore } from "./persistence.js";
 
 const scoreManagerCallbacks = {
@@ -96,6 +96,15 @@ const SCORE_VALUE_FIELD_CANDIDATES = ["scores", "values", "rows", "items", "data
 
 function cloneScoresArray(scores) {
     return Array.isArray(scores) ? [...scores] : [];
+}
+
+function cloneScoresRecord(record) {
+    const normalized = normalizeScoresRecord(record);
+    const clone = {};
+    Object.entries(normalized).forEach(([key, scores]) => {
+        clone[key] = cloneScoresArray(scores);
+    });
+    return clone;
 }
 
 function normalizeSimpleRecord(value) {
@@ -394,6 +403,17 @@ function getPersistedScoresForConfig(config = null) {
     return [];
 }
 
+function getPersistedScoresForRecord(record, config = null) {
+    const safeRecord = normalizeScoresRecord(record);
+    const keys = getConfigLookupKeys(config);
+    for (const key of keys) {
+        if (Array.isArray(safeRecord[key])) {
+            return cloneScoresArray(safeRecord[key]);
+        }
+    }
+    return [];
+}
+
 function persistScoresForConfig(config, scores) {
     const resolvedConfig = config || getCurrentConfig();
     const key = buildConfigKey(
@@ -585,6 +605,14 @@ export function setScoresFromArray(scores) {
 
 export function getAlternateScoresForCurrentConfig() {
     return getPersistedScoresForConfig(getAlternateConfig());
+}
+
+export function getScoresForConfigRecord(record, config = null) {
+    return getPersistedScoresForRecord(record, config);
+}
+
+export function getSavedScoresSnapshot() {
+    return cloneScoresRecord(state.savedScores);
 }
 
 export function getAlternateScoreValueForRow(rowIndex) {

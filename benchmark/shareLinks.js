@@ -2,7 +2,7 @@ import { auth } from "./client.js";
 import { state, getRuntimeAccountId } from "./appState.js";
 import { getBenchmarkBasePath } from "./utils.js";
 import { getCurrentConfig } from "./configManager.js";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
+import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 

@@ -9,6 +9,8 @@ export const state = {
     isViewMode: false,
     hasPendingRequests: false,
     currentFriendRequests: [],
+    viewerCompareScores: {},
+    compareViewEnabled: false,
     saveScoresDebounceTimer: null,
     scoresHydrated: false,
     scoresDirty: false,

@@ -1,7 +1,7 @@
 import { isMobileViewport } from "./utils.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 import { state, getCurrentConfigState } from "./appState.js";
-import * as RankingUI from "./rankingUI.js?v=20260311-rank-animation-phase-1";
+import * as RankingUI from "./rankingUI.js?v=20260311-compare-theme-colors-1";
 import { t } from "./i18n.js";
 import { generateShareScreenshotCanvas } from "./shareScreenshot.js";
 import {

@@ -9,8 +9,8 @@ import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as FriendsService from "./friendsService.js?v=20260309-public-view-fix-1";
 import * as RadarUI from "./radarUI.js";
-import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
-import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
+import * as RankingUI from "./rankingUI.js?v=20260311-compare-theme-colors-1";
+import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { calculateRankFromData, calculateTotalRatingForScores } from "./scoring.js";
 import { getScoreBaseForConfigKey, DEFAULT_MOUNT_CONFIG, FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
@@ -93,6 +93,10 @@ function resolveViewModeRankIndex(data = {}) {
 }
 
 function syncViewModeExitButtonTheme(rankIndex = 0) {
+    if (rankIndex === FINAL_RANK_INDEX) {
+        document.body.style.setProperty("--exit-view-btn-text", "#050505");
+        return;
+    }
     if (rankIndex > 0) {
         document.body.style.setProperty("--exit-view-btn-text", "#ffffff");
         return;
@@ -204,11 +208,20 @@ function applyViewModeChrome() {
     } else {
         mobileExitBtn.classList.add("mobile-exit-view-btn--visible");
     }
+
+    document.dispatchEvent(new CustomEvent("benchmark:view-mode-state-changed", {
+        detail: {
+            active: true,
+            viewingOwnProfile
+        }
+    }));
 }
 
 export function clearViewModeChrome() {
     state.isViewMode = false;
     state.activeViewProfileContext = null;
+    state.compareViewEnabled = false;
+    state.viewerCompareScores = {};
     document.body.classList.remove("view-mode");
     document.dispatchEvent(new CustomEvent("benchmark:collapse-sub-inputs"));
     syncViewModeExitButtonTheme(0);
@@ -223,6 +236,13 @@ export function clearViewModeChrome() {
     }
     const mobileExitBtn = getCachedElementById("mobileExitViewBtn");
     if (mobileExitBtn) mobileExitBtn.classList.remove("mobile-exit-view-btn--visible");
+
+    document.dispatchEvent(new CustomEvent("benchmark:view-mode-state-changed", {
+        detail: {
+            active: false,
+            viewingOwnProfile: false
+        }
+    }));
 }
 
 function applyViewModeDataSnapshot(data) {
@@ -454,6 +474,8 @@ export async function enterViewMode(data, uid) {
         publicSlug: resolvedPublicSlug,
         rankIndex: resolveViewModeRankIndex(data)
     };
+    state.viewerCompareScores = ScoreManager.getSavedScoresSnapshot();
+    state.compareViewEnabled = false;
 
     applyViewModeChrome();
     applyViewModeDataSnapshot(data);

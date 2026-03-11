@@ -11,7 +11,7 @@
         window.__BENCHMARK_SHARE_SERVICE_URL__ = "http://localhost:3000";
     </script>
     <script type="module" src="modernScreenshotLoader.js"></script>
-    <link rel="stylesheet" href="benchmark.css?v=20260311-score-link-floating-tooltip-1">
+    <link rel="stylesheet" href="benchmark.css?v=20260311-compare-theme-colors-2">
 </head>
 <body>
     <div id="pageLoader" class="page-loader">
@@ -85,12 +85,20 @@
                 </div>
             </div>
         </div>
+        <div class="compare-control-shell initially-hidden" id="compareViewDesktopShell">
+            <div class="compare-control-prompt" id="compareViewDesktopPrompt" aria-hidden="true"></div>
+            <button class="small-inner-box compare-control-btn" id="compareViewBtn" type="button"><span data-i18n="compare">Compare</span></button>
+        </div>
         <div class="user-menu-wrapper">
             <div class="mobile-top-links">
                 <span class="mobile-link" id="mobileCopyLinkBtn" aria-label="Copy Benchmark Link" title="Copy Benchmark Link">
                     <svg class="nav-icon mobile-link-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                     <span data-i18n="copy_link">Copy Benchmark Link</span>
                 </span>
+                <div class="compare-control-shell initially-hidden" id="mobileCompareShell">
+                    <div class="compare-control-prompt" id="mobileComparePrompt" aria-hidden="true"></div>
+                    <button class="small-inner-box compare-control-btn compare-control-btn--mobile" id="mobileCompareBtn" type="button"><span data-i18n="compare">Compare</span></button>
+                </div>
                 <span class="mobile-link" id="mobileOptionsLink" aria-label="Options" title="Options">
                     <svg class="nav-icon mobile-link-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L4.04 9.81c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.22.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                     <span data-i18n="settings_title">Options</span>
@@ -1069,8 +1077,8 @@
     </div>
 
         <script type="module" src="footer-baddy.js"></script>
-        <script type="module" src="layoutBuilder.js?v=20260310-score-link-tooltip-1"></script>
+        <script type="module" src="layoutBuilder.js?v=20260311-view-mode-compare-2"></script>
         <script type="module" src="scrollSyncUI.js?v=20260310-sub-score-input-1"></script>
-    <script type="module" src="benchmark.js?v=20260311-score-link-floating-tooltip-2"></script>
+    <script type="module" src="benchmark.js?v=20260311-compare-theme-colors-1"></script>
 </body>
 </html>

@@ -75,6 +75,32 @@ function getRowFillColorForProgress(progressValue, thresholdCount) {
     return RANK_COLORS[colorIndex] || RANK_COLORS[RANK_COLORS.length - 1];
 }
 
+function getRowRankIndexForScore(rowIndex, score) {
+    const thresholds = state.allRowThresholds[rowIndex] || state.allRowThresholds[0] || [];
+    const rating = calculateSingleRating(score, thresholds);
+    if (rating <= 0) return 0;
+    return Math.min(FINAL_RANK_INDEX, Math.floor(rating / 100));
+}
+
+export function getScoreBoxThemeForRow(rowIndex, score) {
+    const rankIndex = getRowRankIndexForScore(rowIndex, score);
+    if (rankIndex <= 0) {
+        return {
+            rankIndex: 0,
+            background: '#161616',
+            accent: 'rgba(255, 255, 255, 0.08)',
+            text: 'rgba(255, 255, 255, 0.94)'
+        };
+    }
+
+    return {
+        rankIndex,
+        background: darkenColor(RANK_COLORS[rankIndex], 0.76),
+        accent: darkenColor(RANK_COLORS[rankIndex], 0.44),
+        text: SCORE_TEXT_COLORS[rankIndex]
+    };
+}
+
 function renderRowBarProgress(bars, progressValue, fillColor) {
     bars.forEach((bar, i) => {
         if (i < 2) return;

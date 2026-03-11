@@ -1211,3 +1211,18 @@ Object.assign(I18N.es, {
 Object.assign(I18N['pt-BR'], {
     settings_default_config_startup_note: 'Aplica automaticamente as configura\u00E7\u00F5es ap\u00F3s o login'
 });
+
+Object.assign(I18N.en, {
+    compare: 'Compare',
+    compare_sign_in_required: 'Must be signed in'
+});
+
+Object.assign(I18N.es, {
+    compare: 'Comparar',
+    compare_sign_in_required: 'Debes iniciar sesi\u00F3n'
+});
+
+Object.assign(I18N['pt-BR'], {
+    compare: 'Comparar',
+    compare_sign_in_required: 'Precisa estar conectado'
+});

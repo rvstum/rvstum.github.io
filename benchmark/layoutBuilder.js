@@ -148,6 +148,13 @@ function createSubScorePopout() {
     return popout;
 }
 
+function createCompareScorePopout() {
+    const popout = createElement("div", "compare-score-popout");
+    const overlay = createElement("div", "compare-score-text-overlay", "0");
+    popout.appendChild(overlay);
+    return popout;
+}
+
 export function buildBenchmarkLayout() {
     const container = document.getElementById("benchmarkGridContainer") || document.querySelector(".container");
     if (!container) return;
@@ -218,6 +225,7 @@ export function buildBenchmarkLayout() {
         wrapper.appendChild(input);
         wrapper.appendChild(overlay);
         wrapper.appendChild(createSubScorePopout());
+        wrapper.appendChild(createCompareScorePopout());
         container.appendChild(wrapper);
     });
 
