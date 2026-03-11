@@ -1,6 +1,7 @@
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
+import { getRememberedAccountIdForUid } from "./accountId.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import * as ViewModeManager from "./viewModeManager.js?v=20260311-view-mode-compare-2";
@@ -33,12 +34,27 @@ export async function handleProfileLink(options = {}) {
                 const myDoc = await getDoc(doc(db, "users", currentUser.uid));
                 if (myDoc.exists()) {
                     const mine = myDoc.data() || {};
-                    const mySlug = Slugs.resolveProfileSlug(mine, {
-                        usernameFallback: currentUser.displayName || "player",
-                        accountIdFallback: getRuntimeAccountId(),
-                        uid: currentUser.uid
-                    });
-                    if (mySlug === requestedSlug) {
+                    const rememberedAccountId = getRememberedAccountIdForUid(currentUser.uid);
+                    const slugCandidates = new Set([
+                        Slugs.resolveProfileSlug(mine, {
+                            usernameFallback: currentUser.displayName || "player",
+                            accountIdFallback: rememberedAccountId || getRuntimeAccountId(),
+                            uid: currentUser.uid
+                        }),
+                        Slugs.resolveProfileSlug({
+                            ...mine,
+                            accountId: rememberedAccountId || mine.accountId,
+                            profile: {
+                                ...(mine.profile && typeof mine.profile === "object" ? mine.profile : {}),
+                                accountId: rememberedAccountId || (mine.profile && mine.profile.accountId) || ""
+                            }
+                        }, {
+                            usernameFallback: currentUser.displayName || "player",
+                            accountIdFallback: rememberedAccountId || getRuntimeAccountId(),
+                            uid: currentUser.uid
+                        })
+                    ]);
+                    if (slugCandidates.has(requestedSlug)) {
                         hidePrivateProfileOverlay();
                         return;
                     }
