@@ -1,29 +1,34 @@
 import {
+    arrayRemove,
+    arrayUnion,
+    collection,
+    deleteDoc,
     doc,
-    setDoc,
     getDoc,
     getDocs,
-    deleteDoc,
-    updateDoc,
-    arrayUnion,
-    arrayRemove,
     increment,
-    collection,
     query,
+    setDoc,
+    updateDoc,
     where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "./client.js";
 import { readJson, writeJson, PROFILE_VIEW_COOLDOWNS_STORAGE_KEY } from "./storage.js";
 
+const USERS_COLLECTION = "users";
 const FRIEND_REQUESTS_COLLECTION = "friendRequests";
 const FRIENDSHIPS_COLLECTION = "friendships";
 const PROFILE_VIEW_COOLDOWN_MS = 20 * 60 * 1000;
 
-function normalizeIdentifierArray(values) {
+function normalizeUid(value) {
+    return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeUidList(values) {
     if (!Array.isArray(values)) return [];
     return [...new Set(values
-        .map((value) => (typeof value === "string" ? value.trim() : ""))
-        .filter((value) => value !== ""))];
+        .map((value) => normalizeUid(value))
+        .filter(Boolean))];
 }
 
 function sanitizeSegment(value) {
@@ -41,66 +46,63 @@ function isPermissionLikeError(err) {
     return code === "permission-denied" || code === "not-found";
 }
 
-export function buildFriendRequestId(fromUid, toUid) {
-    const fromPart = sanitizeSegment(fromUid) || "from";
-    const toPart = sanitizeSegment(toUid) || "to";
-    return `${fromPart}__${toPart}`;
-}
-
-export function buildFriendshipId(userA, userB) {
-    const ids = [sanitizeSegment(userA) || "userA", sanitizeSegment(userB) || "userB"].sort();
-    return `${ids[0]}__${ids[1]}`;
-}
-
-function buildFriendshipPayload(userA, userB) {
-    const ids = [
-        (userA || "").toString().trim(),
-        (userB || "").toString().trim()
-    ].filter((value) => value !== "").sort();
-    return {
-        users: ids,
-        createdAt: Date.now()
-    };
-}
-
-function normalizeFriendshipProfileSnapshot(rawProfile = {}, fallbackIdentifier = "") {
+function normalizeProfileSnapshot(rawProfile = {}, fallbackIdentifier = "") {
     const safeProfile = rawProfile && typeof rawProfile === "object" ? rawProfile : {};
     const parsedRankIndex = Number(safeProfile.rankIndex);
     return {
         username: typeof safeProfile.username === "string" ? safeProfile.username.trim() : "",
         accountId: typeof safeProfile.accountId === "string" && safeProfile.accountId.trim() !== ""
             ? safeProfile.accountId.trim()
-            : ((fallbackIdentifier || "").toString().trim()),
+            : normalizeUid(fallbackIdentifier),
         rankIndex: Number.isFinite(parsedRankIndex) ? Math.max(0, Math.floor(parsedRankIndex)) : 0,
         flag: typeof safeProfile.flag === "string" ? safeProfile.flag.trim() : "",
         pic: typeof safeProfile.pic === "string" ? safeProfile.pic.trim() : ""
     };
 }
 
-function buildFriendshipProfileMap(userA, userB, rawProfiles = {}) {
-    const safeProfiles = rawProfiles && typeof rawProfiles === "object" ? rawProfiles : {};
-    const profileMap = {};
-    [
-        (userA || "").toString().trim(),
-        (userB || "").toString().trim()
-    ].forEach((uid) => {
-        if (!uid) return;
-        const snapshot = normalizeFriendshipProfileSnapshot(safeProfiles[uid], uid);
+function buildFriendshipPayload(userA, userB, profileSnapshots = {}) {
+    const users = normalizeUidList([userA, userB]).sort();
+    const payload = {
+        users,
+        createdAt: Date.now()
+    };
+
+    const profilesByUid = {};
+    users.forEach((uid) => {
+        const snapshot = normalizeProfileSnapshot(profileSnapshots[uid], uid);
         if (!snapshot.username && !snapshot.accountId && !snapshot.flag && !snapshot.pic && snapshot.rankIndex === 0) {
             return;
         }
-        profileMap[uid] = snapshot;
+        profilesByUid[uid] = snapshot;
     });
-    return profileMap;
+
+    if (Object.keys(profilesByUid).length) {
+        payload.profilesByUid = profilesByUid;
+    }
+
+    return payload;
 }
 
-function buildFriendshipPayloadWithProfiles(userA, userB, rawProfiles = {}) {
-    const payload = buildFriendshipPayload(userA, userB);
-    const profileMap = buildFriendshipProfileMap(userA, userB, rawProfiles);
-    if (Object.keys(profileMap).length) {
-        payload.profilesByUid = profileMap;
+async function bestEffortMergeUserDoc(uid, data) {
+    const targetUid = normalizeUid(uid);
+    if (!targetUid || !data || typeof data !== "object") return false;
+    try {
+        await setDoc(doc(db, USERS_COLLECTION, targetUid), data, { merge: true });
+        return true;
+    } catch (err) {
+        if (!isPermissionLikeError(err)) throw err;
+        return false;
     }
-    return payload;
+}
+
+async function bestEffortDeleteDoc(docRef) {
+    try {
+        await deleteDoc(docRef);
+        return true;
+    } catch (err) {
+        if (!isPermissionLikeError(err)) throw err;
+        return false;
+    }
 }
 
 function readProfileViewCooldowns() {
@@ -113,50 +115,62 @@ function writeProfileViewCooldowns(map) {
 }
 
 function pruneExpiredProfileViewCooldowns(map, now = Date.now()) {
-    const normalized = {};
+    const next = {};
     Object.entries(map || {}).forEach(([uid, rawValue]) => {
-        const targetUid = typeof uid === "string" ? uid.trim() : "";
+        const targetUid = normalizeUid(uid);
         const viewedAt = Number(rawValue);
         if (!targetUid || !Number.isFinite(viewedAt)) return;
         if ((now - viewedAt) > PROFILE_VIEW_COOLDOWN_MS) return;
-        normalized[targetUid] = viewedAt;
+        next[targetUid] = viewedAt;
     });
-    return normalized;
+    return next;
+}
+
+export function buildFriendRequestId(fromUid, toUid) {
+    const fromPart = sanitizeSegment(fromUid) || "from";
+    const toPart = sanitizeSegment(toUid) || "to";
+    return `${fromPart}__${toPart}`;
+}
+
+export function buildFriendshipId(userA, userB) {
+    const ids = [sanitizeSegment(userA) || "userA", sanitizeSegment(userB) || "userB"].sort();
+    return `${ids[0]}__${ids[1]}`;
 }
 
 export async function incrementViewCount(targetUid) {
-    const targetUserUid = typeof targetUid === "string" ? targetUid.trim() : "";
-    if (!targetUserUid) return false;
+    const profileUid = normalizeUid(targetUid);
+    if (!profileUid) return false;
+
     const now = Date.now();
     const cooldowns = pruneExpiredProfileViewCooldowns(readProfileViewCooldowns(), now);
-    const lastViewedAt = Number(cooldowns[targetUserUid]) || 0;
+    const lastViewedAt = Number(cooldowns[profileUid]) || 0;
     if (lastViewedAt > 0 && (now - lastViewedAt) < PROFILE_VIEW_COOLDOWN_MS) {
         writeProfileViewCooldowns(cooldowns);
         return false;
     }
 
-    const userRef = doc(db, "users", targetUserUid);
     try {
-        await updateDoc(userRef, {
+        await updateDoc(doc(db, USERS_COLLECTION, profileUid), {
             "profile.views": increment(1)
         });
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
+    } catch (err) {
+        if (!isPermissionLikeError(err)) throw err;
         return false;
     }
-    cooldowns[targetUserUid] = now;
+
+    cooldowns[profileUid] = now;
     writeProfileViewCooldowns(cooldowns);
     return true;
 }
 
 export async function getFriendshipDocument(userA, userB) {
-    const requestUserA = typeof userA === "string" ? userA.trim() : "";
-    const requestUserB = typeof userB === "string" ? userB.trim() : "";
-    if (!requestUserA || !requestUserB) return null;
+    const firstUid = normalizeUid(userA);
+    const secondUid = normalizeUid(userB);
+    if (!firstUid || !secondUid) return null;
     try {
-        return await getDoc(doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(requestUserA, requestUserB)));
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
+        return await getDoc(doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(firstUid, secondUid)));
+    } catch (err) {
+        if (!isPermissionLikeError(err)) throw err;
         return null;
     }
 }
@@ -167,142 +181,121 @@ export async function areFriends(userA, userB) {
 }
 
 export async function getFriendRequestDocument(fromUid, toUid) {
-    const requestFromUid = typeof fromUid === "string" ? fromUid.trim() : "";
-    const requestToUid = typeof toUid === "string" ? toUid.trim() : "";
-    if (!requestFromUid || !requestToUid) return null;
+    const senderUid = normalizeUid(fromUid);
+    const receiverUid = normalizeUid(toUid);
+    if (!senderUid || !receiverUid) return null;
     try {
-        return await getDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(requestFromUid, requestToUid)));
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
+        return await getDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(senderUid, receiverUid)));
+    } catch (err) {
+        if (!isPermissionLikeError(err)) throw err;
         return null;
     }
 }
 
 export async function listIncomingFriendRequests(userUid) {
-    const targetUid = typeof userUid === "string" ? userUid.trim() : "";
+    const targetUid = normalizeUid(userUid);
     if (!targetUid) return [];
     try {
         const snap = await getDocs(query(collection(db, FRIEND_REQUESTS_COLLECTION), where("toUid", "==", targetUid)));
         return snap.docs;
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
+    } catch (err) {
+        if (!isPermissionLikeError(err)) throw err;
         return [];
     }
 }
 
 export async function listSentFriendRequests(userUid) {
-    const fromUid = typeof userUid === "string" ? userUid.trim() : "";
-    if (!fromUid) return [];
+    const senderUid = normalizeUid(userUid);
+    if (!senderUid) return [];
     try {
-        const snap = await getDocs(query(collection(db, FRIEND_REQUESTS_COLLECTION), where("fromUid", "==", fromUid)));
+        const snap = await getDocs(query(collection(db, FRIEND_REQUESTS_COLLECTION), where("fromUid", "==", senderUid)));
         return snap.docs;
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
+    } catch (err) {
+        if (!isPermissionLikeError(err)) throw err;
         return [];
     }
 }
 
 export async function listFriendships(userUid) {
-    const targetUid = typeof userUid === "string" ? userUid.trim() : "";
+    const targetUid = normalizeUid(userUid);
     if (!targetUid) return [];
     try {
         const snap = await getDocs(query(collection(db, FRIENDSHIPS_COLLECTION), where("users", "array-contains", targetUid)));
         return snap.docs;
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
+    } catch (err) {
+        if (!isPermissionLikeError(err)) throw err;
         return [];
     }
 }
 
 export async function sendFriendRequest(fromUid, toUid, options = {}) {
-    const senderUid = typeof fromUid === "string" ? fromUid.trim() : "";
-    const receiverUid = typeof toUid === "string" ? toUid.trim() : "";
-    if (!senderUid || !receiverUid) {
-        throw new Error("sendFriendRequest requires fromUid and toUid");
+    const senderUid = normalizeUid(fromUid);
+    const receiverUid = normalizeUid(toUid);
+    if (!senderUid || !receiverUid || senderUid === receiverUid) {
+        throw new Error("sendFriendRequest requires two distinct uids");
     }
-    const fromProfile = options && options.fromProfile && typeof options.fromProfile === "object" ? options.fromProfile : null;
-    const toProfile = options && options.toProfile && typeof options.toProfile === "object" ? options.toProfile : null;
+
     const requestPayload = {
         fromUid: senderUid,
         toUid: receiverUid,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        fromProfile: normalizeProfileSnapshot(options.fromProfile, senderUid),
+        toProfile: normalizeProfileSnapshot(options.toProfile, receiverUid)
     };
-    if (fromProfile) requestPayload.fromProfile = fromProfile;
-    if (toProfile) requestPayload.toProfile = toProfile;
 
-    try {
-        const requestRef = doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(senderUid, receiverUid));
-        await setDoc(requestRef, requestPayload, { merge: true });
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-    }
+    await setDoc(
+        doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(senderUid, receiverUid)),
+        requestPayload,
+        { merge: true }
+    );
 
-    await updateDoc(doc(db, "users", senderUid), {
+    await bestEffortMergeUserDoc(senderUid, {
         sentFriendRequests: arrayUnion(receiverUid)
     });
 
-    try {
-        await updateDoc(doc(db, "users", receiverUid), {
-            friendRequests: arrayUnion(senderUid)
-        });
-        return { mirroredToTarget: true };
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-        return { mirroredToTarget: false };
-    }
+    const mirroredToTarget = await bestEffortMergeUserDoc(receiverUid, {
+        friendRequests: arrayUnion(senderUid)
+    });
+
+    return { mirroredToTarget };
 }
 
 export async function cancelFriendRequest(fromUid, toUid) {
-    const senderUid = typeof fromUid === "string" ? fromUid.trim() : "";
-    const receiverUid = typeof toUid === "string" ? toUid.trim() : "";
+    const senderUid = normalizeUid(fromUid);
+    const receiverUid = normalizeUid(toUid);
     if (!senderUid || !receiverUid) return;
 
-    try {
-        await deleteDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(senderUid, receiverUid)));
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-    }
-    await updateDoc(doc(db, "users", senderUid), {
+    await bestEffortDeleteDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(senderUid, receiverUid)));
+
+    await bestEffortMergeUserDoc(senderUid, {
         sentFriendRequests: arrayRemove(receiverUid)
     });
 
-    try {
-        await updateDoc(doc(db, "users", receiverUid), {
-            friendRequests: arrayRemove(senderUid)
-        });
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-    }
+    await bestEffortMergeUserDoc(receiverUid, {
+        friendRequests: arrayRemove(senderUid)
+    });
 }
 
 export async function declineFriendRequest(userId, requesterUid) {
-    const targetUid = typeof userId === "string" ? userId.trim() : "";
-    const sourceUid = typeof requesterUid === "string" ? requesterUid.trim() : "";
+    const targetUid = normalizeUid(userId);
+    const sourceUid = normalizeUid(requesterUid);
     if (!targetUid || !sourceUid) return;
 
-    try {
-        await deleteDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(sourceUid, targetUid)));
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-    }
-    await updateDoc(doc(db, "users", targetUid), {
+    await bestEffortDeleteDoc(doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(sourceUid, targetUid)));
+
+    await bestEffortMergeUserDoc(targetUid, {
         friendRequests: arrayRemove(sourceUid)
     });
 
-    try {
-        await updateDoc(doc(db, "users", sourceUid), {
-            friends: arrayUnion(targetUid),
-            sentFriendRequests: arrayRemove(targetUid)
-        });
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-    }
+    await bestEffortMergeUserDoc(sourceUid, {
+        sentFriendRequests: arrayRemove(targetUid)
+    });
 }
 
 export async function acceptFriendRequest(userId, requesterUid) {
-    const targetUid = typeof userId === "string" ? userId.trim() : "";
-    const sourceUid = typeof requesterUid === "string" ? requesterUid.trim() : "";
-    if (!targetUid || !sourceUid) return;
+    const targetUid = normalizeUid(userId);
+    const sourceUid = normalizeUid(requesterUid);
+    if (!targetUid || !sourceUid || targetUid === sourceUid) return;
 
     const requestRef = doc(db, FRIEND_REQUESTS_COLLECTION, buildFriendRequestId(sourceUid, targetUid));
     let requestData = {};
@@ -311,85 +304,70 @@ export async function acceptFriendRequest(userId, requesterUid) {
         if (requestSnap && requestSnap.exists()) {
             requestData = requestSnap.data() || {};
         }
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
+    } catch (err) {
+        if (!isPermissionLikeError(err)) throw err;
     }
 
-    try {
-        await setDoc(
-            doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(targetUid, sourceUid)),
-            buildFriendshipPayloadWithProfiles(targetUid, sourceUid, {
-                [targetUid]: requestData.toProfile,
-                [sourceUid]: requestData.fromProfile
-            }),
-            { merge: true }
-        );
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-    }
-    try {
-        await deleteDoc(requestRef);
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-    }
+    await setDoc(
+        doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(targetUid, sourceUid)),
+        buildFriendshipPayload(targetUid, sourceUid, {
+            [targetUid]: requestData.toProfile,
+            [sourceUid]: requestData.fromProfile
+        }),
+        { merge: true }
+    );
 
-    const ownUpdate = updateDoc(doc(db, "users", targetUid), {
+    await bestEffortDeleteDoc(requestRef);
+
+    await bestEffortMergeUserDoc(targetUid, {
         friends: arrayUnion(sourceUid),
-        friendRequests: arrayRemove(sourceUid)
+        friendRequests: arrayRemove(sourceUid),
+        sentFriendRequests: arrayRemove(sourceUid)
     });
-    await ownUpdate;
 
-    try {
-        await updateDoc(doc(db, "users", sourceUid), {
-            friends: arrayUnion(targetUid),
-            sentFriendRequests: arrayRemove(targetUid)
-        });
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-    }
+    await bestEffortMergeUserDoc(sourceUid, {
+        friends: arrayUnion(targetUid),
+        friendRequests: arrayRemove(targetUid),
+        sentFriendRequests: arrayRemove(targetUid)
+    });
 }
 
 export async function pruneSentFriendRequests(userId, targetUids) {
-    const ownerUid = typeof userId === "string" ? userId.trim() : "";
-    const staleTargets = Array.isArray(targetUids)
-        ? [...new Set(targetUids.map((value) => (typeof value === "string" ? value.trim() : "")).filter(Boolean))]
-        : [];
+    const ownerUid = normalizeUid(userId);
+    const staleTargets = normalizeUidList(targetUids);
     if (!ownerUid || !staleTargets.length) return;
 
-    try {
-        await updateDoc(doc(db, "users", ownerUid), {
-            sentFriendRequests: arrayRemove(...staleTargets)
-        });
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
-    }
+    await bestEffortMergeUserDoc(ownerUid, {
+        sentFriendRequests: arrayRemove(...staleTargets)
+    });
 }
 
 export async function removeFriend(userId, friendUid, options = {}) {
-    const targetUid = typeof userId === "string" ? userId.trim() : "";
-    const otherUid = typeof friendUid === "string" ? friendUid.trim() : "";
-    if (!targetUid || !otherUid) return;
-    const friendAliases = normalizeIdentifierArray(options && Array.isArray(options.friendAliases) ? options.friendAliases : []);
-    const currentUserAliases = normalizeIdentifierArray(options && Array.isArray(options.currentUserAliases) ? options.currentUserAliases : []);
-    const currentUserRemovalValues = normalizeIdentifierArray([otherUid, ...friendAliases].filter((value) => value !== targetUid));
-    const otherUserRemovalValues = normalizeIdentifierArray([targetUid, ...currentUserAliases].filter((value) => value !== otherUid));
+    const ownerUid = normalizeUid(userId);
+    const targetUid = normalizeUid(friendUid);
+    if (!ownerUid || !targetUid || ownerUid === targetUid) return;
 
-    try {
-        await deleteDoc(doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(targetUid, otherUid)));
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
+    await bestEffortDeleteDoc(doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(ownerUid, targetUid)));
+
+    const ownerRemovalValues = normalizeUidList([
+        targetUid,
+        ...(Array.isArray(options.friendAliases) ? options.friendAliases : [])
+    ]);
+    if (ownerRemovalValues.length) {
+        await bestEffortMergeUserDoc(ownerUid, {
+            friends: arrayRemove(...ownerRemovalValues)
+        });
     }
 
-    const currentUserUpdate = updateDoc(doc(db, "users", targetUid), {
-        friends: arrayRemove(...currentUserRemovalValues)
+    await bestEffortMergeUserDoc(targetUid, {
+        friends: arrayRemove(ownerUid)
     });
-    await currentUserUpdate;
 
-    try {
-        await updateDoc(doc(db, "users", otherUid), {
-            friends: arrayRemove(...otherUserRemovalValues)
+    const remoteAliases = normalizeUidList(Array.isArray(options.currentUserAliases) ? options.currentUserAliases : []);
+    for (const alias of remoteAliases) {
+        if (!alias || alias === ownerUid) continue;
+        await bestEffortMergeUserDoc(targetUid, {
+            friends: arrayRemove(alias)
         });
-    } catch (e) {
-        if (!isPermissionLikeError(e)) throw e;
     }
 }

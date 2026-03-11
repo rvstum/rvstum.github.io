@@ -62,7 +62,7 @@ import {
 } from "./configManager.js";
 import * as RankingUI from "./rankingUI.js?v=20260311-aeternus-complete-locale-2";
 import * as RadarUI from "./radarUI.js";
-import * as FriendsUI from "./friendsUI.js?v=20260311-remove-friend-fix-1";
+import * as FriendsUI from "./friendsUI.js?v=20260311-friends-rewrite-1";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260310-score-save-fix-18";
 import * as ViewModeManager from "./viewModeManager.js?v=20260310-score-load-fix-15";
@@ -91,7 +91,7 @@ import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-vie
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
 import * as PacmanUI from "./pacmanUI.js";
-import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-remove-friend-fix-1";
+import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-friends-rewrite-1";
 import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-profile-original-sync-1";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
 import { handleProfileLink } from "./routeManager.js?v=20260310-profile-mobile-ui-fix-3";
