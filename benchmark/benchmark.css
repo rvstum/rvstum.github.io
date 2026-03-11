@@ -1946,7 +1946,10 @@ body.view-mode .cave-play-edit {
     color: #fff;
     font-size: 12px;
     font-weight: bold;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    text-shadow:
+        0 0 1px rgba(0, 0, 0, 0.98),
+        0 0 4px rgba(0, 0, 0, 0.72),
+        0 1px 2px rgba(0, 0, 0, 0.82);
 }
 
 body:not(.auth-gate-active) .rank-threshold-value {

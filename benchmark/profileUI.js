@@ -3,7 +3,7 @@ import { t, tf } from "./i18n.js";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { updateProfile, signOut, verifyBeforeUpdateEmail, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
 import {
@@ -775,13 +775,14 @@ export async function saveOnboardingProfile(usernameRaw) {
     const userMenuName = getCachedProfileElementById('userMenuUsername');
     if (userMenuName) userMenuName.textContent = username;
 
-    const remoteProfileData = cleanProfileData(draftProfileState, editingGuilds, { includeOriginalPic: false });
+    const userProfileData = cleanProfileData(draftProfileState, editingGuilds, { includeOriginalPic: true });
+    const directoryProfileData = cleanProfileData(draftProfileState, editingGuilds, { includeOriginalPic: false });
     const accountIdForSlug = getSlugAccountId();
     const publicSlug = Slugs.buildProfileSlug(username, accountIdForSlug, user.uid);
 
     await setDoc(doc(db, 'users', user.uid), {
         username,
-        profile: remoteProfileData,
+        profile: userProfileData,
         publicSlug,
         isNewUser: false
     }, { merge: true });
@@ -809,13 +810,10 @@ export async function saveOnboardingProfile(usernameRaw) {
     };
 
     const followUpResults = await Promise.allSettled([
-        updateDoc(doc(db, 'users', user.uid), {
-            'profile.originalPic': deleteField()
-        }),
         UserService.syncAccountDirectoryEntry(user.uid, accountIdForSlug, {
             username,
             accountId: accountIdForSlug,
-            profile: remoteProfileData,
+            profile: directoryProfileData,
             publicSlug,
             settings: {
                 visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")
@@ -824,7 +822,7 @@ export async function saveOnboardingProfile(usernameRaw) {
     ]);
     followUpResults.forEach((result, index) => {
         if (result.status === 'rejected') {
-            const label = index === 0 ? 'profile cleanup' : 'account directory sync';
+            const label = index === 0 ? 'account directory sync' : 'follow-up sync';
             console.error(`Non-critical ${label} error:`, result.reason);
         }
     });

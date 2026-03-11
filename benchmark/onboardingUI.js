@@ -1,5 +1,5 @@
 import { auth } from "./client.js";
-import * as ProfileUI from "./profileUI.js?v=20260311-profile-cropper-gesture-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import { getCachedElementById } from "./utils/domUtils.js";
 
 export function initOnboardingUI(options = {}) {

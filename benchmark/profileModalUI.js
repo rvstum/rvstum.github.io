@@ -7,10 +7,10 @@ import {
     reauthenticateWithCredential,
     deleteUser
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, setDoc, updateDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
-import * as ProfileUI from "./profileUI.js?v=20260311-profile-cropper-gesture-fix-1";
+import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
@@ -480,13 +480,14 @@ export function initProfileModalController(options = {}) {
             const userMenuName = getCachedElementById("userMenuUsername");
             if (userMenuName) userMenuName.textContent = username;
 
-            const remoteProfileData = ProfileUI.cleanProfileData(draft, guilds, { includeOriginalPic: false });
+            const userProfileData = ProfileUI.cleanProfileData(draft, guilds, { includeOriginalPic: true });
+            const directoryProfileData = ProfileUI.cleanProfileData(draft, guilds, { includeOriginalPic: false });
             const accountId = getSlugAccountId();
             const publicSlug = Slugs.buildProfileSlug(username, accountId, user.uid);
 
             await setDoc(doc(db, "users", user.uid), {
                 username,
-                profile: remoteProfileData,
+                profile: userProfileData,
                 publicSlug
             }, { merge: true });
 
@@ -521,13 +522,10 @@ export function initProfileModalController(options = {}) {
             ProfileUI.updateProfileButtons();
 
             const followUpResults = await Promise.allSettled([
-                updateDoc(doc(db, "users", user.uid), {
-                    "profile.originalPic": deleteField()
-                }),
                 UserService.syncAccountDirectoryEntry(user.uid, accountId, {
                     username,
                     accountId,
-                    profile: remoteProfileData,
+                    profile: directoryProfileData,
                     publicSlug,
                     settings: {
                         visibility: readString(VISIBILITY_STORAGE_KEY, "everyone")
@@ -536,7 +534,7 @@ export function initProfileModalController(options = {}) {
             ]);
             followUpResults.forEach((result, index) => {
                 if (result.status === "rejected") {
-                    const label = index === 0 ? "profile cleanup" : "account directory sync";
+                    const label = index === 0 ? "account directory sync" : "follow-up sync";
                     console.error(`Non-critical ${label} error:`, result.reason);
                 }
             });

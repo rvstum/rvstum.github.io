@@ -60,7 +60,7 @@ import {
     readDefaultConfig,
     getStartupConfigDefaults
 } from "./configManager.js";
-import * as RankingUI from "./rankingUI.js?v=20260310-sub-score-input-14";
+import * as RankingUI from "./rankingUI.js?v=20260311-aeternus-complete-locale-1";
 import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260309-view-mode-asset-fix-1";
 import { persistUserData } from "./persistence.js";
@@ -88,17 +88,17 @@ import {
 } from "./i18n.js";
 import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
-import * as ProfileUI from "./profileUI.js?v=20260311-profile-cropper-gesture-fix-1";
-import * as AuthManager from "./authManager.js?v=20260310-profile-mobile-ui-fix-3";
+import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
+import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260309-view-mode-asset-fix-1";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260310-profile-mobile-ui-fix-3";
-import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-cropper-gesture-fix-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260311-profile-original-sync-1";
+import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
 import { handleProfileLink } from "./routeManager.js?v=20260310-profile-mobile-ui-fix-3";
-import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260310-profile-mobile-ui-fix-3";
-import { initProfileModalController } from "./profileModalUI.js?v=20260311-profile-cropper-gesture-fix-1";
+import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-aeternus-complete-locale-1";
+import { initProfileModalController } from "./profileModalUI.js?v=20260311-profile-original-sync-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
-import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260310-profile-mobile-ui-fix-3";
+import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260311-profile-original-sync-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
 import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260310-sub-input-tab-fix-1";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";

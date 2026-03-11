@@ -1,5 +1,6 @@
 import { state } from "./appState.js";
 import { RANK_THRESHOLDS, RANK_COLORS, RANK_NAMES, RANK_TEXT_COLORS, RANK_LINE_COLORS, SCORE_TEXT_COLORS, STELLAR_TROPHY_FILTER, FINAL_RANK_INDEX, CAVE_GROUPS } from "./constants.js";
+import { currentLanguage, tForLang } from "./i18n.js";
 import { isMobileViewport } from "./utils.js";
 import { calculateSingleRating, buildThresholdsFromBase } from "./scoring.js";
 import { hexToRgba, darkenColor } from "./utils/colorUtils.js";
@@ -25,6 +26,15 @@ function getRomanSubRank(progressPercent) {
     if (clamped >= 40) return 'III';
     if (clamped >= 20) return 'IV';
     return 'V';
+}
+
+function getAeternusCompleteLabel() {
+    const activeLanguage = String(currentLanguage || "en").toLowerCase();
+    const shouldTranslateSuffix = activeLanguage.startsWith("es") || activeLanguage.startsWith("pt");
+    const completeSuffix = shouldTranslateSuffix
+        ? tForLang(currentLanguage, "rank_complete_suffix")
+        : tForLang("en", "rank_complete_suffix");
+    return `${RANK_NAMES[FINAL_RANK_INDEX]} ${completeSuffix}`;
 }
 
 function getRowProgressTarget(score, thresholds) {
@@ -162,7 +172,7 @@ export function updateMainProgressBarAndRanks() {
         rankBox.classList.toggle('rank-box-glow', currentRankIndex > 0);
 
         if (totalRating >= maxRating) {
-            name = "Aeternus Complete";
+            name = getAeternusCompleteLabel();
         } else {
             const subRank = getRomanSubRank(progressInRank);
             name = `${RANK_NAMES[currentRankIndex]}&nbsp;<span class="rank-sub-rn">${subRank}</span>`;

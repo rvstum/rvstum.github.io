@@ -1,6 +1,6 @@
 import { getCachedElementById, getCachedQuery } from "./utils/domUtils.js";
 import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
-import * as ProfileUI from "./profileUI.js?v=20260310-profile-mobile-ui-fix-3";
+import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 
 export function initSecondaryModals(options = {}) {
     const {
