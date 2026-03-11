@@ -2169,7 +2169,11 @@ body:not(.auth-gate-active) .rank-threshold-value {
 }
 
 body.view-mode:not(.mobile-layout-active) .user-menu-wrapper {
-    margin-left: 8px;
+    display: none;
+}
+
+body.view-mode:not(.mobile-layout-active) #compareViewDesktopShell {
+    margin-right: 0;
 }
 
 .small-inner-box:hover {
@@ -6499,8 +6503,8 @@ body.view-mode .achievement-proof-upload.has-image {
         margin-bottom: 0;
         padding-top: 0;
         padding-bottom: 0;
-        padding-left: 6px;
-        padding-right: 6px;
+        padding-left: 0;
+        padding-right: 0;
         gap: 12px;
         z-index: 2;
     }
