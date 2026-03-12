@@ -6673,6 +6673,20 @@ body.view-mode .achievement-proof-upload.has-image {
         flex: 0 0 auto;
         margin-left: auto;
         justify-content: flex-end;
+        position: relative;
+    }
+
+    body.view-mode #mobileComparePrompt {
+        left: auto;
+        right: calc(100% + 8px);
+        top: 50%;
+        bottom: auto;
+        transform: translate(4px, -50%);
+        text-align: right;
+    }
+
+    body.view-mode #mobileComparePrompt.show {
+        transform: translate(0, -50%);
     }
 
     body.view-mode #compareViewDesktopShell {
@@ -8134,10 +8148,10 @@ body.mobile-layout-active {
     --mobile-active-outline-left: var(--mobile-cave-start);
     --mobile-active-outline-width: calc(var(--mobile-rating-left) + var(--mobile-rating-width) - var(--mobile-cave-start));
     --mobile-outline-bleed: calc(8px * var(--mobile-scale));
-    --mobile-benchmark-track-padding-right: var(--mobile-rating-gap);
-    --mobile-benchmark-track-width: calc(var(--mobile-rating-left) + var(--mobile-rating-width) + var(--mobile-benchmark-track-padding-right));
+    --mobile-benchmark-track-padding-right: 0px;
+    --mobile-benchmark-track-width: calc(var(--mobile-rating-left) + var(--mobile-rating-width));
     --mobile-benchmark-scroll-width: var(--mobile-benchmark-track-width);
-    --mobile-bg-stripe-width: calc(var(--mobile-slanted-width) + (var(--mobile-rating-gap) * 2) + var(--mobile-rating-width));
+    --mobile-bg-stripe-width: calc(var(--mobile-rating-left) + var(--mobile-rating-width) - var(--mobile-bg-stripe-left));
     --mobile-cave-group-height: calc((var(--mobile-cave-row-height) * 7) + (var(--mobile-cave-row-gap) * 6));
     --mobile-cave-group-2-top: calc(var(--mobile-ranks-top-gap) + var(--mobile-cave-group-height) + var(--mobile-cave-row-gap));
     --mobile-cave-label-width: calc(240px * var(--mobile-scale));

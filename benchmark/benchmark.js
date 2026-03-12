@@ -652,21 +652,6 @@ function clearMobileBenchmarkGeometryVars() {
     restoreBaseStripeGeometry();
 }
 
-function measurePanelContentRight(panel) {
-    if (!(panel instanceof HTMLElement)) return 0;
-    const panelRect = panel.getBoundingClientRect();
-    if (!panelRect.width) return 0;
-
-    let maxRight = panelRect.width;
-    panel.querySelectorAll('*').forEach((node) => {
-        if (!(node instanceof HTMLElement) || !node.getClientRects().length) return;
-        const rect = node.getBoundingClientRect();
-        if (!rect.width && !rect.height) return;
-        maxRight = Math.max(maxRight, rect.right - panelRect.left);
-    });
-    return Math.max(0, Math.round(maxRight));
-}
-
 function syncMobileBenchmarkGeometry() {
     const body = document.body;
     if (!body || !body.classList.contains('mobile-layout-active')) {
@@ -748,8 +733,11 @@ function syncMobileBenchmarkGeometry() {
     const measuredRatingGap = ratingRect && ratingRect.width
         ? (ratingRect.left - lastTrackRect.right)
         : (10 * mobileScale);
-    const ratingRightGap = Math.max(0, clampGap(measuredRatingGap, 10 * mobileScale) - 7);
-    const ratingLeftGap = Math.max(-14, ratingRightGap - 12);
+    const ratingRightGap = 0;
+    const ratingLeftGap = Math.max(
+        -14,
+        Math.min(0, Math.round((Number.isFinite(measuredRatingGap) ? measuredRatingGap : (10 * mobileScale)) - 12))
+    );
     const ratingLeft = slantedLeft + slantedWidth + ratingLeftGap;
     const benchmarkTrackWidth = ratingLeft + ratingWidth + ratingRightGap;
     const bgStripeLeft = (firstTrackRect.left - containerRect.left) - appliedTrackShift + desiredTrackShift;
@@ -793,11 +781,7 @@ function syncMobileBenchmarkGeometry() {
         : (4 * mobileScale);
     const ranksTopGap = Math.max(0, rowRect.top - containerRect.top);
     const caveHeaderWidth = Math.min(Math.max(48 * mobileScale, 44), caveLabelWidth);
-    const benchmarkScrollWidth = Math.max(
-        benchmarkTrackWidth,
-        measurePanelContentRight(middleBox),
-        measurePanelContentRight(container)
-    );
+    const benchmarkScrollWidth = benchmarkTrackWidth;
 
     body.style.setProperty('--mobile-cave-start', toPx(caveStart));
     body.style.setProperty('--mobile-bg-stripe-left', toPx(bgStripeLeft));
