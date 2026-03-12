@@ -1,6 +1,15 @@
 import { CAVE_GROUPS } from "./constants.js";
 import { isMobileViewport } from "./utils.js";
 
+function notifyMobileLayoutSettled(source) {
+    if (typeof document === "undefined" || typeof document.dispatchEvent !== "function") return;
+    requestAnimationFrame(() => {
+        document.dispatchEvent(new CustomEvent("benchmark:mobile-layout-settled", {
+            detail: { source }
+        }));
+    });
+}
+
 export function setupRatingValueClasses() {
     const divs = document.querySelectorAll(".rating-value");
     divs.forEach((div, index) => {
@@ -21,6 +30,7 @@ export function restructureRatingsLayout() {
             row.appendChild(ratingEl);
         }
     });
+    notifyMobileLayoutSettled("restructure-ratings");
 }
 
 function restructureRankBox() {
@@ -46,6 +56,7 @@ function restructureRankBox() {
         if (infoIcon && infoIcon.parentElement !== ranksWrapper) {
             ranksWrapper.appendChild(infoIcon);
         }
+        notifyMobileLayoutSettled("restructure-rank-box");
     } else {
         if (rankBox.parentElement !== middleBox) {
             middleBox.insertBefore(rankBox, middleBox.firstChild);

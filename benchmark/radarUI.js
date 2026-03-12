@@ -1,5 +1,5 @@
 import { state } from "./appState.js";
-import { getRadarData, getRadarRatings, getRadarCategoryValues } from "./radarData.js";
+import { getRadarData, getRadarRatings, getRadarCategoryValues, getFullCaveLabels } from "./radarData.js";
 import { drawRadarChart, drawPieChart, drawBarGraph } from "./radarRenderer.js";
 
 const RADAR_MODE_ORDER = ["combined", "swords", "bombs"];
@@ -104,6 +104,7 @@ export function updateRadar() {
     if (!canvas) return;
     const data = getRadarData();
     if (!data.labels.length) return;
+    const fullLabels = getFullCaveLabels();
     const swordIcon = document.getElementById("radarSwordIcon");
     const bombIcon = document.getElementById("radarBombIcon");
     const palette = getRadarPalette(state.radarMode);
@@ -122,7 +123,15 @@ export function updateRadar() {
     const items = data.labels.map((label, index) => {
         const raw = data.rawValues[index] || 0;
         const percent = Math.round(Math.max(0, Math.min(1, raw / maxValue)) * 100);
-        return { label, value: raw, percent, index };
+        const fullLabelIndex = state.radarMode === "bombs"
+            ? ((data.splitIndex || 0) + index)
+            : index;
+        return {
+            label: fullLabels[fullLabelIndex] || label,
+            value: raw,
+            percent,
+            index
+        };
     });
     updateRadarLists(items, palette, state.radarMode, data.splitIndex || 0);
 

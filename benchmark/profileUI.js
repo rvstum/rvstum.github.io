@@ -90,6 +90,32 @@ function normalizeGuildList(guilds) {
         .slice(0, MAX_PROFILE_GUILDS);
 }
 
+export function renderGuildHeader(guildNameEl, guilds) {
+    if (!guildNameEl) return;
+
+    const normalizedGuilds = normalizeGuildList(guilds);
+    guildNameEl.textContent = "";
+
+    if (!normalizedGuilds.length) {
+        setHidden(guildNameEl, true);
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    normalizedGuilds.forEach((guild, index) => {
+        const part = document.createElement("span");
+        part.className = "guild-name-part";
+        part.textContent = `(${guild})`;
+        fragment.appendChild(part);
+        if (index < normalizedGuilds.length - 1) {
+            fragment.appendChild(document.createTextNode(" "));
+        }
+    });
+
+    guildNameEl.appendChild(fragment);
+    setHidden(guildNameEl, false);
+}
+
 function syncGuildAddButtonsVisibility(explicitAddGuildBtn = null) {
     const atMaxGuilds = editingGuilds.length >= MAX_PROFILE_GUILDS;
     const buttons = Array.from(new Set([
@@ -586,14 +612,7 @@ export function updateMainPageGuildDisplay() {
     if (!guildNameEl) return;
     
     const savedGuilds = readJson(GUILDS_STORAGE_KEY, []);
-    const guilds = Array.isArray(savedGuilds) ? savedGuilds : [];
-
-    if (guilds.length > 0) {
-        guildNameEl.textContent = guilds.map(g => `(${g})`).join(' ');
-        setHidden(guildNameEl, false);
-    } else {
-        setHidden(guildNameEl, true);
-    }
+    renderGuildHeader(guildNameEl, Array.isArray(savedGuilds) ? savedGuilds : []);
 }
 
 export function renderFlags(flagGrid, flagModal, closeFlagPicker) {

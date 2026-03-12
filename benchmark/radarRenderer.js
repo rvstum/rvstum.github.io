@@ -87,7 +87,7 @@ export function drawRadarChart(canvas, labels, datasets) {
     });
 
     ctx.fillStyle = textColor;
-    ctx.font = isMobile ? "8px Arial, sans-serif" : "7px Arial, sans-serif";
+    ctx.font = isMobile ? "700 8px Arial, sans-serif" : "700 7px Arial, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
     const labelRadius = radius + (isSmallMobile ? 12 : 18);
@@ -427,7 +427,7 @@ export function drawBarGraph(canvas, data) {
     const isMobile = isMobileViewport();
     const isSmallMobile = window.innerWidth <= 400;
     const padding = isMobile
-        ? { top: 20, bottom: 30, left: 25, right: 5 }
+        ? { top: 20, bottom: 54, left: 25, right: 5 }
         : { top: 20, bottom: 30, left: 45, right: 10 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
@@ -454,7 +454,7 @@ export function drawBarGraph(canvas, data) {
     ctx.fillStyle = textColor;
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
-    ctx.font = isMobile ? (isSmallMobile ? "8px Arial, sans-serif" : "10px Arial, sans-serif") : "9px Arial, sans-serif";
+    ctx.font = isMobile ? (isSmallMobile ? "10px Arial, sans-serif" : "12px Arial, sans-serif") : "11px Arial, sans-serif";
     const steps = 5;
     for (let i = 0; i <= steps; i++) {
         const val = (maxVal / steps) * i;
@@ -468,7 +468,7 @@ export function drawBarGraph(canvas, data) {
         }
     }
 
-    ctx.font = isMobile ? (isSmallMobile ? "7px Arial, sans-serif" : "9px Arial, sans-serif") : "9px Arial, sans-serif";
+    ctx.font = isMobile ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif") : "11px Arial, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 
@@ -495,10 +495,20 @@ export function drawBarGraph(canvas, data) {
         ctx.strokeRect(x, y, barWidth, barHeight);
 
         ctx.fillStyle = textColor;
-        ctx.fillText(item.label, x + barWidth / 2, padding.top + chartHeight + 8);
+        if (isMobile) {
+            ctx.save();
+            ctx.translate(x + barWidth / 2, padding.top + chartHeight + 6);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            ctx.fillText(item.label, 0, 0);
+            ctx.restore();
+        } else {
+            ctx.fillText(item.label, x + barWidth / 2, padding.top + chartHeight + 8);
+        }
 
         if (item.value > 0) {
-            ctx.font = isMobile ? (isSmallMobile ? "7px Arial, sans-serif" : "9px Arial, sans-serif") : "9px Arial, sans-serif";
+            ctx.font = isMobile ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif") : "11px Arial, sans-serif";
             ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
             ctx.fillText(Math.round(item.value), x + barWidth / 2, y - 14);
         }

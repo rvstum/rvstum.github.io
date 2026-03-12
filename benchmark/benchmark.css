@@ -1653,12 +1653,12 @@ body.view-mode .cave-play-edit {
 }
 
 .trophy-mobile-focus-shell {
-    --trophy-mobile-focus-bottom: 16px;
+    --trophy-mobile-focus-top: 50vh;
     position: fixed;
     left: 50%;
-    bottom: var(--trophy-mobile-focus-bottom);
+    top: var(--trophy-mobile-focus-top);
     width: min(calc(100vw - 24px), 420px);
-    transform: translateX(-50%) scale(0.96);
+    transform: translate(-50%, -50%) scale(0.96);
     opacity: 0;
     pointer-events: none;
     z-index: 10030;
@@ -1667,7 +1667,7 @@ body.view-mode .cave-play-edit {
 
 .trophy-mobile-focus-shell.show {
     opacity: 1;
-    transform: translateX(-50%) scale(1);
+    transform: translate(-50%, -50%) scale(1);
     pointer-events: auto;
 }
 
@@ -6222,13 +6222,23 @@ body.view-mode .achievement-proof-upload.has-image {
 
     .guild-name {
         font-size: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: 4px;
+        row-gap: 2px;
         white-space: normal;
         overflow: visible;
         text-overflow: clip;
-        overflow-wrap: anywhere;
-        word-break: break-word;
+        overflow-wrap: normal;
+        word-break: normal;
         line-height: 1.15;
         max-width: 100%;
+    }
+
+    .guild-name-part {
+        white-space: nowrap;
+        flex: 0 0 auto;
     }
 
     .profile-details {
@@ -6270,16 +6280,34 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 
     .trophies-section .trophy-row {
+        width: 100%;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
+        align-items: stretch;
         justify-content: center;
     }
 
+    .trophies-section .trophy-card {
+        min-height: 38px;
+        padding: 6px 4px;
+        justify-content: center;
+        overflow: hidden;
+    }
+
     .trophies-section .trophy-img {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .trophies-section .trophy-card-info {
+        align-items: center;
+        justify-content: center;
     }
 
     .trophies-section .trophy-card-count {
-        font-size: 14px;
+        font-size: clamp(12px, 3.3vw, 14px);
+        line-height: 1;
+        white-space: nowrap;
     }
 
     .trophies-section .seasonal-label {
@@ -7839,11 +7867,25 @@ body.view-mode .achievement-proof-upload.has-image {
         padding: 14px 10px 12px;
         box-sizing: border-box;
         overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #achievementsModal .achievements-modal-title-icon,
+    #achievementsModal .achievements-title-modal,
+    #achievementsModal .achievements-bar-modal,
+    #achievementsModal .achievements-text-modal {
+        align-self: center;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
     }
 
     #achievementsModal .achievements-title-modal {
         font-size: 16px;
         margin-bottom: 8px;
+        width: 100%;
     }
 
     #achievementsModal .achievements-modal-title-icon {
@@ -7856,14 +7898,39 @@ body.view-mode .achievement-proof-upload.has-image {
         font-size: 11px;
         line-height: 1.25;
         margin-bottom: 10px;
+        width: min(100%, 420px);
     }
 
     #achievementsModal .achievements-bar-modal {
         height: 20px;
         margin-bottom: 8px;
+        width: min(100%, 420px);
+    }
+
+    #achievementsModal #closeAchievementsModal {
+        position: absolute !important;
+        top: 15px !important;
+        right: 15px !important;
+        left: auto !important;
+        margin: 0 !important;
+        width: 32px !important;
+        height: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+        background-color: rgba(0, 0, 0, 0.75) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: #aaa !important;
+        font-size: 28px !important;
+        font-weight: bold !important;
+        line-height: 1 !important;
+        z-index: 10001 !important;
     }
 
     #achievementsModal .achievement-list {
+        width: 100%;
+        align-self: stretch;
         grid-template-columns: 1fr;
         gap: 8px;
     }
@@ -8043,29 +8110,63 @@ body.view-mode .achievement-proof-upload.has-image {
 
 /* Runtime mobile layout overrides (driven by isMobileViewport()). */
 body.mobile-layout-active {
-    --mobile-cave-start: 36px;
-    --mobile-bg-stripe-left: var(--mobile-cave-start);
+    --mobile-scale: var(--mobile-layout-scale, 1);
+    --mobile-font-scale: clamp(0.94, var(--mobile-scale), 1.04);
+    --mobile-cave-start: calc(36px * var(--mobile-scale));
+    --mobile-bg-stripe-left: var(--mobile-slanted-left);
     --mobile-cave-header-left: var(--mobile-cave-start);
-    --mobile-cave-header-width: 48px;
-    --mobile-ranks-top-gap: 24px;
-    --mobile-cave-row-height: 36px;
-    --mobile-cave-row-gap: 4px;
-    --mobile-header-top: calc(var(--mobile-ranks-top-gap) - 24px);
-    --mobile-score-left: calc(var(--mobile-cave-start) + 245px);
-    --mobile-score-width: 70px;
-    --mobile-slanted-left: calc(var(--mobile-cave-start) + 315px);
-    --mobile-slanted-width: 1036px;
-    --mobile-progression-center: calc(var(--mobile-cave-start) + 850px);
-    --mobile-progression-width: 240px;
-    --mobile-rating-left: calc(var(--mobile-slanted-left) + var(--mobile-slanted-width) + 20px);
-    --mobile-rating-width: 80px;
+    --mobile-cave-header-width: calc(48px * var(--mobile-scale));
+    --mobile-ranks-top-gap: calc(24px * var(--mobile-scale));
+    --mobile-cave-row-height: calc(36px * var(--mobile-scale));
+    --mobile-cave-row-gap: clamp(3px, calc(4px * var(--mobile-scale)), 6px);
+    --mobile-row-step: calc(var(--mobile-cave-row-height) + var(--mobile-cave-row-gap));
+    --mobile-pair-stripe-height: calc((var(--mobile-cave-row-height) * 2) + var(--mobile-cave-row-gap));
+    --mobile-single-stripe-height: var(--mobile-cave-row-height);
+    --mobile-header-top: calc(var(--mobile-ranks-top-gap) - (24px * var(--mobile-scale)));
+    --mobile-score-left: calc(var(--mobile-cave-start) + (245px * var(--mobile-scale)));
+    --mobile-score-width: calc(70px * var(--mobile-scale));
+    --mobile-slanted-left: calc(var(--mobile-cave-start) + (315px * var(--mobile-scale)));
+    --mobile-slanted-width: calc(1036px * var(--mobile-scale));
+    --mobile-progression-width: var(--mobile-slanted-width);
+    --mobile-rating-gap: calc(10px * var(--mobile-scale));
+    --mobile-rating-left: calc(var(--mobile-slanted-left) + var(--mobile-slanted-width) + var(--mobile-rating-gap));
+    --mobile-rating-width: calc(90px * var(--mobile-scale));
     --mobile-active-outline-left: var(--mobile-cave-start);
     --mobile-active-outline-width: calc(var(--mobile-rating-left) + var(--mobile-rating-width) - var(--mobile-cave-start));
-    --mobile-outline-bleed: 8px;
-    --mobile-benchmark-track-padding-right: 0px;
+    --mobile-outline-bleed: calc(8px * var(--mobile-scale));
+    --mobile-benchmark-track-padding-right: var(--mobile-rating-gap);
     --mobile-benchmark-track-width: calc(var(--mobile-rating-left) + var(--mobile-rating-width) + var(--mobile-benchmark-track-padding-right));
+    --mobile-bg-stripe-width: calc(var(--mobile-slanted-width) + (var(--mobile-rating-gap) * 2) + var(--mobile-rating-width));
     --mobile-cave-group-height: calc((var(--mobile-cave-row-height) * 7) + (var(--mobile-cave-row-gap) * 6));
     --mobile-cave-group-2-top: calc(var(--mobile-ranks-top-gap) + var(--mobile-cave-group-height) + var(--mobile-cave-row-gap));
+    --mobile-cave-label-width: calc(240px * var(--mobile-scale));
+    --mobile-cave-label-gap: calc(90px * var(--mobile-scale));
+    --mobile-ranks-strip-left: var(--mobile-slanted-left);
+    --mobile-ranks-strip-width: var(--mobile-slanted-width);
+    --mobile-ranks-strip-step: calc(var(--mobile-ranks-strip-width) / 13);
+    --mobile-panel-radius: calc(24px * var(--mobile-scale));
+    --mobile-panel-padding-y: calc(24px * var(--mobile-scale));
+    --mobile-panel-padding-x: calc(15px * var(--mobile-scale));
+    --mobile-panel-padding-bottom: calc(16px * var(--mobile-scale));
+    --mobile-panel-padding-bottom-tight: calc(6px * var(--mobile-scale));
+    --mobile-panel-min-height: calc(176px * var(--mobile-scale));
+    --mobile-container-padding-top: calc(10px * var(--mobile-scale));
+    --mobile-container-padding-top-tight: calc(2px * var(--mobile-scale));
+    --mobile-container-padding-bottom: calc(12px * var(--mobile-scale));
+    --mobile-ranks-wrapper-bottom-gap: calc(2px * var(--mobile-scale));
+    --mobile-ranks-scroll-gap: calc(2px * var(--mobile-scale));
+    --mobile-ranks-wrapper-gap: calc(4px * var(--mobile-scale));
+    --mobile-ranks-wrapper-drop: calc(22px * var(--mobile-scale) * var(--mobile-layout-height-fit, 1));
+    --mobile-progress-stack-drop: 0px;
+    --mobile-rank-box-offset: var(--mobile-ranks-wrapper-drop);
+    --mobile-header-height: calc(20px * var(--mobile-font-scale));
+    --mobile-track-font-size: clamp(11px, calc(12px * var(--mobile-font-scale)), 13px);
+    --mobile-track-font-size-sm: clamp(10px, calc(11px * var(--mobile-font-scale)), 12px);
+    --mobile-score-link-size: calc(16px * var(--mobile-font-scale));
+    --mobile-score-link-icon-size: calc(14px * var(--mobile-font-scale));
+    --mobile-cave-icon-size: calc(28px * var(--mobile-font-scale));
+    --mobile-sub-popout-offset: calc(12px * var(--mobile-scale));
+    --mobile-compare-popout-offset: calc(8px * var(--mobile-scale));
 }
 
 body.mobile-layout-active #settingsModal .settings-card-danger,
@@ -8099,7 +8200,7 @@ body.mobile-layout-active .benchmark-panels-shell {
     background-color: var(--panel-bg);
     backdrop-filter: blur(12px);
     border: 1px solid var(--panel-border);
-    border-radius: 24px;
+    border-radius: var(--mobile-panel-radius);
     box-shadow: none;
     overflow: hidden;
     isolation: isolate;
@@ -8140,20 +8241,48 @@ body.mobile-layout-active .benchmark-panels-scroll > .container {
 
 body.mobile-layout-active .progress-bar {
     width: var(--mobile-slanted-width) !important;
-    margin-left: var(--mobile-slanted-left) !important;
+    margin-left: calc(var(--mobile-bg-stripe-left) - var(--mobile-panel-padding-x)) !important;
+}
+
+body.mobile-layout-active .roman-numerals-container {
+    display: block !important;
+    width: var(--mobile-progression-width) !important;
+    left: calc(var(--mobile-bg-stripe-left) - var(--mobile-panel-padding-x)) !important;
+}
+
+body.mobile-layout-active .roman-pos-0 {
+    left: var(--mobile-roman-pos-0) !important;
+}
+
+body.mobile-layout-active .roman-pos-1 {
+    left: var(--mobile-roman-pos-1) !important;
+}
+
+body.mobile-layout-active .roman-pos-2 {
+    left: var(--mobile-roman-pos-2) !important;
+}
+
+body.mobile-layout-active .roman-pos-3 {
+    left: var(--mobile-roman-pos-3) !important;
+}
+
+body.mobile-layout-active .roman-pos-4 {
+    left: var(--mobile-roman-pos-4) !important;
 }
 
 body.mobile-layout-active .ranks-labels {
-    width: calc(var(--mobile-slanted-width) + 4px) !important;
-    min-width: calc(var(--mobile-slanted-width) + 4px) !important;
-    max-width: calc(var(--mobile-slanted-width) + 4px) !important;
-    margin-left: calc(var(--mobile-slanted-left) - 2px) !important;
+    width: var(--mobile-ranks-strip-width) !important;
+    min-width: var(--mobile-ranks-strip-width) !important;
+    max-width: var(--mobile-ranks-strip-width) !important;
+    margin-left: calc(var(--mobile-ranks-strip-left) - var(--mobile-panel-padding-x)) !important;
+    position: relative !important;
+    top: calc(-4px * var(--mobile-scale)) !important;
 }
 
 body.mobile-layout-active .ranks-labels > .rank-item {
-    width: calc((var(--mobile-slanted-width) + 4px) / 13) !important;
-    min-width: calc((var(--mobile-slanted-width) + 4px) / 13) !important;
-    max-width: calc((var(--mobile-slanted-width) + 4px) / 13) !important;
+    width: var(--mobile-ranks-strip-step) !important;
+    min-width: var(--mobile-ranks-strip-step) !important;
+    max-width: var(--mobile-ranks-strip-step) !important;
     padding: 0 !important;
     margin: 0 !important;
 }
@@ -8168,8 +8297,48 @@ body.mobile-layout-active .container > .ranks-bars-stack {
 
 body.mobile-layout-active .bg-stripe {
     left: var(--mobile-bg-stripe-left) !important;
-    width: calc(100% - var(--mobile-bg-stripe-left)) !important;
+    width: var(--mobile-bg-stripe-width) !important;
     right: auto !important;
+}
+
+body.mobile-layout-active .bg-stripe:nth-of-type(1) {
+    top: var(--mobile-ranks-top-gap) !important;
+    height: var(--mobile-pair-stripe-height) !important;
+}
+
+body.mobile-layout-active .bg-stripe:nth-of-type(2) {
+    top: calc(var(--mobile-ranks-top-gap) + (var(--mobile-row-step) * 2)) !important;
+    height: var(--mobile-pair-stripe-height) !important;
+}
+
+body.mobile-layout-active .bg-stripe:nth-of-type(3) {
+    top: calc(var(--mobile-ranks-top-gap) + (var(--mobile-row-step) * 4)) !important;
+    height: var(--mobile-pair-stripe-height) !important;
+}
+
+body.mobile-layout-active .bg-stripe:nth-of-type(4) {
+    top: calc(var(--mobile-ranks-top-gap) + (var(--mobile-row-step) * 6)) !important;
+    height: var(--mobile-single-stripe-height) !important;
+}
+
+body.mobile-layout-active .bg-stripe:nth-of-type(5) {
+    top: calc(var(--mobile-ranks-top-gap) + (var(--mobile-row-step) * 7)) !important;
+    height: var(--mobile-pair-stripe-height) !important;
+}
+
+body.mobile-layout-active .bg-stripe:nth-of-type(6) {
+    top: calc(var(--mobile-ranks-top-gap) + (var(--mobile-row-step) * 9)) !important;
+    height: var(--mobile-pair-stripe-height) !important;
+}
+
+body.mobile-layout-active .bg-stripe:nth-of-type(7) {
+    top: calc(var(--mobile-ranks-top-gap) + (var(--mobile-row-step) * 11)) !important;
+    height: var(--mobile-pair-stripe-height) !important;
+}
+
+body.mobile-layout-active .bg-stripe:nth-of-type(8) {
+    top: calc(var(--mobile-ranks-top-gap) + (var(--mobile-row-step) * 13)) !important;
+    height: var(--mobile-single-stripe-height) !important;
 }
 
 body.mobile-layout-active .container > .ranks-bars-stack > .ranks-bars {
@@ -8193,9 +8362,9 @@ body.mobile-layout-active .rank-bar.cave-cell-label {
     margin: 0 !important;
     height: var(--mobile-cave-row-height) !important;
     min-height: var(--mobile-cave-row-height) !important;
-    width: 240px !important;
+    width: var(--mobile-cave-label-width) !important;
     margin-left: var(--mobile-cave-start) !important;
-    margin-right: 90px !important;
+    margin-right: var(--mobile-cave-label-gap) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
@@ -8203,21 +8372,22 @@ body.mobile-layout-active .rank-bar.cave-cell-label {
     padding-bottom: 0 !important;
     line-height: 1 !important;
     align-self: center !important;
+    font-size: var(--mobile-track-font-size) !important;
 }
 
 body.mobile-layout-active .rank-bar.cave-cell-label img {
-    width: 28px !important;
-    height: 28px !important;
+    width: var(--mobile-cave-icon-size) !important;
+    height: var(--mobile-cave-icon-size) !important;
 }
 
 body.mobile-layout-active .middle-box {
-    padding: 24px 15px 16px !important;
-    min-height: 176px !important;
+    padding: var(--mobile-panel-padding-y) var(--mobile-panel-padding-x) var(--mobile-panel-padding-bottom-tight) !important;
+    min-height: var(--mobile-panel-min-height) !important;
     overflow: visible !important;
 }
 
 body.mobile-layout-active .container {
-    padding: 10px 0 12px !important;
+    padding: var(--mobile-container-padding-top-tight) 0 var(--mobile-container-padding-bottom) !important;
     overflow: visible !important;
 }
 
@@ -8226,12 +8396,23 @@ body.mobile-layout-active .ranks-wrapper {
     min-width: 0 !important;
     max-width: none !important;
     margin-right: 0 !important;
+    margin-top: 0 !important;
+    top: auto !important;
+    transform: translate3d(0, var(--mobile-ranks-wrapper-drop), 0) !important;
+    justify-content: flex-end !important;
+    gap: var(--mobile-ranks-wrapper-gap) !important;
+    padding-bottom: 0 !important;
 }
 
 body.mobile-layout-active .ranks-scroll {
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
+    gap: var(--mobile-ranks-scroll-gap) !important;
+}
+
+body.mobile-layout-active .progress-stack {
+    top: 0 !important;
 }
 
 body.mobile-layout-active #ranksBarsContainer {
@@ -8255,8 +8436,15 @@ body.mobile-layout-active .ranks-scroll {
 }
 
 body.mobile-layout-active .rounded-inner-box {
-    top: calc(50% + ((10px + var(--mobile-ranks-top-gap) + var(--mobile-cave-row-height)) / 2)) !important;
-    transform: translateY(-70%) !important;
+    top: calc(50% + var(--mobile-rank-box-offset)) !important;
+    left: var(--mobile-rank-box-left, 14px) !important;
+    width: var(--mobile-rank-box-width, calc(100% - 28px)) !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    right: auto !important;
+    padding-right: 0 !important;
+    box-sizing: border-box !important;
+    transform: translate3d(var(--mobile-rank-scroll-offset, 0px), -50%, 0) !important;
 }
 
 body.mobile-layout-active .info-icon {
@@ -8268,8 +8456,9 @@ body.mobile-layout-active .score-text,
 body.mobile-layout-active .progression-text,
 body.mobile-layout-active .rating-text {
     top: var(--mobile-header-top) !important;
-    height: 20px !important;
-    line-height: 20px !important;
+    height: var(--mobile-header-height) !important;
+    line-height: var(--mobile-header-height) !important;
+    font-size: var(--mobile-track-font-size-sm) !important;
 }
 
 body.mobile-layout-active .cave-text {
@@ -8281,7 +8470,7 @@ body.mobile-layout-active .cave-text {
 }
 
 body.mobile-layout-active .score-text {
-    --score-link-inline-offset: 23px;
+    --score-link-inline-offset: calc(23px * var(--mobile-font-scale));
     left: var(--mobile-score-left) !important;
     width: var(--mobile-score-width) !important;
     justify-content: center !important;
@@ -8289,17 +8478,17 @@ body.mobile-layout-active .score-text {
 
 body.mobile-layout-active .score-link-toggle {
     left: calc(50% + var(--score-link-inline-offset, 23px));
-    width: 16px;
-    height: 16px;
+    width: var(--mobile-score-link-size);
+    height: var(--mobile-score-link-size);
 }
 
 body.mobile-layout-active .score-link-icon {
-    width: 14px;
-    height: 14px;
+    width: var(--mobile-score-link-icon-size);
+    height: var(--mobile-score-link-icon-size);
 }
 
 body.mobile-layout-active .progression-text {
-    left: calc(var(--mobile-progression-center) - (var(--mobile-progression-width) / 2)) !important;
+    left: var(--mobile-bg-stripe-left) !important;
     width: var(--mobile-progression-width) !important;
     justify-content: center !important;
 }
@@ -8324,6 +8513,7 @@ body.mobile-layout-active .ranks-bars > .rating-value {
     justify-content: center !important;
     z-index: 20 !important;
     text-align: center !important;
+    font-size: var(--mobile-track-font-size) !important;
 }
 
 /* Two-row cave groups: center rating between the first and second cave rows. */
@@ -8353,11 +8543,50 @@ body.mobile-layout-active .ranks-bars > .score-input-wrapper {
 }
 
 body.mobile-layout-active .sub-score-popout {
-    left: calc(100% - 12px);
+    left: calc(100% - var(--mobile-sub-popout-offset));
 }
 
 body.mobile-layout-active .compare-score-popout {
-    left: calc(100% - 8px);
+    left: calc(100% - var(--mobile-compare-popout-offset));
+}
+
+body.mobile-layout-active .score-input,
+body.mobile-layout-active .score-text-overlay {
+    font-size: var(--mobile-track-font-size) !important;
+}
+
+body.mobile-layout-active .ranks-labels .rank-item span,
+body.mobile-layout-active .rank-number {
+    font-size: var(--mobile-track-font-size-sm) !important;
+}
+
+body.mobile-layout-active .rank-number {
+    display: block !important;
+    bottom: calc(4px * var(--mobile-scale)) !important;
+    margin-top: calc(-4px * var(--mobile-scale)) !important;
+    margin-bottom: calc(1px * var(--mobile-scale)) !important;
+    line-height: 1 !important;
+}
+
+body.mobile-layout-active .trophy-container {
+    height: calc(27px * var(--mobile-scale)) !important;
+    margin-bottom: calc(5px * var(--mobile-scale)) !important;
+}
+
+body.mobile-layout-active .top-box {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: var(--panel-bg) !important;
+    animation: none !important;
+    padding-top: calc(10px * var(--mobile-scale)) !important;
+}
+
+body.mobile-layout-active .benchmark-panels-shell,
+body.mobile-layout-active .radar-box,
+body.mobile-layout-active .benchmark-footer-top {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    animation: none !important;
 }
 
 body.mobile-layout-active .ranks-bars.row-active-single::before {
@@ -8400,10 +8629,22 @@ body.mobile-layout-active .vertical-box.vbox-2 {
 
 body.mobile-layout-active .radar-content {
     grid-template-columns: 1fr !important;
+    gap: clamp(8px, calc(10px * var(--mobile-scale)), 12px) !important;
+}
+
+body.mobile-layout-active .radar-canvas-wrap {
+    height: auto !important;
+    padding: 10px !important;
 }
 
 body.mobile-layout-active .radar-chart-grid {
     justify-items: center !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto auto !important;
+    height: auto !important;
+    align-items: stretch !important;
+    align-content: start !important;
+    gap: clamp(8px, calc(10px * var(--mobile-scale)), 12px) !important;
 }
 
 body.mobile-layout-active .radar-chart-panel,
@@ -8412,6 +8653,27 @@ body.mobile-layout-active .radar-bar-wrap {
     width: min(100%, 420px) !important;
     margin-left: auto !important;
     margin-right: auto !important;
+}
+
+body.mobile-layout-active .radar-chart-panel {
+    height: clamp(220px, 58vw, 320px) !important;
+}
+
+body.mobile-layout-active .radar-donut-wrap {
+    height: clamp(160px, 42vw, 220px) !important;
+}
+
+body.mobile-layout-active .radar-bar-wrap {
+    height: clamp(180px, 46vw, 240px) !important;
+}
+
+body.mobile-layout-active .radar-stat-item > span:first-child {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.2;
 }
 
 body.mobile-layout-active .mobile-exit-view-btn {
@@ -8443,6 +8705,16 @@ html.mobile-viewport-guard #responsive-wrapper {
     overflow-x: hidden !important;
     overscroll-behavior: none !important;
     -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+html.mobile-viewport-guard::-webkit-scrollbar,
+html.mobile-viewport-guard body::-webkit-scrollbar,
+html.mobile-viewport-guard #responsive-wrapper::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 html.mobile-viewport-guard body.modal-open #responsive-wrapper {
@@ -8474,4 +8746,283 @@ html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open
 
 html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open #trophyModal.show .settings-content-box {
     max-height: min(86vh, calc(var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh)) - 24px)) !important;
+}
+
+@media (max-width: 900px), (max-device-width: 900px) {
+    #friendsModal.show,
+    #profileModal.show {
+        padding:
+            max(10px, env(safe-area-inset-top, 0px))
+            10px
+            max(10px, env(safe-area-inset-bottom, 0px));
+        box-sizing: border-box;
+    }
+
+    #friendsModal .settings-content-box {
+        width: min(94vw, 540px) !important;
+        max-width: min(94vw, 540px) !important;
+        min-height: min(88vh, calc(var(--mobile-safe-vh, 100dvh) - 20px)) !important;
+        max-height: min(92vh, calc(var(--mobile-safe-vh, 100dvh) - 12px)) !important;
+        padding: 14px 12px calc(28px + env(safe-area-inset-bottom, 0px)) !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+
+    #friendsModal .friends-modal-shell {
+        height: auto !important;
+        min-height: min(88vh, calc(var(--mobile-safe-vh, 100dvh) - 20px)) !important;
+    }
+
+    #friendsModal .settings-header {
+        padding-right: 34px;
+    }
+
+    #friendsModal .settings-title {
+        font-size: clamp(15px, 4.2vw, 18px);
+    }
+
+    #friendsModal .settings-subtitle {
+        font-size: clamp(10px, 3vw, 12px);
+        line-height: 1.3;
+        white-space: normal;
+    }
+
+    #friendsModal .account-id-block,
+    #friendsModal .friends-add-block {
+        margin: 0 0 12px !important;
+    }
+
+    #friendsModal .account-id-block > .row-center-gap-10 {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 8px;
+        align-items: center;
+    }
+
+    #friendsModal #friendPageAccountIdDisplay {
+        min-width: 0;
+        width: 100%;
+        font-size: clamp(10px, 3.1vw, 12px);
+        letter-spacing: 0.4px;
+    }
+
+    #friendsModal #friendPageToggleAccountIdView {
+        min-width: 58px;
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    #friendsModal .friends-add-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    #friendsModal #friendIdInput,
+    #friendsModal .friend-list-container,
+    #friendsModal .friend-item,
+    #friendsModal .friend-main,
+    #friendsModal .friend-info {
+        min-width: 0;
+    }
+
+    #friendsModal #addFriendBtn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #friendsModal .friends-tabs-shell {
+        width: 100%;
+        margin: 0 0 8px !important;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
+    }
+
+    #friendsModal .friends-tabs-shell .radar-tab {
+        min-width: 0;
+        padding: 7px 4px;
+        font-size: clamp(10px, 2.8vw, 12px);
+        line-height: 1.15;
+        white-space: normal;
+    }
+
+    #friendsModal .friends-section-content,
+    #friendsModal .friends-pane {
+        min-height: 0;
+        overflow: visible;
+    }
+
+    #friendsModal .friend-list-container {
+        margin-top: 8px;
+        padding: 6px 6px 28px;
+        gap: 8px;
+        max-height: none;
+        min-height: 0;
+    }
+
+    #friendsModal .friend-item {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    #friendsModal .friend-name-row {
+        min-width: 0;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    #friendsModal .friend-name,
+    #friendsModal .friend-status {
+        min-width: 0;
+    }
+
+    #friendsModal .friend-actions {
+        max-width: 100%;
+        flex-wrap: wrap;
+        gap: 6px;
+        row-gap: 6px;
+    }
+
+    #friendsModal .friend-item--has-actions .friend-actions,
+    #friendsModal #removeFriendsContent .friend-actions {
+        justify-content: flex-end;
+    }
+
+    #friendsModal .friend-request-btn {
+        min-width: 0;
+        flex: 0 1 auto;
+    }
+
+    #profileModal .settings-content-box {
+        width: min(94vw, 560px) !important;
+        max-width: min(94vw, 560px) !important;
+        max-height: min(88vh, calc(var(--mobile-safe-vh, 100dvh) - 20px)) !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+
+    #profileModal .profile-modal-box {
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    #profileModal .profile-content {
+        padding: 18px 14px 14px !important;
+        padding-bottom: 14px !important;
+        overflow-x: hidden !important;
+    }
+
+    #profileModal .settings-header {
+        padding-right: 34px;
+    }
+
+    #profileModal .settings-field,
+    #profileModal .settings-card,
+    #profileModal .settings-select,
+    #profileModal .row-center-gap-10,
+    #profileModal .email-row,
+    #profileModal .password-row,
+    #profileModal #newGuildInputBox {
+        min-width: 0;
+    }
+
+    #profileModal .settings-card,
+    #profileModal .settings-field {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    #profileModal .settings-select {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #profileModal .profile-pic-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    #profileModal .profile-pic-preview-container {
+        width: 100%;
+        justify-content: center;
+    }
+
+    #profileModal .profile-pic-actions {
+        flex: 1 1 auto !important;
+        max-width: none !important;
+        width: 100% !important;
+        justify-content: stretch !important;
+    }
+
+    #profileModal .profile-pic-actions .settings-btn {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+        justify-content: center;
+    }
+
+    #profileModal .row-center-gap-10,
+    #profileModal .email-row,
+    #profileModal .password-row,
+    #profileModal #newGuildInputBox,
+    #profileModal #emailChangeContainer .row-gap-8 {
+        flex-wrap: wrap;
+    }
+
+    #profileModal #accountIdDisplay,
+    #profileModal #accountEmailDisplay,
+    #profileModal #accountPasswordDisplay,
+    #profileModal #newEmailInput,
+    #profileModal #newGuildInput {
+        flex: 1 1 100%;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #profileModal #confirmAddGuildBtn,
+    #profileModal #cancelAddGuildBtn,
+    #profileModal #confirmEmailChangeBtn,
+    #profileModal #cancelEmailChangeBtn {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+        justify-content: center;
+    }
+
+    #profileModal .guild-item {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    #profileModal .guild-left-content,
+    #profileModal .guild-item-actions {
+        min-width: 0;
+    }
+
+    #profileModal .guild-item-actions {
+        margin-left: auto;
+        flex-wrap: wrap;
+    }
+
+    #profileModal .profile-footer {
+        position: static !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin-top: auto;
+        padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: stretch;
+        background: linear-gradient(180deg, rgba(10, 10, 10, 0), rgba(10, 10, 10, 0.96) 22%);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    #profileModal .profile-footer .settings-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
+    }
 }

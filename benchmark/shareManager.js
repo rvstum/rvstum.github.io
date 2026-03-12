@@ -676,7 +676,11 @@ export function setupShareUI(refreshRadarVisuals) {
             const existingTimer = copyFeedbackTimers.get(el);
             if (existingTimer) clearTimeout(existingTimer);
             el.classList.add("copy-success");
-            el.innerHTML = '<span class="copy-success-check">&#10003;</span>' + successLabel;
+            if (el === mobileCopyLinkBtn) {
+                el.innerHTML = '<span class="copy-success-check">&#10003;</span><span>' + successLabel + "</span>";
+            } else {
+                el.innerHTML = '<span class="copy-success-check">&#10003;</span>' + successLabel;
+            }
             const nextTimer = setTimeout(() => restoreCopyLabel(el), 1400);
             copyFeedbackTimers.set(el, nextTimer);
         };

@@ -2,7 +2,25 @@ import { state } from "./appState.js";
 import { calculateSingleRating } from "./scoring.js";
 import { RADAR_CATEGORY_WEIGHTS, RADAR_SWORDS_CATEGORIES } from "./constants.js";
 
-export function getCaveLabels() {
+const RADAR_LABEL_OVERRIDES = new Map([
+    ["lizardron_04", "Liz_04"],
+    ["pyrats_01", "Py_01"],
+    ["pcs_01 (cave switch)", "PCS_01"],
+    ["rebels_04", "Reb_04"],
+    ["rcs_04 (cave switch)", "RCS_04"],
+    ["dark blobs_02", "DB_02"],
+    ["dbcs_02 (cave switch)", "DBCS_04"],
+    ["spiders_01", "Spi_01"]
+]);
+
+function normalizeRadarLabel(label, { shorten = true } = {}) {
+    const normalized = String(label || "").replace(/\s+/g, " ").trim();
+    if (!normalized) return "Cave";
+    if (!shorten) return normalized;
+    return RADAR_LABEL_OVERRIDES.get(normalized.toLowerCase()) || normalized;
+}
+
+function collectCaveLabels({ shorten = true } = {}) {
     const rows = document.querySelectorAll(".ranks-bars");
     if (!rows.length) return [];
     return Array.from(rows).map((row) => {
@@ -13,7 +31,7 @@ export function getCaveLabels() {
         const altLabel = (img && typeof img.getAttribute === "function")
             ? (img.getAttribute("alt") || "").trim()
             : "";
-        if (altLabel) return altLabel;
+        if (altLabel) return normalizeRadarLabel(altLabel, { shorten });
 
         // Avoid control text ("Right click to edit") leaking into radar labels.
         const raw = Array.from(labelCell.childNodes)
@@ -22,8 +40,16 @@ export function getCaveLabels() {
             .join(" ")
             .replace(/\s+/g, " ")
             .trim();
-        return raw || "Cave";
+        return normalizeRadarLabel(raw, { shorten });
     });
+}
+
+export function getCaveLabels() {
+    return collectCaveLabels({ shorten: true });
+}
+
+export function getFullCaveLabels() {
+    return collectCaveLabels({ shorten: false });
 }
 
 export function getRadarRatings() {

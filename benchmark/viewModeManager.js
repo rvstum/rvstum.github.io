@@ -12,6 +12,7 @@ import * as RadarUI from "./radarUI.js";
 import * as RankingUI from "./rankingUI.js?v=20260311-compare-theme-colors-1";
 import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
+import { renderGuildHeader } from "./profileUI.js";
 import { calculateRankFromData, calculateTotalRatingForScores } from "./scoring.js";
 import { getScoreBaseForConfigKey, DEFAULT_MOUNT_CONFIG, FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
 import { normalizeMountConfig, getConfigLookupKeys } from "./configManager.js";
@@ -372,8 +373,7 @@ function applyViewModeProfileHeader(data) {
     const guildNameEl = getCachedQuery("viewModeGuildName", () => document.querySelector(".guild-name"));
     if (!guildNameEl) return;
     if (profile.guilds && profile.guilds.length > 0) {
-        guildNameEl.textContent = profile.guilds.map((g) => `(${g})`).join(" ");
-        setHidden(guildNameEl, false);
+        renderGuildHeader(guildNameEl, profile.guilds);
     } else {
         setHidden(guildNameEl, true);
     }

@@ -174,9 +174,10 @@ export function initTrophySystem(options = {}) {
         if (!mobileFocusShell || !mobileFocusShell.classList.contains("show")) return;
         const vv = window.visualViewport || null;
         const layoutHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        const viewportBottom = vv ? (vv.height + vv.offsetTop) : layoutHeight;
-        const keyboardInset = Math.max(0, layoutHeight - viewportBottom);
-        mobileFocusShell.style.setProperty("--trophy-mobile-focus-bottom", `${keyboardInset + 12}px`);
+        const visibleTop = vv ? vv.offsetTop : 0;
+        const visibleHeight = vv ? vv.height : layoutHeight;
+        const centerY = visibleTop + (visibleHeight / 2);
+        mobileFocusShell.style.setProperty("--trophy-mobile-focus-top", `${Math.round(centerY)}px`);
     };
 
     const closeMobileTrophyFocusEditor = () => {
@@ -206,13 +207,18 @@ export function initTrophySystem(options = {}) {
         const closeBtnEl = mobileFocusShell.querySelector(".trophy-mobile-focus-close");
 
         if (closeBtnEl) {
-            closeBtnEl.addEventListener("click", () => {
+            const handleCloseMobileFocus = (event) => {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                closeMobileTrophyFocusEditor();
                 if (mobileFocusInput && typeof mobileFocusInput.blur === "function") {
                     mobileFocusInput.blur();
-                } else {
-                    closeMobileTrophyFocusEditor();
                 }
-            });
+            };
+            closeBtnEl.addEventListener("pointerdown", handleCloseMobileFocus);
+            closeBtnEl.addEventListener("click", handleCloseMobileFocus);
         }
 
         if (mobileFocusInput) {
@@ -268,13 +274,13 @@ export function initTrophySystem(options = {}) {
         document.body.classList.add("trophy-mobile-focus-open");
         updateMobileFocusPosition();
 
-        requestAnimationFrame(() => {
-            if (document.activeElement === sourceInput && typeof sourceInput.blur === "function") {
-                sourceInput.blur();
-            }
-            mobileFocusInput.focus({ preventScroll: true });
+        if (document.activeElement === sourceInput && typeof sourceInput.blur === "function") {
+            sourceInput.blur();
+        }
+        mobileFocusInput.focus();
+        try {
             mobileFocusInput.select();
-        });
+        } catch (_) {}
         return true;
     };
 

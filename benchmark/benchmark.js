@@ -567,15 +567,300 @@ function hidePrivateProfileOverlay() {
     privatePage.classList.add('is-hidden');
 }
 
+const MOBILE_BENCHMARK_GEOMETRY_PROPS = [
+    '--mobile-cave-start',
+    '--mobile-bg-stripe-left',
+    '--mobile-bg-stripe-width',
+    '--mobile-cave-header-left',
+    '--mobile-cave-header-width',
+    '--mobile-ranks-top-gap',
+    '--mobile-cave-row-height',
+    '--mobile-cave-row-gap',
+    '--mobile-score-left',
+    '--mobile-score-width',
+    '--mobile-slanted-left',
+    '--mobile-slanted-width',
+    '--mobile-progression-width',
+    '--mobile-rating-gap',
+    '--mobile-rating-left',
+    '--mobile-rating-width',
+    '--mobile-active-outline-left',
+    '--mobile-active-outline-width',
+    '--mobile-benchmark-track-width',
+    '--mobile-cave-label-width',
+    '--mobile-cave-label-gap',
+    '--mobile-rank-box-left',
+    '--mobile-rank-box-width',
+    '--mobile-ranks-strip-left',
+    '--mobile-ranks-strip-width',
+    '--mobile-ranks-strip-step',
+    '--mobile-roman-pos-0',
+    '--mobile-roman-pos-1',
+    '--mobile-roman-pos-2',
+    '--mobile-roman-pos-3',
+    '--mobile-roman-pos-4'
+];
+
+let mobileBenchmarkGeometryRafId = 0;
+const MOBILE_STRIPE_GROUPS = [[0, 1], [2, 3], [4, 5], [6], [7, 8], [9, 10], [11, 12], [13]];
+
+function scheduleMobileBenchmarkGeometrySync(options = {}) {
+    const {
+        immediate = false,
+        settleFrames = 1
+    } = options;
+    if (immediate) syncMobileBenchmarkGeometry();
+    if (mobileBenchmarkGeometryRafId) {
+        cancelAnimationFrame(mobileBenchmarkGeometryRafId);
+        mobileBenchmarkGeometryRafId = 0;
+    }
+    const frames = Math.max(1, Math.round(Number(settleFrames) || 1));
+    let framesRemaining = frames;
+    const step = () => {
+        syncMobileBenchmarkGeometry();
+        framesRemaining -= 1;
+        if (framesRemaining > 0) {
+            mobileBenchmarkGeometryRafId = requestAnimationFrame(step);
+            return;
+        }
+        mobileBenchmarkGeometryRafId = 0;
+    };
+    mobileBenchmarkGeometryRafId = requestAnimationFrame(step);
+}
+
+function restoreBaseStripeGeometry() {
+    document.querySelectorAll('.bg-stripe').forEach((stripe) => {
+        if (!(stripe instanceof HTMLElement)) return;
+        if (!stripe.dataset.baseTop && stripe.style.top) stripe.dataset.baseTop = stripe.style.top;
+        if (!stripe.dataset.baseHeight && stripe.style.height) stripe.dataset.baseHeight = stripe.style.height;
+        if (stripe.dataset.baseTop) stripe.style.setProperty('top', stripe.dataset.baseTop);
+        else stripe.style.removeProperty('top');
+        if (stripe.dataset.baseHeight) stripe.style.setProperty('height', stripe.dataset.baseHeight);
+        else stripe.style.removeProperty('height');
+        stripe.style.removeProperty('left');
+        stripe.style.removeProperty('width');
+    });
+}
+
+function clearMobileBenchmarkGeometryVars() {
+    if (!document.body) return;
+    MOBILE_BENCHMARK_GEOMETRY_PROPS.forEach((prop) => {
+        document.body.style.removeProperty(prop);
+    });
+    delete document.body.dataset.mobileTrackShiftApplied;
+    restoreBaseStripeGeometry();
+}
+
+function syncMobileBenchmarkGeometry() {
+    const body = document.body;
+    if (!body || !body.classList.contains('mobile-layout-active')) {
+        clearMobileBenchmarkGeometryVars();
+        return;
+    }
+
+    const container = getCachedQuery('benchmarkContainer', () => document.querySelector('.container'));
+    const firstRow = container ? container.querySelector('.ranks-bars') : null;
+    const rows = container ? Array.from(container.querySelectorAll('.ranks-bars')) : [];
+    const stripes = container ? Array.from(container.querySelectorAll('.bg-stripe')) : [];
+    const caveLabel = firstRow ? firstRow.querySelector('.rank-bar.cave-cell-label') : null;
+    const visibleTrackBars = firstRow
+        ? Array.from(firstRow.querySelectorAll('.rank-bar')).filter((bar) => (
+            bar
+            && !bar.classList.contains('cave-cell-label')
+            && bar.getClientRects().length > 0
+        ))
+        : [];
+    if (!container || !firstRow || !caveLabel || !visibleTrackBars.length) return;
+
+    // Always measure from the base mobile rules so repeated resizes do not
+    // compound previously applied geometry overrides.
+    clearMobileBenchmarkGeometryVars();
+
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = firstRow.getBoundingClientRect();
+    const caveRect = caveLabel.getBoundingClientRect();
+    const firstTrackRect = visibleTrackBars[0].getBoundingClientRect();
+    const lastTrackRect = visibleTrackBars[visibleTrackBars.length - 1].getBoundingClientRect();
+    if (!containerRect.width || !rowRect.width || !caveRect.width || !firstTrackRect.width || !lastTrackRect.width) return;
+
+    const firstScoreWrapper = container.querySelector('.score-input-wrapper');
+    const firstRatingValue = container.querySelector('.rating-value');
+    const ranksWrapper = document.querySelector('.ranks-wrapper');
+    const rankBox = document.querySelector('.rounded-inner-box');
+    const progressBar = document.querySelector('.progress-bar');
+    const rankLines = progressBar
+        ? Array.from(progressBar.querySelectorAll('.rank-line')).filter((line) => line.getClientRects().length > 0)
+        : [];
+    const secondRow = rows.length > 1 ? rows[1] : null;
+    const secondRowRect = secondRow ? secondRow.getBoundingClientRect() : null;
+    const scoreRect = firstScoreWrapper ? firstScoreWrapper.getBoundingClientRect() : null;
+    const ratingRect = firstRatingValue ? firstRatingValue.getBoundingClientRect() : null;
+    const root = document.documentElement;
+    const mobileScale = parseFloat(root.style.getPropertyValue('--mobile-layout-scale')) || 1;
+    const clampGap = (value, fallback) => Math.max(6, Math.min(14, Math.round(Number.isFinite(value) ? value : fallback)));
+    const toPx = (value) => `${Math.round(Math.max(0, Number(value) || 0))}px`;
+    const appliedTrackShift = Number.parseFloat(body.dataset.mobileTrackShiftApplied || '0') || 0;
+
+    const caveStart = caveRect.left - rowRect.left;
+    const caveLabelWidth = caveRect.width;
+    const measuredFirstTrackLeft = (firstTrackRect.left - rowRect.left) - appliedTrackShift;
+    const trackCenters = visibleTrackBars.map((bar) => {
+        const rect = bar.getBoundingClientRect();
+        return ((rect.left + (rect.width / 2)) - rowRect.left) - appliedTrackShift;
+    });
+    const slantedWidth = lastTrackRect.right - firstTrackRect.left;
+    const scoreWidth = scoreRect && scoreRect.width ? scoreRect.width : 70;
+    const measuredCaveScoreGap = scoreRect && scoreRect.width
+        ? (scoreRect.left - caveRect.right)
+        : (5 * mobileScale);
+    const caveScoreGap = Math.max(6, Math.min(18, Math.round(Number.isFinite(measuredCaveScoreGap) ? measuredCaveScoreGap : (5 * mobileScale))));
+    const desiredTrackShift = Math.max(3, Math.min(8, Math.round((caveScoreGap * 0.5) + mobileScale)));
+    const scoreLeft = caveStart + caveLabelWidth + caveScoreGap;
+    const actualVisualTrackGap = measuredFirstTrackLeft - (scoreLeft + scoreWidth);
+    const slantedVisualCompensation = Math.max(0, Math.round(caveScoreGap - actualVisualTrackGap));
+    const caveLabelGap = scoreWidth + (caveScoreGap * 2) + slantedVisualCompensation;
+    const slantedLeft = caveStart + caveLabelWidth + caveLabelGap + desiredTrackShift;
+    const ranksStripStep = trackCenters.length > 1
+        ? trackCenters.slice(1).reduce((sum, center, index) => sum + (center - trackCenters[index]), 0) / (trackCenters.length - 1)
+        : slantedWidth;
+    const ranksStripLeft = (trackCenters.length
+        ? (trackCenters[0] - (ranksStripStep / 2))
+        : (slantedLeft - desiredTrackShift)) + desiredTrackShift;
+    const ranksStripWidth = ranksStripStep * Math.max(trackCenters.length, 1);
+    const ratingWidth = ratingRect && ratingRect.width ? ratingRect.width : 90;
+    const measuredRatingGap = ratingRect && ratingRect.width
+        ? (ratingRect.left - lastTrackRect.right)
+        : (10 * mobileScale);
+    const ratingRightGap = Math.max(0, clampGap(measuredRatingGap, 10 * mobileScale) - 7);
+    const ratingLeftGap = Math.max(-14, ratingRightGap - 12);
+    const ratingLeft = slantedLeft + slantedWidth + ratingLeftGap;
+    const benchmarkTrackWidth = ratingLeft + ratingWidth + ratingRightGap;
+    const bgStripeLeft = (firstTrackRect.left - containerRect.left) - appliedTrackShift + desiredTrackShift;
+    const bgStripeWidth = Math.max(0, benchmarkTrackWidth - bgStripeLeft);
+    const ranksWrapperRect = ranksWrapper ? ranksWrapper.getBoundingClientRect() : null;
+    const progressBarRect = progressBar ? progressBar.getBoundingClientRect() : null;
+    const progressWidth = progressBarRect && progressBarRect.width ? progressBarRect.width : slantedWidth;
+    const defaultRomanPositions = [0.015, 0.215, 0.415, 0.615, 0.815].map((ratio) => progressWidth * ratio);
+    const rankLineCenters = progressBarRect
+        ? rankLines.map((line) => {
+            const rect = line.getBoundingClientRect();
+            return (rect.left + (rect.width / 2)) - progressBarRect.left;
+        }).filter((center) => Number.isFinite(center))
+        : [];
+    const romanStep = rankLineCenters.length > 1
+        ? rankLineCenters.slice(1).reduce((sum, center, index) => sum + (center - rankLineCenters[index]), 0) / (rankLineCenters.length - 1)
+        : (defaultRomanPositions[1] - defaultRomanPositions[0]);
+    const romanPositions = defaultRomanPositions.slice();
+    if (rankLineCenters.length >= 4) {
+        // Tick 1 maps to IV, then III, II, I. V sits one step before tick 1.
+        romanPositions[0] = Math.max(0, Math.min(progressWidth, rankLineCenters[0] - romanStep));
+        romanPositions[1] = Math.max(0, Math.min(progressWidth, rankLineCenters[0]));
+        romanPositions[2] = Math.max(0, Math.min(progressWidth, rankLineCenters[1]));
+        romanPositions[3] = Math.max(0, Math.min(progressWidth, rankLineCenters[2]));
+        romanPositions[4] = Math.max(0, Math.min(progressWidth, rankLineCenters[3]));
+    }
+    const progressStartWithinWrapper = ranksWrapperRect
+        ? ((progressBarRect ? progressBarRect.left : firstTrackRect.left) - ranksWrapperRect.left)
+        : Math.max(0, bgStripeLeft - (15 * mobileScale));
+    const availableRankBoxWidth = Math.max(0, progressStartWithinWrapper);
+    const naturalRankBoxWidth = rankBox
+        ? Math.max(rankBox.scrollWidth || 0, rankBox.getBoundingClientRect().width || 0)
+        : (300 * mobileScale);
+    const preferredRankBoxWidth = Math.max(180 * mobileScale, Math.min(naturalRankBoxWidth || (300 * mobileScale), 300 * mobileScale));
+    const fittedRankBoxWidth = Math.max(0, availableRankBoxWidth - (10 * mobileScale));
+    const rankBoxWidth = Math.round(fittedRankBoxWidth > 0 ? Math.min(preferredRankBoxWidth, fittedRankBoxWidth) : preferredRankBoxWidth);
+    const rankBoxLeft = Math.max(0, Math.round((availableRankBoxWidth - rankBoxWidth) / 2));
+    const caveRowHeight = caveRect.height || (scoreRect ? scoreRect.height : 36);
+    const caveRowGap = secondRowRect
+        ? Math.max(0, secondRowRect.top - rowRect.bottom)
+        : (4 * mobileScale);
+    const ranksTopGap = Math.max(0, rowRect.top - containerRect.top);
+    const caveHeaderWidth = Math.min(Math.max(48 * mobileScale, 44), caveLabelWidth);
+
+    body.style.setProperty('--mobile-cave-start', toPx(caveStart));
+    body.style.setProperty('--mobile-bg-stripe-left', toPx(bgStripeLeft));
+    body.style.setProperty('--mobile-bg-stripe-width', toPx(bgStripeWidth));
+    body.style.setProperty('--mobile-cave-header-left', toPx(caveStart));
+    body.style.setProperty('--mobile-cave-header-width', toPx(caveHeaderWidth));
+    body.style.setProperty('--mobile-ranks-top-gap', toPx(ranksTopGap));
+    body.style.setProperty('--mobile-cave-row-height', toPx(caveRowHeight));
+    body.style.setProperty('--mobile-cave-row-gap', toPx(caveRowGap));
+    body.style.setProperty('--mobile-score-left', toPx(scoreLeft));
+    body.style.setProperty('--mobile-score-width', toPx(scoreWidth));
+    body.style.setProperty('--mobile-slanted-left', toPx(slantedLeft));
+    body.style.setProperty('--mobile-slanted-width', toPx(slantedWidth));
+    body.style.setProperty('--mobile-progression-width', toPx(slantedWidth));
+    body.style.setProperty('--mobile-rating-gap', toPx(ratingLeftGap));
+    body.style.setProperty('--mobile-rating-left', toPx(ratingLeft));
+    body.style.setProperty('--mobile-rating-width', toPx(ratingWidth));
+    body.style.setProperty('--mobile-active-outline-left', toPx(caveStart));
+    body.style.setProperty('--mobile-active-outline-width', toPx(benchmarkTrackWidth - caveStart));
+    body.style.setProperty('--mobile-benchmark-track-width', toPx(benchmarkTrackWidth));
+    body.style.setProperty('--mobile-cave-label-width', toPx(caveLabelWidth));
+    body.style.setProperty('--mobile-cave-label-gap', toPx(caveLabelGap + desiredTrackShift));
+    body.style.setProperty('--mobile-rank-box-left', toPx(rankBoxLeft));
+    body.style.setProperty('--mobile-rank-box-width', toPx(rankBoxWidth));
+    body.style.setProperty('--mobile-ranks-strip-left', toPx(ranksStripLeft));
+    body.style.setProperty('--mobile-ranks-strip-width', toPx(ranksStripWidth));
+    body.style.setProperty('--mobile-ranks-strip-step', toPx(ranksStripStep));
+    romanPositions.forEach((position, index) => {
+        body.style.setProperty(`--mobile-roman-pos-${index}`, toPx(position));
+    });
+    body.dataset.mobileTrackShiftApplied = String(desiredTrackShift);
+
+    MOBILE_STRIPE_GROUPS.forEach((group, index) => {
+        const stripe = stripes[index];
+        const firstGroupRow = rows[group[0]];
+        const lastGroupRow = rows[group[group.length - 1]];
+        if (!(stripe instanceof HTMLElement) || !firstGroupRow || !lastGroupRow) return;
+        if (!stripe.dataset.baseTop && stripe.style.top) stripe.dataset.baseTop = stripe.style.top;
+        if (!stripe.dataset.baseHeight && stripe.style.height) stripe.dataset.baseHeight = stripe.style.height;
+        const firstGroupRect = firstGroupRow.getBoundingClientRect();
+        const lastGroupRect = lastGroupRow.getBoundingClientRect();
+        const stripeTop = firstGroupRect.top - containerRect.top;
+        const stripeHeight = lastGroupRect.bottom - firstGroupRect.top;
+        stripe.style.setProperty('top', `${Math.round(stripeTop)}px`, 'important');
+        stripe.style.setProperty('height', `${Math.round(stripeHeight)}px`, 'important');
+        stripe.style.setProperty('left', `${Math.round(bgStripeLeft)}px`, 'important');
+        stripe.style.setProperty('width', `${Math.round(bgStripeWidth)}px`, 'important');
+    });
+}
+
 function syncMobileHoneycombMask() {
     const rankBox = getCachedQuery('roundedInnerBox', () => document.querySelector('.rounded-inner-box'));
     const isMobile = isMobileViewport();
+    const root = document.documentElement;
+    if (root) {
+        if (isMobile) {
+            const vv = window.visualViewport || null;
+            const viewportWidth = vv && vv.width ? vv.width : (window.innerWidth || root.clientWidth || 0);
+            const viewportHeight = vv && vv.height ? vv.height : (window.innerHeight || root.clientHeight || 0);
+            const baseHeight = parseFloat(root.style.getPropertyValue('--mobile-safe-vh-base')) || viewportHeight || 0;
+            const referenceShortSide = 390;
+            const referenceHeight = 932;
+            const shortSide = Math.min(
+                Math.max(viewportWidth || referenceShortSide, 1),
+                Math.max(baseHeight || viewportHeight || referenceShortSide, 1)
+            );
+            const clampedShortSide = Math.max(320, Math.min(430, shortSide || referenceShortSide));
+            const mobileScale = Math.max(0.84, Math.min(1.08, clampedShortSide / referenceShortSide));
+            const heightRatio = Math.max(0.82, Math.min(1, (baseHeight || viewportHeight || referenceHeight) / referenceHeight));
+            root.style.setProperty('--mobile-layout-short-side', `${Math.round(clampedShortSide)}px`);
+            root.style.setProperty('--mobile-layout-scale', mobileScale.toFixed(4));
+            root.style.setProperty('--mobile-layout-height-fit', heightRatio.toFixed(4));
+        } else {
+            root.style.removeProperty('--mobile-layout-short-side');
+            root.style.removeProperty('--mobile-layout-scale');
+            root.style.removeProperty('--mobile-layout-height-fit');
+        }
+    }
     if (rankBox) {
         rankBox.classList.toggle('rounded-inner-box--mobile-mask', isMobile);
     }
     document.body.classList.toggle('mobile-layout-active', isMobile);
     const container = getCachedQuery('benchmarkContainer', () => document.querySelector('.container'));
     if (container) container.classList.toggle('mobile-layout-active', isMobile);
+    scheduleMobileBenchmarkGeometrySync({ immediate: true, settleFrames: 3 });
 }
 
 function initStartupSideEffects() {
@@ -584,6 +869,26 @@ function initStartupSideEffects() {
     Slugs.restorePathFromFallback();
     normalizeBenchmarkStaticAssetPaths();
     window.addEventListener('resize', syncMobileHoneycombMask);
+    window.addEventListener('orientationchange', syncMobileHoneycombMask, { passive: true });
+    window.addEventListener('pageshow', syncMobileHoneycombMask, { passive: true });
+    window.addEventListener('load', () => {
+        syncMobileHoneycombMask();
+        scheduleMobileBenchmarkGeometrySync({ settleFrames: 4 });
+    }, { passive: true });
+    document.addEventListener('benchmark:mobile-layout-settled', () => {
+        scheduleMobileBenchmarkGeometrySync({ settleFrames: 3 });
+    });
+    document.addEventListener('benchmark:scores-loaded', () => {
+        scheduleMobileBenchmarkGeometrySync({ settleFrames: 2 });
+    });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncMobileHoneycombMask, { passive: true });
+    }
+    if (document.fonts && typeof document.fonts.ready?.then === 'function') {
+        document.fonts.ready.then(() => {
+            scheduleMobileBenchmarkGeometrySync({ settleFrames: 3 });
+        }).catch(() => {});
+    }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', syncMobileHoneycombMask);
     } else {
@@ -1202,6 +1507,7 @@ function runPostDomReadySetup() {
     LayoutRuntime.setupRatingValueClasses();
     LayoutRuntime.restructureRatingsLayout();
     LayoutRuntime.scheduleRestructureRankBox();
+    syncMobileHoneycombMask();
 }
 
 function initGlobalListeners() {

@@ -1,6 +1,7 @@
 import { state } from "./appState.js";
 import { FINAL_RANK_INDEX, RANK_TEXT_COLORS } from "./constants.js";
 import { colorWithAlpha, darkenColor } from "./utils/colorUtils.js";
+import { isMobileViewport } from "./utils.js";
 
 function toWholePx(value) {
     return Math.round(Number(value) || 0);
@@ -9,6 +10,14 @@ function toWholePx(value) {
 function getElementMaxScrollX(el) {
     if (!el) return 0;
     return Math.max(0, (el.scrollWidth || 0) - (el.clientWidth || 0));
+}
+
+function isMobileLayoutMode() {
+    return !!((document.body && document.body.classList.contains("mobile-layout-active")) || isMobileViewport());
+}
+
+function isDesktopLayoutMode() {
+    return !isMobileLayoutMode();
 }
 
 export function initScoreInputsScrollSync() {
@@ -44,6 +53,18 @@ export function initScoreInputsScrollSync() {
     const ratingOriginalStyles = ratingValues.map((v) => ({ position: v.style.position, top: v.style.top }));
 
     let mobileMode = false;
+    let mobileLayoutSettledRaf = 0;
+
+    function notifyMobileLayoutSettled(source) {
+        if (typeof document === "undefined" || typeof document.dispatchEvent !== "function") return;
+        if (mobileLayoutSettledRaf) cancelAnimationFrame(mobileLayoutSettledRaf);
+        mobileLayoutSettledRaf = requestAnimationFrame(() => {
+            mobileLayoutSettledRaf = 0;
+            document.dispatchEvent(new CustomEvent("benchmark:mobile-layout-settled", {
+                detail: { source }
+            }));
+        });
+    }
 
     function enterMobileMode() {
         if (mobileMode) return;
@@ -55,9 +76,9 @@ export function initScoreInputsScrollSync() {
             rows[i].appendChild(w);
             w.style.position = "absolute";
             w.style.top = "50%";
-            w.style.left = "calc(var(--mobile-cave-start, 36px) + 245px)";
+            w.style.left = "var(--mobile-score-left, calc(var(--mobile-cave-start, 36px) + 245px))";
             w.style.right = "auto";
-            w.style.width = "70px";
+            w.style.width = "var(--mobile-score-width, 70px)";
             w.style.height = "var(--mobile-cave-row-height, 36px)";
             w.style.margin = "0";
             w.style.zIndex = "20";
@@ -88,7 +109,7 @@ export function initScoreInputsScrollSync() {
     }
 
     function repositionScoreInputs() {
-        if (window.innerWidth > 900) {
+        if (isDesktopLayoutMode()) {
             exitMobileMode();
             return;
         }
@@ -101,7 +122,7 @@ export function initScoreInputsScrollSync() {
     const ratingText = document.querySelector(".rating-text");
 
     function repositionRatingValues() {
-        if (window.innerWidth > 900) return;
+        if (isDesktopLayoutMode()) return;
         const container = document.querySelector(".container");
         if (!container) return;
         const stripes = Array.from(container.querySelectorAll(".bg-stripe"));
@@ -122,7 +143,7 @@ export function initScoreInputsScrollSync() {
     const ranksScrollEl = ranksScroll || ranksWrapper;
     const rankBox = document.querySelector(".rounded-inner-box");
     const infoIcon = document.querySelector(".info-icon");
-    const isUnifiedMobileScrollMode = () => window.innerWidth <= 900 && !!panelsScrollEl;
+    const isUnifiedMobileScrollMode = () => isMobileLayoutMode() && !!panelsScrollEl;
     const clearMobileFloatingOffsets = () => {
         if (rankBox) rankBox.style.removeProperty("--mobile-rank-scroll-offset");
         if (infoIcon) infoIcon.style.removeProperty("--mobile-info-scroll-offset");
@@ -149,7 +170,7 @@ export function initScoreInputsScrollSync() {
     };
 
     const syncMobileFloatingOffsets = (value) => {
-        if (window.innerWidth > 900 || isUnifiedMobileScrollMode()) {
+        if (isDesktopLayoutMode() || isUnifiedMobileScrollMode()) {
             clearMobileFloatingOffsets();
             return;
         }
@@ -383,7 +404,7 @@ export function initScoreInputsScrollSync() {
     }, { passive: true });
 
     window.addEventListener("scroll", () => {
-        if (window.innerWidth <= 900) return;
+        if (isMobileLayoutMode()) return;
         const snapped = toWholePx(-scrollEl.scrollLeft);
         ratingValues.forEach((v) => {
             v.style.transform = `translate3d(${snapped}px, 0, 0)`;
@@ -396,6 +417,7 @@ export function initScoreInputsScrollSync() {
     repositionScoreInputs();
     repositionRatingValues();
     syncBothToSharedX(scrollEl.scrollLeft || (ranksScrollEl ? ranksScrollEl.scrollLeft : 0));
+    notifyMobileLayoutSettled("scroll-sync-init");
 
     let isResetting = false;
     window.addEventListener("resize", () => {
@@ -403,7 +425,8 @@ export function initScoreInputsScrollSync() {
         repositionRatingValues();
         repositionScoreInputs();
         syncBothToSharedX(scrollEl.scrollLeft || (ranksScrollEl ? ranksScrollEl.scrollLeft : 0));
-        if (window.innerWidth > 900) {
+        notifyMobileLayoutSettled("scroll-sync-resize");
+        if (isDesktopLayoutMode()) {
             const currentOffset = toWholePx(-scrollEl.scrollLeft);
             ratingValues.forEach((v, i) => {
                 v.style.position = ratingOriginalStyles[i].position;
@@ -473,11 +496,11 @@ export function initScoreInputsScrollSync() {
             : Date.now()
     );
     const markRecentMobileHorizontalScroll = (durationMs = 320) => {
-        if (window.innerWidth > 900) return;
+        if (isDesktopLayoutMode()) return;
         mobileHorizontalScrollHintUntil = Math.max(mobileHorizontalScrollHintUntil, getNowTs() + durationMs);
     };
     const hasRecentMobileHorizontalScroll = () => (
-        window.innerWidth <= 900
+        isMobileLayoutMode()
         && getNowTs() <= mobileHorizontalScrollHintUntil
     );
     const clearPendingMobileBlurClear = () => {
@@ -495,7 +518,7 @@ export function initScoreInputsScrollSync() {
         recentMobileSelectionUntil = 0;
     };
     const markRecentMobileSelectionGroup = (group, durationMs = 280) => {
-        if (window.innerWidth > 900) return;
+        if (isDesktopLayoutMode()) return;
         const key = getGroupKey(group);
         if (!key) {
             clearRecentMobileSelectionGroup();
@@ -505,7 +528,7 @@ export function initScoreInputsScrollSync() {
         recentMobileSelectionUntil = getNowTs() + durationMs;
     };
     const shouldPreserveRecentMobileSelection = (group) => (
-        window.innerWidth <= 900
+        isMobileLayoutMode()
         && !!group
         && getNowTs() <= recentMobileSelectionUntil
         && getGroupKey(group) === recentMobileSelectionGroupKey
@@ -514,11 +537,11 @@ export function initScoreInputsScrollSync() {
         pendingMobileRowTap = null;
     };
     const armIgnoreMobileTapClicks = (durationMs = 420) => {
-        if (window.innerWidth > 900) return;
+        if (isDesktopLayoutMode()) return;
         ignoreMobileTapClicksUntil = getNowTs() + durationMs;
     };
     const shouldIgnoreRecentMobileTapClick = () => (
-        window.innerWidth <= 900
+        isMobileLayoutMode()
         && getNowTs() <= ignoreMobileTapClicksUntil
     );
     let lastPanelsScrollLeft = panelsScrollEl ? (panelsScrollEl.scrollLeft || 0) : 0;
@@ -535,11 +558,11 @@ export function initScoreInputsScrollSync() {
     }
     const isViewModeActive = () => document.body.classList.contains("view-mode");
     const armDesktopSelectionTransfer = (duration = 220) => {
-        if (window.innerWidth <= 900) return;
+        if (isMobileLayoutMode()) return;
         desktopSelectionTransferUntil = getNowTs() + duration;
     };
     const hasPendingDesktopSelectionTransfer = () => (
-        window.innerWidth > 900
+        isDesktopLayoutMode()
         && getNowTs() <= desktopSelectionTransferUntil
     );
     const clearDesktopSelectionTransfer = () => {
@@ -599,7 +622,7 @@ export function initScoreInputsScrollSync() {
         desktopDismissGestureActive = false;
     };
     const armDesktopDismissLatch = (duration = 260) => {
-        if (window.innerWidth <= 900) return;
+        if (isMobileLayoutMode()) return;
         const now = typeof performance !== "undefined" ? performance.now() : Date.now();
         desktopDismissLatchUntil = now + duration;
         const reinforceDismiss = () => {
@@ -618,12 +641,12 @@ export function initScoreInputsScrollSync() {
         setTimeout(reinforceDismiss, duration);
     };
     const isDesktopDismissLatched = () => {
-        if (window.innerWidth <= 900) return false;
+        if (isMobileLayoutMode()) return false;
         const now = typeof performance !== "undefined" ? performance.now() : Date.now();
         return now <= desktopDismissLatchUntil;
     };
     const isDesktopDismissBlocked = () => (
-        window.innerWidth > 900
+        isDesktopLayoutMode()
         && (
             desktopDismissGestureActive
             || suppressDesktopDismissReleaseClick
@@ -638,7 +661,7 @@ export function initScoreInputsScrollSync() {
         releaseDesktopPointerEventsAfterGesture();
     };
     const setDesktopPointerEventsSuspended = (suspended) => {
-        if (window.innerWidth <= 900) return;
+        if (isMobileLayoutMode()) return;
         const pointerValue = suspended ? "none" : "";
         if (scrollEl) scrollEl.style.pointerEvents = pointerValue;
         if (benchmarkContainer) benchmarkContainer.style.pointerEvents = pointerValue;
@@ -706,7 +729,7 @@ export function initScoreInputsScrollSync() {
     );
     const applyGroupOutlineVars = (group) => {
         if (!group || !group.length) return;
-        if (window.innerWidth <= 900) {
+        if (isMobileLayoutMode()) {
             group.forEach((idx) => {
                 clearOutlineVars(ranksBars[idx]);
             });
@@ -768,7 +791,7 @@ export function initScoreInputsScrollSync() {
         markRecentMobileSelectionGroup(group);
     };
     const prepareDesktopSelectionTransfer = () => {
-        if (window.innerWidth <= 900) return;
+        if (isMobileLayoutMode()) return;
         suppressDesktopInputRefocusUntilMouseUp = false;
         if (hasActiveScoreFocus()) {
             armDesktopSelectionTransfer();
@@ -837,7 +860,7 @@ export function initScoreInputsScrollSync() {
 
     ranksBars.forEach((row, i) => {
         row.addEventListener("pointerdown", (e) => {
-            if (window.innerWidth > 900) return;
+            if (isDesktopLayoutMode()) return;
             if (e.pointerType === "mouse") return;
             if (isMobileRowSelectionBlockedTarget(e.target)) return;
             pendingMobileRowTap = {
@@ -858,7 +881,7 @@ export function initScoreInputsScrollSync() {
         });
         row.addEventListener("pointercancel", clearPendingMobileRowTap);
         row.addEventListener("pointerup", (e) => {
-            if (window.innerWidth > 900) return;
+            if (isDesktopLayoutMode()) return;
             if (e.pointerType === "mouse") return;
             if (!pendingMobileRowTap) return;
             if (pendingMobileRowTap.pointerId !== e.pointerId || pendingMobileRowTap.rowIndex !== i) return;
@@ -874,7 +897,7 @@ export function initScoreInputsScrollSync() {
             if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
         });
         row.addEventListener("mousedown", (e) => {
-            if (window.innerWidth <= 900) return;
+            if (isMobileLayoutMode()) return;
             if (e.target.closest(".score-input-wrapper")) return;
             if (e.target.closest(".cave-play-wrapper, .cave-play-icon, .cave-play-edit, .cave-play-overlay, .cave-play-anchor")) return;
             prepareDesktopSelectionTransfer();
@@ -894,7 +917,7 @@ export function initScoreInputsScrollSync() {
                 e.stopPropagation();
                 return;
             }
-            if (window.innerWidth > 900) {
+            if (isDesktopLayoutMode()) {
                 e.stopPropagation();
                 return;
             }
@@ -910,7 +933,7 @@ export function initScoreInputsScrollSync() {
     });
 
     const handlePairGapClick = (e) => {
-        if (window.innerWidth > 900) return;
+        if (isDesktopLayoutMode()) return;
         if (!benchmarkContainer || !benchmarkContainer.contains(e.target)) return;
         if (e.target.closest(".ranks-bars")) return;
         if (e.target.closest(".score-input-wrapper")) return;
@@ -934,7 +957,7 @@ export function initScoreInputsScrollSync() {
 
     if (benchmarkContainer) {
         benchmarkContainer.addEventListener("mousedown", (e) => {
-            if (window.innerWidth <= 900) return;
+            if (isMobileLayoutMode()) return;
             if (e.target.closest(".ranks-bars")) return;
             if (e.target.closest(".score-input-wrapper")) return;
             if (e.target.closest(".cave-play-wrapper, .cave-play-icon, .cave-play-edit, .cave-play-overlay, .cave-play-anchor")) return;
@@ -969,7 +992,7 @@ export function initScoreInputsScrollSync() {
 
     document.querySelectorAll(".score-input").forEach((input, i) => {
         input.addEventListener("mousedown", (e) => {
-            if (window.innerWidth <= 900) return;
+            if (isMobileLayoutMode()) return;
             if (state.isViewMode) return;
             e.stopPropagation();
             prepareDesktopSelectionTransfer();
@@ -982,7 +1005,7 @@ export function initScoreInputsScrollSync() {
         const wrapper = input.closest(".score-input-wrapper");
         if (wrapper) {
             wrapper.addEventListener("mousedown", (e) => {
-                if (window.innerWidth <= 900) return;
+                if (isMobileLayoutMode()) return;
                 e.stopPropagation();
                 if (!isViewModeActive()) {
                     prepareDesktopSelectionTransfer();
@@ -1000,7 +1023,7 @@ export function initScoreInputsScrollSync() {
             wrapper.addEventListener("click", (e) => {
                 e.stopPropagation();
                 if (!isViewModeActive()) return;
-                if (window.innerWidth > 900) return;
+                if (isDesktopLayoutMode()) return;
                 clearPendingBlurDismissSelection();
                 if (hasRecentMobileHorizontalScroll()) return;
                 if (!shouldHandleSelectionInteraction(e)) return;
@@ -1008,7 +1031,7 @@ export function initScoreInputsScrollSync() {
             });
         }
         input.addEventListener("focus", () => {
-            if (window.innerWidth > 900 && suppressDesktopInputRefocusUntilMouseUp) {
+            if (isDesktopLayoutMode() && suppressDesktopInputRefocusUntilMouseUp) {
                 scoreInputFocused = false;
                 clearRowSelection();
                 setTimeout(() => {
@@ -1032,7 +1055,7 @@ export function initScoreInputsScrollSync() {
             clearSelectionClickSuppression();
             scoreInputFocused = true;
             document.body.classList.add("score-input-focused");
-            if (window.innerWidth > 900) return;
+            if (isDesktopLayoutMode()) return;
             clearRowSelection();
             clearRecentMobileSelectionGroup();
         });
@@ -1044,7 +1067,7 @@ export function initScoreInputsScrollSync() {
             scoreBlurResetTimer = 0;
             scoreInputFocused = false;
             clearPendingMobileBlurClear();
-            if (window.innerWidth <= 900) {
+            if (isMobileLayoutMode()) {
                 pendingBlurDismissSelection = false;
                 clearSelectionClickSuppression();
                 if (hasRecentMobileHorizontalScroll()) return;
@@ -1080,7 +1103,7 @@ export function initScoreInputsScrollSync() {
         if (!valueEl || !group || !group.length) return;
         const rowIndex = group[0];
         valueEl.addEventListener("mousedown", (e) => {
-            if (window.innerWidth <= 900) return;
+            if (isMobileLayoutMode()) return;
             prepareDesktopSelectionTransfer();
             blurActiveScoreInput();
             scoreInputFocused = false;
@@ -1090,14 +1113,14 @@ export function initScoreInputsScrollSync() {
             if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
         }, true);
         valueEl.addEventListener("click", (e) => {
-            if (window.innerWidth > 900) {
+            if (isDesktopLayoutMode()) {
                 e.stopPropagation();
             }
         });
     });
 
     document.addEventListener("click", (e) => {
-        if (window.innerWidth <= 900) return;
+        if (isMobileLayoutMode()) return;
         if (e.target.closest && e.target.closest(".score-input-wrapper")) {
             releaseDesktopGestureGuards();
             clearPendingBlurDismissSelection();
@@ -1124,7 +1147,7 @@ export function initScoreInputsScrollSync() {
     }, true);
 
     document.addEventListener("mouseup", (e) => {
-        if (window.innerWidth <= 900) return;
+        if (isMobileLayoutMode()) return;
         const releasedInsideScoreWrapper = !!(e.target && e.target.closest && e.target.closest(".score-input-wrapper"));
         const releasedInsideRowArea = !!(e.target && e.target.closest && e.target.closest(".ranks-bars"));
         const releasedInsideRatingValue = !!(e.target && e.target.closest && e.target.closest(".rating-value"));
@@ -1149,7 +1172,7 @@ export function initScoreInputsScrollSync() {
     }, true);
 
     document.addEventListener("mousedown", (e) => {
-        if (window.innerWidth <= 900) return;
+        if (isMobileLayoutMode()) return;
         const isScoreWrapper = !!e.target.closest(".score-input-wrapper");
         const isRowArea = !!e.target.closest(".ranks-bars");
         const isRatingValue = !!e.target.closest(".rating-value");

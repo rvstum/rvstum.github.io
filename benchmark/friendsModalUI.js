@@ -10,17 +10,22 @@ import {
 } from "./friendsUI.js?v=20260311-friends-layout-8";
 import { getCachedElementById, setFlexVisible, setHidden } from "./utils/domUtils.js";
 
+let lastFriendsModalTouchTime = 0;
+
 function bindTapOrClick(element, handler) {
     if (!element || typeof handler !== "function") return;
-    let lastTouchTime = 0;
 
     element.addEventListener("touchend", (event) => {
-        lastTouchTime = Date.now();
+        lastFriendsModalTouchTime = Date.now();
+        event.preventDefault();
         handler(event);
-    }, { passive: true });
+    }, { passive: false });
 
     element.addEventListener("click", (event) => {
-        if (Date.now() - lastTouchTime < 500) return;
+        if (Date.now() - lastFriendsModalTouchTime < 500) {
+            event.preventDefault();
+            return;
+        }
         handler(event);
     });
 }
@@ -68,6 +73,7 @@ export function initFriendsModalController(options = {}) {
         setFlexVisible(friendsModal, true);
         friendsModal.classList.add("show");
         resetFriendAccountIdVisibility();
+        clearAddFriendMessage();
 
         if (defaultTab === "requests") {
             await loadFriendRequestsTab();
@@ -112,6 +118,7 @@ export function initFriendsModalController(options = {}) {
 
     if (tabFriends) {
         bindTapOrClick(tabFriends, () => {
+            clearAddFriendMessage();
             setActiveTab("friends");
             loadFriendsList();
         });
@@ -119,12 +126,14 @@ export function initFriendsModalController(options = {}) {
 
     if (tabRequests) {
         bindTapOrClick(tabRequests, () => {
+            clearAddFriendMessage();
             loadFriendRequestsTab();
         });
     }
 
     if (tabRemove) {
         bindTapOrClick(tabRemove, () => {
+            clearAddFriendMessage();
             setActiveTab("remove");
             loadRemoveFriendsList();
         });
