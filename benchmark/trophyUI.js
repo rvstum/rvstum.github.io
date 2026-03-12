@@ -172,11 +172,13 @@ export function initTrophySystem(options = {}) {
 
     const updateMobileFocusPosition = () => {
         if (!mobileFocusShell || !mobileFocusShell.classList.contains("show")) return;
-        const vv = window.visualViewport || null;
-        const layoutHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        const visibleTop = vv ? vv.offsetTop : 0;
-        const visibleHeight = vv ? vv.height : layoutHeight;
-        const centerY = visibleTop + (visibleHeight / 2);
+        const root = document.documentElement;
+        const baseHeight = parseFloat(root.style.getPropertyValue("--mobile-safe-vh-base"))
+            || parseFloat(root.style.getPropertyValue("--mobile-safe-vh"))
+            || window.innerHeight
+            || root.clientHeight
+            || 0;
+        const centerY = baseHeight / 2;
         mobileFocusShell.style.setProperty("--trophy-mobile-focus-top", `${Math.round(centerY)}px`);
     };
 
