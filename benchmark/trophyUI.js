@@ -184,8 +184,8 @@ export function initTrophySystem(options = {}) {
 
         const containerRect = container.getBoundingClientRect();
         const rowRect = focusedTrophyRow.getBoundingClientRect();
-        const topPadding = 14;
-        const bottomPadding = Math.max(120, Math.round(container.clientHeight * 0.38));
+        const topPadding = 12;
+        const bottomPadding = Math.min(52, Math.max(26, Math.round(container.clientHeight * 0.12)));
         const rowTop = rowRect.top - containerRect.top + container.scrollTop;
         const rowBottom = rowRect.bottom - containerRect.top + container.scrollTop;
         const visibleTop = container.scrollTop + topPadding;

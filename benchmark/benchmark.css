@@ -2138,11 +2138,14 @@ body:not(.auth-gate-active) .rank-threshold-value {
     box-sizing: border-box;
 }
 
-#mobileCompareBtn.compare-control-btn--active {
-    background-color: rgba(245, 198, 69, 0.12);
-    border-color: rgba(245, 198, 69, 0.5);
-    color: #fff6d4;
-    box-shadow: 0 0 16px rgba(245, 198, 69, 0.16);
+#mobileCompareBtn.compare-control-btn--active,
+#mobileCompareBtn.compare-control-btn--active:hover,
+#mobileCompareBtn.compare-control-btn--active:active,
+#mobileCompareBtn.compare-control-btn--active:focus-visible {
+    background: rgba(245, 198, 69, 0.12) !important;
+    border-color: rgba(245, 198, 69, 0.5) !important;
+    color: #fff6d4 !important;
+    box-shadow: 0 0 16px rgba(245, 198, 69, 0.16) !important;
 }
 
 #mobileCompareBtn > span {
