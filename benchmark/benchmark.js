@@ -498,45 +498,47 @@ function registerRootServiceWorker() {
 
     const { hostname } = window.location;
     if (hostname === "localhost" || hostname === "127.0.0.1") return;
-
-    const disableServiceWorkerForMobile = async () => {
-        if (!isMobileViewport()) return false;
-        const reloadFlag = "__benchmark_mobile_sw_disabled__";
-        const alreadyReloaded = window.sessionStorage.getItem(reloadFlag) === "done";
-
+    const mobileReloadFlag = "__benchmark_mobile_sw_controller_reload__";
+    const clearMobileReloadState = () => {
         try {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            const hadRegistrations = registrations.length > 0;
-            await Promise.all(registrations.map((registration) => registration.unregister()));
-
-            let hadCaches = false;
-            if ("caches" in window) {
-                const cacheNames = await caches.keys();
-                hadCaches = cacheNames.length > 0;
-                await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
-            }
-
-            if ((hadRegistrations || hadCaches) && !alreadyReloaded) {
-                window.sessionStorage.setItem(reloadFlag, "done");
-                window.location.reload();
-                return true;
-            }
-        } catch (_) {
-            return false;
+            window.sessionStorage.removeItem("__benchmark_mobile_sw_disabled__");
+            window.sessionStorage.removeItem(mobileReloadFlag);
+        } catch (_) {}
+    };
+    const armMobileControllerReload = () => {
+        if (!isMobileViewport()) {
+            clearMobileReloadState();
+            return;
         }
-
-        window.sessionStorage.removeItem(reloadFlag);
-        return false;
+        try {
+            window.sessionStorage.removeItem("__benchmark_mobile_sw_disabled__");
+        } catch (_) {}
+        if (navigator.serviceWorker.controller) {
+            try {
+                window.sessionStorage.removeItem(mobileReloadFlag);
+            } catch (_) {}
+            return;
+        }
+        if (window.sessionStorage.getItem(mobileReloadFlag) === "done") return;
+        window.sessionStorage.setItem(mobileReloadFlag, "pending");
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (window.sessionStorage.getItem(mobileReloadFlag) === "done") return;
+            window.sessionStorage.setItem(mobileReloadFlag, "done");
+            window.location.reload();
+        }, { once: true });
     };
 
     window.addEventListener("load", () => {
-        if (isMobileViewport()) {
-            disableServiceWorkerForMobile().catch(() => {});
-            return;
-        }
+        armMobileControllerReload();
         navigator.serviceWorker.register("../service-worker.js")
             .then((registration) => {
                 registration.update().catch(() => {});
+                if (!isMobileViewport()) clearMobileReloadState();
+                if (isMobileViewport() && navigator.serviceWorker.controller) {
+                    try {
+                        window.sessionStorage.removeItem(mobileReloadFlag);
+                    } catch (_) {}
+                }
             })
             .catch(() => {});
     }, { once: true });

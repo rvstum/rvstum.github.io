@@ -8229,12 +8229,12 @@ body.mobile-layout-active .benchmark-panels-scroll {
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
+    overscroll-behavior-x: none;
     overscroll-behavior-y: auto;
     scroll-behavior: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    touch-action: auto;
+    touch-action: pan-y pinch-zoom;
 }
 
 body.mobile-layout-active .benchmark-panels-scroll::-webkit-scrollbar {
