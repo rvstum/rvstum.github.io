@@ -499,7 +499,41 @@ function registerRootServiceWorker() {
     const { hostname } = window.location;
     if (hostname === "localhost" || hostname === "127.0.0.1") return;
 
+    const disableServiceWorkerForMobile = async () => {
+        if (!isMobileViewport()) return false;
+        const reloadFlag = "__benchmark_mobile_sw_disabled__";
+        const alreadyReloaded = window.sessionStorage.getItem(reloadFlag) === "done";
+
+        try {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            const hadRegistrations = registrations.length > 0;
+            await Promise.all(registrations.map((registration) => registration.unregister()));
+
+            let hadCaches = false;
+            if ("caches" in window) {
+                const cacheNames = await caches.keys();
+                hadCaches = cacheNames.length > 0;
+                await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+            }
+
+            if ((hadRegistrations || hadCaches) && !alreadyReloaded) {
+                window.sessionStorage.setItem(reloadFlag, "done");
+                window.location.reload();
+                return true;
+            }
+        } catch (_) {
+            return false;
+        }
+
+        window.sessionStorage.removeItem(reloadFlag);
+        return false;
+    };
+
     window.addEventListener("load", () => {
+        if (isMobileViewport()) {
+            disableServiceWorkerForMobile().catch(() => {});
+            return;
+        }
         navigator.serviceWorker.register("../service-worker.js")
             .then((registration) => {
                 registration.update().catch(() => {});

@@ -147,8 +147,7 @@ export function initTrophySystem(options = {}) {
         plaque: getCachedElementById("trophyInputPlaque")
     };
     const totalEl = getCachedElementById("trophyModalTotal");
-    let focusedTrophyRow = null;
-    let trophyRowRevealTimer = 0;
+    let trophyFieldRevealTimer = 0;
 
     if (!placeholder || !list || !modal || !closeBtn || !saveBtn) {
         return;
@@ -164,77 +163,36 @@ export function initTrophySystem(options = {}) {
 
     const getTrophyScrollContainer = () => modal.querySelector(".settings-content-box");
 
-    const clearTrophyRowRevealTimer = () => {
-        if (!trophyRowRevealTimer) return;
-        clearTimeout(trophyRowRevealTimer);
-        trophyRowRevealTimer = 0;
+    const clearTrophyFieldRevealTimer = () => {
+        if (!trophyFieldRevealTimer) return;
+        clearTimeout(trophyFieldRevealTimer);
+        trophyFieldRevealTimer = 0;
     };
 
-    const syncFocusedTrophyRow = () => {
-        const active = document.activeElement;
-        focusedTrophyRow = active instanceof Element ? active.closest(".trophy-input-row") : null;
-    };
-
-    const revealFocusedTrophyRow = () => {
+    const scheduleFocusedTrophyFieldReveal = (input, delayMs = 120) => {
         if (!isMobileTrophyViewport()) return;
-        if (!modal.classList.contains("show")) return;
-        if (!focusedTrophyRow || !focusedTrophyRow.isConnected) return;
-        const container = getTrophyScrollContainer();
-        if (!container) return;
-
-        const containerRect = container.getBoundingClientRect();
-        const rowRect = focusedTrophyRow.getBoundingClientRect();
-        const topPadding = 12;
-        const bottomPadding = Math.min(52, Math.max(26, Math.round(container.clientHeight * 0.12)));
-        const rowTop = rowRect.top - containerRect.top + container.scrollTop;
-        const rowBottom = rowRect.bottom - containerRect.top + container.scrollTop;
-        const visibleTop = container.scrollTop + topPadding;
-        const visibleBottom = container.scrollTop + container.clientHeight - bottomPadding;
-        let nextScrollTop = container.scrollTop;
-
-        if (rowTop < visibleTop) {
-            nextScrollTop = Math.max(0, rowTop - topPadding);
-        } else if (rowBottom > visibleBottom) {
-            nextScrollTop = Math.max(0, rowBottom - container.clientHeight + bottomPadding);
-        }
-
-        if (Math.abs(nextScrollTop - container.scrollTop) > 1) {
-            container.scrollTop = nextScrollTop;
-        }
-    };
-
-    const scheduleFocusedTrophyRowReveal = (delayMs = 120) => {
-        if (!isMobileTrophyViewport()) return;
-        clearTrophyRowRevealTimer();
+        if (!input) return;
+        clearTrophyFieldRevealTimer();
         const runReveal = () => {
             requestAnimationFrame(() => {
-                revealFocusedTrophyRow();
-                requestAnimationFrame(revealFocusedTrophyRow);
+                if (!modal.classList.contains("show")) return;
+                if (!input.isConnected) return;
+                if (document.activeElement !== input) return;
+                input.scrollIntoView({
+                    block: "nearest",
+                    inline: "nearest"
+                });
             });
         };
         if (delayMs <= 0) {
             runReveal();
             return;
         }
-        trophyRowRevealTimer = setTimeout(() => {
-            trophyRowRevealTimer = 0;
+        trophyFieldRevealTimer = setTimeout(() => {
+            trophyFieldRevealTimer = 0;
             runReveal();
         }, delayMs);
     };
-
-    const handleViewportShift = () => {
-        if (!modal.classList.contains("show")) return;
-        syncFocusedTrophyRow();
-        if (!focusedTrophyRow) return;
-        scheduleFocusedTrophyRowReveal(0);
-    };
-
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", handleViewportShift, { passive: true });
-        window.visualViewport.addEventListener("scroll", handleViewportShift, { passive: true });
-    } else {
-        window.addEventListener("resize", handleViewportShift, { passive: true });
-    }
 
     function updateTrophyModalTotal() {
         if (!totalEl) return;
@@ -250,9 +208,8 @@ export function initTrophySystem(options = {}) {
     Object.values(inputs).forEach((input) => {
         if (!input) return;
         input.addEventListener("focus", function () {
-            focusedTrophyRow = this.closest(".trophy-input-row");
             if (isMobileTrophyViewport()) {
-                scheduleFocusedTrophyRowReveal();
+                scheduleFocusedTrophyFieldReveal(this);
                 return;
             }
             this.select();
@@ -262,14 +219,7 @@ export function initTrophySystem(options = {}) {
             if (this.value < 0) this.value = 0;
             updateTrophyModalTotal();
         });
-        input.addEventListener("blur", () => {
-            setTimeout(() => {
-                syncFocusedTrophyRow();
-                if (!focusedTrophyRow) {
-                    clearTrophyRowRevealTimer();
-                }
-            }, 0);
-        });
+        input.addEventListener("blur", clearTrophyFieldRevealTimer);
     });
 
     function openModal() {
@@ -280,16 +230,14 @@ export function initTrophySystem(options = {}) {
             }
         });
         updateTrophyModalTotal();
-        focusedTrophyRow = null;
-        clearTrophyRowRevealTimer();
+        clearTrophyFieldRevealTimer();
         const container = getTrophyScrollContainer();
         if (container) container.scrollTop = 0;
         modal.classList.add("show");
     }
 
     function closeModal() {
-        focusedTrophyRow = null;
-        clearTrophyRowRevealTimer();
+        clearTrophyFieldRevealTimer();
         modal.classList.add("closing");
         setTimeout(() => {
             modal.classList.remove("show");

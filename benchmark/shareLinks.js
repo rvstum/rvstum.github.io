@@ -118,26 +118,49 @@ async function syncCurrentUserPublicSlug(link) {
     await UserService.updateUserData(user.uid, { publicSlug: slug });
 }
 
+function copyTextWithExecCommand(text) {
+    if (!text) return false;
+    const temp = document.createElement("textarea");
+    temp.value = text;
+    temp.setAttribute("readonly", "true");
+    temp.style.position = "fixed";
+    temp.style.top = "0";
+    temp.style.left = "-9999px";
+    temp.style.opacity = "0";
+    temp.style.pointerEvents = "none";
+    document.body.appendChild(temp);
+    temp.focus();
+    temp.select();
+    temp.setSelectionRange(0, temp.value.length);
+    let copied = false;
+    try {
+        copied = document.execCommand("copy");
+    } catch (_) {
+        copied = false;
+    }
+    document.body.removeChild(temp);
+    return copied;
+}
+
+async function copyTextToClipboard(text) {
+    if (!text) return false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (_) {}
+    }
+    return copyTextWithExecCommand(text);
+}
+
 export async function copyBenchmarkLinkToClipboard() {
     const link = buildCopyLinkUrl();
-    try {
-        await syncCurrentUserPublicSlug(link);
-    } catch (slugSaveErr) {
-        console.warn("Unable to sync public slug before copy:", slugSaveErr);
+    const copied = await copyTextToClipboard(link);
+    if (!copied) {
+        throw new Error("Copy benchmark link failed.");
     }
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(link);
-    } else {
-        const temp = document.createElement("textarea");
-        temp.value = link;
-        temp.setAttribute("readonly", "true");
-        temp.style.position = "absolute";
-        temp.style.left = "-9999px";
-        document.body.appendChild(temp);
-        temp.select();
-        document.execCommand("copy");
-        document.body.removeChild(temp);
-    }
+    syncCurrentUserPublicSlug(link).catch((slugSaveErr) => {
+        console.warn("Unable to sync public slug after copy:", slugSaveErr);
+    });
     return link;
 }
