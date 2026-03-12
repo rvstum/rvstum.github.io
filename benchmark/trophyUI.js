@@ -147,10 +147,136 @@ export function initTrophySystem(options = {}) {
         plaque: getCachedElementById("trophyInputPlaque")
     };
     const totalEl = getCachedElementById("trophyModalTotal");
+    let mobileFocusShell = null;
+    let mobileFocusLabel = null;
+    let mobileFocusInput = null;
+    let activeMobileFocusSourceInput = null;
 
     if (!placeholder || !list || !modal || !closeBtn || !saveBtn) {
         return;
     }
+
+    const isMobileTrophyViewport = () => (
+        typeof window !== "undefined"
+        && (
+            window.innerWidth <= 900
+            || document.body.classList.contains("mobile-layout-active")
+        )
+    );
+
+    const clampTrophyInputValue = (rawValue) => {
+        const normalized = String(rawValue == null ? "" : rawValue).replace(/[^0-9]/g, "");
+        if (normalized === "") return "";
+        return String(Math.min(50, Math.max(0, Number(normalized) || 0)));
+    };
+
+    const updateMobileFocusPosition = () => {
+        if (!mobileFocusShell || !mobileFocusShell.classList.contains("show")) return;
+        const vv = window.visualViewport || null;
+        const layoutHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const viewportBottom = vv ? (vv.height + vv.offsetTop) : layoutHeight;
+        const keyboardInset = Math.max(0, layoutHeight - viewportBottom);
+        mobileFocusShell.style.setProperty("--trophy-mobile-focus-bottom", `${keyboardInset + 12}px`);
+    };
+
+    const closeMobileTrophyFocusEditor = () => {
+        activeMobileFocusSourceInput = null;
+        document.body.classList.remove("trophy-mobile-focus-open");
+        if (!mobileFocusShell) return;
+        mobileFocusShell.classList.remove("show");
+        mobileFocusShell.removeAttribute("data-tier");
+    };
+
+    const ensureMobileTrophyFocusEditor = () => {
+        if (mobileFocusShell) return;
+        mobileFocusShell = document.createElement("div");
+        mobileFocusShell.className = "trophy-mobile-focus-shell";
+        mobileFocusShell.innerHTML = `
+            <div class="trophy-mobile-focus-card">
+                <div class="trophy-mobile-focus-top">
+                    <div class="trophy-mobile-focus-label"></div>
+                    <button type="button" class="trophy-mobile-focus-close" aria-label="Close">&times;</button>
+                </div>
+                <input type="number" class="trophy-mobile-focus-input" min="0" max="50" inputmode="numeric" placeholder="0">
+            </div>
+        `;
+        document.body.appendChild(mobileFocusShell);
+        mobileFocusLabel = mobileFocusShell.querySelector(".trophy-mobile-focus-label");
+        mobileFocusInput = mobileFocusShell.querySelector(".trophy-mobile-focus-input");
+        const closeBtnEl = mobileFocusShell.querySelector(".trophy-mobile-focus-close");
+
+        if (closeBtnEl) {
+            closeBtnEl.addEventListener("click", () => {
+                if (mobileFocusInput && typeof mobileFocusInput.blur === "function") {
+                    mobileFocusInput.blur();
+                } else {
+                    closeMobileTrophyFocusEditor();
+                }
+            });
+        }
+
+        if (mobileFocusInput) {
+            mobileFocusInput.addEventListener("input", function () {
+                if (!activeMobileFocusSourceInput) return;
+                const nextValue = clampTrophyInputValue(this.value);
+                this.value = nextValue;
+                activeMobileFocusSourceInput.value = nextValue;
+                updateTrophyModalTotal();
+            });
+            mobileFocusInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === "Escape") {
+                    event.preventDefault();
+                    mobileFocusInput.blur();
+                }
+            });
+            mobileFocusInput.addEventListener("blur", () => {
+                setTimeout(() => {
+                    if (mobileFocusShell && mobileFocusShell.contains(document.activeElement)) return;
+                    closeMobileTrophyFocusEditor();
+                }, 0);
+            });
+        }
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", updateMobileFocusPosition, { passive: true });
+            window.visualViewport.addEventListener("scroll", updateMobileFocusPosition, { passive: true });
+        } else {
+            window.addEventListener("resize", updateMobileFocusPosition, { passive: true });
+        }
+    };
+
+    const openMobileTrophyFocusEditor = (sourceInput) => {
+        if (!isMobileTrophyViewport() || !sourceInput) return false;
+        ensureMobileTrophyFocusEditor();
+        if (!mobileFocusShell || !mobileFocusInput || !mobileFocusLabel) return false;
+
+        activeMobileFocusSourceInput = sourceInput;
+        const row = sourceInput.closest(".trophy-input-row");
+        const label = row ? row.querySelector(".trophy-input-label") : null;
+        const tier = row && row.classList.contains("trophy-tier-first")
+            ? "first"
+            : row && row.classList.contains("trophy-tier-second")
+                ? "second"
+                : row && row.classList.contains("trophy-tier-third")
+                    ? "third"
+                    : "plaque";
+
+        mobileFocusLabel.textContent = label ? (label.textContent || "").trim() : t("seasonal_modal_title");
+        mobileFocusInput.value = sourceInput.value || "";
+        mobileFocusShell.dataset.tier = tier;
+        mobileFocusShell.classList.add("show");
+        document.body.classList.add("trophy-mobile-focus-open");
+        updateMobileFocusPosition();
+
+        requestAnimationFrame(() => {
+            if (document.activeElement === sourceInput && typeof sourceInput.blur === "function") {
+                sourceInput.blur();
+            }
+            mobileFocusInput.focus({ preventScroll: true });
+            mobileFocusInput.select();
+        });
+        return true;
+    };
 
     function updateTrophyModalTotal() {
         if (!totalEl) return;
@@ -165,17 +291,28 @@ export function initTrophySystem(options = {}) {
 
     Object.values(inputs).forEach((input) => {
         if (!input) return;
+        input.setAttribute("inputmode", "numeric");
+        input.addEventListener("pointerdown", (event) => {
+            if (!isMobileTrophyViewport()) return;
+            if (event.pointerType === "mouse") return;
+            event.preventDefault();
+            openMobileTrophyFocusEditor(input);
+        });
         input.addEventListener("focus", function () {
+            if (isMobileTrophyViewport()) {
+                openMobileTrophyFocusEditor(this);
+                return;
+            }
             this.select();
         });
         input.addEventListener("input", function () {
-            if (this.value > 50) this.value = 50;
-            if (this.value < 0) this.value = 0;
+            this.value = clampTrophyInputValue(this.value);
             updateTrophyModalTotal();
         });
     });
 
     function openModal() {
+        closeMobileTrophyFocusEditor();
         const trophyData = readTrophyData();
         Object.keys(inputs).forEach((key) => {
             if (inputs[key]) {
@@ -187,6 +324,7 @@ export function initTrophySystem(options = {}) {
     }
 
     function closeModal() {
+        closeMobileTrophyFocusEditor();
         modal.classList.add("closing");
         setTimeout(() => {
             modal.classList.remove("show");
@@ -214,6 +352,7 @@ export function initTrophySystem(options = {}) {
     }
 
     function resetInputs() {
+        closeMobileTrophyFocusEditor();
         Object.values(inputs).forEach((input) => {
             if (input) input.value = 0;
         });
