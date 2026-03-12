@@ -2138,6 +2138,13 @@ body:not(.auth-gate-active) .rank-threshold-value {
     box-sizing: border-box;
 }
 
+#mobileCompareBtn.compare-control-btn--active {
+    background-color: rgba(245, 198, 69, 0.12);
+    border-color: rgba(245, 198, 69, 0.5);
+    color: #fff6d4;
+    box-shadow: 0 0 16px rgba(245, 198, 69, 0.16);
+}
+
 #mobileCompareBtn > span {
     display: inline-flex;
     align-items: center;

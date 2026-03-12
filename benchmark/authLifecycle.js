@@ -82,7 +82,6 @@ export function initAuthLifecycle(options = {}) {
 
         if (requestedSlug) {
             if (!user) {
-                hidePageLoader();
                 return;
             }
             try {
@@ -92,7 +91,6 @@ export function initAuthLifecycle(options = {}) {
                     if (typeof syncAuthenticatedBackNavigationGuard === "function") {
                         syncAuthenticatedBackNavigationGuard({ enabled: true });
                     }
-                    hidePageLoader();
                     return;
                 }
             } catch (slugErr) {
@@ -111,7 +109,6 @@ export function initAuthLifecycle(options = {}) {
                 if (typeof syncAuthenticatedBackNavigationGuard === "function") {
                     syncAuthenticatedBackNavigationGuard({ enabled: true });
                 }
-                hidePageLoader();
                 return;
             }
             if (typeof hidePrivateProfileOverlay === "function") {

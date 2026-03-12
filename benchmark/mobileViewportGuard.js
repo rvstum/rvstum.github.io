@@ -130,13 +130,16 @@
             root.style.setProperty("--mobile-safe-vh", height + "px");
             root.style.setProperty("--mobile-safe-vh-base", nextBaseHeight + "px");
         }
-        var keyboardLikelyOpen = keyboardLockActive;
-        root.classList.toggle("mobile-keyboard-open", keyboardLikelyOpen);
+        var keyboardDelta = Math.max(0, nextBaseHeight - height);
+        var benchmarkKeyboardOpen = !!currentKeyboardFocus
+            && (currentKeyboardFocusType === "benchmark-score" || currentKeyboardFocusType === "benchmark-panel")
+            && keyboardDelta > 80;
+        root.classList.toggle("mobile-keyboard-open", keyboardLockActive);
         if (document.body) {
-            document.body.classList.toggle("mobile-keyboard-open", keyboardLikelyOpen);
+            document.body.classList.toggle("mobile-keyboard-open", keyboardLockActive);
             document.body.classList.toggle(
                 "benchmark-keyboard-open",
-                keyboardLikelyOpen && (currentKeyboardFocusType === "benchmark-score" || currentKeyboardFocusType === "benchmark-panel")
+                benchmarkKeyboardOpen
             );
         }
         maybeReleaseBenchmarkScoreFocus(height, nextBaseHeight);

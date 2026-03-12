@@ -501,7 +501,12 @@ export function setupCavePlayEditors(root = document) {
         if (!activeWrapper) return;
         if (!e.target || !e.target.closest) return;
         if (e.target.closest(".cave-play-panel")) return;
-        if (e.target.closest(".cave-play-wrapper.panel-open")) return;
+        const targetWrapper = e.target.closest(".cave-play-wrapper");
+        if (targetWrapper) {
+            if (targetWrapper === activeWrapper || targetWrapper.classList.contains("panel-open")) return;
+            closeFloating(true);
+            return;
+        }
         suppressNextOutsideDismissClick = true;
         closeFloating(true);
         e.preventDefault();

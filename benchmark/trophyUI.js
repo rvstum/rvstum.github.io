@@ -147,9 +147,93 @@ export function initTrophySystem(options = {}) {
         plaque: getCachedElementById("trophyInputPlaque")
     };
     const totalEl = getCachedElementById("trophyModalTotal");
+    let focusedTrophyRow = null;
+    let trophyRowRevealTimer = 0;
 
     if (!placeholder || !list || !modal || !closeBtn || !saveBtn) {
         return;
+    }
+
+    const isMobileTrophyViewport = () => (
+        typeof window !== "undefined"
+        && (
+            window.innerWidth <= 900
+            || document.body.classList.contains("mobile-layout-active")
+        )
+    );
+
+    const getTrophyScrollContainer = () => modal.querySelector(".settings-content-box");
+
+    const clearTrophyRowRevealTimer = () => {
+        if (!trophyRowRevealTimer) return;
+        clearTimeout(trophyRowRevealTimer);
+        trophyRowRevealTimer = 0;
+    };
+
+    const syncFocusedTrophyRow = () => {
+        const active = document.activeElement;
+        focusedTrophyRow = active instanceof Element ? active.closest(".trophy-input-row") : null;
+    };
+
+    const revealFocusedTrophyRow = () => {
+        if (!isMobileTrophyViewport()) return;
+        if (!modal.classList.contains("show")) return;
+        if (!focusedTrophyRow || !focusedTrophyRow.isConnected) return;
+        const container = getTrophyScrollContainer();
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const rowRect = focusedTrophyRow.getBoundingClientRect();
+        const topPadding = 14;
+        const bottomPadding = Math.max(120, Math.round(container.clientHeight * 0.38));
+        const rowTop = rowRect.top - containerRect.top + container.scrollTop;
+        const rowBottom = rowRect.bottom - containerRect.top + container.scrollTop;
+        const visibleTop = container.scrollTop + topPadding;
+        const visibleBottom = container.scrollTop + container.clientHeight - bottomPadding;
+        let nextScrollTop = container.scrollTop;
+
+        if (rowTop < visibleTop) {
+            nextScrollTop = Math.max(0, rowTop - topPadding);
+        } else if (rowBottom > visibleBottom) {
+            nextScrollTop = Math.max(0, rowBottom - container.clientHeight + bottomPadding);
+        }
+
+        if (Math.abs(nextScrollTop - container.scrollTop) > 1) {
+            container.scrollTop = nextScrollTop;
+        }
+    };
+
+    const scheduleFocusedTrophyRowReveal = (delayMs = 120) => {
+        if (!isMobileTrophyViewport()) return;
+        clearTrophyRowRevealTimer();
+        const runReveal = () => {
+            requestAnimationFrame(() => {
+                revealFocusedTrophyRow();
+                requestAnimationFrame(revealFocusedTrophyRow);
+            });
+        };
+        if (delayMs <= 0) {
+            runReveal();
+            return;
+        }
+        trophyRowRevealTimer = setTimeout(() => {
+            trophyRowRevealTimer = 0;
+            runReveal();
+        }, delayMs);
+    };
+
+    const handleViewportShift = () => {
+        if (!modal.classList.contains("show")) return;
+        syncFocusedTrophyRow();
+        if (!focusedTrophyRow) return;
+        scheduleFocusedTrophyRowReveal(0);
+    };
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", handleViewportShift, { passive: true });
+        window.visualViewport.addEventListener("scroll", handleViewportShift, { passive: true });
+    } else {
+        window.addEventListener("resize", handleViewportShift, { passive: true });
     }
 
     function updateTrophyModalTotal() {
@@ -166,12 +250,25 @@ export function initTrophySystem(options = {}) {
     Object.values(inputs).forEach((input) => {
         if (!input) return;
         input.addEventListener("focus", function () {
+            focusedTrophyRow = this.closest(".trophy-input-row");
+            if (isMobileTrophyViewport()) {
+                scheduleFocusedTrophyRowReveal();
+                return;
+            }
             this.select();
         });
         input.addEventListener("input", function () {
             if (this.value > 50) this.value = 50;
             if (this.value < 0) this.value = 0;
             updateTrophyModalTotal();
+        });
+        input.addEventListener("blur", () => {
+            setTimeout(() => {
+                syncFocusedTrophyRow();
+                if (!focusedTrophyRow) {
+                    clearTrophyRowRevealTimer();
+                }
+            }, 0);
         });
     });
 
@@ -183,10 +280,16 @@ export function initTrophySystem(options = {}) {
             }
         });
         updateTrophyModalTotal();
+        focusedTrophyRow = null;
+        clearTrophyRowRevealTimer();
+        const container = getTrophyScrollContainer();
+        if (container) container.scrollTop = 0;
         modal.classList.add("show");
     }
 
     function closeModal() {
+        focusedTrophyRow = null;
+        clearTrophyRowRevealTimer();
         modal.classList.add("closing");
         setTimeout(() => {
             modal.classList.remove("show");

@@ -286,6 +286,21 @@ export function setupScoreInputHandlers(options = {}) {
         });
     };
 
+    const isMobileSubInputViewport = () => (
+        window.innerWidth <= 900
+        || document.body.classList.contains("mobile-layout-active")
+    );
+
+    const shouldKeepSubInputsOpenForEvent = (event) => {
+        if (state.activeSubInputRowIndex < 0) return true;
+        const activeWrapper = scoreWrappers[state.activeSubInputRowIndex];
+        if (!activeWrapper) return true;
+        const target = event ? event.target : null;
+        if (target && activeWrapper.contains(target)) return true;
+        if (target && scoreLinkToggle && scoreLinkToggle.contains(target)) return true;
+        return false;
+    };
+
     const syncSubInputValue = (rowIndex) => {
         const wrapper = scoreWrappers[rowIndex];
         if (!wrapper) return;
@@ -603,11 +618,13 @@ export function setupScoreInputHandlers(options = {}) {
     window.addEventListener("resize", syncScoreLinkTogglePosition);
 
     document.addEventListener("pointerdown", (event) => {
-        if (state.activeSubInputRowIndex < 0) return;
-        const activeWrapper = scoreWrappers[state.activeSubInputRowIndex];
-        if (!activeWrapper) return;
-        if (activeWrapper.contains(event.target)) return;
-        if (scoreLinkToggle && scoreLinkToggle.contains(event.target)) return;
+        if (shouldKeepSubInputsOpenForEvent(event)) return;
+        if (isMobileSubInputViewport() && event.pointerType !== "mouse") return;
+        collapseSubInputs();
+    }, true);
+
+    document.addEventListener("click", (event) => {
+        if (shouldKeepSubInputsOpenForEvent(event)) return;
         collapseSubInputs();
     }, true);
 
