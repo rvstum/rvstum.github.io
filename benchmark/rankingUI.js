@@ -75,6 +75,67 @@ function getRowFillColorForProgress(progressValue, thresholdCount) {
     return RANK_COLORS[colorIndex] || RANK_COLORS[RANK_COLORS.length - 1];
 }
 
+function syncMobileRomanNumerals(progressBar) {
+    const romanContainer = document.querySelector('.roman-numerals-container');
+    const romanSpans = romanContainer
+        ? Array.from(romanContainer.querySelectorAll('span')).filter((span) => span instanceof HTMLElement)
+        : [];
+    if (!(progressBar instanceof HTMLElement) || !(romanContainer instanceof HTMLElement) || romanSpans.length < 5) {
+        return;
+    }
+
+    const shouldUseMobileRuntime = !!(document.body && document.body.classList.contains('mobile-layout-active'));
+    if (!shouldUseMobileRuntime) {
+        romanContainer.style.removeProperty('display');
+        romanContainer.style.removeProperty('left');
+        romanContainer.style.removeProperty('width');
+        romanSpans.forEach((span) => {
+            span.style.removeProperty('left');
+            span.style.removeProperty('transform');
+        });
+        return;
+    }
+
+    const progressStack = progressBar.closest('.progress-stack');
+    if (!(progressStack instanceof HTMLElement)) return;
+
+    const rankLines = Array.from(progressBar.querySelectorAll('.rank-line')).filter((line) => line instanceof HTMLElement && line.getClientRects().length > 0);
+    if (rankLines.length < 4) return;
+
+    const progressRect = progressBar.getBoundingClientRect();
+    const stackRect = progressStack.getBoundingClientRect();
+    if (!progressRect.width || !stackRect.width) return;
+
+    const lineCenters = rankLines.map((line) => {
+        const rect = line.getBoundingClientRect();
+        return (rect.left + (rect.width / 2)) - progressRect.left;
+    }).filter((value) => Number.isFinite(value));
+    if (lineCenters.length < 4) return;
+
+    const avgStep = lineCenters.slice(1).reduce((sum, center, index) => sum + (center - lineCenters[index]), 0) / (lineCenters.length - 1);
+    const safeStep = Number.isFinite(avgStep) && avgStep > 0 ? avgStep : (progressRect.width * 0.2);
+    const numeralPositions = [
+        Math.max(0, lineCenters[0] - safeStep),
+        lineCenters[0],
+        lineCenters[1],
+        lineCenters[2],
+        lineCenters[3]
+    ];
+
+    romanContainer.style.visibility = 'visible';
+    romanContainer.style.opacity = '1';
+    romanContainer.style.setProperty('display', 'block', 'important');
+    romanContainer.style.setProperty('left', `${Math.round(progressRect.left - stackRect.left)}px`, 'important');
+    romanContainer.style.setProperty('width', `${Math.round(progressRect.width)}px`, 'important');
+
+    romanSpans.forEach((span, index) => {
+        const position = numeralPositions[index];
+        if (!Number.isFinite(position)) return;
+        span.style.setProperty('left', `${Math.round(position)}px`, 'important');
+        span.style.setProperty('transform', 'translateX(-50%)', 'important');
+    });
+}
+
 function getRowRankIndexForScore(rowIndex, score) {
     const thresholds = state.allRowThresholds[rowIndex] || state.allRowThresholds[0] || [];
     const rating = calculateSingleRating(score, thresholds);
@@ -169,7 +230,7 @@ export function updateMainProgressBarAndRanks() {
         const rankLines = progressBar.querySelectorAll('.rank-line');
         const originalColor = currentRankIndex === 0 ? '#444' : RANK_COLORS[currentRankIndex];
         const activeColor = RANK_LINE_COLORS[currentRankIndex] || '#444';
-        const linePositions = [21.5, 41.5, 61.5, 81.5];
+        const linePositions = [20, 40, 60, 80];
         const totalDuration = 600;
 
         rankLines.forEach((line, index) => {
@@ -191,6 +252,8 @@ export function updateMainProgressBarAndRanks() {
             const lineColor = isActive ? activeColor : originalColor;
             line.style.background = `linear-gradient(to bottom, transparent, ${lineColor} 15%, ${lineColor} 85%, transparent)`;
         });
+
+        syncMobileRomanNumerals(progressBar);
     }
 
     const rankBox = document.querySelector('.rounded-inner-box');
@@ -423,6 +486,12 @@ export function updateRowColors() {
 if (typeof document !== "undefined") {
     document.addEventListener("benchmark:language-applied", () => {
         updateMainProgressBarAndRanks();
+    });
+    document.addEventListener("benchmark:mobile-layout-settled", () => {
+        const progressBar = document.querySelector('.progress-bar');
+        if (progressBar instanceof HTMLElement) {
+            syncMobileRomanNumerals(progressBar);
+        }
     });
 }
 

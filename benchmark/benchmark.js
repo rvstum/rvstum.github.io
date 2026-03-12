@@ -582,6 +582,8 @@ const MOBILE_BENCHMARK_GEOMETRY_PROPS = [
     '--mobile-score-width',
     '--mobile-slanted-left',
     '--mobile-slanted-width',
+    '--mobile-progress-left',
+    '--mobile-progress-width',
     '--mobile-progression-width',
     '--mobile-rating-gap',
     '--mobile-rating-left',
@@ -691,6 +693,7 @@ function syncMobileBenchmarkGeometry() {
     const firstRatingValue = container.querySelector('.rating-value');
     const ranksWrapper = document.querySelector('.ranks-wrapper');
     const rankBox = document.querySelector('.rounded-inner-box');
+    const progressStack = document.querySelector('.progress-stack');
     const progressBar = document.querySelector('.progress-bar');
     const rankLines = progressBar
         ? Array.from(progressBar.querySelectorAll('.rank-line')).filter((line) => line.getClientRects().length > 0)
@@ -746,8 +749,12 @@ function syncMobileBenchmarkGeometry() {
     const bgStripeWidth = Math.max(0, benchmarkTrackWidth - bgStripeLeft);
     const ranksWrapperRect = ranksWrapper ? ranksWrapper.getBoundingClientRect() : null;
     const progressBarRect = progressBar ? progressBar.getBoundingClientRect() : null;
+    const progressStackRect = progressStack ? progressStack.getBoundingClientRect() : null;
     const progressWidth = progressBarRect && progressBarRect.width ? progressBarRect.width : slantedWidth;
-    const defaultRomanPositions = [0.015, 0.215, 0.415, 0.615, 0.815].map((ratio) => progressWidth * ratio);
+    const progressLeftWithinStack = progressBarRect && progressStackRect
+        ? Math.max(0, progressBarRect.left - progressStackRect.left)
+        : Math.max(0, bgStripeLeft - (15 * mobileScale));
+    const defaultRomanPositions = [0.015, 0.2, 0.4, 0.6, 0.8].map((ratio) => progressWidth * ratio);
     const rankLineCenters = progressBarRect
         ? rankLines.map((line) => {
             const rect = line.getBoundingClientRect();
@@ -797,7 +804,9 @@ function syncMobileBenchmarkGeometry() {
     body.style.setProperty('--mobile-score-width', toPx(scoreWidth));
     body.style.setProperty('--mobile-slanted-left', toPx(slantedLeft));
     body.style.setProperty('--mobile-slanted-width', toPx(slantedWidth));
-    body.style.setProperty('--mobile-progression-width', toPx(slantedWidth));
+    body.style.setProperty('--mobile-progress-left', toPx(progressLeftWithinStack));
+    body.style.setProperty('--mobile-progress-width', toPx(progressWidth));
+    body.style.setProperty('--mobile-progression-width', toPx(progressWidth));
     body.style.setProperty('--mobile-rating-gap', toPx(ratingLeftGap));
     body.style.setProperty('--mobile-rating-left', toPx(ratingLeft));
     body.style.setProperty('--mobile-rating-width', toPx(ratingWidth));

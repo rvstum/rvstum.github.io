@@ -548,19 +548,19 @@ html {
 }
 
 .rank-line.rank-line-1 {
-    left: 21.5%;
+    left: 20%;
 }
 
 .rank-line.rank-line-2 {
-    left: 41.5%;
+    left: 40%;
 }
 
 .rank-line.rank-line-3 {
-    left: 61.5%;
+    left: 60%;
 }
 
 .rank-line.rank-line-4 {
-    left: 81.5%;
+    left: 80%;
 }
 
 .roman-pos-0 {
@@ -568,19 +568,19 @@ html {
 }
 
 .roman-pos-1 {
-    left: 21.5%;
+    left: 20%;
 }
 
 .roman-pos-2 {
-    left: 41.5%;
+    left: 40%;
 }
 
 .roman-pos-3 {
-    left: 61.5%;
+    left: 60%;
 }
 
 .roman-pos-4 {
-    left: 81.5%;
+    left: 80%;
 }
 
 .radar-preload-asset {
@@ -8261,8 +8261,12 @@ body.mobile-layout-active .progress-bar {
 
 body.mobile-layout-active .roman-numerals-container {
     display: block !important;
-    width: var(--mobile-progression-width) !important;
-    left: calc(var(--mobile-bg-stripe-left) - var(--mobile-panel-padding-x)) !important;
+    width: var(--mobile-progress-width, var(--mobile-progression-width)) !important;
+    left: var(--mobile-progress-left, calc(var(--mobile-bg-stripe-left) - var(--mobile-panel-padding-x))) !important;
+}
+
+body.mobile-layout-active .roman-numerals-container span {
+    transform: translateX(-50%) !important;
 }
 
 body.mobile-layout-active .roman-pos-0 {
