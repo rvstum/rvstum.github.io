@@ -553,67 +553,6 @@ export function initScoreInputsScrollSync() {
     );
     let lastPanelsScrollLeft = panelsScrollEl ? (panelsScrollEl.scrollLeft || 0) : 0;
     if (panelsScrollEl) {
-        let panelsTouchStartX = 0;
-        let panelsTouchStartY = 0;
-        let panelsTouchStartLeft = 0;
-        let panelsDragAxis = null;
-
-        const handleUnifiedPanelsTouchStart = (e) => {
-            if (!isUnifiedMobileScrollMode()) return;
-            if (!e.touches || !e.touches.length) return;
-            panelsTouchStartX = e.touches[0].clientX;
-            panelsTouchStartY = e.touches[0].clientY;
-            panelsTouchStartLeft = clampSharedScrollX(panelsScrollEl.scrollLeft || 0);
-            panelsDragAxis = null;
-        };
-
-        const handleUnifiedPanelsTouchMove = (e) => {
-            if (!isUnifiedMobileScrollMode()) return;
-            if (!e.touches || !e.touches.length) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - panelsTouchStartX;
-            const dy = touch.clientY - panelsTouchStartY;
-            if (panelsDragAxis === null) {
-                if (Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
-                panelsDragAxis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-            }
-            if (panelsDragAxis !== "x") return;
-            e.preventDefault();
-            markRecentMobileHorizontalScroll(220);
-            const clamped = clampSharedScrollX(panelsTouchStartLeft + (panelsTouchStartX - touch.clientX));
-            if (Math.abs((panelsScrollEl.scrollLeft || 0) - clamped) > 0.25) {
-                panelsScrollEl.scrollLeft = clamped;
-            }
-            lastPanelsScrollLeft = clamped;
-        };
-
-        const handleUnifiedPanelsTouchEnd = () => {
-            if (!isUnifiedMobileScrollMode()) return;
-            if (panelsDragAxis === "x") markRecentMobileHorizontalScroll(220);
-            panelsDragAxis = null;
-        };
-
-        const handleUnifiedPanelsWheel = (e) => {
-            if (!isUnifiedMobileScrollMode()) return;
-            const hasDeltaX = Math.abs(e.deltaX || 0) > 0.01;
-            const hasShiftedY = !hasDeltaX && e.shiftKey && Math.abs(e.deltaY || 0) > 0.01;
-            if (!hasDeltaX && !hasShiftedY) return;
-            e.preventDefault();
-            markRecentMobileHorizontalScroll(220);
-            const horizontalDelta = hasDeltaX ? e.deltaX : e.deltaY;
-            const clamped = clampSharedScrollX((panelsScrollEl.scrollLeft || 0) + horizontalDelta);
-            if (Math.abs((panelsScrollEl.scrollLeft || 0) - clamped) > 0.25) {
-                panelsScrollEl.scrollLeft = clamped;
-            }
-            lastPanelsScrollLeft = clamped;
-        };
-
-        panelsScrollEl.addEventListener("touchstart", handleUnifiedPanelsTouchStart, { passive: true });
-        panelsScrollEl.addEventListener("touchmove", handleUnifiedPanelsTouchMove, { passive: false });
-        panelsScrollEl.addEventListener("touchend", handleUnifiedPanelsTouchEnd, { passive: true });
-        panelsScrollEl.addEventListener("touchcancel", handleUnifiedPanelsTouchEnd, { passive: true });
-        panelsScrollEl.addEventListener("wheel", handleUnifiedPanelsWheel, { passive: false });
-
         panelsScrollEl.addEventListener("scroll", () => {
             if (!isUnifiedMobileScrollMode()) return;
             const nextLeft = panelsScrollEl.scrollLeft || 0;

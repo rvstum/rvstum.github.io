@@ -8234,7 +8234,7 @@ body.mobile-layout-active .benchmark-panels-scroll {
     scroll-behavior: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    touch-action: pan-y pinch-zoom;
+    touch-action: auto;
 }
 
 body.mobile-layout-active .benchmark-panels-scroll::-webkit-scrollbar {
