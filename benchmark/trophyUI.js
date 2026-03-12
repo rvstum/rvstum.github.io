@@ -147,52 +147,10 @@ export function initTrophySystem(options = {}) {
         plaque: getCachedElementById("trophyInputPlaque")
     };
     const totalEl = getCachedElementById("trophyModalTotal");
-    let trophyFieldRevealTimer = 0;
 
     if (!placeholder || !list || !modal || !closeBtn || !saveBtn) {
         return;
     }
-
-    const isMobileTrophyViewport = () => (
-        typeof window !== "undefined"
-        && (
-            window.innerWidth <= 900
-            || document.body.classList.contains("mobile-layout-active")
-        )
-    );
-
-    const getTrophyScrollContainer = () => modal.querySelector(".settings-content-box");
-
-    const clearTrophyFieldRevealTimer = () => {
-        if (!trophyFieldRevealTimer) return;
-        clearTimeout(trophyFieldRevealTimer);
-        trophyFieldRevealTimer = 0;
-    };
-
-    const scheduleFocusedTrophyFieldReveal = (input, delayMs = 120) => {
-        if (!isMobileTrophyViewport()) return;
-        if (!input) return;
-        clearTrophyFieldRevealTimer();
-        const runReveal = () => {
-            requestAnimationFrame(() => {
-                if (!modal.classList.contains("show")) return;
-                if (!input.isConnected) return;
-                if (document.activeElement !== input) return;
-                input.scrollIntoView({
-                    block: "nearest",
-                    inline: "nearest"
-                });
-            });
-        };
-        if (delayMs <= 0) {
-            runReveal();
-            return;
-        }
-        trophyFieldRevealTimer = setTimeout(() => {
-            trophyFieldRevealTimer = 0;
-            runReveal();
-        }, delayMs);
-    };
 
     function updateTrophyModalTotal() {
         if (!totalEl) return;
@@ -208,10 +166,6 @@ export function initTrophySystem(options = {}) {
     Object.values(inputs).forEach((input) => {
         if (!input) return;
         input.addEventListener("focus", function () {
-            if (isMobileTrophyViewport()) {
-                scheduleFocusedTrophyFieldReveal(this);
-                return;
-            }
             this.select();
         });
         input.addEventListener("input", function () {
@@ -219,7 +173,6 @@ export function initTrophySystem(options = {}) {
             if (this.value < 0) this.value = 0;
             updateTrophyModalTotal();
         });
-        input.addEventListener("blur", clearTrophyFieldRevealTimer);
     });
 
     function openModal() {
@@ -230,14 +183,10 @@ export function initTrophySystem(options = {}) {
             }
         });
         updateTrophyModalTotal();
-        clearTrophyFieldRevealTimer();
-        const container = getTrophyScrollContainer();
-        if (container) container.scrollTop = 0;
         modal.classList.add("show");
     }
 
     function closeModal() {
-        clearTrophyFieldRevealTimer();
         modal.classList.add("closing");
         setTimeout(() => {
             modal.classList.remove("show");
