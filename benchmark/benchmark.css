@@ -8136,7 +8136,7 @@ body.mobile-layout-active {
     --mobile-outline-bleed: calc(8px * var(--mobile-scale));
     --mobile-benchmark-track-padding-right: var(--mobile-rating-gap);
     --mobile-benchmark-track-width: calc(var(--mobile-rating-left) + var(--mobile-rating-width) + var(--mobile-benchmark-track-padding-right));
-    --mobile-benchmark-scroll-width: calc(var(--mobile-benchmark-track-width) + (48px * var(--mobile-scale)));
+    --mobile-benchmark-scroll-width: var(--mobile-benchmark-track-width);
     --mobile-bg-stripe-width: calc(var(--mobile-slanted-width) + (var(--mobile-rating-gap) * 2) + var(--mobile-rating-width));
     --mobile-cave-group-height: calc((var(--mobile-cave-row-height) * 7) + (var(--mobile-cave-row-gap) * 6));
     --mobile-cave-group-2-top: calc(var(--mobile-ranks-top-gap) + var(--mobile-cave-group-height) + var(--mobile-cave-row-gap));

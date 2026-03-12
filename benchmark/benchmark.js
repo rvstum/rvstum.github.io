@@ -587,6 +587,7 @@ const MOBILE_BENCHMARK_GEOMETRY_PROPS = [
     '--mobile-active-outline-left',
     '--mobile-active-outline-width',
     '--mobile-benchmark-track-width',
+    '--mobile-benchmark-scroll-width',
     '--mobile-cave-label-width',
     '--mobile-cave-label-gap',
     '--mobile-rank-box-left',
@@ -651,6 +652,21 @@ function clearMobileBenchmarkGeometryVars() {
     restoreBaseStripeGeometry();
 }
 
+function measurePanelContentRight(panel) {
+    if (!(panel instanceof HTMLElement)) return 0;
+    const panelRect = panel.getBoundingClientRect();
+    if (!panelRect.width) return 0;
+
+    let maxRight = panelRect.width;
+    panel.querySelectorAll('*').forEach((node) => {
+        if (!(node instanceof HTMLElement) || !node.getClientRects().length) return;
+        const rect = node.getBoundingClientRect();
+        if (!rect.width && !rect.height) return;
+        maxRight = Math.max(maxRight, rect.right - panelRect.left);
+    });
+    return Math.max(0, Math.round(maxRight));
+}
+
 function syncMobileBenchmarkGeometry() {
     const body = document.body;
     if (!body || !body.classList.contains('mobile-layout-active')) {
@@ -659,6 +675,7 @@ function syncMobileBenchmarkGeometry() {
     }
 
     const container = getCachedQuery('benchmarkContainer', () => document.querySelector('.container'));
+    const middleBox = getCachedQuery('benchmarkMiddleBox', () => document.querySelector('.middle-box'));
     const firstRow = container ? container.querySelector('.ranks-bars') : null;
     const rows = container ? Array.from(container.querySelectorAll('.ranks-bars')) : [];
     const stripes = container ? Array.from(container.querySelectorAll('.bg-stripe')) : [];
@@ -776,6 +793,11 @@ function syncMobileBenchmarkGeometry() {
         : (4 * mobileScale);
     const ranksTopGap = Math.max(0, rowRect.top - containerRect.top);
     const caveHeaderWidth = Math.min(Math.max(48 * mobileScale, 44), caveLabelWidth);
+    const benchmarkScrollWidth = Math.max(
+        benchmarkTrackWidth,
+        measurePanelContentRight(middleBox),
+        measurePanelContentRight(container)
+    );
 
     body.style.setProperty('--mobile-cave-start', toPx(caveStart));
     body.style.setProperty('--mobile-bg-stripe-left', toPx(bgStripeLeft));
@@ -796,6 +818,7 @@ function syncMobileBenchmarkGeometry() {
     body.style.setProperty('--mobile-active-outline-left', toPx(caveStart));
     body.style.setProperty('--mobile-active-outline-width', toPx(benchmarkTrackWidth - caveStart));
     body.style.setProperty('--mobile-benchmark-track-width', toPx(benchmarkTrackWidth));
+    body.style.setProperty('--mobile-benchmark-scroll-width', toPx(benchmarkScrollWidth));
     body.style.setProperty('--mobile-cave-label-width', toPx(caveLabelWidth));
     body.style.setProperty('--mobile-cave-label-gap', toPx(caveLabelGap + desiredTrackShift));
     body.style.setProperty('--mobile-rank-box-left', toPx(rankBoxLeft));
