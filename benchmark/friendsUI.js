@@ -7,6 +7,7 @@ import {
     configure as configureCore,
     getCurrentUserAccountId,
     hydrateUserRecord,
+    invalidateHydratedFriendEntriesCache,
     loadHydratedFriendEntries,
     loadHydratedIncomingRequests,
     loadHydratedSentRequests,
@@ -167,14 +168,6 @@ function renderRequestSections(container, incomingEntries, sentEntries, handlers
     container.appendChild(sentSection.section);
 }
 
-async function refreshAllFriendsViews() {
-    await Promise.all([
-        loadFriendsList(),
-        loadFriendRequests(),
-        loadRemoveFriendsList()
-    ]);
-}
-
 async function handleAccept(entry) {
     const currentUser = auth.currentUser;
     if (!currentUser) return;
@@ -186,7 +179,8 @@ async function handleAccept(entry) {
     await FriendsService.acceptFriendRequest(currentUser.uid, entry.uid, {
         currentSnapshot
     });
-    await refreshAllFriendsViews();
+    invalidateHydratedFriendEntriesCache(currentUser.uid);
+    await loadFriendRequests();
 }
 
 async function handleDecline(entry) {
@@ -214,10 +208,8 @@ async function handleRemove(entry) {
                 friendAliases: normalizeUidList([entry && entry.snapshot && entry.snapshot.accountId]),
                 currentUserAliases: normalizeUidList([currentUserAccountId])
             });
-            await Promise.all([
-                loadFriendsList(),
-                loadRemoveFriendsList()
-            ]);
+            invalidateHydratedFriendEntriesCache(currentUser.uid);
+            await loadRemoveFriendsList();
         } catch (error) {
             console.error("Failed to remove friend:", error);
             const container = getRemoveFriendsContent();
@@ -384,7 +376,11 @@ export async function addFriendByAccountId(rawIdentifier = null) {
 
         if (input) input.value = "";
         setAddFriendMessage(t("add_friend_sent"), "success");
-        await loadFriendRequests();
+        const tabs = getTabs();
+        const requestsTabActive = !!(tabs.requests && tabs.requests.classList.contains("active"));
+        if (requestsTabActive) {
+            await loadFriendRequests();
+        }
         return true;
     } catch (error) {
         const errorCode = typeof error?.code === "string" ? error.code : "";

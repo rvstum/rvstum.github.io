@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc, arrayRemove, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "./client.js";
 import { normalizeFriendRequestIds } from "./utils.js";
 import { FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
@@ -9,6 +9,10 @@ import * as ScoreManager from "./scoreManager.js";
 const ACCOUNT_DIRECTORY_COLLECTION = "publicAccountDirectory";
 const FRIEND_REQUESTS_COLLECTION = "friendRequests";
 const FRIENDSHIPS_COLLECTION = "friendships";
+const ACCOUNT_DIRECTORY_CACHE_TTL_MS = 30000;
+const accountDirectoryCacheByAccountId = new Map();
+const accountDirectoryCacheByUid = new Map();
+const accountDirectoryCacheByPublicSlug = new Map();
 
 export async function updateUserData(uid, data) {
     if (!uid) return;
@@ -61,6 +65,53 @@ function normalizeUidArray(value) {
     return [...new Set(value
         .map((item) => (typeof item === "string" ? item.trim() : ""))
         .filter((item) => item !== ""))];
+}
+
+function getTimedCacheValue(cache, key) {
+    if (!key) return undefined;
+    const cached = cache.get(key);
+    if (!cached) return undefined;
+    if (cached.expiresAt <= Date.now()) {
+        cache.delete(key);
+        return undefined;
+    }
+    return cached.value;
+}
+
+function setTimedCacheValue(cache, key, value) {
+    if (!key || !value) return value;
+    cache.set(key, {
+        value,
+        expiresAt: Date.now() + ACCOUNT_DIRECTORY_CACHE_TTL_MS
+    });
+    return value;
+}
+
+function clearAccountDirectoryCacheForEntry(entry = null) {
+    const safeEntry = entry && typeof entry === "object" ? entry : null;
+    if (!safeEntry) return;
+    const normalizedAccountId = normalizeAccountDirectoryId(safeEntry.accountId);
+    const normalizedUid = typeof safeEntry.uid === "string" ? safeEntry.uid.trim() : "";
+    const normalizedSlug = typeof safeEntry.publicSlug === "string" ? safeEntry.publicSlug.trim() : "";
+    if (normalizedAccountId) accountDirectoryCacheByAccountId.delete(normalizedAccountId);
+    if (normalizedUid) accountDirectoryCacheByUid.delete(normalizedUid);
+    if (normalizedSlug) accountDirectoryCacheByPublicSlug.delete(normalizedSlug);
+}
+
+function cacheAccountDirectoryEntry(entry = null) {
+    const safeEntry = entry && typeof entry === "object" ? entry : null;
+    if (!safeEntry) return null;
+    const normalizedAccountId = normalizeAccountDirectoryId(safeEntry.accountId);
+    const normalizedUid = typeof safeEntry.uid === "string" ? safeEntry.uid.trim() : "";
+    const normalizedSlug = typeof safeEntry.publicSlug === "string" ? safeEntry.publicSlug.trim() : "";
+    const cachedEntry = {
+        ...safeEntry,
+        accountId: normalizedAccountId || (typeof safeEntry.accountId === "string" ? safeEntry.accountId.trim() : "")
+    };
+    if (normalizedAccountId) setTimedCacheValue(accountDirectoryCacheByAccountId, normalizedAccountId, cachedEntry);
+    if (normalizedUid) setTimedCacheValue(accountDirectoryCacheByUid, normalizedUid, cachedEntry);
+    if (normalizedSlug) setTimedCacheValue(accountDirectoryCacheByPublicSlug, normalizedSlug, cachedEntry);
+    return cachedEntry;
 }
 
 function clampRankIndex(value) {
@@ -168,6 +219,7 @@ export async function syncAccountDirectoryEntry(uid, accountId, userData = null)
     const targetUid = typeof uid === "string" ? uid.trim() : "";
     const normalizedAccountId = normalizeAccountDirectoryId(accountId);
     if (!targetUid || !normalizedAccountId) return false;
+    clearAccountDirectoryCacheForEntry(getTimedCacheValue(accountDirectoryCacheByUid, targetUid));
     const payload = {
         uid: targetUid,
         accountId: normalizedAccountId,
@@ -187,6 +239,7 @@ export async function syncAccountDirectoryEntry(uid, accountId, userData = null)
         payload.visibility = preview.visibility || "everyone";
     }
     await setDoc(doc(db, ACCOUNT_DIRECTORY_COLLECTION, normalizedAccountId), payload, { merge: true });
+    cacheAccountDirectoryEntry(payload);
     return true;
 }
 
@@ -199,10 +252,15 @@ export async function resolveUidByAccountId(accountId) {
 export async function resolveAccountDirectoryEntry(accountId) {
     const normalizedAccountId = normalizeAccountDirectoryId(accountId);
     if (!normalizedAccountId) return null;
+    const cachedEntry = getTimedCacheValue(accountDirectoryCacheByAccountId, normalizedAccountId);
+    if (cachedEntry) return cachedEntry;
     try {
         const directorySnap = await getDoc(doc(db, ACCOUNT_DIRECTORY_COLLECTION, normalizedAccountId));
         if (!directorySnap.exists()) return null;
-        return directorySnap.data() || null;
+        return cacheAccountDirectoryEntry({
+            ...(directorySnap.data() || {}),
+            accountId: normalizedAccountId
+        });
     } catch (e) {
         if (!isPermissionLikeError(e)) throw e;
         return null;
@@ -212,10 +270,16 @@ export async function resolveAccountDirectoryEntry(accountId) {
 export async function resolveAccountDirectoryEntryByUid(uid) {
     const normalizedUid = typeof uid === "string" ? uid.trim() : "";
     if (!normalizedUid) return null;
+    const cachedEntry = getTimedCacheValue(accountDirectoryCacheByUid, normalizedUid);
+    if (cachedEntry) return cachedEntry;
     try {
-        const directorySnap = await getDocs(query(collection(db, ACCOUNT_DIRECTORY_COLLECTION), where("uid", "==", normalizedUid)));
+        const directorySnap = await getDocs(query(
+            collection(db, ACCOUNT_DIRECTORY_COLLECTION),
+            where("uid", "==", normalizedUid),
+            limit(1)
+        ));
         if (directorySnap.empty) return null;
-        return directorySnap.docs[0].data() || null;
+        return cacheAccountDirectoryEntry(directorySnap.docs[0].data() || null);
     } catch (e) {
         if (!isPermissionLikeError(e)) throw e;
         return null;
@@ -225,10 +289,16 @@ export async function resolveAccountDirectoryEntryByUid(uid) {
 export async function resolveAccountDirectoryEntryByPublicSlug(publicSlug) {
     const normalizedSlug = typeof publicSlug === "string" ? publicSlug.trim() : "";
     if (!normalizedSlug) return null;
+    const cachedEntry = getTimedCacheValue(accountDirectoryCacheByPublicSlug, normalizedSlug);
+    if (cachedEntry) return cachedEntry;
     try {
-        const directorySnap = await getDocs(query(collection(db, ACCOUNT_DIRECTORY_COLLECTION), where("publicSlug", "==", normalizedSlug)));
+        const directorySnap = await getDocs(query(
+            collection(db, ACCOUNT_DIRECTORY_COLLECTION),
+            where("publicSlug", "==", normalizedSlug),
+            limit(1)
+        ));
         if (directorySnap.empty) return null;
-        return directorySnap.docs[0].data() || null;
+        return cacheAccountDirectoryEntry(directorySnap.docs[0].data() || null);
     } catch (e) {
         if (!isPermissionLikeError(e)) throw e;
         return null;
@@ -258,6 +328,7 @@ async function deleteDirectoryEntriesForUid(targetUid) {
     const directorySnap = await getDocs(query(collection(db, ACCOUNT_DIRECTORY_COLLECTION), where("uid", "==", normalizedUid)));
     if (directorySnap.empty) return 0;
     await Promise.all(directorySnap.docs.map(async (entryDoc) => {
+        clearAccountDirectoryCacheForEntry(entryDoc.data() || null);
         try {
             await deleteDoc(entryDoc.ref);
         } catch (e) {

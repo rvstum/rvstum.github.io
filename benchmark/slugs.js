@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, getDoc, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "./client.js";
 import { getBenchmarkBasePath } from "./utils.js";
 import { getRuntimeAccountId } from "./appState.js";
@@ -213,11 +213,12 @@ export async function resolveProfileDocBySlug(slug, signedInViewer) {
 
     try {
         const directQuery = signedInViewer
-            ? query(collection(db, 'publicAccountDirectory'), where('publicSlug', '==', trimmedSlug))
+            ? query(collection(db, 'publicAccountDirectory'), where('publicSlug', '==', trimmedSlug), limit(1))
             : query(
                 collection(db, 'publicAccountDirectory'),
                 where('publicSlug', '==', trimmedSlug),
-                where('visibility', '==', 'everyone')
+                where('visibility', '==', 'everyone'),
+                limit(1)
             );
         const directSnap = await getDocs(directQuery);
         if (!directSnap.empty) {
@@ -235,7 +236,7 @@ export async function resolveProfileDocBySlug(slug, signedInViewer) {
     if (!signedInViewer) return null;
 
     try {
-        const userSlugQuery = query(collection(db, 'users'), where('publicSlug', '==', trimmedSlug));
+        const userSlugQuery = query(collection(db, 'users'), where('publicSlug', '==', trimmedSlug), limit(1));
         const userSlugSnap = await getDocs(userSlugQuery);
         if (!userSlugSnap.empty) {
             return userSlugSnap.docs[0];

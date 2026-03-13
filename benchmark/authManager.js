@@ -158,14 +158,15 @@ export async function loadUserProfile(user, hooks = {}) {
         }
     })();
 
-    if (isStaleAuthSession()) return;
+    if (isStaleAuthSession()) return null;
 
+    let data = null;
     try {
         const docSnap = await UserService.getUserDocument(sessionUid);
-        if (isStaleAuthSession()) return;
-        if (!docSnap.exists()) return;
+        if (isStaleAuthSession()) return null;
+        if (!docSnap.exists()) return null;
 
-        const data = docSnap.data();
+        data = docSnap.data();
         ProfileUI.setCurrentUserEmail(user.email || "");
         const shouldInitOnboarding = !!data.isNewUser;
         let didApplyConfig = false;
@@ -176,7 +177,7 @@ export async function loadUserProfile(user, hooks = {}) {
                 { username: user.displayName },
                 { merge: true }
             );
-            if (isStaleAuthSession()) return;
+            if (isStaleAuthSession()) return null;
         }
 
         const username = data.username || user.displayName;
@@ -263,7 +264,7 @@ export async function loadUserProfile(user, hooks = {}) {
             applyActiveAccountId(stableId);
             rememberAccountIdForUid(sessionUid, stableId);
             await persistUserData({ accountId: stableId }, { label: "account id" });
-            if (isStaleAuthSession()) return;
+            if (isStaleAuthSession()) return null;
             UserService.syncAccountDirectoryEntry(sessionUid, stableId, {
                 ...directoryPreviewData,
                 accountId: stableId
@@ -281,7 +282,7 @@ export async function loadUserProfile(user, hooks = {}) {
             });
             if (effectiveUsername && desiredSlug && data.publicSlug !== desiredSlug) {
                 await persistUserData({ publicSlug: desiredSlug }, { label: "profile slug" });
-                if (isStaleAuthSession()) return;
+                if (isStaleAuthSession()) return null;
             }
         }
 
@@ -294,7 +295,7 @@ export async function loadUserProfile(user, hooks = {}) {
                 writeString(THEME_STORAGE_KEY, data.settings.theme);
                 if (data.settings.theme !== "default") writeString(THEME_USER_SELECTED_STORAGE_KEY, "true");
                 await ThemeUI.applyTheme(data.settings.theme, false);
-                if (isStaleAuthSession()) return;
+                if (isStaleAuthSession()) return null;
             }
             if (data.settings.autoRankTheme) {
                 writeString(AUTO_RANK_THEME_STORAGE_KEY, data.settings.autoRankTheme);
@@ -495,5 +496,7 @@ export async function loadUserProfile(user, hooks = {}) {
         }
     } catch (e) {
         console.error("Error loading user data:", e);
+        return null;
     }
+    return data;
 }

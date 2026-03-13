@@ -33,9 +33,31 @@ const coreDeps = {
     closeFriendsModal: null,
     markCurrentFriendRequestsViewed: null
 };
+const HYDRATED_FRIEND_ENTRIES_CACHE_TTL_MS = 15000;
+const hydratedFriendEntriesCache = new Map();
 
 function safeObject(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function getTimedCacheValue(cache, key) {
+    if (!key) return undefined;
+    const cached = cache.get(key);
+    if (!cached) return undefined;
+    if (cached.expiresAt <= Date.now()) {
+        cache.delete(key);
+        return undefined;
+    }
+    return cached.value;
+}
+
+function setTimedCacheValue(cache, key, value) {
+    if (!key) return value;
+    cache.set(key, {
+        value,
+        expiresAt: Date.now() + HYDRATED_FRIEND_ENTRIES_CACHE_TTL_MS
+    });
+    return value;
 }
 
 function isPermissionLikeError(error) {
@@ -328,6 +350,15 @@ export function mergeProfileSnapshots(...snapshots) {
     return merged;
 }
 
+export function invalidateHydratedFriendEntriesCache(currentUid = "") {
+    const normalizedUid = normalizeUid(currentUid);
+    if (!normalizedUid) {
+        hydratedFriendEntriesCache.clear();
+        return;
+    }
+    hydratedFriendEntriesCache.delete(normalizedUid);
+}
+
 export function buildSnapshotFromUserData(userData = {}, fallback = {}, directoryData = null) {
     const safeData = safeObject(userData);
     const profile = safeObject(safeData.profile);
@@ -534,43 +565,58 @@ export async function hydrateUserRecord(uid, fallbackSnapshot = null) {
 export async function loadHydratedFriendEntries(currentUid) {
     const normalizedUid = normalizeUid(currentUid);
     if (!normalizedUid) return [];
-    const [friendships, currentUserData] = await Promise.all([
-        safeLoadFriendEdges(() => FriendsService.listFriendships(normalizedUid), "friendships query"),
-        readReadableUserDataByUid(normalizedUid)
-    ]);
+    const cachedEntries = getTimedCacheValue(hydratedFriendEntriesCache, normalizedUid);
+    if (cachedEntries) return await cachedEntries;
 
-    const friendshipByUid = new Map();
-    friendships.forEach((friendship) => {
-        const users = normalizeUidList(safeObject(friendship).users);
-        const friendUid = users.find((value) => value !== normalizedUid) || "";
-        if (!friendUid || friendshipByUid.has(friendUid)) return;
-        friendshipByUid.set(friendUid, friendship);
-    });
+    const pendingEntries = (async () => {
+        const [friendships, currentUserData] = await Promise.all([
+            safeLoadFriendEdges(() => FriendsService.listFriendships(normalizedUid), "friendships query"),
+            readReadableUserDataByUid(normalizedUid)
+        ]);
 
-    const mirroredFriendUids = normalizeUidList(safeObject(currentUserData).friends)
-        .filter((value) => value !== normalizedUid);
-    const targetUids = normalizeUidList([
-        ...mirroredFriendUids,
-        ...Array.from(friendshipByUid.keys())
-    ]);
+        const friendshipByUid = new Map();
+        friendships.forEach((friendship) => {
+            const users = normalizeUidList(safeObject(friendship).users);
+            const friendUid = users.find((value) => value !== normalizedUid) || "";
+            if (!friendUid || friendshipByUid.has(friendUid)) return;
+            friendshipByUid.set(friendUid, friendship);
+        });
 
-    const hydrated = await Promise.all(targetUids.map(async (friendUid) => {
-        const friendship = friendshipByUid.get(friendUid) || null;
-        const fallbackSnapshot = getFallbackSnapshot(friendship, friendUid, "friendSnapshot");
-        const record = await hydrateUserRecord(friendUid, fallbackSnapshot);
-        if (!record) return null;
-        return {
-            kind: "friendship",
-            id: pickFirstString(safeObject(friendship).id, `mirror_friendship__${normalizedUid}__${friendUid}`),
-            uid: friendUid,
-            snapshot: mergeProfileSnapshots(fallbackSnapshot, record.snapshot),
-            data: record.data,
-            createdAt: normalizeTimestamp(safeObject(friendship).createdAt),
-            updatedAt: normalizeTimestamp(safeObject(friendship).updatedAt),
-            raw: friendship
-        };
-    }));
-    return sortEntriesByName(hydrated.filter(Boolean));
+        const mirroredFriendUids = normalizeUidList(safeObject(currentUserData).friends)
+            .filter((value) => value !== normalizedUid);
+        const targetUids = normalizeUidList([
+            ...mirroredFriendUids,
+            ...Array.from(friendshipByUid.keys())
+        ]);
+
+        const hydrated = await Promise.all(targetUids.map(async (friendUid) => {
+            const friendship = friendshipByUid.get(friendUid) || null;
+            const fallbackSnapshot = getFallbackSnapshot(friendship, friendUid, "friendSnapshot");
+            const record = await hydrateUserRecord(friendUid, fallbackSnapshot);
+            if (!record) return null;
+            return {
+                kind: "friendship",
+                id: pickFirstString(safeObject(friendship).id, `mirror_friendship__${normalizedUid}__${friendUid}`),
+                uid: friendUid,
+                snapshot: mergeProfileSnapshots(fallbackSnapshot, record.snapshot),
+                data: record.data,
+                createdAt: normalizeTimestamp(safeObject(friendship).createdAt),
+                updatedAt: normalizeTimestamp(safeObject(friendship).updatedAt),
+                raw: friendship
+            };
+        }));
+        return sortEntriesByName(hydrated.filter(Boolean));
+    })();
+
+    setTimedCacheValue(hydratedFriendEntriesCache, normalizedUid, pendingEntries);
+    try {
+        const resolvedEntries = await pendingEntries;
+        setTimedCacheValue(hydratedFriendEntriesCache, normalizedUid, resolvedEntries);
+        return resolvedEntries;
+    } catch (error) {
+        hydratedFriendEntriesCache.delete(normalizedUid);
+        throw error;
+    }
 }
 
 export async function loadHydratedIncomingRequests(currentUid) {

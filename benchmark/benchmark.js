@@ -1379,7 +1379,7 @@ const cropperImage = getCachedElementById('cropperImage');
 const newGuildInputBox = getCachedElementById('newGuildInputBox');
 
 async function loadUserProfile(user) {
-    await AuthManager.loadUserProfile(user, {
+    return await AuthManager.loadUserProfile(user, {
         initOnboarding,
         applyLanguage,
         applyConfig,

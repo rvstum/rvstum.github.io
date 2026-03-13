@@ -1,11 +1,10 @@
 import { onAuthStateChanged, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden } from "./utils/domUtils.js";
 import { getBenchmarkBasePath, normalizeFriendRequestIds } from "./utils.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
@@ -18,7 +17,6 @@ import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover
 const AUTH_REFERRER_BLOCK_HINT = "The request is blocked by Firebase API key restrictions (check authorized domains / API key HTTP referrers).";
 
 let unsubscribeUserSnapshot = null;
-let unsubscribeIncomingRequestSnapshot = null;
 let lastAuthUid = null;
 
 export function initAuthLifecycle(options = {}) {
@@ -57,10 +55,6 @@ export function initAuthLifecycle(options = {}) {
         if (typeof unsubscribeUserSnapshot === "function") {
             unsubscribeUserSnapshot();
             unsubscribeUserSnapshot = null;
-        }
-        if (typeof unsubscribeIncomingRequestSnapshot === "function") {
-            unsubscribeIncomingRequestSnapshot();
-            unsubscribeIncomingRequestSnapshot = null;
         }
         state.currentFriendRequests = [];
         state.hasPendingRequests = false;
@@ -208,69 +202,35 @@ export function initAuthLifecycle(options = {}) {
                 accountEmailDisplay.value = `**************@${parts[1] || "gmail.com"}`;
             }
 
-            let latestUserDocRequests = [];
-            let latestIncomingEdgeRequests = [];
-            let hasUserRequestsSnapshot = false;
-            let hasIncomingEdgeSnapshot = false;
-            const applyCombinedFriendRequestState = (userDocData = null) => {
-                if (!hasUserRequestsSnapshot || !hasIncomingEdgeSnapshot) {
+            unsubscribeUserSnapshot = onSnapshot(
+                doc(db, "users", user.uid),
+                (docSnap) => {
+                    const data = docSnap.data();
+                    const latestUserDocRequests = normalizeFriendRequestIds(data && data.friendRequests);
+                    const tabFriendRequests = getCachedElementById("tabFriendRequests");
+                    const requestsTabActive = tabFriendRequests && tabFriendRequests.classList.contains("active");
+                    AuthManager.syncFriendRequestState(user.uid, latestUserDocRequests, requestsTabActive);
                     updateNotificationVisibility();
-                    return;
-                }
-
-                const tabFriendRequests = getCachedElementById("tabFriendRequests");
-                const requestsTabActive = tabFriendRequests && tabFriendRequests.classList.contains("active");
-                const combinedRequests = [...new Set([
-                    ...latestUserDocRequests,
-                    ...latestIncomingEdgeRequests
-                ])];
-                AuthManager.syncFriendRequestState(user.uid, combinedRequests, requestsTabActive);
-                updateNotificationVisibility();
-            };
-
-            unsubscribeUserSnapshot = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
-                const data = docSnap.data();
-                latestUserDocRequests = normalizeFriendRequestIds(data && data.friendRequests);
-                hasUserRequestsSnapshot = true;
-                applyCombinedFriendRequestState(data);
-            });
-
-            const incomingQuery = query(collection(db, "friendRequests"), where("toUid", "==", user.uid));
-            unsubscribeIncomingRequestSnapshot = onSnapshot(
-                incomingQuery,
-                (querySnap) => {
-                    latestIncomingEdgeRequests = querySnap.docs
-                        .map((snap) => {
-                            const data = snap.data() || {};
-                            return typeof data.fromUid === "string" ? data.fromUid.trim() : "";
-                        })
-                        .filter((value) => value !== "");
-                    hasIncomingEdgeSnapshot = true;
-                    applyCombinedFriendRequestState();
                 },
-                (requestSnapshotErr) => {
-                    console.warn("Incoming friend request snapshot unavailable:", requestSnapshotErr);
-                    latestIncomingEdgeRequests = [];
-                    hasIncomingEdgeSnapshot = true;
-                    applyCombinedFriendRequestState();
+                (userSnapshotErr) => {
+                    console.warn("User friend request snapshot unavailable:", userSnapshotErr);
+                    updateNotificationVisibility();
                 }
             );
 
-            await loadUserProfile(user);
+            const loadedProfileData = await loadUserProfile(user);
             const activeUidAfterLoad = auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "";
             if (activeUidAfterLoad !== user.uid) {
                 hidePageLoader();
                 return;
             }
             try {
-                const myDocSnap = await UserService.getUserDocument(user.uid);
-                const activeUidAfterDocRead = auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "";
-                if (activeUidAfterDocRead !== user.uid) {
-                    hidePageLoader();
-                    return;
+                const tabFriendRequests = getCachedElementById("tabFriendRequests");
+                const requestsTabActive = !!(tabFriendRequests && tabFriendRequests.classList.contains("active"));
+                if (requestsTabActive && Array.isArray(state.currentFriendRequests)) {
+                    AuthManager.syncFriendRequestState(user.uid, state.currentFriendRequests, true);
                 }
-                const myData = myDocSnap.exists() ? (myDocSnap.data() || {}) : {};
-                Slugs.updateOwnProfileUrl(user, myData);
+                Slugs.updateOwnProfileUrl(user, loadedProfileData || {});
             } catch (urlErr) {
                 console.warn("Failed to update profile URL slug:", urlErr);
                 const profileName = getCachedQuery("profileName", () => document.querySelector(".profile-name"));
