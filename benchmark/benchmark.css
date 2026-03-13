@@ -7222,7 +7222,8 @@ body.view-mode .achievement-proof-upload.has-image {
         display: flex;
         align-items: center;
         justify-content: center !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border: 1px solid rgba(206, 206, 206, 0.42) !important;
+        color: #cecece !important;
         position: sticky;
         top: calc(env(safe-area-inset-top, 0px) + 10px);
         right: auto;
@@ -7934,8 +7935,8 @@ body.view-mode .achievement-proof-upload.has-image {
         justify-content: center !important;
         border-radius: 50% !important;
         background-color: rgba(0, 0, 0, 0.75) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: #aaa !important;
+        border: 1px solid rgba(206, 206, 206, 0.42) !important;
+        color: #cecece !important;
         font-size: 28px !important;
         font-weight: bold !important;
         line-height: 1 !important;
@@ -8935,6 +8936,23 @@ html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open
 
     #profileModal .settings-header {
         padding-right: 34px;
+    }
+
+    #closeProfileModal {
+        top: 12px !important;
+        right: 12px !important;
+        width: 32px !important;
+        height: 32px !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+        background-color: rgba(0, 0, 0, 0.75) !important;
+        border: 1px solid rgba(206, 206, 206, 0.42) !important;
+        color: #cecece !important;
+        line-height: 1 !important;
+        z-index: 10001 !important;
     }
 
     #profileModal .settings-field,

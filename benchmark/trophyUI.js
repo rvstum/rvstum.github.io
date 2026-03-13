@@ -178,7 +178,7 @@ export function initTrophySystem(options = {}) {
             || window.innerHeight
             || root.clientHeight
             || 0;
-        const centerY = baseHeight / 2;
+        const centerY = Math.max(140, (baseHeight / 2) - Math.min(72, baseHeight * 0.08));
         mobileFocusShell.style.setProperty("--trophy-mobile-focus-top", `${Math.round(centerY)}px`);
     };
 

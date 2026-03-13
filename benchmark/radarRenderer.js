@@ -431,6 +431,7 @@ export function drawBarGraph(canvas, data) {
         : { top: 20, bottom: 30, left: 45, right: 10 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
+    const axisBottomY = height - padding.bottom;
 
     const count = data.length;
     const barWidth = (chartWidth / count) * 0.4;
@@ -447,8 +448,8 @@ export function drawBarGraph(canvas, data) {
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(padding.left, padding.top);
-    ctx.lineTo(padding.left, height - padding.bottom);
-    ctx.lineTo(width - padding.right, height - padding.bottom);
+    ctx.lineTo(padding.left, axisBottomY);
+    ctx.lineTo(width - padding.right, axisBottomY);
     ctx.stroke();
 
     ctx.fillStyle = textColor;
@@ -458,7 +459,7 @@ export function drawBarGraph(canvas, data) {
     const steps = 5;
     for (let i = 0; i <= steps; i++) {
         const val = (maxVal / steps) * i;
-        const y = (height - padding.bottom) - ((val / maxVal) * chartHeight);
+        const y = axisBottomY - ((val / maxVal) * chartHeight);
         ctx.fillText(Math.round(val), padding.left - 6, y);
         if (val > 0 && i < steps) {
             ctx.beginPath();
@@ -468,7 +469,12 @@ export function drawBarGraph(canvas, data) {
         }
     }
 
-    ctx.font = isMobile ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif") : "11px Arial, sans-serif";
+    const barLabelFont = isMobile
+        ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif")
+        : "8px Arial, sans-serif";
+    const barValueFont = isMobile
+        ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif")
+        : "11px Arial, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 
@@ -494,6 +500,7 @@ export function drawBarGraph(canvas, data) {
         ctx.lineWidth = 1;
         ctx.strokeRect(x, y, barWidth, barHeight);
 
+        ctx.font = barLabelFont;
         ctx.fillStyle = textColor;
         if (isMobile) {
             ctx.save();
@@ -508,9 +515,18 @@ export function drawBarGraph(canvas, data) {
         }
 
         if (item.value > 0) {
-            ctx.font = isMobile ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif") : "11px Arial, sans-serif";
+            ctx.font = barValueFont;
             ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
             ctx.fillText(Math.round(item.value), x + barWidth / 2, y - 14);
         }
     });
+
+    if (isMobile) {
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, axisBottomY);
+        ctx.lineTo(width - padding.right, axisBottomY);
+        ctx.stroke();
+    }
 }
