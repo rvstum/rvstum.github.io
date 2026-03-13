@@ -14,6 +14,7 @@ import {
 import { db } from "./client.js";
 import { FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
 import { calculateRankFromData } from "./scoring.js";
+import * as ScoreManager from "./scoreManager.js";
 import * as UserService from "./userService.js";
 import { resolveProfileAccountId, resolveProfileSlug, resolveProfileUsername } from "./slugs.js";
 
@@ -71,8 +72,16 @@ function parseRankIndexFromName(rankName) {
     return 0;
 }
 
-function deriveRankIndex(userData = {}) {
+function normalizeRankSourceData(userData = {}) {
     const safeData = safeObject(userData);
+    return {
+        ...safeData,
+        scores: ScoreManager.normalizeSavedScoresRecord(safeData.scores)
+    };
+}
+
+function deriveRankIndex(userData = {}) {
+    const safeData = normalizeRankSourceData(userData);
     const profile = safeObject(safeData.profile);
     const settings = safeObject(safeData.settings);
     let best = clampRankIndex(calculateRankFromData(safeData));

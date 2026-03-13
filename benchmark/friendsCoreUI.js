@@ -6,6 +6,7 @@ import { calculateRankFromData } from "./scoring.js";
 import * as Slugs from "./slugs.js";
 import * as FriendsService from "./friendsService.js";
 import * as UserService from "./userService.js";
+import * as ScoreManager from "./scoreManager.js";
 import { getFlagUrl, normalizeFriendRequestIds } from "./utils.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 
@@ -75,8 +76,16 @@ function parseRankIndexFromName(rankName) {
     return 0;
 }
 
-function deriveRankIndexFromUserData(userData = {}) {
+function normalizeRankSourceData(userData = {}) {
     const safeData = safeObject(userData);
+    return {
+        ...safeData,
+        scores: ScoreManager.normalizeSavedScoresRecord(safeData.scores)
+    };
+}
+
+function deriveRankIndexFromUserData(userData = {}) {
+    const safeData = normalizeRankSourceData(userData);
     let best = normalizeRankIndex(calculateRankFromData(safeData));
 
     [
@@ -279,7 +288,9 @@ function defaultOpenFriendProfile(entry) {
 
     const publicSlug = pickFirstString(snapshot.publicSlug, entry.publicSlug);
     if (!publicSlug) return;
-    window.location.href = Slugs.buildViewModePathFromSlug(publicSlug);
+    const targetUrl = new URL(Slugs.buildViewModePathFromSlug(publicSlug), window.location.origin);
+    if (uid) targetUrl.searchParams.set("id", uid);
+    window.location.href = `${targetUrl.pathname}${targetUrl.search}`;
 }
 
 export function configure(deps = {}) {
@@ -322,6 +333,23 @@ export function buildSnapshotFromUserData(userData = {}, fallback = {}, director
     const profile = safeObject(safeData.profile);
     const safeFallback = safeObject(fallback);
     const safeDirectoryData = safeObject(directoryData);
+    const resolvedUsername = pickFirstString(
+        safeData.username,
+        profile.username,
+        safeDirectoryData.username,
+        safeFallback.username
+    );
+    const resolvedAccountId = pickFirstString(
+        safeData.accountId,
+        profile.accountId,
+        safeDirectoryData.accountId,
+        safeFallback.accountId
+    );
+    const explicitPublicSlug = pickFirstString(
+        safeData.publicSlug,
+        safeDirectoryData.publicSlug,
+        safeFallback.publicSlug
+    );
     const rankName = pickFirstString(
         safeData.currentRank,
         profile.currentRank,
@@ -345,32 +373,20 @@ export function buildSnapshotFromUserData(userData = {}, fallback = {}, director
         : (RANK_NAMES[rankIndex] || RANK_NAMES[0] || "Unranked");
     return {
         uid: normalizeUid(pickFirstString(safeFallback.uid, safeData.uid)),
-        username: pickFirstString(
-            safeData.username,
-            profile.username,
-            safeDirectoryData.username,
-            safeFallback.username,
-            t("unknown_player")
-        ),
-        accountId: pickFirstString(
-            safeData.accountId,
-            profile.accountId,
-            safeDirectoryData.accountId,
-            safeFallback.accountId
-        ),
+        username: resolvedUsername,
+        accountId: resolvedAccountId,
         rankIndex,
         rankName: resolvedRankName,
         flag: pickFirstString(profile.flag, safeData.flag, safeDirectoryData.flag, safeFallback.flag),
         pic: pickFirstString(profile.pic, safeData.pic, safeDirectoryData.pic, safeFallback.pic),
-        publicSlug: pickFirstString(
-            safeData.publicSlug,
-            safeDirectoryData.publicSlug,
-            safeFallback.publicSlug,
-            Slugs.resolveProfileSlug(safeData, {
-                usernameFallback: pickFirstString(safeData.username, profile.username, "player"),
-                accountIdFallback: pickFirstString(safeData.accountId, profile.accountId, safeDirectoryData.accountId, safeFallback.accountId),
-                uid: pickFirstString(safeFallback.uid, safeData.uid)
-            })
+        publicSlug: explicitPublicSlug || (
+            resolvedUsername || resolvedAccountId
+                ? Slugs.resolveProfileSlug(safeData, {
+                    usernameFallback: resolvedUsername || "player",
+                    accountIdFallback: resolvedAccountId,
+                    uid: pickFirstString(safeFallback.uid, safeData.uid)
+                })
+                : ""
         )
     };
 }
@@ -401,6 +417,42 @@ async function safeLoadFriendEdges(loader, label) {
         console.warn(`[friends] ${label} unavailable; falling back to mirrored user data.`, error);
         return [];
     }
+}
+
+async function resolveDirectoryDataWithFallback(uid, fallbackSnapshot = null) {
+    const normalizedUid = normalizeUid(uid);
+    const safeFallback = safeObject(fallbackSnapshot);
+    try {
+        const byUid = await UserService.resolveAccountDirectoryEntryByUid(normalizedUid);
+        if (byUid) return byUid;
+    } catch (error) {
+        const code = typeof error?.code === "string" ? error.code : "";
+        if (code !== "permission-denied" && code !== "not-found") throw error;
+    }
+
+    const fallbackAccountId = pickFirstString(safeFallback.accountId);
+    if (fallbackAccountId) {
+        try {
+            const byAccountId = await UserService.resolveAccountDirectoryEntry(fallbackAccountId);
+            if (byAccountId) return byAccountId;
+        } catch (error) {
+            const code = typeof error?.code === "string" ? error.code : "";
+            if (code !== "permission-denied" && code !== "not-found") throw error;
+        }
+    }
+
+    const fallbackSlug = pickFirstString(safeFallback.publicSlug);
+    if (fallbackSlug) {
+        try {
+            const bySlug = await UserService.resolveAccountDirectoryEntryByPublicSlug(fallbackSlug);
+            if (bySlug) return bySlug;
+        } catch (error) {
+            const code = typeof error?.code === "string" ? error.code : "";
+            if (code !== "permission-denied" && code !== "not-found") throw error;
+        }
+    }
+
+    return null;
 }
 
 export async function resolveTargetUidFromIdentifier(identifier, currentUserData = null) {
@@ -448,12 +500,7 @@ export async function hydrateUserRecord(uid, fallbackSnapshot = null) {
     const [userDoc] = await Promise.all([
         safeResolveReadableUserDoc(normalizedUid),
         (async () => {
-            try {
-                directoryData = await UserService.resolveAccountDirectoryEntryByUid(normalizedUid);
-            } catch (error) {
-                const code = typeof error?.code === "string" ? error.code : "";
-                if (code !== "permission-denied" && code !== "not-found") throw error;
-            }
+            directoryData = await resolveDirectoryDataWithFallback(normalizedUid, fallbackSnapshot);
         })()
     ]);
 

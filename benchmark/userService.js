@@ -4,6 +4,7 @@ import { normalizeFriendRequestIds } from "./utils.js";
 import { FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
 import { calculateRankFromData } from "./scoring.js";
 import { buildProfileSlug } from "./slugs.js?v=20260310-public-slug-directory-1";
+import * as ScoreManager from "./scoreManager.js";
 
 const ACCOUNT_DIRECTORY_COLLECTION = "publicAccountDirectory";
 const FRIEND_REQUESTS_COLLECTION = "friendRequests";
@@ -87,8 +88,16 @@ function parseRankIndexFromName(rankName) {
     return 0;
 }
 
-function derivePublicRankIndex(userData = {}) {
+function normalizeRankSourceData(userData = {}) {
     const safeData = userData && typeof userData === "object" ? userData : {};
+    return {
+        ...safeData,
+        scores: ScoreManager.normalizeSavedScoresRecord(safeData.scores)
+    };
+}
+
+function derivePublicRankIndex(userData = {}) {
+    const safeData = normalizeRankSourceData(userData);
     const settings = safeData.settings && typeof safeData.settings === "object" ? safeData.settings : {};
     const profile = safeData.profile && typeof safeData.profile === "object" ? safeData.profile : {};
     let best = clampRankIndex(calculateRankFromData(safeData));
@@ -205,6 +214,19 @@ export async function resolveAccountDirectoryEntryByUid(uid) {
     if (!normalizedUid) return null;
     try {
         const directorySnap = await getDocs(query(collection(db, ACCOUNT_DIRECTORY_COLLECTION), where("uid", "==", normalizedUid)));
+        if (directorySnap.empty) return null;
+        return directorySnap.docs[0].data() || null;
+    } catch (e) {
+        if (!isPermissionLikeError(e)) throw e;
+        return null;
+    }
+}
+
+export async function resolveAccountDirectoryEntryByPublicSlug(publicSlug) {
+    const normalizedSlug = typeof publicSlug === "string" ? publicSlug.trim() : "";
+    if (!normalizedSlug) return null;
+    try {
+        const directorySnap = await getDocs(query(collection(db, ACCOUNT_DIRECTORY_COLLECTION), where("publicSlug", "==", normalizedSlug)));
         if (directorySnap.empty) return null;
         return directorySnap.docs[0].data() || null;
     } catch (e) {

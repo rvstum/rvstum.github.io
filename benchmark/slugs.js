@@ -183,10 +183,20 @@ export function updateViewProfileUrl(data, uid) {
         }
         return;
     }
+    const url = new URL(window.location.href);
     const targetPath = buildViewModePathFromSlug(slug);
-    const currentPath = (window.location.pathname || '').replace(/\/+$/, '');
-    if (currentPath !== targetPath) {
-        window.history.replaceState({}, '', targetPath);
+    const preserveIdFallback = url.searchParams.has("id");
+    url.pathname = targetPath;
+    if (preserveIdFallback && uid) {
+        url.searchParams.set("id", uid);
+    } else {
+        url.searchParams.delete("id");
+    }
+    url.hash = "";
+    const target = `${url.pathname}${url.search}`;
+    const current = `${window.location.pathname}${window.location.search}`;
+    if (current !== target) {
+        window.history.replaceState({}, '', target);
     }
 }
 
@@ -223,5 +233,16 @@ export async function resolveProfileDocBySlug(slug, signedInViewer) {
     }
 
     if (!signedInViewer) return null;
+
+    try {
+        const userSlugQuery = query(collection(db, 'users'), where('publicSlug', '==', trimmedSlug));
+        const userSlugSnap = await getDocs(userSlugQuery);
+        if (!userSlugSnap.empty) {
+            return userSlugSnap.docs[0];
+        }
+    } catch (e) {
+        console.warn('users publicSlug query failed:', e);
+    }
+
     return null;
 }

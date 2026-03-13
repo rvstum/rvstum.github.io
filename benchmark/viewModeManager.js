@@ -41,6 +41,19 @@ function normalizeRecord(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
+function normalizeViewModeData(data = {}) {
+    const safeData = data && typeof data === "object" ? data : {};
+    return {
+        ...safeData,
+        scores: ScoreManager.normalizeSavedScoresRecord(safeData.scores),
+        caveLinks: normalizeRecord(safeData.caveLinks),
+        configThemes: normalizeRecord(safeData.configThemes),
+        achievements: (safeData.achievements && typeof safeData.achievements === "object" && !Array.isArray(safeData.achievements))
+            ? safeData.achievements
+            : {}
+    };
+}
+
 function normalizeGuildList(list) {
     if (!Array.isArray(list)) return [];
     return [...new Set(
@@ -247,7 +260,7 @@ export function clearViewModeChrome() {
 }
 
 function applyViewModeDataSnapshot(data) {
-    state.savedScores = normalizeRecord(data.scores);
+    state.savedScores = ScoreManager.normalizeSavedScoresRecord(data.scores);
     state.savedCaveLinks = normalizeRecord(data.caveLinks);
     state.savedConfigThemes = normalizeRecord(data.configThemes);
 
@@ -452,17 +465,19 @@ export async function enterViewMode(data, uid) {
         return;
     }
 
+    const normalizedData = normalizeViewModeData(data);
+
     hidePrivateProfileOverlay();
     ScoreManager.saveCurrentScores();
-    updateViewProfileUrl(data, uid);
+    updateViewProfileUrl(normalizedData, uid);
     if (user) {
         syncAuthenticatedBackNavigationGuard({ enabled: true });
     }
 
-    const profile = (data && typeof data.profile === "object" && data.profile) ? data.profile : {};
-    const resolvedUsername = Slugs.resolveProfileUsername(data, profile.username || "player");
-    const resolvedAccountId = Slugs.resolveProfileAccountId(data, "");
-    const resolvedPublicSlug = Slugs.resolveProfileSlug(data || {}, {
+    const profile = (normalizedData && typeof normalizedData.profile === "object" && normalizedData.profile) ? normalizedData.profile : {};
+    const resolvedUsername = Slugs.resolveProfileUsername(normalizedData, profile.username || "player");
+    const resolvedAccountId = Slugs.resolveProfileAccountId(normalizedData, "");
+    const resolvedPublicSlug = Slugs.resolveProfileSlug(normalizedData || {}, {
         usernameFallback: resolvedUsername,
         accountIdFallback: resolvedAccountId,
         uid: uid || ""
@@ -472,17 +487,17 @@ export async function enterViewMode(data, uid) {
         username: resolvedUsername,
         accountId: resolvedAccountId,
         publicSlug: resolvedPublicSlug,
-        rankIndex: resolveViewModeRankIndex(data)
+        rankIndex: resolveViewModeRankIndex(normalizedData)
     };
     state.viewerCompareScores = ScoreManager.getSavedScoresSnapshot();
     state.compareViewEnabled = false;
 
     applyViewModeChrome();
-    applyViewModeDataSnapshot(data);
-    const configToUse = resolveBestViewModeConfig(data);
-    applyViewModeConfigAndTheme(data, configToUse);
-    applyViewModeProfileHeader(data);
-    applyViewModeTrophiesAchievementsAndViews(data, uid);
+    applyViewModeDataSnapshot(normalizedData);
+    const configToUse = resolveBestViewModeConfig(normalizedData);
+    applyViewModeConfigAndTheme(normalizedData, configToUse);
+    applyViewModeProfileHeader(normalizedData);
+    applyViewModeTrophiesAchievementsAndViews(normalizedData, uid);
 
     RadarUI.setRadarMode("combined", false);
     RadarUI.updateRadar();
