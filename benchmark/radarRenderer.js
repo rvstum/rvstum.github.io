@@ -426,8 +426,25 @@ export function drawBarGraph(canvas, data) {
 
     const isMobile = isMobileViewport();
     const isSmallMobile = window.innerWidth <= 400;
+    const barLabelFont = isMobile
+        ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif")
+        : "8px Arial, sans-serif";
+    const barValueFont = isMobile
+        ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif")
+        : "11px Arial, sans-serif";
+    let mobileBottomPadding = 54;
+    if (isMobile) {
+        ctx.save();
+        ctx.font = barLabelFont;
+        const maxLabelWidth = data.reduce((maxWidth, item) => {
+            const label = String(item && item.label ? item.label : "");
+            return Math.max(maxWidth, Math.ceil(ctx.measureText(label).width));
+        }, 0);
+        ctx.restore();
+        mobileBottomPadding = Math.max(54, Math.min(92, maxLabelWidth + 14));
+    }
     const padding = isMobile
-        ? { top: 20, bottom: 54, left: 25, right: 5 }
+        ? { top: 20, bottom: mobileBottomPadding, left: 25, right: 5 }
         : { top: 20, bottom: 30, left: 45, right: 10 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
@@ -469,12 +486,6 @@ export function drawBarGraph(canvas, data) {
         }
     }
 
-    const barLabelFont = isMobile
-        ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif")
-        : "8px Arial, sans-serif";
-    const barValueFont = isMobile
-        ? (isSmallMobile ? "9px Arial, sans-serif" : "11px Arial, sans-serif")
-        : "11px Arial, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 

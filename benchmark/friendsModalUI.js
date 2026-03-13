@@ -36,6 +36,15 @@ function resetAddFriendInput() {
     clearAddFriendMessage();
 }
 
+function closeUserMenuDropdown() {
+    const userMenuBox = getCachedElementById("userMenuBox");
+    if (!userMenuBox) return;
+    const dropdownMenu = userMenuBox.querySelector(".dropdown-menu");
+    const arrowIcon = userMenuBox.querySelector(".arrow-icon");
+    if (dropdownMenu) dropdownMenu.classList.remove("show");
+    if (arrowIcon) arrowIcon.classList.remove("rotate");
+}
+
 export function initFriendsModalController(options = {}) {
     const bindModalOverlayQuickClose = typeof options.bindModalOverlayQuickClose === "function"
         ? options.bindModalOverlayQuickClose
@@ -56,6 +65,7 @@ export function initFriendsModalController(options = {}) {
 
     function closeFriendsModal() {
         if (!friendsModal) return;
+        closeUserMenuDropdown();
         friendsModal.classList.add("closing");
         setTimeout(() => {
             friendsModal.classList.remove("show");
@@ -69,6 +79,7 @@ export function initFriendsModalController(options = {}) {
 
     async function openFriendsModal(defaultTab = "friends") {
         if (!friendsModal) return;
+        closeUserMenuDropdown();
         setHidden(friendsModal, false);
         setFlexVisible(friendsModal, true);
         friendsModal.classList.add("show");

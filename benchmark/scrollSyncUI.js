@@ -372,7 +372,7 @@ export function initScoreInputsScrollSync() {
         const handleHorizontalTouchEnd = () => {
             if (isUnifiedMobileScrollMode()) return;
             if (dragAxis === "x") {
-                markRecentMobileHorizontalScroll(220);
+                markRecentMobileHorizontalScroll(MOBILE_HORIZONTAL_SCROLL_GUARD_MS);
                 startMomentum();
             }
             dragAxis = null;
@@ -381,7 +381,7 @@ export function initScoreInputsScrollSync() {
         const handleHorizontalTouchCancel = () => {
             if (isUnifiedMobileScrollMode()) return;
             if (dragAxis === "x") {
-                markRecentMobileHorizontalScroll(220);
+                markRecentMobileHorizontalScroll(MOBILE_HORIZONTAL_SCROLL_GUARD_MS);
             }
             cancelMomentum(true);
             dragAxis = null;
@@ -397,7 +397,7 @@ export function initScoreInputsScrollSync() {
 
         ranksScrollEl.addEventListener("scroll", () => {
             if (isUnifiedMobileScrollMode()) return;
-            markRecentMobileHorizontalScroll(220);
+            markRecentMobileHorizontalScroll(MOBILE_HORIZONTAL_SCROLL_GUARD_MS);
             const targetLeft = ranksScrollEl.scrollLeft + syncOffset;
             syncFromSourceToTarget(ranksScrollEl, scrollEl, targetLeft);
         }, { passive: true });
@@ -405,7 +405,7 @@ export function initScoreInputsScrollSync() {
 
     scrollEl.addEventListener("scroll", () => {
         if (isUnifiedMobileScrollMode()) return;
-        markRecentMobileHorizontalScroll(220);
+        markRecentMobileHorizontalScroll(MOBILE_HORIZONTAL_SCROLL_GUARD_MS);
         const targetLeft = scrollEl.scrollLeft - syncOffset;
         syncFromSourceToTarget(scrollEl, ranksScrollEl, targetLeft);
     }, { passive: true });
@@ -496,13 +496,17 @@ export function initScoreInputsScrollSync() {
     let recentMobileSelectionGroupKey = "";
     let recentMobileSelectionUntil = 0;
     let pendingMobileRowTap = null;
+    let pendingMobileScoreBoxTap = null;
     let ignoreMobileTapClicksUntil = 0;
+    const MOBILE_HORIZONTAL_SCROLL_GUARD_MS = 120;
+    const MOBILE_SCORE_BOX_TAP_MAX_DISTANCE_SQ = 196;
+    const MOBILE_SCORE_BOX_TAP_MAX_DURATION_MS = 260;
     const getNowTs = () => (
         typeof performance !== "undefined" && typeof performance.now === "function"
             ? performance.now()
             : Date.now()
     );
-    const markRecentMobileHorizontalScroll = (durationMs = 320) => {
+    const markRecentMobileHorizontalScroll = (durationMs = MOBILE_HORIZONTAL_SCROLL_GUARD_MS) => {
         if (isDesktopLayoutMode()) return;
         mobileHorizontalScrollHintUntil = Math.max(mobileHorizontalScrollHintUntil, getNowTs() + durationMs);
     };
@@ -524,7 +528,7 @@ export function initScoreInputsScrollSync() {
         recentMobileSelectionGroupKey = "";
         recentMobileSelectionUntil = 0;
     };
-    const markRecentMobileSelectionGroup = (group, durationMs = 280) => {
+    const markRecentMobileSelectionGroup = (group, durationMs = 0) => {
         if (isDesktopLayoutMode()) return;
         const key = getGroupKey(group);
         if (!key) {
@@ -543,7 +547,28 @@ export function initScoreInputsScrollSync() {
     const clearPendingMobileRowTap = () => {
         pendingMobileRowTap = null;
     };
-    const armIgnoreMobileTapClicks = (durationMs = 420) => {
+    const clearPendingMobileScoreBoxTap = () => {
+        pendingMobileScoreBoxTap = null;
+    };
+    const getPendingTapMovementSq = (pendingTap, event) => {
+        if (!pendingTap || !event) return Number.POSITIVE_INFINITY;
+        const deltaX = event.clientX - pendingTap.startX;
+        const deltaY = event.clientY - pendingTap.startY;
+        return (deltaX * deltaX) + (deltaY * deltaY);
+    };
+    const isPendingTapResolved = (
+        pendingTap,
+        event,
+        maxDistanceSq = 100,
+        maxDurationMs = Number.POSITIVE_INFINITY
+    ) => {
+        if (!pendingTap || !event) return false;
+        if (getPendingTapMovementSq(pendingTap, event) > maxDistanceSq) return false;
+        const startedAt = Number(pendingTap.startTs);
+        if (!Number.isFinite(startedAt)) return true;
+        return (getNowTs() - startedAt) <= maxDurationMs;
+    };
+    const armIgnoreMobileTapClicks = (durationMs = 90) => {
         if (isDesktopLayoutMode()) return;
         ignoreMobileTapClicksUntil = getNowTs() + durationMs;
     };
@@ -561,7 +586,7 @@ export function initScoreInputsScrollSync() {
                 panelsScrollEl.scrollLeft = clamped;
             }
             if (Math.abs(clamped - lastPanelsScrollLeft) > 1.5) {
-                markRecentMobileHorizontalScroll(220);
+                markRecentMobileHorizontalScroll(MOBILE_HORIZONTAL_SCROLL_GUARD_MS);
             }
             lastPanelsScrollLeft = clamped;
             syncMobileFloatingOffsets(0);
@@ -793,6 +818,17 @@ export function initScoreInputsScrollSync() {
             applyGroupOutlineVars(group);
         }
     };
+    const forceGroupSelectionRefresh = (group) => {
+        if (!Array.isArray(group) || !group.length) return;
+        clearRowSelection();
+        group.forEach((idx) => {
+            const row = ranksBars[idx];
+            if (!row) return;
+            void row.offsetWidth;
+        });
+        applyGroupSelection(group);
+        markRecentMobileSelectionGroup(group);
+    };
     const getGroupForRowIndex = (rowIndex) => stripeGroups.find((g) => g.includes(rowIndex));
     const selectGroupForRowIndex = (rowIndex) => {
         if (isDesktopDismissBlocked()) return;
@@ -800,6 +836,16 @@ export function initScoreInputsScrollSync() {
         clearRowSelection();
         applyGroupSelection(group);
         markRecentMobileSelectionGroup(group);
+    };
+    const handleMobileScoreBoxSelection = (rowIndex, event) => {
+        if (isDesktopLayoutMode()) return false;
+        if (event && event.pointerType === "mouse") return false;
+        clearPendingMobileBlurClear();
+        clearPendingBlurDismissSelection();
+        clearSelectionClickSuppression();
+        if (hasRecentMobileHorizontalScroll()) return false;
+        selectGroupForRowIndex(rowIndex);
+        return true;
     };
     const prepareDesktopSelectionTransfer = () => {
         if (isMobileLayoutMode()) return;
@@ -818,6 +864,10 @@ export function initScoreInputsScrollSync() {
         const group = getGroupForRowIndex(rowIndex);
         const isActive = groupIsSelected(group);
         const preserveRecentMobileSelection = isActive && shouldPreserveRecentMobileSelection(group);
+        if (isMobileLayoutMode() && isActive && preserveRecentMobileSelection) {
+            forceGroupSelectionRefresh(group);
+            return;
+        }
         clearRowSelection();
         if (!isActive || preserveRecentMobileSelection) {
             applyGroupSelection(group);
@@ -999,6 +1049,7 @@ export function initScoreInputsScrollSync() {
         clearDesktopSelectionTransfer();
         clearRecentMobileSelectionGroup();
         clearPendingMobileRowTap();
+        clearPendingMobileScoreBoxTap();
     });
 
     document.querySelectorAll(".score-input").forEach((input, i) => {
@@ -1015,6 +1066,43 @@ export function initScoreInputsScrollSync() {
         });
         const wrapper = input.closest(".score-input-wrapper");
         if (wrapper) {
+            wrapper.addEventListener("pointerdown", (e) => {
+                if (isDesktopLayoutMode()) return;
+                if (e.pointerType === "mouse") return;
+                if (e.target.closest(".sub-score-popout")) return;
+                pendingMobileScoreBoxTap = {
+                    rowIndex: i,
+                    pointerId: e.pointerId,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    startTs: getNowTs()
+                };
+            });
+            wrapper.addEventListener("pointermove", (e) => {
+                if (!pendingMobileScoreBoxTap) return;
+                if (pendingMobileScoreBoxTap.pointerId !== e.pointerId || pendingMobileScoreBoxTap.rowIndex !== i) return;
+                if (getPendingTapMovementSq(pendingMobileScoreBoxTap, e) > MOBILE_SCORE_BOX_TAP_MAX_DISTANCE_SQ) {
+                    clearPendingMobileScoreBoxTap();
+                }
+            });
+            wrapper.addEventListener("pointercancel", clearPendingMobileScoreBoxTap);
+            wrapper.addEventListener("pointerup", (e) => {
+                if (isDesktopLayoutMode()) return;
+                if (e.pointerType === "mouse") return;
+                if (!pendingMobileScoreBoxTap) return;
+                if (pendingMobileScoreBoxTap.pointerId !== e.pointerId || pendingMobileScoreBoxTap.rowIndex !== i) return;
+                const resolvedTap = isPendingTapResolved(
+                    pendingMobileScoreBoxTap,
+                    e,
+                    MOBILE_SCORE_BOX_TAP_MAX_DISTANCE_SQ,
+                    MOBILE_SCORE_BOX_TAP_MAX_DURATION_MS
+                );
+                clearPendingMobileScoreBoxTap();
+                if (!resolvedTap) return;
+                if (e.target.closest(".sub-score-popout")) return;
+                if (!handleMobileScoreBoxSelection(i, e)) return;
+                e.stopPropagation();
+            });
             wrapper.addEventListener("mousedown", (e) => {
                 if (isMobileLayoutMode()) return;
                 e.stopPropagation();
@@ -1033,6 +1121,7 @@ export function initScoreInputsScrollSync() {
             });
             wrapper.addEventListener("click", (e) => {
                 e.stopPropagation();
+                if (isMobileLayoutMode()) return;
                 if (!isViewModeActive()) return;
                 if (isDesktopLayoutMode()) return;
                 clearPendingBlurDismissSelection();
@@ -1067,8 +1156,7 @@ export function initScoreInputsScrollSync() {
             scoreInputFocused = true;
             document.body.classList.add("score-input-focused");
             if (isDesktopLayoutMode()) return;
-            clearRowSelection();
-            clearRecentMobileSelectionGroup();
+            selectGroupForRowIndex(i);
         });
         input.addEventListener("blur", (e) => {
             document.body.classList.remove("score-input-focused");

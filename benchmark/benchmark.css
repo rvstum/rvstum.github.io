@@ -3124,6 +3124,9 @@ body:not(.mobile-layout-active) .score-input-wrapper:focus-within {
 
 body.mobile-layout-active .score-input-wrapper:focus-within {
     --score-content-offset-inline: 0px;
+    transform: none !important;
+    transition: none !important;
+    will-change: auto !important;
 }
 
 body.mobile-layout-active .score-input-wrapper:focus-within .score-input {
@@ -6440,6 +6443,7 @@ body.view-mode .achievement-proof-upload.has-image {
 
     #userMenuBox .dropdown-menu .dropdown-item {
         font-size: 11px;
+        height: 40px;
     }
 
     .user-menu-wrapper {
@@ -8468,6 +8472,7 @@ body.mobile-layout-active .rounded-inner-box {
 }
 
 body.mobile-layout-active .info-icon {
+    top: calc(var(--mobile-header-top) + (var(--mobile-header-height) / 2) - (25px * var(--mobile-scale))) !important;
     transform: translateY(-50%) !important;
 }
 
@@ -8755,6 +8760,15 @@ html.mobile-viewport-guard body.benchmark-keyboard-open .share-modal-overlay.sho
     max-height: calc(var(--mobile-safe-vh, 100dvh) - 24px) !important;
     overscroll-behavior-y: contain !important;
     touch-action: pan-y !important;
+}
+
+html.mobile-viewport-guard body.benchmark-keyboard-open {
+    min-height: var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh)) !important;
+}
+
+html.mobile-viewport-guard body.benchmark-keyboard-open #responsive-wrapper {
+    height: var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh)) !important;
+    min-height: var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh)) !important;
 }
 
 html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open #trophyModal.show {

@@ -445,6 +445,10 @@ export function setupScoreInputHandlers(options = {}) {
         if (!input || !subInput) return;
 
         const focusMainInput = () => {
+            if (state.isViewMode || !auth.currentUser) return;
+            if (document.activeElement === input) return;
+            input.focus({ preventScroll: true });
+            if (document.activeElement === input) return;
             requestAnimationFrame(() => {
                 if (state.isViewMode || !auth.currentUser) return;
                 if (document.activeElement === input) return;

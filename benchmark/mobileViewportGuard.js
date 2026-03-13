@@ -29,10 +29,19 @@
             );
     }
 
+    function isScoreInputShellTarget(target) {
+        return target instanceof Element
+            && !!(
+                target.closest
+                && target.closest(".score-input-wrapper, .sub-score-popout, .compare-score-popout")
+            );
+    }
+
     function isBenchmarkManagedTarget(target) {
         return target instanceof Element
             && !!(
                 isScoreInputTarget(target)
+                || isScoreInputShellTarget(target)
                 || (
                     target.closest
                     && target.closest(
@@ -237,7 +246,7 @@
 
     document.addEventListener("touchend", function (event) {
         var now = Date.now();
-        if (isCropperTarget(event.target)) {
+        if (isCropperTarget(event.target) || isScoreInputShellTarget(event.target)) {
             lastTouchEndAt = 0;
             return;
         }
