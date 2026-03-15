@@ -524,7 +524,6 @@ function registerRootServiceWorker() {
         navigator.serviceWorker.addEventListener("controllerchange", () => {
             if (window.sessionStorage.getItem(mobileReloadFlag) === "done") return;
             window.sessionStorage.setItem(mobileReloadFlag, "done");
-            window.location.reload();
         }, { once: true });
     };
 
