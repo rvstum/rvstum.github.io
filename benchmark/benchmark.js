@@ -501,10 +501,16 @@ async function resetLocalDevCaches() {
 
 function registerRootServiceWorker() {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+    if (isMobileViewport()) {
+        try {
+            window.sessionStorage.removeItem("__benchmark_mobile_sw_disabled__");
+            window.sessionStorage.removeItem("__benchmark_mobile_sw_controller_reload__");
+        } catch (_) {}
+        return;
+    }
 
     const { hostname } = window.location;
     if (hostname === "localhost" || hostname === "127.0.0.1") return;
-    const skipServiceWorkerForInitialMobileRestoreBoot = isMobileViewport() && AuthManager.isLoginAuthBootstrapPending();
     const mobileReloadFlag = "__benchmark_mobile_sw_controller_reload__";
     const clearMobileReloadState = () => {
         try {
@@ -541,10 +547,6 @@ function registerRootServiceWorker() {
     };
 
     window.addEventListener("load", () => {
-        if (skipServiceWorkerForInitialMobileRestoreBoot) {
-            clearMobileReloadState();
-            return;
-        }
         armMobileControllerReload();
         navigator.serviceWorker.register("../service-worker.js")
             .then((registration) => {
