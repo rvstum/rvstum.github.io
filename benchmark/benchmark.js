@@ -111,6 +111,7 @@ import { hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260309
 
 const PAGE_LOADER_MIN_VISIBLE_MS = 1300;
 const LAST_ACTIVE_AUTH_UID_STORAGE_KEY = "benchmark_last_active_user_uid";
+const MOBILE_SW_CLEANUP_SESSION_KEY = "__benchmark_mobile_sw_cleanup_done__";
 let settingsUIController = null;
 let friendsModalController = null;
 let confirmModalController = null;
@@ -523,9 +524,49 @@ async function resetLocalDevCaches() {
     return true;
 }
 
+function cleanupMobileServiceWorkerControl() {
+    if (typeof window === "undefined") return;
+    if (!isMobileViewport()) return;
+    if (!("serviceWorker" in navigator) && !("caches" in window)) return;
+    try {
+        const cleanupState = window.sessionStorage.getItem(MOBILE_SW_CLEANUP_SESSION_KEY);
+        if (cleanupState === "done" || cleanupState === "running") {
+            return;
+        }
+        window.sessionStorage.setItem(MOBILE_SW_CLEANUP_SESSION_KEY, "running");
+    } catch (_) {}
+
+    const unregisterPromise = "serviceWorker" in navigator
+        ? navigator.serviceWorker.getRegistrations()
+            .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+            .catch(() => [])
+        : Promise.resolve([]);
+    const cacheCleanupPromise = "caches" in window
+        ? caches.keys()
+            .then((cacheNames) => Promise.all(
+                cacheNames
+                    .filter((cacheName) => /^kdassist-/i.test(String(cacheName || "")))
+                    .map((cacheName) => caches.delete(cacheName))
+            ))
+            .catch(() => [])
+        : Promise.resolve([]);
+    Promise.all([unregisterPromise, cacheCleanupPromise])
+        .then(() => {
+            try {
+                window.sessionStorage.setItem(MOBILE_SW_CLEANUP_SESSION_KEY, "done");
+            } catch (_) {}
+        })
+        .catch(() => {
+            try {
+                window.sessionStorage.removeItem(MOBILE_SW_CLEANUP_SESSION_KEY);
+            } catch (_) {}
+        });
+}
+
 function registerRootServiceWorker() {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
     if (isMobileViewport()) {
+        cleanupMobileServiceWorkerControl();
         try {
             window.sessionStorage.removeItem("__benchmark_mobile_sw_disabled__");
             window.sessionStorage.removeItem("__benchmark_mobile_sw_controller_reload__");

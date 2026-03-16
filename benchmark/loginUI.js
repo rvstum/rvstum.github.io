@@ -19,7 +19,9 @@ const LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
 const LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
 const LOGIN_BOOT_WINDOW_SESSION_KEY = "__benchmark_login_boot_window__";
 const LOGIN_BOOT_WINDOW_MS = 45000;
+const MOBILE_SW_CLEANUP_SESSION_KEY = "__benchmark_mobile_sw_cleanup_done__";
 let authNavigationInFlight = false;
+let mobileServiceWorkerCleanupPromise = null;
 
 function normalizeLoginPath() {
     const lowerPath = (window.location.pathname || "").toLowerCase();
@@ -30,6 +32,60 @@ function normalizeLoginPath() {
 
 function resolveSignedInUrl() {
     return `${getBenchmarkBasePath()}/benchmark.html`;
+}
+
+function isLikelyMobileClient() {
+    try {
+        if (window.matchMedia && window.matchMedia("(max-width: 980px)").matches) {
+            return true;
+        }
+    } catch (e) {
+        // ignore viewport detection issues and fall back to user agent detection
+    }
+    const userAgent = typeof navigator !== "undefined" ? String(navigator.userAgent || "") : "";
+    return /android|iphone|ipad|ipod|mobile/i.test(userAgent);
+}
+
+function cleanupMobileServiceWorkerControl() {
+    if (typeof window === "undefined") return Promise.resolve(false);
+    if (!isLikelyMobileClient()) return Promise.resolve(false);
+    if (!("serviceWorker" in navigator) && !("caches" in window)) return Promise.resolve(false);
+    try {
+        const cleanupState = window.sessionStorage.getItem(MOBILE_SW_CLEANUP_SESSION_KEY);
+        if (cleanupState === "done" || cleanupState === "running") {
+            return Promise.resolve(false);
+        }
+        window.sessionStorage.setItem(MOBILE_SW_CLEANUP_SESSION_KEY, "running");
+    } catch (e) {
+        // ignore storage availability errors
+    }
+    const unregisterPromise = "serviceWorker" in navigator
+        ? navigator.serviceWorker.getRegistrations()
+            .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+            .catch(() => [])
+        : Promise.resolve([]);
+    const cacheCleanupPromise = "caches" in window
+        ? caches.keys()
+            .then((cacheNames) => Promise.all(
+                cacheNames
+                    .filter((cacheName) => /^kdassist-/i.test(String(cacheName || "")))
+                    .map((cacheName) => caches.delete(cacheName))
+            ))
+            .catch(() => [])
+        : Promise.resolve([]);
+    return Promise.all([unregisterPromise, cacheCleanupPromise])
+        .then(() => {
+            try {
+                window.sessionStorage.setItem(MOBILE_SW_CLEANUP_SESSION_KEY, "done");
+            } catch (e) {}
+            return true;
+        })
+        .catch(() => {
+            try {
+                window.sessionStorage.removeItem(MOBILE_SW_CLEANUP_SESSION_KEY);
+            } catch (e) {}
+            return false;
+        });
 }
 
 function getCurrentPathWithSearch() {
@@ -81,6 +137,12 @@ async function navigateAfterLogin(user, options = {}) {
 
     clearLegacyAutoRestoreBootstrap();
     armLoginAuthBootstrap(source);
+    if (mobileServiceWorkerCleanupPromise) {
+        await Promise.race([
+            mobileServiceWorkerCleanupPromise.catch(() => false),
+            new Promise((resolve) => setTimeout(resolve, 900))
+        ]);
+    }
     if (currentPath === targetPath) {
         authNavigationInFlight = false;
         return;
@@ -112,6 +174,7 @@ function clearLoginRedirectGuards() {
 
 export function initLoginUI() {
     normalizeLoginPath();
+    mobileServiceWorkerCleanupPromise = cleanupMobileServiceWorkerControl();
 
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
