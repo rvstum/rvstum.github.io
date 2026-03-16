@@ -7690,11 +7690,16 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 
     #friendsModal .settings-header {
-        padding: 0 4px 8px;
+        padding: 0 30px 8px;
     }
 
     #friendsModal .settings-title {
         font-size: 16px;
+    }
+
+    #friendsModal .settings-title-inline-icon {
+        width: 100%;
+        justify-content: center;
     }
 
     #friendsModal .settings-subtitle {
@@ -8859,11 +8864,17 @@ html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open
     }
 
     #friendsModal .settings-header {
+        padding-left: 34px;
         padding-right: 34px;
     }
 
     #friendsModal .settings-title {
         font-size: clamp(15px, 4.2vw, 18px);
+    }
+
+    #friendsModal .settings-title-inline-icon {
+        width: 100%;
+        justify-content: center;
     }
 
     #friendsModal .settings-subtitle {
