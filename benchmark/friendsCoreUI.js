@@ -74,12 +74,13 @@ function pickFirstString(...values) {
     return "";
 }
 
-function pickFirstNumber(...values) {
-    for (const value of values) {
-        const numeric = Number(value);
-        if (Number.isFinite(numeric)) return numeric;
-    }
-    return 0;
+function pickHighestRankIndex(...values) {
+    let best = 0;
+    values.forEach((value) => {
+        const candidate = normalizeRankIndex(value);
+        if (candidate > best) best = candidate;
+    });
+    return best;
 }
 
 function normalizeRankIndex(value) {
@@ -185,15 +186,13 @@ function resolveEntryRankIndex(entry) {
     const snapshot = safeObject(entry && entry.snapshot);
     const data = safeObject(entry && entry.data);
     const profile = safeObject(data.profile);
-    let best = normalizeRankIndex(
-        pickFirstNumber(
-            snapshot.rankIndex,
-            data.rankIndex,
-            data.maxRankIndex,
-            profile.rankIndex,
-            profile.maxRankIndex,
-            deriveRankIndexFromUserData(data)
-        )
+    let best = pickHighestRankIndex(
+        snapshot.rankIndex,
+        data.rankIndex,
+        data.maxRankIndex,
+        profile.rankIndex,
+        profile.maxRankIndex,
+        deriveRankIndexFromUserData(data)
     );
 
     [
@@ -387,16 +386,14 @@ export function buildSnapshotFromUserData(userData = {}, fallback = {}, director
         safeFallback.rankName
     );
     const parsedRankIndex = parseRankIndexFromName(rankName);
-    const explicitRankIndex = normalizeRankIndex(
-        pickFirstNumber(
-            safeData.rankIndex,
-            safeData.maxRankIndex,
-            profile.rankIndex,
-            profile.maxRankIndex,
-            safeDirectoryData.rankIndex,
-            safeFallback.rankIndex,
-            deriveRankIndexFromUserData(safeData)
-        )
+    const explicitRankIndex = pickHighestRankIndex(
+        safeData.rankIndex,
+        safeData.maxRankIndex,
+        profile.rankIndex,
+        profile.maxRankIndex,
+        safeDirectoryData.rankIndex,
+        safeFallback.rankIndex,
+        deriveRankIndexFromUserData(safeData)
     );
     const rankIndex = parsedRankIndex > explicitRankIndex ? parsedRankIndex : explicitRankIndex;
     const resolvedRankName = parsedRankIndex >= rankIndex

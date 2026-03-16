@@ -66,6 +66,7 @@ import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260311-friends-layout-8";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
+import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
 import * as ViewModeManager from "./viewModeManager.js?v=20260311-view-mode-compare-2";
 import * as ShareManager from "./shareManager.js?v=20260311-desktop-screenshot-warmup-4";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260311-desktop-screenshot-warmup-4";
@@ -975,6 +976,32 @@ async function saveUserData(data) {
     await persistUserData(data, { label: "user data" });
 }
 
+function syncCurrentUserAccountDirectoryPreview(rankIndex) {
+    const user = auth.currentUser;
+    const accountId = getRuntimeAccountId() || (user ? getRememberedAccountIdForUid(user.uid) : "");
+    if (!user || !user.uid || !accountId) {
+        return Promise.resolve(false);
+    }
+
+    const profileName = getCachedQuery("profileName", () => document.querySelector(".profile-name"));
+    const username = (profileName && profileName.textContent
+        ? profileName.textContent
+        : user.displayName || "player").trim() || "player";
+
+    return UserService.syncAccountDirectoryEntry(user.uid, accountId, {
+        username,
+        accountId,
+        rankIndex,
+        profile: {
+            flag: readString(COUNTRY_FLAG_STORAGE_KEY, ""),
+            pic: readString(PROFILE_PIC_STORAGE_KEY, "")
+        },
+        settings: {
+            visibility: visibilitySelect ? visibilitySelect.value : readString(VISIBILITY_STORAGE_KEY, "everyone")
+        }
+    });
+}
+
 async function saveSettings() {
     if (state.isViewMode) return;
     const settings = {
@@ -1252,9 +1279,12 @@ function handleRatingsUpdated() {
         if (rankSyncDebounceTimer) clearTimeout(rankSyncDebounceTimer);
         rankSyncDebounceTimer = setTimeout(() => {
             const rankIndex = Math.floor(state.lastMainRankIndex);
-            saveUserData({
-                profile: { rankIndex }
-            }).catch(() => {});
+            Promise.allSettled([
+                saveUserData({
+                    profile: { rankIndex }
+                }),
+                syncCurrentUserAccountDirectoryPreview(rankIndex)
+            ]).catch(() => {});
         }, 3000);
     }
 }

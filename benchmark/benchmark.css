@@ -8591,6 +8591,20 @@ body.mobile-layout-active .rank-number {
     font-size: var(--mobile-track-font-size-sm) !important;
 }
 
+body.mobile-layout-active .ranks-labels .rank-item:nth-child(11) span,
+body.mobile-layout-active .ranks-labels .rank-item:nth-child(12) span,
+body.mobile-layout-active .ranks-labels .rank-item:nth-child(13) span {
+    animation: none !important;
+    background-position: 50% 50% !important;
+}
+
+body.mobile-layout-active .ranks-labels .rank-item:nth-child(11) .rank-name::before,
+body.mobile-layout-active .ranks-labels .rank-item:nth-child(12) .rank-name::before,
+body.mobile-layout-active .ranks-labels .rank-item:nth-child(13) .rank-name::before {
+    content: none !important;
+    display: none !important;
+}
+
 body.mobile-layout-active .rank-number {
     display: block !important;
     bottom: calc(4px * var(--mobile-scale)) !important;

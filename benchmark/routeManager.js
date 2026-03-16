@@ -181,6 +181,12 @@ export async function handleProfileLink(options = {}) {
         return;
     }
 
+    if (currentUser && currentUser.uid === profileId) {
+        hidePrivateProfileOverlay();
+        hidePageLoader();
+        return;
+    }
+
     showPageLoader();
     const loaderSafetyTimeout = setTimeout(() => {
         hidePageLoader({ immediate: true });

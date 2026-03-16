@@ -56,6 +56,15 @@ function clampRankIndex(value) {
     return Math.max(0, Math.min(FINAL_RANK_INDEX, Math.floor(parsed)));
 }
 
+function pickHighestRankIndex(...values) {
+    let best = 0;
+    values.forEach((value) => {
+        const candidate = clampRankIndex(value);
+        if (candidate > best) best = candidate;
+    });
+    return best;
+}
+
 function parseRankIndexFromTheme(themeName) {
     const value = typeof themeName === "string" ? themeName.trim().toLowerCase() : "";
     if (!value.startsWith("rank-")) return 0;
@@ -142,6 +151,20 @@ function buildSnapshotFromUserData(uid, userData = {}, directoryData = null) {
         resolveProfileAccountId(safeData, ""),
         safeDirectoryData.accountId
     );
+    const explicitRankName = pickNonEmpty(
+        safeData.currentRank,
+        profile.currentRank
+    );
+    const parsedRankIndex = parseRankIndexFromName(explicitRankName);
+    const derivedRankIndex = pickHighestRankIndex(
+        safeData.rankIndex,
+        safeData.maxRankIndex,
+        profile.rankIndex,
+        profile.maxRankIndex,
+        safeDirectoryData.rankIndex,
+        deriveRankIndex(safeData)
+    );
+    const rankIndex = Math.max(parsedRankIndex, derivedRankIndex);
     return {
         uid: normalizeUid(uid),
         username: pickNonEmpty(
@@ -150,21 +173,10 @@ function buildSnapshotFromUserData(uid, userData = {}, directoryData = null) {
             "Unknown Player"
         ),
         accountId,
-        rankIndex: clampRankIndex(
-            pickNonEmpty(
-                safeData.rankIndex,
-                safeData.maxRankIndex,
-                profile.rankIndex,
-                profile.maxRankIndex,
-                safeDirectoryData.rankIndex,
-                deriveRankIndex(safeData)
-            )
-        ),
-        rankName: pickNonEmpty(
-            safeData.currentRank,
-            profile.currentRank,
-            RANK_NAMES[deriveRankIndex(safeData)] || RANK_NAMES[0]
-        ),
+        rankIndex,
+        rankName: parsedRankIndex >= rankIndex && explicitRankName
+            ? explicitRankName
+            : (RANK_NAMES[rankIndex] || RANK_NAMES[0]),
         flag: pickNonEmpty(profile.flag, safeDirectoryData.flag),
         pic: pickNonEmpty(profile.pic, safeDirectoryData.pic),
         publicSlug: pickNonEmpty(
@@ -252,7 +264,7 @@ async function resolveSnapshotForUid(uid, preferredSnapshot = null) {
         getDirectoryDataByUid(normalizedUid)
     ]);
     const resolvedSnapshot = buildSnapshotFromUserData(normalizedUid, userData || {}, directoryData || null);
-    return mergeSnapshots(resolvedSnapshot, preferredSnapshot);
+    return mergeSnapshots(preferredSnapshot, resolvedSnapshot);
 }
 
 async function resolveUidCandidate(primaryValue, aliases = []) {
