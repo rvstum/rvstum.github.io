@@ -28,8 +28,26 @@ function normalizeLoginPath() {
     }
 }
 
-function resolveSignedInUrl() {
-    return `${getBenchmarkBasePath()}/benchmark.html`;
+function shouldUseDelayedHardBoot(source = "") {
+    const normalizedSource = typeof source === "string" ? source.trim().toLowerCase() : "";
+    if (normalizedSource !== "remembered-session") return false;
+    try {
+        if (window.matchMedia && window.matchMedia("(max-width: 980px)").matches) {
+            return true;
+        }
+    } catch (e) {
+        // ignore viewport detection issues and fall back to user agent detection
+    }
+    const userAgent = typeof navigator !== "undefined" ? String(navigator.userAgent || "") : "";
+    return /android|iphone|ipad|ipod|mobile/i.test(userAgent);
+}
+
+function resolveSignedInUrl(options = {}) {
+    const url = new URL(`${getBenchmarkBasePath()}/benchmark.html`, window.location.origin);
+    if (shouldUseDelayedHardBoot(options.source)) {
+        url.searchParams.set("__delayed_hard_boot", "1");
+    }
+    return url.toString();
 }
 
 function getCurrentPathWithSearch() {
@@ -74,7 +92,7 @@ async function navigateAfterLogin(user, options = {}) {
     const source = typeof options.source === "string" && options.source.trim()
         ? options.source.trim()
         : "login";
-    const target = resolveSignedInUrl();
+    const target = resolveSignedInUrl({ source });
     const targetUrl = new URL(target, window.location.origin);
     const currentPath = normalizePath(getCurrentPathWithSearch());
     const targetPath = normalizePath(`${targetUrl.pathname}${targetUrl.search}`);

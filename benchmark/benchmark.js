@@ -159,8 +159,17 @@ function clearTransientBenchmarkBootParams() {
     if (typeof window === "undefined") return;
     try {
         const url = new URL(window.location.href);
-        if (!url.searchParams.has("__hard_boot")) return;
-        url.searchParams.delete("__hard_boot");
+        const transientParams = [
+            "__hard_boot",
+            "__delayed_hard_boot",
+            "__delayed_hard_boot_done",
+            "__delayed_hard_boot_cb"
+        ];
+        const hasTransientParam = transientParams.some((param) => url.searchParams.has(param));
+        if (!hasTransientParam) return;
+        transientParams.forEach((param) => {
+            url.searchParams.delete(param);
+        });
         const next = `${url.pathname}${url.search}${url.hash}`;
         const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
         if (next !== current) {

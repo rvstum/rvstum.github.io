@@ -73,6 +73,61 @@
         })();
     </script>
     <script>
+        (function scheduleDelayedHardBootRefresh() {
+            try {
+                var url = new URL(window.location.href);
+                var shouldDelayHardBoot = url.searchParams.get("__delayed_hard_boot") === "1"
+                    && url.searchParams.get("__delayed_hard_boot_done") !== "1";
+                if (!shouldDelayHardBoot) return;
+                window.__BENCHMARK_DELAYED_HARD_BOOT_PENDING__ = true;
+                try {
+                    delete window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__;
+                    sessionStorage.removeItem("__benchmark_mobile_restore_suppress_next_loader__");
+                } catch (storageError) {}
+                var loader = document.getElementById("pageLoader");
+                if (loader) {
+                    loader.classList.remove("is-hidden");
+                    loader.classList.add("is-flex");
+                    loader.style.removeProperty("display");
+                    loader.style.removeProperty("opacity");
+                }
+                var hasTriggeredHardBoot = false;
+                var runDelayedHardBoot = function () {
+                    if (hasTriggeredHardBoot) return;
+                    hasTriggeredHardBoot = true;
+                    try {
+                        var bootWindowKey = "__benchmark_login_boot_window__";
+                        var bootWindowRaw = sessionStorage.getItem(bootWindowKey);
+                        if (bootWindowRaw) {
+                            var bootWindow = JSON.parse(bootWindowRaw);
+                            if (bootWindow && typeof bootWindow === "object") {
+                                var now = Date.now();
+                                bootWindow.count = 0;
+                                bootWindow.startedAt = now;
+                                bootWindow.expiresAt = now + 45000;
+                                sessionStorage.setItem(bootWindowKey, JSON.stringify(bootWindow));
+                            }
+                        }
+                    } catch (bootWindowError) {}
+                    var nextUrl = new URL(window.location.href);
+                    nextUrl.searchParams.delete("__delayed_hard_boot");
+                    nextUrl.searchParams.set("__delayed_hard_boot_done", "1");
+                    nextUrl.searchParams.set("__delayed_hard_boot_cb", String(Date.now()));
+                    window.location.replace(nextUrl.toString());
+                };
+                var scheduleAfterBenchmarkLoad = function () {
+                    window.setTimeout(runDelayedHardBoot, 1000);
+                };
+                if (document.readyState === "complete") {
+                    scheduleAfterBenchmarkLoad();
+                    return;
+                }
+                window.addEventListener("load", scheduleAfterBenchmarkLoad, { once: true });
+                window.setTimeout(scheduleAfterBenchmarkLoad, 5000);
+            } catch (e) {}
+        })();
+    </script>
+    <script>
         (function applyInitialLoaderLanguage() {
             try {
                 var lang = localStorage.getItem("benchmark_language") || "en";
@@ -1130,9 +1185,15 @@
         <button id="privateProfileHomeBtn" class="settings-btn primary private-profile-home-btn">Go Home</button>
     </div>
 
-        <script type="module" src="footer-baddy.js?v=20260312-mobile-cache-refresh-1"></script>
-        <script type="module" src="layoutBuilder.js?v=20260311-view-mode-compare-2"></script>
-        <script type="module" src="scrollSyncUI.js?v=20260310-sub-score-input-1"></script>
-    <script type="module" src="benchmark.js?v=20260311-view-mode-language-fix-2"></script>
+    <script type="module">
+        if (!window.__BENCHMARK_DELAYED_HARD_BOOT_PENDING__) {
+            (async () => {
+                await import("./footer-baddy.js?v=20260312-mobile-cache-refresh-1");
+                await import("./layoutBuilder.js?v=20260311-view-mode-compare-2");
+                await import("./scrollSyncUI.js?v=20260310-sub-score-input-1");
+                await import("./benchmark.js?v=20260311-view-mode-language-fix-2");
+            })();
+        }
+    </script>
 </body>
 </html>
