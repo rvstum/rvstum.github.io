@@ -104,8 +104,6 @@ export function initAuthLifecycle(options = {}) {
         }
 
         if (user) {
-            const loginAuthBootstrapSource = AuthManager.getLoginAuthBootstrapSource();
-            const shouldKeepStableBenchmarkUrl = isMobileViewport() && loginAuthBootstrapSource === "remembered-session";
             const rememberedId = getRememberedAccountIdForUid(user.uid);
             if (rememberedId) {
                 applyActiveAccountId(rememberedId);
@@ -243,19 +241,15 @@ export function initAuthLifecycle(options = {}) {
                 if (requestsTabActive && Array.isArray(state.currentFriendRequests)) {
                     AuthManager.syncFriendRequestState(user.uid, state.currentFriendRequests, true);
                 }
-                if (!shouldKeepStableBenchmarkUrl) {
-                    Slugs.updateOwnProfileUrl(user, loadedProfileData || {});
-                }
+                Slugs.updateOwnProfileUrl(user, loadedProfileData || {});
             } catch (urlErr) {
                 console.warn("Failed to update profile URL slug:", urlErr);
-                if (!shouldKeepStableBenchmarkUrl) {
-                    const profileName = getCachedQuery("profileName", () => document.querySelector(".profile-name"));
-                    Slugs.updateOwnProfileUrl(user, {
-                        username: user.displayName || (profileName ? profileName.textContent : "player"),
-                        accountId: getRuntimeAccountId(),
-                        profile: {}
-                    });
-                }
+                const profileName = getCachedQuery("profileName", () => document.querySelector(".profile-name"));
+                Slugs.updateOwnProfileUrl(user, {
+                    username: user.displayName || (profileName ? profileName.textContent : "player"),
+                    accountId: getRuntimeAccountId(),
+                    profile: {}
+                });
             }
             RadarUI.setRadarMode("combined", false);
             ProfileUI.syncUserMenuDropdownWidth();
