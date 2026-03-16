@@ -2482,6 +2482,12 @@ body.view-mode:not(.mobile-layout-active) #compareViewDesktopShell {
     bottom: 4px;
 }
 
+.rank-name {
+    position: relative;
+    display: inline-block;
+    line-height: 1.05;
+}
+
 .trophy-container {
     position: relative;
     height: 27px;
@@ -3344,6 +3350,7 @@ body.auth-gate-active .sub-score-popout {
     background: linear-gradient(110deg, #cab98a 20%, #e5d9b6 35%, #f2e9cf 48%, #fff7e5 50%, #f2e9cf 52%, #e5d9b6 65%, #cab98a 80%);
     background-size: 200% auto;
     color: transparent;
+    -webkit-text-fill-color: transparent;
     -webkit-background-clip: text;
     background-clip: text;
     animation: eternalShimmer 2.5s linear infinite;
@@ -3360,6 +3367,7 @@ body.auth-gate-active .sub-score-popout {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    -webkit-text-fill-color: transparent;
     filter: blur(10px);
     animation: eternalShimmer 2.5s linear infinite;
 }
@@ -3387,6 +3395,7 @@ body.auth-gate-active .sub-score-popout {
     background: linear-gradient(110deg, #FF6F00 20%, #FF8F00 40%, #FFA000 48%, #FFB300 50%, #FFA000 52%, #FF8F00 60%, #FF6F00 80%);
     background-size: 200% auto;
     color: transparent;
+    -webkit-text-fill-color: transparent;
     -webkit-background-clip: text;
     background-clip: text;
     animation: eternalShimmer 2.5s linear infinite;
@@ -3402,6 +3411,7 @@ body.auth-gate-active .sub-score-popout {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    -webkit-text-fill-color: transparent;
     filter: blur(10px);
     animation: eternalShimmer 2.5s linear infinite;
 }
@@ -3419,6 +3429,7 @@ body.auth-gate-active .sub-score-popout {
     background: linear-gradient(110deg, #D8007F 20%, #E91E63 35%, #F06292 45%, #FF80AB 50%, #F06292 55%, #E91E63 65%, #D8007F 80%);
     background-size: 200% auto;
     color: transparent;
+    -webkit-text-fill-color: transparent;
     -webkit-background-clip: text;
     background-clip: text;
     animation: eternalShimmer 2.5s linear infinite;
@@ -3434,6 +3445,7 @@ body.auth-gate-active .sub-score-popout {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    -webkit-text-fill-color: transparent;
     filter: blur(6px);
     animation: eternalShimmer 2.5s linear infinite;
 }
@@ -8594,15 +8606,30 @@ body.mobile-layout-active .rank-number {
 body.mobile-layout-active .ranks-labels .rank-item:nth-child(11) span,
 body.mobile-layout-active .ranks-labels .rank-item:nth-child(12) span,
 body.mobile-layout-active .ranks-labels .rank-item:nth-child(13) span {
-    animation: none !important;
-    background-position: 50% 50% !important;
+    background-size: 260% auto !important;
+    background-position: 0% 50% !important;
+    animation-name: eternalShimmer !important;
+    animation-duration: 3.2s !important;
+    animation-timing-function: linear !important;
+    animation-iteration-count: infinite !important;
+    animation-play-state: running !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+    will-change: background-position, filter !important;
 }
 
 body.mobile-layout-active .ranks-labels .rank-item:nth-child(11) .rank-name::before,
 body.mobile-layout-active .ranks-labels .rank-item:nth-child(12) .rank-name::before,
 body.mobile-layout-active .ranks-labels .rank-item:nth-child(13) .rank-name::before {
-    content: none !important;
-    display: none !important;
+    display: block !important;
+    opacity: 0.52 !important;
+    filter: blur(3.2px) !important;
+    animation-name: eternalShimmer !important;
+    animation-duration: 3.2s !important;
+    animation-timing-function: linear !important;
+    animation-iteration-count: infinite !important;
+    animation-play-state: running !important;
+    will-change: background-position, filter !important;
 }
 
 body.mobile-layout-active .rank-number {

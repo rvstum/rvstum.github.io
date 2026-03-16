@@ -22,6 +22,8 @@ import {
     LOGIN_REDIRECT_AT_KEY
 } from "./storage.js";
 
+const LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY = "__benchmark_login_auto_restore_target__";
+
 function normalizeLoginPath() {
     const lowerPath = (window.location.pathname || "").toLowerCase();
     if (lowerPath.endsWith("/login.html") || lowerPath.endsWith("/benchmark/index.html")) {
@@ -123,9 +125,20 @@ async function navigateAfterLogin(user) {
 
     const target = await resolveSignedInUrl(user);
     const targetUrl = new URL(target, window.location.origin);
+    const restoreTarget = targetUrl.searchParams.get("__restore") || "";
     const currentPathname = window.location.pathname || "";
     const currentPath = normalizePath(getCurrentPathWithSearch());
     const targetPath = normalizePath(`${targetUrl.pathname}${targetUrl.search}`);
+
+    try {
+        if (restoreTarget) {
+            sessionStorage.setItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY, normalizePath(restoreTarget));
+        } else {
+            sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
+        }
+    } catch (e) {
+        // ignore storage availability errors
+    }
 
     // If login HTML is being served on a slug/non-login path, force boot via benchmark.html.
     // This prevents auth redirect loops when hosting fallback serves the wrong document.
@@ -167,6 +180,7 @@ function clearLoginRedirectGuards() {
         sessionStorage.removeItem(LOGIN_REDIRECT_LOOP_AT_KEY);
         sessionStorage.removeItem(LOGIN_REDIRECT_TARGET_KEY);
         sessionStorage.removeItem(LOGIN_REDIRECT_AT_KEY);
+        sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
     } catch (e) {
         // ignore storage availability errors
     }

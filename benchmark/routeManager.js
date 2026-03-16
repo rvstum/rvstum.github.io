@@ -7,6 +7,8 @@ import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-
 import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";
 import { showPageLoader } from "./pageLoaderUI.js";
 
+const LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY = "__benchmark_login_auto_restore_target__";
+
 async function resolveViewerDocData(currentUser) {
     if (!currentUser || !currentUser.uid) return null;
     try {
@@ -38,6 +40,25 @@ function resolvePreferredLanguage(viewerData = null) {
         return candidate.trim();
     }
     return readString(LANGUAGE_STORAGE_KEY, "en") || "en";
+}
+
+function getNormalizedCurrentPathWithSearch() {
+    const pathname = (window.location.pathname || "").replace(/\/+$/, "") || "/";
+    return `${pathname}${window.location.search || ""}`;
+}
+
+function consumeMatchingAutoRestoreTarget() {
+    try {
+        const stored = (sessionStorage.getItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY) || "").trim();
+        if (!stored) return false;
+        const normalizedStored = stored.replace(/\/+$/, "") || "/";
+        const normalizedCurrent = getNormalizedCurrentPathWithSearch();
+        if (normalizedStored !== normalizedCurrent) return false;
+        sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
 function doesDocMatchRequestedSlug(profileId, data, requestedSlug) {
@@ -126,6 +147,12 @@ export async function handleProfileLink(options = {}) {
     const viewerData = await resolveViewerDocData(currentUser);
     if (typeof applyLanguage === "function") {
         applyLanguage(resolvePreferredLanguage(viewerData), false);
+    }
+
+    if (requestedSlug && currentUser && consumeMatchingAutoRestoreTarget()) {
+        hidePrivateProfileOverlay();
+        hidePageLoader();
+        return;
     }
 
     if (requestedSlug) {
