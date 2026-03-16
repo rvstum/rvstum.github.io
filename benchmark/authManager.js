@@ -41,6 +41,9 @@ import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k"
 import { persistUserData } from "./persistence.js";
 
 const SCORE_RESET_PENDING_STORAGE_KEY = "benchmark_score_reset_pending";
+const LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY = "__benchmark_login_auto_restore_target__";
+const AUTH_RESTORE_NULL_GRACE_MS = 2200;
+let pendingAuthInitializationPromise = null;
 
 function summarizeScoresRecord(record) {
     const safeRecord = record && typeof record === "object" ? record : {};
@@ -74,13 +77,67 @@ function summarizeScoresRecord(record) {
     };
 }
 
+function shouldDelayNullAuthResolution() {
+    if (typeof window === "undefined") return false;
+    try {
+        const pendingRestoreTarget = (window.sessionStorage.getItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY) || "").trim();
+        if (pendingRestoreTarget) return true;
+        const params = new URLSearchParams(window.location.search || "");
+        if (params.has("__restore")) return true;
+        return !!Slugs.getRequestedProfileSlugFromPath();
+    } catch (e) {
+        return false;
+    }
+}
+
 export function waitForAuthInitialization(authInstance = auth) {
-    return new Promise((resolve) => {
-        const unsubscribe = onAuthStateChanged(authInstance, (user) => {
-            unsubscribe();
+    if (authInstance && authInstance.currentUser) {
+        return Promise.resolve(authInstance.currentUser);
+    }
+    if (pendingAuthInitializationPromise) {
+        return pendingAuthInitializationPromise;
+    }
+
+    pendingAuthInitializationPromise = new Promise((resolve) => {
+        const useNullGraceWindow = shouldDelayNullAuthResolution();
+        let nullResolutionTimer = null;
+        let finished = false;
+        let unsubscribe = () => {};
+
+        const finish = (user) => {
+            if (finished) return;
+            finished = true;
+            if (nullResolutionTimer) {
+                clearTimeout(nullResolutionTimer);
+                nullResolutionTimer = null;
+            }
+            try {
+                unsubscribe();
+            } catch (_) {}
+            pendingAuthInitializationPromise = null;
             resolve(user || null);
+        };
+
+        unsubscribe = onAuthStateChanged(authInstance, (user) => {
+            const liveUser = user || authInstance.currentUser || null;
+            if (liveUser) {
+                finish(liveUser);
+                return;
+            }
+
+            if (!useNullGraceWindow) {
+                finish(null);
+                return;
+            }
+
+            if (nullResolutionTimer) return;
+            nullResolutionTimer = setTimeout(() => {
+                finish(authInstance.currentUser || null);
+            }, AUTH_RESTORE_NULL_GRACE_MS);
         });
     });
+
+    return pendingAuthInitializationPromise;
 }
 
 function getViewedFriendRequestsStorageKey(uid) {

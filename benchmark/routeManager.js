@@ -151,7 +151,6 @@ export async function handleProfileLink(options = {}) {
 
     if (requestedSlug && currentUser && consumeMatchingAutoRestoreTarget()) {
         hidePrivateProfileOverlay();
-        hidePageLoader();
         return;
     }
 
@@ -210,7 +209,6 @@ export async function handleProfileLink(options = {}) {
 
     if (currentUser && currentUser.uid === profileId) {
         hidePrivateProfileOverlay();
-        hidePageLoader();
         return;
     }
 
@@ -279,7 +277,6 @@ export async function handleProfileLink(options = {}) {
 
         if (currentUser && currentUser.uid === profileId) {
             hidePrivateProfileOverlay();
-            hidePageLoader();
             return;
         }
         const allowed = await ViewModeManager.canViewProfile(profileId, data, currentUser);
