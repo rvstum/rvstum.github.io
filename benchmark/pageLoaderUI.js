@@ -1,7 +1,26 @@
 import { state } from "./appState.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 
+function getBootLoaderSuppressionUntil() {
+    if (typeof window === "undefined") return 0;
+    const value = Number(window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__ || 0);
+    return Number.isFinite(value) ? value : 0;
+}
+
+function shouldSuppressBootLoader() {
+    const suppressUntil = getBootLoaderSuppressionUntil();
+    if (!suppressUntil) return false;
+    if (Date.now() <= suppressUntil) return true;
+    try {
+        delete window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__;
+    } catch (_) {
+        window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__ = 0;
+    }
+    return false;
+}
+
 export function showPageLoader() {
+    if (shouldSuppressBootLoader()) return;
     const loader = getCachedElementById("pageLoader");
     if (!loader) return;
     if (state.pageLoaderHideTimeout) {
@@ -11,6 +30,8 @@ export function showPageLoader() {
     state.pageLoaderStartedAt = (typeof performance !== "undefined" && performance.now)
         ? performance.now()
         : Date.now();
+    loader.style.removeProperty("display");
+    loader.style.removeProperty("opacity");
     loader.classList.remove("is-hidden");
     loader.classList.remove("page-loader-fading");
     loader.classList.add("is-flex");

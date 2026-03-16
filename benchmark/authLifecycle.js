@@ -3,7 +3,7 @@ import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/fire
 import { auth, db } from "./client.js";
 import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden } from "./utils/domUtils.js";
-import { getBenchmarkBasePath, normalizeFriendRequestIds } from "./utils.js";
+import { getBenchmarkBasePath, normalizeFriendRequestIds, isMobileViewport } from "./utils.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
 import * as RadarUI from "./radarUI.js";
@@ -15,9 +15,20 @@ import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-sc
 import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
 
 const AUTH_REFERRER_BLOCK_HINT = "The request is blocked by Firebase API key restrictions (check authorized domains / API key HTTP referrers).";
+const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY = "__benchmark_mobile_restore_suppress_next_loader__";
+const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_WINDOW_MS = 15000;
 
 let unsubscribeUserSnapshot = null;
 let lastAuthUid = null;
+
+function armNextMobileRestoreLoaderSuppression() {
+    if (typeof window === "undefined" || !isMobileViewport()) return;
+    try {
+        window.sessionStorage.setItem(MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY, JSON.stringify({
+            expiresAt: Date.now() + MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_WINDOW_MS
+        }));
+    } catch (_) {}
+}
 
 export function initAuthLifecycle(options = {}) {
     const {
@@ -244,6 +255,9 @@ export function initAuthLifecycle(options = {}) {
             ProfileUI.syncUserMenuDropdownWidth();
             if (typeof syncAuthenticatedBackNavigationGuard === "function") {
                 syncAuthenticatedBackNavigationGuard({ enabled: true });
+            }
+            if (AuthManager.isLoginRestoreBootstrapPending()) {
+                armNextMobileRestoreLoaderSuppression();
             }
             AuthManager.clearLoginRestoreBootstrapPending();
             hidePageLoader();

@@ -22,6 +22,29 @@
         <div class="page-loader-text">Loading...</div>
     </div>
     <script>
+        (function suppressRepeatedMobileRestoreLoader() {
+            try {
+                var key = "__benchmark_mobile_restore_suppress_next_loader__";
+                var raw = sessionStorage.getItem(key);
+                if (!raw) return;
+                var parsed = JSON.parse(raw);
+                var expiresAt = Number(parsed && parsed.expiresAt);
+                if (!expiresAt || Date.now() > expiresAt) {
+                    sessionStorage.removeItem(key);
+                    return;
+                }
+                window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__ = expiresAt;
+                sessionStorage.removeItem(key);
+                var loader = document.getElementById("pageLoader");
+                if (!loader) return;
+                loader.classList.add("is-hidden");
+                loader.classList.remove("is-flex");
+                loader.style.setProperty("display", "none", "important");
+                loader.style.setProperty("opacity", "0", "important");
+            } catch (e) {}
+        })();
+    </script>
+    <script>
         (function applyInitialLoaderLanguage() {
             try {
                 var lang = localStorage.getItem("benchmark_language") || "en";

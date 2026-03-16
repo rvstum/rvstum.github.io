@@ -504,6 +504,7 @@ function registerRootServiceWorker() {
 
     const { hostname } = window.location;
     if (hostname === "localhost" || hostname === "127.0.0.1") return;
+    const skipServiceWorkerForInitialMobileRestoreBoot = isMobileViewport() && AuthManager.isLoginRestoreBootstrapPending();
     const mobileReloadFlag = "__benchmark_mobile_sw_controller_reload__";
     const clearMobileReloadState = () => {
         try {
@@ -540,7 +541,7 @@ function registerRootServiceWorker() {
     };
 
     window.addEventListener("load", () => {
-        if (isMobileViewport() && AuthManager.isLoginRestoreBootstrapPending()) {
+        if (skipServiceWorkerForInitialMobileRestoreBoot) {
             clearMobileReloadState();
             return;
         }
