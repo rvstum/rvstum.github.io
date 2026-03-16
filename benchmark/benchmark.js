@@ -540,6 +540,10 @@ function registerRootServiceWorker() {
     };
 
     window.addEventListener("load", () => {
+        if (isMobileViewport() && AuthManager.isLoginRestoreBootstrapPending()) {
+            clearMobileReloadState();
+            return;
+        }
         armMobileControllerReload();
         navigator.serviceWorker.register("../service-worker.js")
             .then((registration) => {
@@ -1671,12 +1675,14 @@ function initBenchmarkApp() {
     ProfileUI.syncUserMenuDropdownWidth();
     requestAnimationFrame(ProfileUI.syncUserMenuDropdownWidth);
     ShareManager.applyShareFromUrl();
-    handleProfileLink({
-        showPrivateProfileOverlay,
-        hidePrivateProfileOverlay,
-        hidePageLoader,
-        applyLanguage
-    });
+    if (!AuthManager.isLoginRestoreBootstrapPending()) {
+        handleProfileLink({
+            showPrivateProfileOverlay,
+            hidePrivateProfileOverlay,
+            hidePageLoader,
+            applyLanguage
+        });
+    }
     LayoutRuntime.initRankBoxResponsive();
 }
 

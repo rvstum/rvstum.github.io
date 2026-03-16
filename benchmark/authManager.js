@@ -90,6 +90,16 @@ export function isLoginRestoreBootstrapPending() {
     }
 }
 
+export function clearLoginRestoreBootstrapPending() {
+    if (typeof window === "undefined") return false;
+    try {
+        window.sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 function shouldDelayNullAuthResolution() {
     return isLoginRestoreBootstrapPending();
 }
