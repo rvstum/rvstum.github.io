@@ -30,6 +30,30 @@ function armNextMobileRestoreLoaderSuppression() {
     } catch (_) {}
 }
 
+function waitForWindowLoad(timeoutMs = 8000) {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+        return Promise.resolve();
+    }
+    if (document.readyState === "complete") {
+        return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+        let finished = false;
+        let timeoutId = null;
+        const finish = () => {
+            if (finished) return;
+            finished = true;
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            resolve();
+        };
+        timeoutId = setTimeout(finish, Math.max(0, Number(timeoutMs) || 0));
+        window.addEventListener("load", finish, { once: true });
+    });
+}
+
 export function initAuthLifecycle(options = {}) {
     const {
         loadUserProfile,
@@ -106,6 +130,7 @@ export function initAuthLifecycle(options = {}) {
         if (user) {
             const loginAuthBootstrapSource = AuthManager.getLoginAuthBootstrapSource();
             const shouldKeepStableBenchmarkUrl = isMobileViewport() && loginAuthBootstrapSource === "remembered-session";
+            const shouldHoldLoaderUntilWindowLoad = shouldKeepStableBenchmarkUrl;
             const rememberedId = getRememberedAccountIdForUid(user.uid);
             if (rememberedId) {
                 applyActiveAccountId(rememberedId);
@@ -261,6 +286,9 @@ export function initAuthLifecycle(options = {}) {
             ProfileUI.syncUserMenuDropdownWidth();
             if (typeof syncAuthenticatedBackNavigationGuard === "function") {
                 syncAuthenticatedBackNavigationGuard({ enabled: true });
+            }
+            if (shouldHoldLoaderUntilWindowLoad) {
+                await waitForWindowLoad();
             }
             if (AuthManager.isLoginAuthBootstrapPending()) {
                 armNextMobileRestoreLoaderSuppression();
