@@ -17,10 +17,6 @@ import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover
 const AUTH_REFERRER_BLOCK_HINT = "The request is blocked by Firebase API key restrictions (check authorized domains / API key HTTP referrers).";
 const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY = "__benchmark_mobile_restore_suppress_next_loader__";
 const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_WINDOW_MS = 15000;
-const DELAYED_HARD_BOOT_SESSION_KEY = "__benchmark_delayed_hard_boot__";
-const DELAYED_HARD_BOOT_DELAY_MS = 1000;
-const DELAYED_HARD_BOOT_CACHE_PARAM = "__delayed_refresh_cb";
-const LOGIN_BOOT_WINDOW_SESSION_KEY = "__benchmark_login_boot_window__";
 
 let unsubscribeUserSnapshot = null;
 let lastAuthUid = null;
@@ -39,44 +35,6 @@ function clearPendingInitialSignedOutHideTimer() {
     if (!pendingInitialSignedOutHideTimer) return;
     clearTimeout(pendingInitialSignedOutHideTimer);
     pendingInitialSignedOutHideTimer = null;
-}
-
-function consumeDelayedHardBootRequest() {
-    if (typeof window === "undefined") return null;
-    try {
-        const raw = (window.sessionStorage.getItem(DELAYED_HARD_BOOT_SESSION_KEY) || "").trim();
-        window.sessionStorage.removeItem(DELAYED_HARD_BOOT_SESSION_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        const expiresAt = Number(parsed && parsed.expiresAt);
-        if (!expiresAt || Date.now() > expiresAt) {
-            return null;
-        }
-        return parsed;
-    } catch (_) {
-        try {
-            window.sessionStorage.removeItem(DELAYED_HARD_BOOT_SESSION_KEY);
-        } catch (_) {}
-        return null;
-    }
-}
-
-function clearLoginBootWindowState() {
-    if (typeof window === "undefined") return;
-    try {
-        window.sessionStorage.removeItem(LOGIN_BOOT_WINDOW_SESSION_KEY);
-    } catch (_) {}
-}
-
-function runDelayedHardBootRefresh() {
-    if (typeof window === "undefined") return;
-    try {
-        const nextUrl = new URL(window.location.href);
-        nextUrl.searchParams.set(DELAYED_HARD_BOOT_CACHE_PARAM, String(Date.now()));
-        window.location.replace(nextUrl.toString());
-    } catch (_) {
-        window.location.reload();
-    }
 }
 
 function waitForWindowLoad(timeoutMs = 8000) {
@@ -340,21 +298,6 @@ export function initAuthLifecycle(options = {}) {
             }
             if (shouldHoldLoaderUntilWindowLoad) {
                 await waitForWindowLoad();
-            }
-            const delayedHardBootRequest = consumeDelayedHardBootRequest();
-            if (delayedHardBootRequest) {
-                clearLoginBootWindowState();
-                AuthManager.clearLoginAuthBootstrapPending();
-                AuthManager.clearLoginRestoreBootstrapPending();
-                try {
-                    window.sessionStorage.removeItem(MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY);
-                } catch (_) {}
-                hidePageLoader();
-                window.setTimeout(() => {
-                    showPageLoader();
-                    runDelayedHardBootRefresh();
-                }, DELAYED_HARD_BOOT_DELAY_MS);
-                return;
             }
             if (AuthManager.isLoginAuthBootstrapPending()) {
                 armNextMobileRestoreLoaderSuppression();

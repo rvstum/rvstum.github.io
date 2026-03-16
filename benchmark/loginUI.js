@@ -19,46 +19,12 @@ const LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
 const LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
 const LOGIN_BOOT_WINDOW_SESSION_KEY = "__benchmark_login_boot_window__";
 const LOGIN_BOOT_WINDOW_MS = 45000;
-const DELAYED_HARD_BOOT_SESSION_KEY = "__benchmark_delayed_hard_boot__";
-const DELAYED_HARD_BOOT_WINDOW_MS = 30000;
 let authNavigationInFlight = false;
 
 function normalizeLoginPath() {
     const lowerPath = (window.location.pathname || "").toLowerCase();
     if (lowerPath.endsWith("/login.html") || lowerPath.endsWith("/benchmark/index.html")) {
         window.history.replaceState({}, "", `${getBenchmarkBasePath()}/`);
-    }
-}
-
-function shouldUseDelayedHardBoot(source = "") {
-    const normalizedSource = typeof source === "string" ? source.trim().toLowerCase() : "";
-    if (normalizedSource !== "remembered-session") return false;
-    try {
-        if (window.matchMedia && window.matchMedia("(max-width: 980px)").matches) {
-            return true;
-        }
-    } catch (e) {
-        // ignore viewport detection issues and fall back to user agent detection
-    }
-    const userAgent = typeof navigator !== "undefined" ? String(navigator.userAgent || "") : "";
-    return /android|iphone|ipad|ipod|mobile/i.test(userAgent);
-}
-
-function armDelayedHardBootRefresh(source = "") {
-    try {
-        if (!shouldUseDelayedHardBoot(source)) {
-            sessionStorage.removeItem(DELAYED_HARD_BOOT_SESSION_KEY);
-            return false;
-        }
-        const now = Date.now();
-        sessionStorage.setItem(DELAYED_HARD_BOOT_SESSION_KEY, JSON.stringify({
-            source,
-            startedAt: now,
-            expiresAt: now + DELAYED_HARD_BOOT_WINDOW_MS
-        }));
-        return true;
-    } catch (e) {
-        return false;
     }
 }
 
@@ -115,7 +81,6 @@ async function navigateAfterLogin(user, options = {}) {
 
     clearLegacyAutoRestoreBootstrap();
     armLoginAuthBootstrap(source);
-    armDelayedHardBootRefresh(source);
     if (currentPath === targetPath) {
         authNavigationInFlight = false;
         return;
@@ -140,7 +105,6 @@ function clearLoginRedirectGuards() {
         sessionStorage.removeItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_BOOT_WINDOW_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
-        sessionStorage.removeItem(DELAYED_HARD_BOOT_SESSION_KEY);
     } catch (e) {
         // ignore storage availability errors
     }
