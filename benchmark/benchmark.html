@@ -22,16 +22,42 @@
         <div class="page-loader-text">Loading...</div>
     </div>
     <script>
+        (function resetLoginBootSuppressionForManualReload() {
+            try {
+                var url = new URL(window.location.href);
+                if (url.searchParams.has("__hard_boot")) return;
+                var navType = "";
+                if (window.performance && typeof window.performance.getEntriesByType === "function") {
+                    var navEntries = window.performance.getEntriesByType("navigation");
+                    if (navEntries && navEntries.length) {
+                        navType = navEntries[0].type || "";
+                    }
+                }
+                if (!navType && window.performance && window.performance.navigation) {
+                    navType = window.performance.navigation.type === 1 ? "reload" : "";
+                }
+                if (navType !== "reload") return;
+                sessionStorage.removeItem("__benchmark_login_boot_window__");
+                sessionStorage.removeItem("__benchmark_mobile_restore_suppress_next_loader__");
+                try {
+                    delete window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__;
+                } catch (e) {
+                    window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__ = 0;
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <script>
         (function runForcedHardBootReload() {
             try {
                 var url = new URL(window.location.href);
                 var token = url.searchParams.get("__hard_boot");
                 if (!token) return;
-                var key = "__benchmark_hard_boot_reloaded_token__";
-                var seenToken = sessionStorage.getItem(key) || "";
-                if (seenToken === token) return;
-                sessionStorage.setItem(key, token);
-                window.location.reload();
+                var phase = url.searchParams.get("__hard_boot_phase") || "";
+                if (phase === "reloaded") return;
+                url.searchParams.set("__hard_boot_phase", "reloaded");
+                url.searchParams.set("__hard_boot_cache", String(Date.now()));
+                window.location.replace(url.toString());
             } catch (e) {}
         })();
     </script>
