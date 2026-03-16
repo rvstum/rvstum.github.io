@@ -161,8 +161,6 @@ function clearTransientBenchmarkBootParams() {
         const url = new URL(window.location.href);
         if (!url.searchParams.has("__hard_boot")) return;
         url.searchParams.delete("__hard_boot");
-        url.searchParams.delete("__hard_boot_phase");
-        url.searchParams.delete("__hard_boot_cache");
         const next = `${url.pathname}${url.search}${url.hash}`;
         const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
         if (next !== current) {

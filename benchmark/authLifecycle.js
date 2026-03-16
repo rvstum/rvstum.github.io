@@ -20,6 +20,7 @@ const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_WINDOW_MS = 15000;
 
 let unsubscribeUserSnapshot = null;
 let lastAuthUid = null;
+let pendingInitialSignedOutHideTimer = null;
 
 function armNextMobileRestoreLoaderSuppression() {
     if (typeof window === "undefined" || !isMobileViewport()) return;
@@ -28,6 +29,12 @@ function armNextMobileRestoreLoaderSuppression() {
             expiresAt: Date.now() + MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_WINDOW_MS
         }));
     } catch (_) {}
+}
+
+function clearPendingInitialSignedOutHideTimer() {
+    if (!pendingInitialSignedOutHideTimer) return;
+    clearTimeout(pendingInitialSignedOutHideTimer);
+    pendingInitialSignedOutHideTimer = null;
 }
 
 function waitForWindowLoad(timeoutMs = 8000) {
@@ -84,6 +91,8 @@ export function initAuthLifecycle(options = {}) {
     };
 
     onAuthStateChanged(auth, async (user) => {
+        const previousAuthUid = lastAuthUid;
+        clearPendingInitialSignedOutHideTimer();
         if (typeof setAuthGateActive === "function") {
             setAuthGateActive(false);
         }
@@ -305,6 +314,14 @@ export function initAuthLifecycle(options = {}) {
         if (AuthManager.isLoginAuthBootstrapPending()) {
             AuthManager.clearLoginAuthBootstrapPending();
             hidePageLoader();
+            return;
+        }
+        if (previousAuthUid === null) {
+            pendingInitialSignedOutHideTimer = setTimeout(() => {
+                pendingInitialSignedOutHideTimer = null;
+                if (auth.currentUser) return;
+                hidePageLoader();
+            }, 1600);
             return;
         }
         if (profileId) {
