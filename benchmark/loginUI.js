@@ -5,24 +5,19 @@ import {
     browserLocalPersistence,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getBenchmarkBasePath } from "./utils.js";
 import { alignMobileTitleBetweenTopAndBox } from "./authLayout.js?v=20260310-auth-mobile-stability-1";
-import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import { getRememberedAccountIdForUid } from "./accountId.js";
 import {
     readString,
-    LANGUAGE_STORAGE_KEY,
-    REDIRECT_GUARD_FLAG_KEY,
-    REDIRECT_LOAD_GUARD_KEY,
-    LOGIN_REDIRECT_LOOP_COUNT_KEY,
-    LOGIN_REDIRECT_LOOP_AT_KEY,
-    LOGIN_REDIRECT_TARGET_KEY,
-    LOGIN_REDIRECT_AT_KEY
+    LANGUAGE_STORAGE_KEY
 } from "./storage.js";
 
 const LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY = "__benchmark_login_auto_restore_target__";
+const LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
+const LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
+let authNavigationInFlight = false;
 
 function normalizeLoginPath() {
     const lowerPath = (window.location.pathname || "").toLowerCase();
@@ -31,132 +26,57 @@ function normalizeLoginPath() {
     }
 }
 
-async function resolveSignedInUrl(user) {
-    if (!user) return `${getBenchmarkBasePath()}/`;
-    const rememberedAccountId = getRememberedAccountIdForUid(user.uid);
-    let userData = null;
-    try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-            userData = userDoc.data() || {};
-        }
-    } catch (e) {
-        console.warn("Failed to resolve signed-in profile URL, using fallback.", e);
-    }
-    if (Slugs.isLocalDevRoutingEnv()) {
-        return `${getBenchmarkBasePath()}/benchmark.html`;
-    }
-    const explicitSlug = userData && typeof userData.publicSlug === "string"
-        ? userData.publicSlug.trim()
-        : "";
-    const resolvedAccountId = Slugs.resolveProfileAccountId(userData || {}, rememberedAccountId);
-    if (!explicitSlug && !resolvedAccountId) {
-        return `${getBenchmarkBasePath()}/benchmark.html`;
-    }
-    const slug = explicitSlug || Slugs.resolveProfileSlug(userData || {}, {
-        usernameFallback: user.displayName || "player",
-        accountIdFallback: resolvedAccountId,
-        uid: user.uid
-    });
-    const restoreTarget = `${getBenchmarkBasePath()}/${slug}`;
-    return `${getBenchmarkBasePath()}/benchmark.html?__restore=${encodeURIComponent(restoreTarget)}`;
+function resolveSignedInUrl() {
+    return `${getBenchmarkBasePath()}/benchmark.html`;
 }
 
 function getCurrentPathWithSearch() {
     return `${window.location.pathname}${window.location.search}`;
 }
 
-function shouldDisableAutoNav() {
+function normalizePath(path) {
+    return (path || "").replace(/\/+$/, "") || "/";
+}
+
+function armLoginAuthBootstrap(source = "login") {
     try {
-        const params = new URLSearchParams(window.location.search || "");
-        if (params.get("pause_nav") === "1") return true;
-        return sessionStorage.getItem(REDIRECT_GUARD_FLAG_KEY) === "1";
+        sessionStorage.setItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY, JSON.stringify({
+            source,
+            startedAt: Date.now(),
+            expiresAt: Date.now() + LOGIN_AUTH_BOOTSTRAP_WINDOW_MS
+        }));
+        return true;
     } catch (e) {
         return false;
     }
 }
 
-function registerAutoNavLoad() {
+function clearLegacyAutoRestoreBootstrap() {
     try {
-        const now = Date.now();
-        const raw = sessionStorage.getItem(REDIRECT_LOAD_GUARD_KEY);
-        let state = raw ? JSON.parse(raw) : { count: 0, ts: 0 };
-        if (!state || typeof state !== "object") state = { count: 0, ts: 0 };
-        if (now - Number(state.ts || 0) <= 12000) {
-            state.count = Number(state.count || 0) + 1;
-        } else {
-            state.count = 1;
-        }
-        state.ts = now;
-        sessionStorage.setItem(REDIRECT_LOAD_GUARD_KEY, JSON.stringify(state));
-        if (state.count >= 4) {
-            sessionStorage.setItem(REDIRECT_GUARD_FLAG_KEY, "1");
-        }
-    } catch (e) {
-        // ignore guard storage errors
-    }
-}
-
-function isCanonicalLoginPath(pathValue) {
-    const lower = (pathValue || "").toLowerCase();
-    const base = getBenchmarkBasePath().toLowerCase();
-    return (
-        lower === base
-        || lower === `${base}/`
-        || lower === `${base}/index.html`
-        || lower === `${base}/login.html`
-    );
-}
-
-function normalizePath(path) {
-    return (path || "").replace(/\/+$/, "") || "/";
-}
-
-async function navigateAfterLogin(user) {
-    if (shouldDisableAutoNav()) return;
-    const now = Date.now();
-    const loopWindowMs = 15000;
-    const prevAt = Number(sessionStorage.getItem(LOGIN_REDIRECT_LOOP_AT_KEY) || "0");
-    const prevCount = Number(sessionStorage.getItem(LOGIN_REDIRECT_LOOP_COUNT_KEY) || "0");
-    const count = (now - prevAt <= loopWindowMs) ? (prevCount + 1) : 1;
-    sessionStorage.setItem(LOGIN_REDIRECT_LOOP_COUNT_KEY, String(count));
-    sessionStorage.setItem(LOGIN_REDIRECT_LOOP_AT_KEY, String(now));
-    if (count > 2) return;
-
-    const target = await resolveSignedInUrl(user);
-    const targetUrl = new URL(target, window.location.origin);
-    const restoreTarget = targetUrl.searchParams.get("__restore") || "";
-    const currentPathname = window.location.pathname || "";
-    const currentPath = normalizePath(getCurrentPathWithSearch());
-    const targetPath = normalizePath(`${targetUrl.pathname}${targetUrl.search}`);
-
-    try {
-        if (restoreTarget) {
-            sessionStorage.setItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY, normalizePath(restoreTarget));
-        } else {
-            sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
-        }
+        sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
     } catch (e) {
         // ignore storage availability errors
     }
+}
 
-    // If login HTML is being served on a slug/non-login path, force boot via benchmark.html.
-    // This prevents auth redirect loops when hosting fallback serves the wrong document.
-    if (!isCanonicalLoginPath(currentPathname)) {
-        const directTargetPath = normalizePath(`${targetUrl.pathname}${targetUrl.search}`);
-        if (currentPath !== directTargetPath) {
-            window.location.replace(targetUrl.toString());
-        }
+async function navigateAfterLogin(user, options = {}) {
+    if (!user || authNavigationInFlight) return;
+    authNavigationInFlight = true;
+
+    const source = typeof options.source === "string" && options.source.trim()
+        ? options.source.trim()
+        : "login";
+    const target = resolveSignedInUrl();
+    const targetUrl = new URL(target, window.location.origin);
+    const currentPath = normalizePath(getCurrentPathWithSearch());
+    const targetPath = normalizePath(`${targetUrl.pathname}${targetUrl.search}`);
+
+    clearLegacyAutoRestoreBootstrap();
+    armLoginAuthBootstrap(source);
+    if (currentPath === targetPath) {
+        authNavigationInFlight = false;
         return;
     }
-
-    if (currentPath === targetPath) return;
-
-    const lastTarget = sessionStorage.getItem(LOGIN_REDIRECT_TARGET_KEY) || "";
-    const lastAt = Number(sessionStorage.getItem(LOGIN_REDIRECT_AT_KEY) || "0");
-    if (lastTarget === targetPath && now - lastAt < 4000) return;
-    sessionStorage.setItem(LOGIN_REDIRECT_TARGET_KEY, targetPath);
-    sessionStorage.setItem(LOGIN_REDIRECT_AT_KEY, String(now));
     window.location.replace(targetUrl.toString());
 }
 
@@ -174,12 +94,7 @@ function tAuth(key) {
 
 function clearLoginRedirectGuards() {
     try {
-        sessionStorage.removeItem(REDIRECT_GUARD_FLAG_KEY);
-        sessionStorage.removeItem(REDIRECT_LOAD_GUARD_KEY);
-        sessionStorage.removeItem(LOGIN_REDIRECT_LOOP_COUNT_KEY);
-        sessionStorage.removeItem(LOGIN_REDIRECT_LOOP_AT_KEY);
-        sessionStorage.removeItem(LOGIN_REDIRECT_TARGET_KEY);
-        sessionStorage.removeItem(LOGIN_REDIRECT_AT_KEY);
+        sessionStorage.removeItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
     } catch (e) {
         // ignore storage availability errors
@@ -188,7 +103,6 @@ function clearLoginRedirectGuards() {
 
 export function initLoginUI() {
     normalizeLoginPath();
-    registerAutoNavLoad();
 
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
@@ -218,7 +132,7 @@ export function initLoginUI() {
             .then(() => signInWithEmailAndPassword(auth, email, password))
             .then(async (userCredential) => {
                 if (!userCredential.user.emailVerified) {
-                    await navigateAfterLogin(userCredential.user);
+                    await navigateAfterLogin(userCredential.user, { source: rememberMe ? "remember-me-login" : "session-login" });
                     return;
                 }
 
@@ -228,7 +142,7 @@ export function initLoginUI() {
                 }, { merge: true }).catch((e) => {
                     console.error("Error saving language preference:", e);
                 });
-                await navigateAfterLogin(userCredential.user);
+                await navigateAfterLogin(userCredential.user, { source: rememberMe ? "remember-me-login" : "session-login" });
             })
             .catch((error) => {
                 const code = (error && error.code) ? String(error.code) : "";
@@ -282,8 +196,7 @@ export function initLoginUI() {
     onAuthStateChanged(auth, async (user) => {
         if (!user) return;
         if (!user.emailVerified) return;
-        if (!isCanonicalLoginPath(window.location.pathname || "")) return;
-        await navigateAfterLogin(user);
+        await navigateAfterLogin(user, { source: "remembered-session" });
     });
 }
 

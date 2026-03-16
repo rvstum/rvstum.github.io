@@ -256,9 +256,10 @@ export function initAuthLifecycle(options = {}) {
             if (typeof syncAuthenticatedBackNavigationGuard === "function") {
                 syncAuthenticatedBackNavigationGuard({ enabled: true });
             }
-            if (AuthManager.isLoginRestoreBootstrapPending()) {
+            if (AuthManager.isLoginAuthBootstrapPending()) {
                 armNextMobileRestoreLoaderSuppression();
             }
+            AuthManager.clearLoginAuthBootstrapPending();
             AuthManager.clearLoginRestoreBootstrapPending();
             hidePageLoader();
             return;
@@ -267,7 +268,9 @@ export function initAuthLifecycle(options = {}) {
         if (typeof syncAuthenticatedBackNavigationGuard === "function") {
             syncAuthenticatedBackNavigationGuard({ enabled: false });
         }
-        if (AuthManager.isLoginRestoreBootstrapPending()) {
+        if (AuthManager.isLoginAuthBootstrapPending()) {
+            AuthManager.clearLoginAuthBootstrapPending();
+            hidePageLoader();
             return;
         }
         if (profileId) {

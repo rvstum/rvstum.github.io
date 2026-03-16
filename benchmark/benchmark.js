@@ -504,7 +504,7 @@ function registerRootServiceWorker() {
 
     const { hostname } = window.location;
     if (hostname === "localhost" || hostname === "127.0.0.1") return;
-    const skipServiceWorkerForInitialMobileRestoreBoot = isMobileViewport() && AuthManager.isLoginRestoreBootstrapPending();
+    const skipServiceWorkerForInitialMobileRestoreBoot = isMobileViewport() && AuthManager.isLoginAuthBootstrapPending();
     const mobileReloadFlag = "__benchmark_mobile_sw_controller_reload__";
     const clearMobileReloadState = () => {
         try {
@@ -1657,7 +1657,9 @@ function initBenchmarkApp() {
             // Avoid hydrating stale local state when an authenticated session exists;
             // signed-in users are populated from profile loading.
             if (resolvedUser) return;
-            if (AuthManager.isLoginRestoreBootstrapPending()) return;
+            if (AuthManager.isLoginAuthBootstrapPending()) {
+                AuthManager.clearLoginAuthBootstrapPending();
+            }
             ScoreManager.loadSavedCaveLinks();
             ScoreManager.loadSavedScores();
             state.scoresHydrated = true;
@@ -1665,7 +1667,9 @@ function initBenchmarkApp() {
         })
         .catch((err) => {
             console.warn("Auth initialization check failed; applying local settings fallback:", err);
-            if (AuthManager.isLoginRestoreBootstrapPending()) return;
+            if (AuthManager.isLoginAuthBootstrapPending()) {
+                AuthManager.clearLoginAuthBootstrapPending();
+            }
             ScoreManager.loadSavedCaveLinks();
             ScoreManager.loadSavedScores();
             state.scoresHydrated = true;
@@ -1676,7 +1680,7 @@ function initBenchmarkApp() {
     ProfileUI.syncUserMenuDropdownWidth();
     requestAnimationFrame(ProfileUI.syncUserMenuDropdownWidth);
     ShareManager.applyShareFromUrl();
-    if (!AuthManager.isLoginRestoreBootstrapPending()) {
+    if (!AuthManager.isLoginAuthBootstrapPending()) {
         handleProfileLink({
             showPrivateProfileOverlay,
             hidePrivateProfileOverlay,

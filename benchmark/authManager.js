@@ -42,7 +42,9 @@ import { persistUserData } from "./persistence.js";
 
 const SCORE_RESET_PENDING_STORAGE_KEY = "benchmark_score_reset_pending";
 const LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY = "__benchmark_login_auto_restore_target__";
+const LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
 const AUTH_RESTORE_NULL_GRACE_MS = 2200;
+const LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
 let pendingAuthInitializationPromise = null;
 
 function summarizeScoresRecord(record) {
@@ -77,6 +79,55 @@ function summarizeScoresRecord(record) {
     };
 }
 
+function readLoginAuthBootstrapState() {
+    if (typeof window === "undefined") return false;
+    try {
+        const raw = (window.sessionStorage.getItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY) || "").trim();
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const expiresAt = Number(parsed && parsed.expiresAt);
+        if (!expiresAt || Date.now() > expiresAt) {
+            window.sessionStorage.removeItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY);
+            return null;
+        }
+        return parsed;
+    } catch (e) {
+        return null;
+    }
+}
+
+export function armLoginAuthBootstrap(meta = {}) {
+    if (typeof window === "undefined") return false;
+    try {
+        const now = Date.now();
+        const payload = {
+            source: typeof meta.source === "string" && meta.source.trim()
+                ? meta.source.trim()
+                : "login",
+            startedAt: now,
+            expiresAt: now + LOGIN_AUTH_BOOTSTRAP_WINDOW_MS
+        };
+        window.sessionStorage.setItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY, JSON.stringify(payload));
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+export function isLoginAuthBootstrapPending() {
+    return !!readLoginAuthBootstrapState();
+}
+
+export function clearLoginAuthBootstrapPending() {
+    if (typeof window === "undefined") return false;
+    try {
+        window.sessionStorage.removeItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 export function isLoginRestoreBootstrapPending() {
     if (typeof window === "undefined") return false;
     try {
@@ -101,7 +152,7 @@ export function clearLoginRestoreBootstrapPending() {
 }
 
 function shouldDelayNullAuthResolution() {
-    return isLoginRestoreBootstrapPending();
+    return isLoginAuthBootstrapPending();
 }
 
 export function waitForAuthInitialization(authInstance = auth) {
