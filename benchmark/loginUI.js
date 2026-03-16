@@ -17,6 +17,8 @@ import {
 const LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY = "__benchmark_login_auto_restore_target__";
 const LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
 const LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
+const LOGIN_BOOT_WINDOW_SESSION_KEY = "__benchmark_login_boot_window__";
+const LOGIN_BOOT_WINDOW_MS = 45000;
 let authNavigationInFlight = false;
 
 function normalizeLoginPath() {
@@ -44,6 +46,12 @@ function armLoginAuthBootstrap(source = "login") {
             source,
             startedAt: Date.now(),
             expiresAt: Date.now() + LOGIN_AUTH_BOOTSTRAP_WINDOW_MS
+        }));
+        sessionStorage.setItem(LOGIN_BOOT_WINDOW_SESSION_KEY, JSON.stringify({
+            source,
+            startedAt: Date.now(),
+            expiresAt: Date.now() + LOGIN_BOOT_WINDOW_MS,
+            count: 0
         }));
         return true;
     } catch (e) {
@@ -95,6 +103,7 @@ function tAuth(key) {
 function clearLoginRedirectGuards() {
     try {
         sessionStorage.removeItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY);
+        sessionStorage.removeItem(LOGIN_BOOT_WINDOW_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
     } catch (e) {
         // ignore storage availability errors
