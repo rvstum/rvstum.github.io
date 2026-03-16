@@ -155,6 +155,20 @@ function normalizeBenchmarkStaticAssetPaths(root = document) {
     });
 }
 
+function clearTransientBenchmarkBootParams() {
+    if (typeof window === "undefined") return;
+    try {
+        const url = new URL(window.location.href);
+        if (!url.searchParams.has("__hard_boot")) return;
+        url.searchParams.delete("__hard_boot");
+        const next = `${url.pathname}${url.search}${url.hash}`;
+        const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        if (next !== current) {
+            window.history.replaceState(window.history.state || {}, "", next);
+        }
+    } catch (_) {}
+}
+
 function clearBenchmarkVisualState() {
     document.querySelectorAll(".score-input").forEach((input) => {
         input.value = "0";
@@ -903,6 +917,7 @@ function initStartupSideEffects() {
     // Remove legacy persistent account id so it no longer appears in browser local storage.
     removeItem(LEGACY_ACCOUNT_ID_STORAGE_KEY);
     Slugs.restorePathFromFallback();
+    clearTransientBenchmarkBootParams();
     normalizeBenchmarkStaticAssetPaths();
     window.addEventListener('resize', syncMobileHoneycombMask);
     window.addEventListener('orientationchange', syncMobileHoneycombMask, { passive: true });

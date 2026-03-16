@@ -19,6 +19,7 @@ const LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
 const LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
 const LOGIN_BOOT_WINDOW_SESSION_KEY = "__benchmark_login_boot_window__";
 const LOGIN_BOOT_WINDOW_MS = 45000;
+const LOGIN_HARD_REFRESH_PARAM = "__hard_boot";
 let authNavigationInFlight = false;
 
 function normalizeLoginPath() {
@@ -28,8 +29,13 @@ function normalizeLoginPath() {
     }
 }
 
-function resolveSignedInUrl() {
-    return `${getBenchmarkBasePath()}/benchmark.html`;
+function resolveSignedInUrl(options = {}) {
+    const forceFreshDocument = !!options.forceFreshDocument;
+    const targetUrl = new URL(`${getBenchmarkBasePath()}/benchmark.html`, window.location.origin);
+    if (forceFreshDocument) {
+        targetUrl.searchParams.set(LOGIN_HARD_REFRESH_PARAM, String(Date.now()));
+    }
+    return `${targetUrl.pathname}${targetUrl.search}`;
 }
 
 function getCurrentPathWithSearch() {
@@ -74,7 +80,9 @@ async function navigateAfterLogin(user, options = {}) {
     const source = typeof options.source === "string" && options.source.trim()
         ? options.source.trim()
         : "login";
-    const target = resolveSignedInUrl();
+    const target = resolveSignedInUrl({
+        forceFreshDocument: source === "remembered-session"
+    });
     const targetUrl = new URL(target, window.location.origin);
     const currentPath = normalizePath(getCurrentPathWithSearch());
     const targetPath = normalizePath(`${targetUrl.pathname}${targetUrl.search}`);
