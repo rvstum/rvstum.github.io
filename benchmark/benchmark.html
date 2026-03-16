@@ -22,6 +22,20 @@
         <div class="page-loader-text">Loading...</div>
     </div>
     <script>
+        (function runForcedHardBootReload() {
+            try {
+                var url = new URL(window.location.href);
+                var token = url.searchParams.get("__hard_boot");
+                if (!token) return;
+                var key = "__benchmark_hard_boot_reloaded_token__";
+                var seenToken = sessionStorage.getItem(key) || "";
+                if (seenToken === token) return;
+                sessionStorage.setItem(key, token);
+                window.location.reload();
+            } catch (e) {}
+        })();
+    </script>
+    <script>
         (function suppressDuplicateLoginBootLoader() {
             try {
                 var key = "__benchmark_login_boot_window__";

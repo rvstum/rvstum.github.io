@@ -160,6 +160,14 @@ function clearTransientBenchmarkBootParams() {
     try {
         const url = new URL(window.location.href);
         if (!url.searchParams.has("__hard_boot")) return;
+        try {
+            const token = url.searchParams.get("__hard_boot") || "";
+            const reloadKey = "__benchmark_hard_boot_reloaded_token__";
+            const seenToken = window.sessionStorage.getItem(reloadKey) || "";
+            if (token && seenToken === token) {
+                window.sessionStorage.removeItem(reloadKey);
+            }
+        } catch (_) {}
         url.searchParams.delete("__hard_boot");
         const next = `${url.pathname}${url.search}${url.hash}`;
         const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
