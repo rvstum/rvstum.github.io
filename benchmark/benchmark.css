@@ -6156,6 +6156,12 @@ body.view-mode .achievement-proof-upload.has-image {
         height: clamp(50px, 8.5vw, 72px);
     }
 
+    .rounded-inner-box.rank-box-glow .rank-up-content::before,
+    .rounded-inner-box.rank-box-glow .rank-up-content::after {
+        transform: translate(-50%, -50%) translateZ(0);
+        will-change: transform, opacity;
+    }
+
     .cave-play-wrapper {
         touch-action: manipulation;
         pointer-events: auto;
@@ -8593,6 +8599,10 @@ body.mobile-layout-active .rank-number {
     line-height: 1 !important;
 }
 
+    body.mobile-layout-active .rank-threshold-value {
+        transform: skewX(35deg) !important;
+    }
+
 body.mobile-layout-active .trophy-container {
     height: calc(27px * var(--mobile-scale)) !important;
     margin-bottom: calc(5px * var(--mobile-scale)) !important;
@@ -8950,6 +8960,11 @@ html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open
 
     #profileModal .settings-header {
         padding-right: 34px;
+    }
+
+    #profileModal .settings-header--left {
+        text-align: center;
+        padding-right: 0;
     }
 
     #closeProfileModal {

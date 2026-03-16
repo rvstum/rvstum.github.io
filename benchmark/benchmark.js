@@ -118,6 +118,7 @@ let languageController = null;
 let settingsStateController = null;
 let topNavController = null;
 let manualConfirmCleanup = null;
+let rankSyncDebounceTimer = null;
 let globalListenersInitialized = false;
 let uiControllersInitialized = false;
 let benchmarkAppInitialized = false;
@@ -336,6 +337,10 @@ function resetSessionScopedState() {
         clearTimeout(state.saveScoresDebounceTimer);
         state.saveScoresDebounceTimer = null;
     }
+    if (rankSyncDebounceTimer) {
+        clearTimeout(rankSyncDebounceTimer);
+        rankSyncDebounceTimer = null;
+    }
 
     if (typeof ViewModeManager?.clearViewModeChrome === "function") {
         ViewModeManager.clearViewModeChrome();
@@ -506,6 +511,12 @@ function registerRootServiceWorker() {
         } catch (_) {}
     };
     const armMobileControllerReload = () => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has("__restore")) {
+            clearMobileReloadState();
+            return;
+        }
+
         if (!isMobileViewport()) {
             clearMobileReloadState();
             return;
@@ -1235,6 +1246,17 @@ function applyAutoRankThemeForCurrentConfig() {
 function handleRatingsUpdated() {
     refreshRadarVisuals();
     applyAutoRankThemeForCurrentConfig();
+
+    // Auto-sync rank to profile to ensure friends see the correct status
+    if (auth.currentUser && Number.isFinite(state.lastMainRankIndex) && state.lastMainRankIndex >= 0) {
+        if (rankSyncDebounceTimer) clearTimeout(rankSyncDebounceTimer);
+        rankSyncDebounceTimer = setTimeout(() => {
+            const rankIndex = Math.floor(state.lastMainRankIndex);
+            saveUserData({
+                profile: { rankIndex }
+            }).catch(() => {});
+        }, 3000);
+    }
 }
 
 function initRulesModalBindings() {
