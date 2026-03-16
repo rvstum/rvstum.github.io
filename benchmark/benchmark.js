@@ -163,7 +163,8 @@ function clearTransientBenchmarkBootParams() {
             "__hard_boot",
             "__delayed_hard_boot",
             "__delayed_hard_boot_done",
-            "__delayed_hard_boot_cb"
+            "__delayed_hard_boot_cb",
+            "__delayed_refresh_cb"
         ];
         const hasTransientParam = transientParams.some((param) => url.searchParams.has(param));
         if (!hasTransientParam) return;

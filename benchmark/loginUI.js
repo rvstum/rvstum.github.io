@@ -19,6 +19,8 @@ const LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
 const LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
 const LOGIN_BOOT_WINDOW_SESSION_KEY = "__benchmark_login_boot_window__";
 const LOGIN_BOOT_WINDOW_MS = 45000;
+const DELAYED_HARD_BOOT_SESSION_KEY = "__benchmark_delayed_hard_boot__";
+const DELAYED_HARD_BOOT_WINDOW_MS = 30000;
 let authNavigationInFlight = false;
 
 function normalizeLoginPath() {
@@ -42,12 +44,26 @@ function shouldUseDelayedHardBoot(source = "") {
     return /android|iphone|ipad|ipod|mobile/i.test(userAgent);
 }
 
-function resolveSignedInUrl(options = {}) {
-    const url = new URL(`${getBenchmarkBasePath()}/benchmark.html`, window.location.origin);
-    if (shouldUseDelayedHardBoot(options.source)) {
-        url.searchParams.set("__delayed_hard_boot", "1");
+function armDelayedHardBootRefresh(source = "") {
+    try {
+        if (!shouldUseDelayedHardBoot(source)) {
+            sessionStorage.removeItem(DELAYED_HARD_BOOT_SESSION_KEY);
+            return false;
+        }
+        const now = Date.now();
+        sessionStorage.setItem(DELAYED_HARD_BOOT_SESSION_KEY, JSON.stringify({
+            source,
+            startedAt: now,
+            expiresAt: now + DELAYED_HARD_BOOT_WINDOW_MS
+        }));
+        return true;
+    } catch (e) {
+        return false;
     }
-    return url.toString();
+}
+
+function resolveSignedInUrl() {
+    return `${getBenchmarkBasePath()}/benchmark.html`;
 }
 
 function getCurrentPathWithSearch() {
@@ -99,6 +115,7 @@ async function navigateAfterLogin(user, options = {}) {
 
     clearLegacyAutoRestoreBootstrap();
     armLoginAuthBootstrap(source);
+    armDelayedHardBootRefresh(source);
     if (currentPath === targetPath) {
         authNavigationInFlight = false;
         return;
@@ -123,6 +140,7 @@ function clearLoginRedirectGuards() {
         sessionStorage.removeItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_BOOT_WINDOW_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
+        sessionStorage.removeItem(DELAYED_HARD_BOOT_SESSION_KEY);
     } catch (e) {
         // ignore storage availability errors
     }
