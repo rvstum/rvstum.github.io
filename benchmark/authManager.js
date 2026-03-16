@@ -118,6 +118,12 @@ export function isLoginAuthBootstrapPending() {
     return !!readLoginAuthBootstrapState();
 }
 
+export function getLoginAuthBootstrapSource() {
+    const state = readLoginAuthBootstrapState();
+    if (!state || typeof state !== "object") return "";
+    return typeof state.source === "string" ? state.source.trim() : "";
+}
+
 export function clearLoginAuthBootstrapPending() {
     if (typeof window === "undefined") return false;
     try {
