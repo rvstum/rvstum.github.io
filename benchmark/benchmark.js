@@ -1652,6 +1652,7 @@ function initBenchmarkApp() {
             // Avoid hydrating stale local state when an authenticated session exists;
             // signed-in users are populated from profile loading.
             if (resolvedUser) return;
+            if (AuthManager.isLoginRestoreBootstrapPending()) return;
             ScoreManager.loadSavedCaveLinks();
             ScoreManager.loadSavedScores();
             state.scoresHydrated = true;
@@ -1659,6 +1660,7 @@ function initBenchmarkApp() {
         })
         .catch((err) => {
             console.warn("Auth initialization check failed; applying local settings fallback:", err);
+            if (AuthManager.isLoginRestoreBootstrapPending()) return;
             ScoreManager.loadSavedCaveLinks();
             ScoreManager.loadSavedScores();
             state.scoresHydrated = true;

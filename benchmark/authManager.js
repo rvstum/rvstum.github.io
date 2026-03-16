@@ -77,17 +77,21 @@ function summarizeScoresRecord(record) {
     };
 }
 
-function shouldDelayNullAuthResolution() {
+export function isLoginRestoreBootstrapPending() {
     if (typeof window === "undefined") return false;
     try {
         const pendingRestoreTarget = (window.sessionStorage.getItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY) || "").trim();
         if (pendingRestoreTarget) return true;
         const params = new URLSearchParams(window.location.search || "");
         if (params.has("__restore")) return true;
-        return !!Slugs.getRequestedProfileSlugFromPath();
+        return false;
     } catch (e) {
         return false;
     }
+}
+
+function shouldDelayNullAuthResolution() {
+    return isLoginRestoreBootstrapPending();
 }
 
 export function waitForAuthInitialization(authInstance = auth) {

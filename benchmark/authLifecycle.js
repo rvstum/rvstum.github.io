@@ -252,6 +252,9 @@ export function initAuthLifecycle(options = {}) {
         if (typeof syncAuthenticatedBackNavigationGuard === "function") {
             syncAuthenticatedBackNavigationGuard({ enabled: false });
         }
+        if (AuthManager.isLoginRestoreBootstrapPending()) {
+            return;
+        }
         if (profileId) {
             hidePageLoader();
             return;
