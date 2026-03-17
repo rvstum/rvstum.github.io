@@ -1,6 +1,11 @@
 import { state } from "./appState.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 
+function releaseBootVisibilityLock() {
+    if (typeof document === "undefined") return;
+    document.body.classList.remove("benchmark-boot-loading");
+}
+
 function getBootLoaderSuppressionUntil() {
     if (typeof window === "undefined") return 0;
     const value = Number(window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__ || 0);
@@ -40,7 +45,10 @@ export function showPageLoader() {
 export function hidePageLoader(options = {}, minVisibleMs = 1300) {
     const loader = getCachedElementById("pageLoader");
     if (!loader) return;
-    if (loader.classList.contains("is-hidden")) return;
+    if (loader.classList.contains("is-hidden")) {
+        releaseBootVisibilityLock();
+        return;
+    }
 
     const immediate = !!options.immediate;
     const configuredMin = Number.isFinite(minVisibleMs) ? Math.max(0, minVisibleMs) : 0;
@@ -53,6 +61,7 @@ export function hidePageLoader(options = {}, minVisibleMs = 1300) {
     state.pageLoaderHideTimeout = setTimeout(() => {
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
+                releaseBootVisibilityLock();
                 loader.classList.add("page-loader-fading");
                 setTimeout(() => {
                     loader.classList.add("is-hidden");

@@ -731,6 +731,17 @@ body {
     overflow-x: hidden;
 }
 
+body.benchmark-boot-loading {
+    overflow: hidden;
+}
+
+body.benchmark-boot-loading #responsive-wrapper,
+body.benchmark-boot-loading #privateProfilePage {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
 html.modal-open,
 body.modal-open {
     overscroll-behavior: none;
