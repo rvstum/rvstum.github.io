@@ -5,14 +5,14 @@ import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden } from "./utils/domUtils.js";
 import { getBenchmarkBasePath, normalizeFriendRequestIds, isMobileViewport } from "./utils.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
+import * as AuthManager from "./authManager.js?v=20260316-remembered-handoff-lock-1";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as ViewModeManager from "./viewModeManager.js?v=20260311-view-mode-compare-2";
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf, currentLanguage } from "./i18n.js";
 import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";
-import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";
+import { showPageLoader } from "./pageLoaderUI.js?v=20260316-remembered-handoff-lock-1";
 
 const AUTH_REFERRER_BLOCK_HINT = "The request is blocked by Firebase API key restrictions (check authorized domains / API key HTTP referrers).";
 const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY = "__benchmark_mobile_restore_suppress_next_loader__";
@@ -71,6 +71,16 @@ function waitForNextPaint() {
             window.requestAnimationFrame(resolve);
         });
     });
+}
+
+function releaseLoginHandoffBootHold() {
+    if (typeof window === "undefined") return;
+    AuthManager.clearLoginHandoffPending();
+    try {
+        delete window.__BENCHMARK_FORCE_BOOT_HOLD__;
+    } catch (_) {
+        window.__BENCHMARK_FORCE_BOOT_HOLD__ = false;
+    }
 }
 
 export function initAuthLifecycle(options = {}) {
@@ -170,6 +180,9 @@ export function initAuthLifecycle(options = {}) {
             ViewModeManager.clearViewModeChrome();
 
             if (!user.emailVerified) {
+                if (AuthManager.isLoginHandoffPending()) {
+                    releaseLoginHandoffBootHold();
+                }
                 if (typeof setAuthGateActive === "function") {
                     setAuthGateActive(true);
                 }
@@ -244,7 +257,7 @@ export function initAuthLifecycle(options = {}) {
                         };
                     }
                 }
-                hidePageLoader();
+                hidePageLoader({ forceReleaseBootHold: true });
                 return;
             }
             const verificationModal = getCachedElementById("verificationModal");
@@ -311,6 +324,13 @@ export function initAuthLifecycle(options = {}) {
             if (!shouldHoldLoaderThroughRememberedRestore && AuthManager.isLoginAuthBootstrapPending()) {
                 armNextMobileRestoreLoaderSuppression();
             }
+            if (AuthManager.isLoginHandoffPending()) {
+                releaseLoginHandoffBootHold();
+                hidePageLoader({ forceReleaseBootHold: true });
+                AuthManager.clearLoginAuthBootstrapPending();
+                AuthManager.clearLoginRestoreBootstrapPending();
+                return;
+            }
             AuthManager.clearLoginAuthBootstrapPending();
             AuthManager.clearLoginRestoreBootstrapPending();
             hidePageLoader();
@@ -320,6 +340,17 @@ export function initAuthLifecycle(options = {}) {
         if (typeof syncAuthenticatedBackNavigationGuard === "function") {
             syncAuthenticatedBackNavigationGuard({ enabled: false });
         }
+        if (AuthManager.isLoginHandoffPending()) {
+            pendingInitialSignedOutHideTimer = setTimeout(() => {
+                pendingInitialSignedOutHideTimer = null;
+                if (auth.currentUser) return;
+                releaseLoginHandoffBootHold();
+                AuthManager.clearLoginAuthBootstrapPending();
+                AuthManager.clearLoginRestoreBootstrapPending();
+                hidePageLoader({ forceReleaseBootHold: true });
+            }, MOBILE_REMEMBERED_RESTORE_FALLBACK_HIDE_MS);
+            return;
+        }
         if (AuthManager.isLoginAuthBootstrapPending()) {
             const loginAuthBootstrapSource = AuthManager.getLoginAuthBootstrapSource();
             const shouldHoldLoaderThroughRememberedRestore = isMobileViewport() && loginAuthBootstrapSource === "remembered-session";
@@ -327,9 +358,10 @@ export function initAuthLifecycle(options = {}) {
                 pendingInitialSignedOutHideTimer = setTimeout(() => {
                     pendingInitialSignedOutHideTimer = null;
                     if (auth.currentUser) return;
+                    releaseLoginHandoffBootHold();
                     AuthManager.clearLoginAuthBootstrapPending();
                     AuthManager.clearLoginRestoreBootstrapPending();
-                    hidePageLoader();
+                    hidePageLoader({ forceReleaseBootHold: true });
                 }, MOBILE_REMEMBERED_RESTORE_FALLBACK_HIDE_MS);
                 return;
             }

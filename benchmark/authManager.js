@@ -43,6 +43,7 @@ import { persistUserData } from "./persistence.js";
 const SCORE_RESET_PENDING_STORAGE_KEY = "benchmark_score_reset_pending";
 const LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY = "__benchmark_login_auto_restore_target__";
 const LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
+const LOGIN_HANDOFF_SESSION_KEY = "__benchmark_login_handoff__";
 const AUTH_RESTORE_NULL_GRACE_MS = 2200;
 const LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
 let pendingAuthInitializationPromise = null;
@@ -96,6 +97,23 @@ function readLoginAuthBootstrapState() {
     }
 }
 
+function readLoginHandoffState() {
+    if (typeof window === "undefined") return false;
+    try {
+        const raw = (window.sessionStorage.getItem(LOGIN_HANDOFF_SESSION_KEY) || "").trim();
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const expiresAt = Number(parsed && parsed.expiresAt);
+        if (!expiresAt || Date.now() > expiresAt) {
+            window.sessionStorage.removeItem(LOGIN_HANDOFF_SESSION_KEY);
+            return null;
+        }
+        return parsed;
+    } catch (e) {
+        return null;
+    }
+}
+
 export function armLoginAuthBootstrap(meta = {}) {
     if (typeof window === "undefined") return false;
     try {
@@ -134,6 +152,26 @@ export function clearLoginAuthBootstrapPending() {
     }
 }
 
+export function isLoginHandoffPending() {
+    return !!readLoginHandoffState();
+}
+
+export function getLoginHandoffSource() {
+    const state = readLoginHandoffState();
+    if (!state || typeof state !== "object") return "";
+    return typeof state.source === "string" ? state.source.trim() : "";
+}
+
+export function clearLoginHandoffPending() {
+    if (typeof window === "undefined") return false;
+    try {
+        window.sessionStorage.removeItem(LOGIN_HANDOFF_SESSION_KEY);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 export function isLoginRestoreBootstrapPending() {
     if (typeof window === "undefined") return false;
     try {
@@ -158,7 +196,7 @@ export function clearLoginRestoreBootstrapPending() {
 }
 
 function shouldDelayNullAuthResolution() {
-    return isLoginAuthBootstrapPending();
+    return isLoginAuthBootstrapPending() || isLoginHandoffPending();
 }
 
 export function waitForAuthInitialization(authInstance = auth) {

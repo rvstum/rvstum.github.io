@@ -12,6 +12,11 @@ function getBootLoaderSuppressionUntil() {
     return Number.isFinite(value) ? value : 0;
 }
 
+function isForcedBootHoldActive() {
+    if (typeof window === "undefined") return false;
+    return !!window.__BENCHMARK_FORCE_BOOT_HOLD__;
+}
+
 function shouldSuppressBootLoader() {
     const suppressUntil = getBootLoaderSuppressionUntil();
     if (!suppressUntil) return false;
@@ -45,6 +50,9 @@ export function showPageLoader() {
 export function hidePageLoader(options = {}, minVisibleMs = 1300) {
     const loader = getCachedElementById("pageLoader");
     if (!loader) return;
+    if (isForcedBootHoldActive() && !options.forceReleaseBootHold) {
+        return;
+    }
     if (loader.classList.contains("is-hidden")) {
         releaseBootVisibilityLock();
         return;

@@ -19,6 +19,8 @@ const LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
 const LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
 const LOGIN_BOOT_WINDOW_SESSION_KEY = "__benchmark_login_boot_window__";
 const LOGIN_BOOT_WINDOW_MS = 45000;
+const LOGIN_HANDOFF_SESSION_KEY = "__benchmark_login_handoff__";
+const LOGIN_HANDOFF_WINDOW_MS = 30000;
 const MOBILE_SW_CLEANUP_SESSION_KEY = "__benchmark_mobile_sw_cleanup_done__";
 let authNavigationInFlight = false;
 let mobileServiceWorkerCleanupPromise = null;
@@ -115,6 +117,24 @@ function armLoginAuthBootstrap(source = "login") {
     }
 }
 
+function armLoginHandoff(source = "login") {
+    try {
+        if (source !== "remembered-session") {
+            sessionStorage.removeItem(LOGIN_HANDOFF_SESSION_KEY);
+            return false;
+        }
+        const now = Date.now();
+        sessionStorage.setItem(LOGIN_HANDOFF_SESSION_KEY, JSON.stringify({
+            source,
+            startedAt: now,
+            expiresAt: now + LOGIN_HANDOFF_WINDOW_MS
+        }));
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 function clearLegacyAutoRestoreBootstrap() {
     try {
         sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
@@ -137,6 +157,7 @@ async function navigateAfterLogin(user, options = {}) {
 
     clearLegacyAutoRestoreBootstrap();
     armLoginAuthBootstrap(source);
+    armLoginHandoff(source);
     if (mobileServiceWorkerCleanupPromise) {
         await Promise.race([
             mobileServiceWorkerCleanupPromise.catch(() => false),
@@ -167,6 +188,7 @@ function clearLoginRedirectGuards() {
         sessionStorage.removeItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_BOOT_WINDOW_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
+        sessionStorage.removeItem(LOGIN_HANDOFF_SESSION_KEY);
     } catch (e) {
         // ignore storage availability errors
     }

@@ -22,8 +22,24 @@
         <div class="page-loader-text">Loading...</div>
     </div>
     <script>
+        (function applyLoginHandoffBootHold() {
+            try {
+                var raw = sessionStorage.getItem("__benchmark_login_handoff__");
+                if (!raw) return;
+                var parsed = JSON.parse(raw);
+                var expiresAt = Number(parsed && parsed.expiresAt);
+                if (!expiresAt || Date.now() > expiresAt) {
+                    sessionStorage.removeItem("__benchmark_login_handoff__");
+                    return;
+                }
+                window.__BENCHMARK_FORCE_BOOT_HOLD__ = true;
+            } catch (e) {}
+        })();
+    </script>
+    <script>
         (function suppressDuplicateLoginBootLoader() {
             try {
+                if (window.__BENCHMARK_FORCE_BOOT_HOLD__) return;
                 var key = "__benchmark_login_boot_window__";
                 var raw = sessionStorage.getItem(key);
                 if (!raw) return;
@@ -52,6 +68,7 @@
     <script>
         (function suppressRepeatedMobileRestoreLoader() {
             try {
+                if (window.__BENCHMARK_FORCE_BOOT_HOLD__) return;
                 var key = "__benchmark_mobile_restore_suppress_next_loader__";
                 var raw = sessionStorage.getItem(key);
                 if (!raw) return;
@@ -1133,6 +1150,6 @@
     <script type="module" src="footer-baddy.js?v=20260312-mobile-cache-refresh-1"></script>
     <script type="module" src="layoutBuilder.js?v=20260311-view-mode-compare-2"></script>
     <script type="module" src="scrollSyncUI.js?v=20260310-sub-score-input-1"></script>
-    <script type="module" src="benchmark.js?v=20260316-mobile-remembered-loader-hold-2"></script>
+    <script type="module" src="benchmark.js?v=20260316-remembered-handoff-lock-1"></script>
 </body>
 </html>
