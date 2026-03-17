@@ -94,7 +94,7 @@ import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-friends-layout-8";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260316-mobile-boot-cache-bust-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260316-mobile-remembered-loader-hold-2";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
 import { handleProfileLink } from "./routeManager.js?v=20260311-view-mode-language-fix-2";
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-exit-slug-fix-1";
@@ -1725,6 +1725,9 @@ function initBenchmarkApp() {
             // Avoid hydrating stale local state when an authenticated session exists;
             // signed-in users are populated from profile loading.
             if (resolvedUser) return;
+            const loginAuthBootstrapSource = AuthManager.getLoginAuthBootstrapSource();
+            const shouldHoldLoaderThroughRememberedRestore = isMobileViewport() && loginAuthBootstrapSource === "remembered-session";
+            if (shouldHoldLoaderThroughRememberedRestore) return;
             if (AuthManager.isLoginAuthBootstrapPending()) {
                 AuthManager.clearLoginAuthBootstrapPending();
             }
@@ -1735,6 +1738,9 @@ function initBenchmarkApp() {
         })
         .catch((err) => {
             console.warn("Auth initialization check failed; applying local settings fallback:", err);
+            const loginAuthBootstrapSource = AuthManager.getLoginAuthBootstrapSource();
+            const shouldHoldLoaderThroughRememberedRestore = isMobileViewport() && loginAuthBootstrapSource === "remembered-session";
+            if (shouldHoldLoaderThroughRememberedRestore) return;
             if (AuthManager.isLoginAuthBootstrapPending()) {
                 AuthManager.clearLoginAuthBootstrapPending();
             }

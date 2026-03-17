@@ -17,6 +17,7 @@ import { showPageLoader } from "./pageLoaderUI.js?v=20260309-logout-loader-cover
 const AUTH_REFERRER_BLOCK_HINT = "The request is blocked by Firebase API key restrictions (check authorized domains / API key HTTP referrers).";
 const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY = "__benchmark_mobile_restore_suppress_next_loader__";
 const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_WINDOW_MS = 15000;
+const MOBILE_REMEMBERED_RESTORE_FALLBACK_HIDE_MS = 6000;
 
 let unsubscribeUserSnapshot = null;
 let lastAuthUid = null;
@@ -58,6 +59,17 @@ function waitForWindowLoad(timeoutMs = 8000) {
         };
         timeoutId = setTimeout(finish, Math.max(0, Number(timeoutMs) || 0));
         window.addEventListener("load", finish, { once: true });
+    });
+}
+
+function waitForNextPaint() {
+    if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
+        return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(resolve);
+        });
     });
 }
 
@@ -138,8 +150,8 @@ export function initAuthLifecycle(options = {}) {
 
         if (user) {
             const loginAuthBootstrapSource = AuthManager.getLoginAuthBootstrapSource();
-            const shouldKeepStableBenchmarkUrl = isMobileViewport() && loginAuthBootstrapSource === "remembered-session";
-            const shouldHoldLoaderUntilWindowLoad = shouldKeepStableBenchmarkUrl;
+            const shouldHoldLoaderThroughRememberedRestore = isMobileViewport() && loginAuthBootstrapSource === "remembered-session";
+            const shouldHoldLoaderUntilWindowLoad = shouldHoldLoaderThroughRememberedRestore;
             const rememberedId = getRememberedAccountIdForUid(user.uid);
             if (rememberedId) {
                 applyActiveAccountId(rememberedId);
@@ -277,19 +289,15 @@ export function initAuthLifecycle(options = {}) {
                 if (requestsTabActive && Array.isArray(state.currentFriendRequests)) {
                     AuthManager.syncFriendRequestState(user.uid, state.currentFriendRequests, true);
                 }
-                if (!shouldKeepStableBenchmarkUrl) {
-                    Slugs.updateOwnProfileUrl(user, loadedProfileData || {});
-                }
+                Slugs.updateOwnProfileUrl(user, loadedProfileData || {});
             } catch (urlErr) {
                 console.warn("Failed to update profile URL slug:", urlErr);
-                if (!shouldKeepStableBenchmarkUrl) {
-                    const profileName = getCachedQuery("profileName", () => document.querySelector(".profile-name"));
-                    Slugs.updateOwnProfileUrl(user, {
-                        username: user.displayName || (profileName ? profileName.textContent : "player"),
-                        accountId: getRuntimeAccountId(),
-                        profile: {}
-                    });
-                }
+                const profileName = getCachedQuery("profileName", () => document.querySelector(".profile-name"));
+                Slugs.updateOwnProfileUrl(user, {
+                    username: user.displayName || (profileName ? profileName.textContent : "player"),
+                    accountId: getRuntimeAccountId(),
+                    profile: {}
+                });
             }
             RadarUI.setRadarMode("combined", false);
             ProfileUI.syncUserMenuDropdownWidth();
@@ -298,8 +306,9 @@ export function initAuthLifecycle(options = {}) {
             }
             if (shouldHoldLoaderUntilWindowLoad) {
                 await waitForWindowLoad();
+                await waitForNextPaint();
             }
-            if (AuthManager.isLoginAuthBootstrapPending()) {
+            if (!shouldHoldLoaderThroughRememberedRestore && AuthManager.isLoginAuthBootstrapPending()) {
                 armNextMobileRestoreLoaderSuppression();
             }
             AuthManager.clearLoginAuthBootstrapPending();
@@ -312,6 +321,18 @@ export function initAuthLifecycle(options = {}) {
             syncAuthenticatedBackNavigationGuard({ enabled: false });
         }
         if (AuthManager.isLoginAuthBootstrapPending()) {
+            const loginAuthBootstrapSource = AuthManager.getLoginAuthBootstrapSource();
+            const shouldHoldLoaderThroughRememberedRestore = isMobileViewport() && loginAuthBootstrapSource === "remembered-session";
+            if (shouldHoldLoaderThroughRememberedRestore) {
+                pendingInitialSignedOutHideTimer = setTimeout(() => {
+                    pendingInitialSignedOutHideTimer = null;
+                    if (auth.currentUser) return;
+                    AuthManager.clearLoginAuthBootstrapPending();
+                    AuthManager.clearLoginRestoreBootstrapPending();
+                    hidePageLoader();
+                }, MOBILE_REMEMBERED_RESTORE_FALLBACK_HIDE_MS);
+                return;
+            }
             AuthManager.clearLoginAuthBootstrapPending();
             hidePageLoader();
             return;
