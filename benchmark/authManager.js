@@ -32,7 +32,7 @@ import {
     SUB_INPUT_MODE_STORAGE_KEY
 } from "./storage.js?v=20260310-sub-score-input-3";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
+import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
 import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
@@ -330,9 +330,45 @@ export async function loadUserProfile(user, hooks = {}) {
     try {
         const docSnap = await UserService.getUserDocument(sessionUid);
         if (isStaleAuthSession()) return null;
-        if (!docSnap.exists()) return null;
-
-        data = docSnap.data();
+        if (!docSnap.exists()) {
+            const initialLanguage = readString(LANGUAGE_STORAGE_KEY, "en") || "en";
+            data = {
+                ...(user.displayName ? { username: user.displayName } : {}),
+                profile: {
+                    views: 0
+                },
+                settings: {
+                    language: initialLanguage
+                },
+                isNewUser: true
+            };
+            await UserService.updateUserData(sessionUid, data);
+            if (isStaleAuthSession()) return null;
+        } else {
+            data = docSnap.data();
+        }
+        if (!data || typeof data !== "object") {
+            data = {};
+        }
+        if (!data.profile || typeof data.profile !== "object") {
+            data.profile = {};
+        }
+        if (!Array.isArray(data.profile.guilds) && Array.isArray(data.guilds)) {
+            data.profile.guilds = data.guilds;
+        }
+        if (!Number.isFinite(Number(data.profile.views))) {
+            if (Number.isFinite(Number(data.views))) {
+                data.profile.views = Number(data.views) || 0;
+            } else {
+                data.profile.views = 0;
+            }
+            await UserService.updateUserData(sessionUid, {
+                profile: {
+                    views: data.profile.views
+                }
+            });
+            if (isStaleAuthSession()) return null;
+        }
         ProfileUI.setCurrentUserEmail(user.email || "");
         const shouldInitOnboarding = !!data.isNewUser;
         let didApplyConfig = false;

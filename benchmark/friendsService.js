@@ -15,12 +15,15 @@ import { db } from "./client.js";
 import { FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
 import { calculateRankFromData } from "./scoring.js";
 import * as ScoreManager from "./scoreManager.js";
+import { PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, readJson, writeJson } from "./storage.js";
 import * as UserService from "./userService.js";
 import { resolveProfileAccountId, resolveProfileSlug, resolveProfileUsername } from "./slugs.js";
 
 const USERS_COLLECTION = "users";
 const FRIEND_REQUESTS_COLLECTION = "friendRequests";
 const FRIENDSHIPS_COLLECTION = "friendships";
+const PROFILE_VIEW_COOLDOWN_MS = 5 * 60 * 1000;
+const MAX_PROFILE_GUILDS = 6;
 
 function normalizeUid(value) {
     return typeof value === "string" ? value.trim() : "";
@@ -39,6 +42,25 @@ function isPermissionLikeError(error) {
 
 function safeObject(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function normalizeGuildList(value) {
+    if (!Array.isArray(value)) return [];
+    return [...new Set(value
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter((item) => item !== ""))]
+        .slice(0, MAX_PROFILE_GUILDS);
+}
+
+function resolveGuildListFromUserData(data = {}, directoryData = null) {
+    const safeData = safeObject(data);
+    const profile = safeObject(safeData.profile);
+    const safeDirectoryData = safeObject(directoryData);
+    const fromProfile = normalizeGuildList(profile.guilds);
+    if (fromProfile.length) return fromProfile;
+    const fromRoot = normalizeGuildList(safeData.guilds);
+    if (fromRoot.length) return fromRoot;
+    return normalizeGuildList(safeDirectoryData.guilds);
 }
 
 function pickNonEmpty(...values) {
@@ -131,6 +153,11 @@ function mergeSnapshots(...snapshots) {
                 if (trimmed !== "") merged[key] = trimmed;
                 return;
             }
+            if (Array.isArray(value)) {
+                const normalizedList = normalizeGuildList(value);
+                if (normalizedList.length) merged[key] = normalizedList;
+                return;
+            }
             if (typeof value === "number" && Number.isFinite(value)) {
                 merged[key] = value;
                 return;
@@ -165,6 +192,7 @@ function buildSnapshotFromUserData(uid, userData = {}, directoryData = null) {
         deriveRankIndex(safeData)
     );
     const rankIndex = Math.max(parsedRankIndex, derivedRankIndex);
+    const resolvedGuilds = resolveGuildListFromUserData(safeData, safeDirectoryData);
     return {
         uid: normalizeUid(uid),
         username: pickNonEmpty(
@@ -187,6 +215,7 @@ function buildSnapshotFromUserData(uid, userData = {}, directoryData = null) {
             }),
             safeDirectoryData.publicSlug
         ),
+        ...(resolvedGuilds.length ? { guilds: resolvedGuilds } : {}),
         visibility: pickNonEmpty(safeObject(safeData.settings).visibility, safeDirectoryData.visibility, "everyone"),
         updatedAt: Date.now()
     };
@@ -343,19 +372,86 @@ export function buildFriendshipId(userA, userB) {
     return ids.length ? ids[0] : "";
 }
 
-export async function incrementViewCount(uid) {
+function readProfileViewCooldownMap() {
+    const raw = readJson(PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, {});
+    const safeMap = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+    const now = Date.now();
+    const nextMap = {};
+
+    Object.entries(safeMap).forEach(([key, value]) => {
+        const normalizedKey = normalizeUid(key);
+        const expiresAt = Number(value);
+        if (!normalizedKey || !Number.isFinite(expiresAt) || expiresAt <= now) return;
+        nextMap[normalizedKey] = expiresAt;
+    });
+
+    const previousKeys = Object.keys(safeMap);
+    const nextKeys = Object.keys(nextMap);
+    const changed = previousKeys.length !== nextKeys.length
+        || nextKeys.some((key) => safeMap[key] !== nextMap[key]);
+    if (changed) {
+        writeJson(PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, nextMap);
+    }
+
+    return nextMap;
+}
+
+function getProfileViewCooldownExpiry(uid) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return 0;
+    const cooldownMap = readProfileViewCooldownMap();
+    const expiresAt = Number(cooldownMap[normalizedUid]);
+    return Number.isFinite(expiresAt) ? expiresAt : 0;
+}
+
+function setProfileViewCooldown(uid, now = Date.now()) {
     const normalizedUid = normalizeUid(uid);
     if (!normalizedUid) return false;
+    const cooldownMap = readProfileViewCooldownMap();
+    cooldownMap[normalizedUid] = now + PROFILE_VIEW_COOLDOWN_MS;
+    return writeJson(PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, cooldownMap);
+}
+
+export async function incrementViewCount(uid, options = {}) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return false;
+    const normalizedAccountId = typeof options?.accountId === "string" ? options.accountId.trim() : "";
+    const normalizedVisibility = typeof options?.visibility === "string" ? options.visibility.trim() : "";
+    if (getProfileViewCooldownExpiry(normalizedUid) > Date.now()) {
+        return false;
+    }
     try {
-        const userSnap = await getDoc(doc(db, USERS_COLLECTION, normalizedUid));
-        if (!userSnap.exists()) return false;
+        const userRef = doc(db, USERS_COLLECTION, normalizedUid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+            const createPayload = {
+                profile: {
+                    views: 1
+                }
+            };
+            if (normalizedAccountId) {
+                createPayload.accountId = normalizedAccountId;
+            }
+            if (normalizedVisibility) {
+                createPayload.settings = {
+                    visibility: normalizedVisibility
+                };
+            }
+            await setDoc(userRef, createPayload, { merge: true });
+            setProfileViewCooldown(normalizedUid);
+            return 1;
+        }
         const data = userSnap.data() || {};
         const profile = safeObject(data.profile);
         const currentViews = Number(profile.views) || 0;
-        await updateDoc(doc(db, USERS_COLLECTION, normalizedUid), {
-            "profile.views": currentViews + 1
-        });
-        return true;
+        const nextViews = currentViews + 1;
+        await setDoc(userRef, {
+            profile: {
+                views: nextViews
+            }
+        }, { merge: true });
+        setProfileViewCooldown(normalizedUid);
+        return nextViews;
     } catch (error) {
         if (!isPermissionLikeError(error)) {
             console.warn("Failed to increment benchmark views:", error);

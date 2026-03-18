@@ -73,10 +73,12 @@ export function createLanguageController(options = {}) {
     const {
         maskedAccountId,
         setupMobileSettingsDropdowns,
+        setupMobileLeaderboardDropdowns,
         renderTrophies,
         renderAchievementsIfOpen,
         refreshAchievementsProgress,
         refreshFriendsModalIfOpen,
+        refreshLeaderboardIfOpen,
         renderGuildsList,
         applyMountConfigVisual,
         getCurrentConfig,
@@ -131,6 +133,9 @@ export function createLanguageController(options = {}) {
         if (langSelect) langSelect.value = lang;
         if (typeof setupMobileSettingsDropdowns === "function") {
             setupMobileSettingsDropdowns();
+        }
+        if (typeof setupMobileLeaderboardDropdowns === "function") {
+            setupMobileLeaderboardDropdowns();
         }
         document.querySelectorAll(".auth-lang-select").forEach((sel) => {
             sel.value = lang;
@@ -203,6 +208,9 @@ export function createLanguageController(options = {}) {
         } catch (e) {}
         try {
             if (typeof refreshFriendsModalIfOpen === "function") refreshFriendsModalIfOpen();
+        } catch (e) {}
+        try {
+            if (typeof refreshLeaderboardIfOpen === "function") refreshLeaderboardIfOpen();
         } catch (e) {}
         try {
             if (typeof renderGuildsList === "function") renderGuildsList();

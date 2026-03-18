@@ -35,6 +35,7 @@ const coreDeps = {
 };
 const HYDRATED_FRIEND_ENTRIES_CACHE_TTL_MS = 15000;
 const hydratedFriendEntriesCache = new Map();
+const MAX_PROFILE_GUILDS = 6;
 
 function safeObject(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -72,6 +73,22 @@ function pickFirstString(...values) {
         if (trimmed) return trimmed;
     }
     return "";
+}
+
+function normalizeGuildList(value) {
+    if (!Array.isArray(value)) return [];
+    return [...new Set(value
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter((item) => item !== ""))]
+        .slice(0, MAX_PROFILE_GUILDS);
+}
+
+function pickFirstGuildList(...values) {
+    for (const value of values) {
+        const normalizedList = normalizeGuildList(value);
+        if (normalizedList.length) return normalizedList;
+    }
+    return [];
 }
 
 function pickHighestRankIndex(...values) {
@@ -399,6 +416,12 @@ export function buildSnapshotFromUserData(userData = {}, fallback = {}, director
     const resolvedRankName = parsedRankIndex >= rankIndex
         ? rankName
         : (RANK_NAMES[rankIndex] || RANK_NAMES[0] || "Unranked");
+    const resolvedGuilds = pickFirstGuildList(
+        profile.guilds,
+        safeData.guilds,
+        safeDirectoryData.guilds,
+        safeFallback.guilds
+    );
     return {
         uid: normalizeUid(pickFirstString(safeFallback.uid, safeData.uid)),
         username: resolvedUsername,
@@ -407,6 +430,7 @@ export function buildSnapshotFromUserData(userData = {}, fallback = {}, director
         rankName: resolvedRankName,
         flag: pickFirstString(profile.flag, safeData.flag, safeDirectoryData.flag, safeFallback.flag),
         pic: pickFirstString(profile.pic, safeData.pic, safeDirectoryData.pic, safeFallback.pic),
+        ...(resolvedGuilds.length ? { guilds: resolvedGuilds } : {}),
         publicSlug: explicitPublicSlug || (
             resolvedUsername || resolvedAccountId
                 ? Slugs.resolveProfileSlug(safeData, {

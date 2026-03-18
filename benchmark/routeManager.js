@@ -1,9 +1,9 @@
 import { getRuntimeAccountId } from "./appState.js";
 import { getRememberedAccountIdForUid } from "./accountId.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260311-view-mode-compare-2";
-import * as AuthManager from "./authManager.js?v=20260311-profile-original-sync-1";
+import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
+import * as ViewModeManager from "./viewModeManager.js?v=20260317-profile-view-cooldown-2";
+import * as AuthManager from "./authManager.js?v=20260317-profile-views-bootstrap-2";
 import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";
 import { showPageLoader } from "./pageLoaderUI.js";
 
@@ -23,6 +23,22 @@ async function resolveViewerDocData(currentUser) {
 
 function safeObject(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function normalizeGuildList(value) {
+    if (!Array.isArray(value)) return [];
+    return [...new Set(value
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter((item) => item !== ""))]
+        .slice(0, 6);
+}
+
+function resolveGuildListFromData(data = {}) {
+    const safeData = safeObject(data);
+    const profile = safeObject(safeData.profile);
+    const fromProfile = normalizeGuildList(profile.guilds);
+    if (fromProfile.length) return fromProfile;
+    return normalizeGuildList(safeData.guilds);
 }
 
 function isPermissionLikeError(error) {
@@ -91,6 +107,8 @@ function mergeDirectoryPreviewData(data = {}, directoryData = null) {
     const resolvedRankIndex = Number.isFinite(Number(safeData.rankIndex))
         ? Number(safeData.rankIndex)
         : (Number.isFinite(Number(safeDirectoryData.rankIndex)) ? Number(safeDirectoryData.rankIndex) : undefined);
+    const resolvedDirectoryGuilds = normalizeGuildList(safeDirectoryData.guilds);
+    const resolvedDocGuilds = resolveGuildListFromData(safeData);
 
     return {
         ...safeData,
@@ -108,6 +126,9 @@ function mergeDirectoryPreviewData(data = {}, directoryData = null) {
         },
         profile: {
             ...profile,
+            ...(resolvedDocGuilds.length
+                ? { guilds: resolvedDocGuilds }
+                : (resolvedDirectoryGuilds.length ? { guilds: resolvedDirectoryGuilds } : {})),
             ...(profile.username ? {} : (resolvedUsername ? { username: resolvedUsername } : {})),
             ...(profile.flag ? {} : (typeof safeDirectoryData.flag === "string" && safeDirectoryData.flag.trim()
                 ? { flag: safeDirectoryData.flag.trim() }

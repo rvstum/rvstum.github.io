@@ -1,6 +1,6 @@
 import { state, getRuntimeAccountId } from "./appState.js";
 import { t, tf } from "./i18n.js";
-import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
+import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { updateProfile, signOut, verifyBeforeUpdateEmail, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";

@@ -12,7 +12,7 @@ import { auth, db } from "./client.js";
 import { getRuntimeAccountId } from "./appState.js";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
+import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
 import { resetAccountIdVisibility } from "./accountId.js";
 import { showPageLoader, hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260309-logout-loader-cover-1";

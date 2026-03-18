@@ -10,6 +10,7 @@ import {
 } from "./storage.js";
 
 const MOBILE_SETTINGS_SELECT_SELECTOR = "#settingsModal select.settings-select";
+const MOBILE_LEADERBOARD_SELECT_SELECTOR = "#leaderboardModal select.settings-select";
 
 export function initSettingsUI(options = {}) {
     const {
@@ -37,6 +38,7 @@ export function initSettingsUI(options = {}) {
     const customThemeNameInput = getCachedElementById("customThemeName");
 
     let mobileSettingsDropdownDocBound = false;
+    let mobileLeaderboardDropdownDocBound = false;
     let modalAuthLangDropdownDocBound = false;
 
     function normalizeSettingsLanguageDropdownLabels() {
@@ -173,6 +175,94 @@ export function initSettingsUI(options = {}) {
         }
     }
 
+    function setupMobileLeaderboardDropdowns() {
+        const selects = Array.from(document.querySelectorAll(MOBILE_LEADERBOARD_SELECT_SELECTOR));
+        if (!selects.length) return;
+
+        const isMobile = isMobileViewport();
+        selects.forEach((selectEl) => {
+            const existing = selectEl.nextElementSibling;
+            const hasCustom = existing && existing.classList && existing.classList.contains("settings-custom-select");
+
+            if (!isMobile) {
+                selectEl.classList.remove("settings-select-native-hidden");
+                if (hasCustom) existing.remove();
+                return;
+            }
+
+            selectEl.classList.add("settings-select-native-hidden");
+            const wrapper = hasCustom ? existing : document.createElement("div");
+            if (!hasCustom) {
+                wrapper.className = "settings-custom-select";
+                wrapper.innerHTML = `
+                    <button type="button" class="settings-custom-trigger" aria-expanded="false"></button>
+                    <div class="settings-custom-menu"></div>
+                `;
+                selectEl.insertAdjacentElement("afterend", wrapper);
+            }
+
+            const trigger = wrapper.querySelector(".settings-custom-trigger");
+            const menu = wrapper.querySelector(".settings-custom-menu");
+            if (!trigger || !menu) return;
+
+            const syncLabel = () => {
+                const selected = selectEl.options[selectEl.selectedIndex];
+                trigger.textContent = selected ? selected.textContent : "";
+            };
+
+            menu.innerHTML = "";
+            Array.from(selectEl.options).forEach((opt) => {
+                const item = document.createElement("button");
+                item.type = "button";
+                item.className = "settings-custom-item";
+                item.textContent = opt.textContent;
+                item.dataset.value = opt.value;
+                item.addEventListener("click", () => {
+                    selectEl.value = opt.value;
+                    selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+                    wrapper.classList.remove("open");
+                    trigger.setAttribute("aria-expanded", "false");
+                    syncLabel();
+                });
+                menu.appendChild(item);
+            });
+
+            if (wrapper.dataset.bound !== "1") {
+                trigger.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const willOpen = !wrapper.classList.contains("open");
+                    document.querySelectorAll("#leaderboardModal .settings-custom-select.open").forEach((el) => {
+                        el.classList.remove("open");
+                        const btn = el.querySelector(".settings-custom-trigger");
+                        if (btn) btn.setAttribute("aria-expanded", "false");
+                    });
+                    if (willOpen) {
+                        syncMobileSettingsMenuPlacement(wrapper, trigger, menu);
+                    }
+                    wrapper.classList.toggle("open", willOpen);
+                    trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+                });
+                selectEl.addEventListener("change", syncLabel);
+                wrapper.dataset.bound = "1";
+            }
+
+            syncLabel();
+        });
+
+        if (!mobileLeaderboardDropdownDocBound) {
+            document.addEventListener("click", (e) => {
+                if (e.target && e.target.closest && e.target.closest("#leaderboardModal .settings-custom-select")) return;
+                document.querySelectorAll("#leaderboardModal .settings-custom-select.open").forEach((el) => {
+                    el.classList.remove("open");
+                    const btn = el.querySelector(".settings-custom-trigger");
+                    if (btn) btn.setAttribute("aria-expanded", "false");
+                });
+            });
+            mobileLeaderboardDropdownDocBound = true;
+        }
+    }
+
     function setupModalAuthLanguageDropdowns() {
         normalizeAuthLanguageDropdownLabels();
         const selects = Array.from(document.querySelectorAll("#verificationModal .auth-lang-select, #onboardingModal .auth-lang-select"));
@@ -284,7 +374,9 @@ export function initSettingsUI(options = {}) {
     }
 
     window.addEventListener("resize", setupMobileSettingsDropdowns);
+    window.addEventListener("resize", setupMobileLeaderboardDropdowns);
     requestAnimationFrame(setupMobileSettingsDropdowns);
+    requestAnimationFrame(setupMobileLeaderboardDropdowns);
     requestAnimationFrame(setupModalAuthLanguageDropdowns);
 
     if (closeSettingsModal) {
@@ -411,6 +503,7 @@ export function initSettingsUI(options = {}) {
 
     return {
         setupMobileSettingsDropdowns,
+        setupMobileLeaderboardDropdowns,
         setupModalAuthLanguageDropdowns
     };
 }

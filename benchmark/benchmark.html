@@ -14,7 +14,7 @@
         window.__BENCHMARK_SHARE_SERVICE_URL__ = "http://localhost:3000";
     </script>
     <script type="module" src="modernScreenshotLoader.js?v=20260312-mobile-cache-refresh-1"></script>
-    <link rel="stylesheet" href="benchmark.css?v=20260316-mobile-boot-cache-bust-1">
+    <link rel="stylesheet" href="benchmark.css?v=20260318-leaderboard-mobile-right-cols-left-1">
 </head>
 <body class="benchmark-boot-loading">
     <div id="pageLoader" class="page-loader">
@@ -145,14 +145,14 @@
             </div>
         </div>
         <div class="small-inner-box" id="mountBox" data-value="mountspeed1">
-            <img id="mountConfigImage" class="mount-config-image" src="../icons/mountspeed1.png" alt="Mount Speed 1">
+            <img id="mountConfigImage" class="mount-config-image" src="../icons/mountspeed1.png" alt="Mount 1">
             <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
             <div class="dropdown-menu">
                 <div class="dropdown-item dropdown-item-image active" data-value="mountspeed1">
-                    <img class="mount-option-image" src="../icons/mountspeed1.png" alt="Mount Speed 1">
+                    <img class="mount-option-image" src="../icons/mountspeed1.png" alt="Mount 1">
                 </div>
                 <div class="dropdown-item dropdown-item-image" data-value="mountspeed2">
-                    <img class="mount-option-image" src="../icons/mountspeed2.png" alt="Mount Speed 2">
+                    <img class="mount-option-image" src="../icons/mountspeed2.png" alt="Mount 2">
                 </div>
             </div>
         </div>
@@ -186,6 +186,7 @@
                         <span class="friends-menu-label" data-i18n="menu_friends">Friends</span>
                         <div class="notification-dot is-hidden" id="friendsBtnNotification"></div>
                     </div>
+                    <div class="dropdown-item" id="leaderboardMenuBtn" data-i18n="menu_leaderboard">Leaderboard</div>
                     <div class="dropdown-item" id="signOutBtn" data-i18n="menu_logout">Log Out</div>
                 </div>
             </div>
@@ -574,8 +575,8 @@
                     <div class="settings-field">
                         <label class="settings-label" for="defaultMount" data-i18n="settings_mount">Mount</label>
                         <select id="defaultMount" class="settings-select">
-                            <option value="mountspeed1" data-i18n="mount_speed_1">Mount Speed 1</option>
-                            <option value="mountspeed2" data-i18n="mount_speed_2">Mount Speed 2</option>
+                            <option value="mountspeed1" data-i18n="mount_speed_1">Mount 1</option>
+                            <option value="mountspeed2" data-i18n="mount_speed_2">Mount 2</option>
                         </select>
                     </div>
                 </div>
@@ -607,8 +608,8 @@
                     <div class="settings-field">
                         <label class="settings-label" for="resetMount" data-i18n="settings_mount">Mount</label>
                         <select id="resetMount" class="settings-select">
-                            <option value="mountspeed1" data-i18n="mount_speed_1">Mount Speed 1</option>
-                            <option value="mountspeed2" data-i18n="mount_speed_2">Mount Speed 2</option>
+                            <option value="mountspeed1" data-i18n="mount_speed_1">Mount 1</option>
+                            <option value="mountspeed2" data-i18n="mount_speed_2">Mount 2</option>
                         </select>
                     </div>
                     <div class="settings-actions settings-actions--reset">
@@ -913,6 +914,83 @@
         </div>
     </div>
 
+    <!-- Friends Leaderboard Modal -->
+    <div class="share-modal-overlay" id="leaderboardModal">
+        <div class="settings-content-box leaderboard-modal-shell">
+            <span class="share-modal-close modal-close-muted" id="closeLeaderboardModal">&times;</span>
+
+            <div class="settings-header">
+                <div class="settings-title settings-title-inline-icon">
+                    <img class="leaderboard-title-icon" src="../icons/leaderboardicon.png" alt="" aria-hidden="true">
+                    <span data-i18n="leaderboard_title">Leaderboard</span>
+                </div>
+                <div class="settings-subtitle leaderboard-subtitle" data-i18n="leaderboard_subtitle">Friends Only</div>
+            </div>
+
+            <div class="leaderboard-toolbar">
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="leaderboard_filter_scope">Scope</span>
+                    <select id="leaderboardScopeFilter" class="settings-select">
+                        <option value="worldwide" data-i18n="leaderboard_scope_worldwide">Worldwide</option>
+                        <option value="country" data-i18n="leaderboard_scope_country">Country</option>
+                    </select>
+                </label>
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="settings_platform">Platform</span>
+                    <select id="leaderboardPlatformFilter" class="settings-select">
+                        <option value="all" data-i18n="leaderboard_platform_all">All</option>
+                        <option value="Mobile" data-i18n="leaderboard_platform_mobile">Mobile</option>
+                        <option value="PC" data-i18n="leaderboard_platform_pc">PC</option>
+                    </select>
+                </label>
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="leaderboard_filter_time">Time</span>
+                    <select id="leaderboardTimeFilter" class="settings-select">
+                        <option value="5 Min" data-i18n="leaderboard_time_5_min">5 Min</option>
+                        <option value="10 Min" data-i18n="leaderboard_time_10_min">10 Min</option>
+                        <option value="60 Min" data-i18n="leaderboard_time_60_min">60 Min</option>
+                    </select>
+                </label>
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="leaderboard_filter_stat">Stat</span>
+                    <select id="leaderboardStatFilter" class="settings-select">
+                        <option value="Baddy Kills" data-i18n="leaderboard_stat_kills">Baddy Kills</option>
+                        <option value="Baddy Points" data-i18n="leaderboard_stat_points">Baddy Points</option>
+                    </select>
+                </label>
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="leaderboard_filter_mount">Mount</span>
+                    <select id="leaderboardMountFilter" class="settings-select">
+                        <option value="mountspeed1" data-i18n="mount_speed_1">Mount 1</option>
+                        <option value="mountspeed2" data-i18n="mount_speed_2">Mount 2</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="leaderboard-table-shell">
+                <div class="leaderboard-table-scroll">
+                    <div class="leaderboard-table-track">
+                        <div class="leaderboard-table-head">
+                            <div data-i18n="leaderboard_rank">#</div>
+                            <div data-i18n="leaderboard_player">Player</div>
+                            <div data-i18n="leaderboard_trophies">Placements</div>
+                            <div data-i18n="leaderboard_top_baddy">Top Baddy</div>
+                            <div data-i18n="rating">Rating</div>
+                            <div data-i18n="leaderboard_rank_name">Rank</div>
+                        </div>
+                        <div class="leaderboard-list" id="leaderboardList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="leaderboard-pagination">
+                <button class="settings-btn" id="leaderboardPrevPageBtn" data-i18n="leaderboard_prev">Previous</button>
+                <div class="leaderboard-page-indicator" id="leaderboardPageIndicator">0</div>
+                <button class="settings-btn primary" id="leaderboardNextPageBtn" data-i18n="leaderboard_next">Next</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Trophy Editor Modal -->
     <div class="share-modal-overlay" id="trophyModal">
         <div class="settings-content-box trophy-modal-box">
@@ -1150,6 +1228,6 @@
     <script type="module" src="footer-baddy.js?v=20260312-mobile-cache-refresh-1"></script>
     <script type="module" src="layoutBuilder.js?v=20260311-view-mode-compare-2"></script>
     <script type="module" src="scrollSyncUI.js?v=20260310-sub-score-input-1"></script>
-    <script type="module" src="benchmark.js?v=20260316-remembered-handoff-lock-1"></script>
+    <script type="module" src="benchmark.js?v=20260318-mount-short-labels-1"></script>
 </body>
 </html>

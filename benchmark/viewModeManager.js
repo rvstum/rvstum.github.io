@@ -4,17 +4,17 @@ import { readJson, GUILDS_STORAGE_KEY } from "./storage.js";
 import { t } from "./i18n.js";
 import { getFlagUrl } from "./utils.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
-import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
+import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
-import * as FriendsService from "./friendsService.js?v=20260309-public-view-fix-1";
+import * as FriendsService from "./friendsService.js?v=20260317-profile-view-cooldown-1";
 import * as RadarUI from "./radarUI.js";
 import * as RankingUI from "./rankingUI.js?v=20260311-compare-theme-colors-1";
 import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { renderGuildHeader } from "./profileUI.js";
 import { calculateRankFromData, calculateTotalRatingForScores } from "./scoring.js";
-import { getScoreBaseForConfigKey, DEFAULT_MOUNT_CONFIG, FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
+import { getScoreBaseForConfigKey, CONFIG_OPTIONS, DEFAULT_MOUNT_CONFIG, FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
 import { normalizeMountConfig, getConfigLookupKeys } from "./configManager.js";
 
 const viewModeDeps = {
@@ -61,6 +61,21 @@ function normalizeGuildList(list) {
             .map((value) => (typeof value === "string" ? value.trim() : ""))
             .filter((value) => value !== "")
     )];
+}
+
+function resolveGuildListFromData(data = {}) {
+    const profile = data && typeof data.profile === "object" && data.profile ? data.profile : {};
+    const fromProfile = normalizeGuildList(profile.guilds);
+    if (fromProfile.length) return fromProfile;
+    return normalizeGuildList(data && typeof data === "object" ? data.guilds : []);
+}
+
+function resolveViewCountFromData(data = {}) {
+    const profile = data && typeof data.profile === "object" && data.profile ? data.profile : {};
+    const profileViews = Number(profile.views);
+    if (Number.isFinite(profileViews)) return profileViews;
+    const rootViews = Number(data && typeof data === "object" ? data.views : NaN);
+    return Number.isFinite(rootViews) ? rootViews : 0;
 }
 
 function clampRankIndex(value) {
@@ -310,6 +325,29 @@ function resolveBestViewModeConfig(data) {
     };
 }
 
+function normalizeViewModeConfigOverride(config = null) {
+    const safeConfig = config && typeof config === "object" ? config : null;
+    if (!safeConfig) return null;
+
+    const platform = typeof safeConfig.platform === "string" && CONFIG_OPTIONS.platform.includes(safeConfig.platform)
+        ? safeConfig.platform
+        : "";
+    const time = typeof safeConfig.time === "string" && CONFIG_OPTIONS.time.includes(safeConfig.time)
+        ? safeConfig.time
+        : "";
+    const stat = typeof safeConfig.stat === "string" && CONFIG_OPTIONS.stat.includes(safeConfig.stat)
+        ? safeConfig.stat
+        : "";
+
+    if (!platform || !time || !stat) return null;
+    return {
+        platform,
+        time,
+        stat,
+        mount: normalizeMountConfig(safeConfig.mount || DEFAULT_MOUNT_CONFIG)
+    };
+}
+
 function applyViewModeConfigAndTheme(data, configToUse) {
     const platformText = getCachedElementById("platformText");
     const timeText = getCachedElementById("timeText");
@@ -385,8 +423,9 @@ function applyViewModeProfileHeader(data) {
 
     const guildNameEl = getCachedQuery("viewModeGuildName", () => document.querySelector(".guild-name"));
     if (!guildNameEl) return;
-    if (profile.guilds && profile.guilds.length > 0) {
-        renderGuildHeader(guildNameEl, profile.guilds);
+    const resolvedGuilds = resolveGuildListFromData(data);
+    if (resolvedGuilds.length > 0) {
+        renderGuildHeader(guildNameEl, resolvedGuilds);
     } else {
         setHidden(guildNameEl, true);
     }
@@ -411,11 +450,35 @@ function applyViewModeTrophiesAchievementsAndViews(data, uid) {
     AchievementsUI.renderAchievements(openImageViewer, showConfirmModal);
 
     const viewCountEl = getCachedElementById("viewCount");
+    const currentViews = resolveViewCountFromData(data);
     if (viewCountEl) {
-        const views = profile.views || 0;
-        viewCountEl.textContent = views.toLocaleString();
+        viewCountEl.textContent = currentViews.toLocaleString();
     }
-    if (uid) FriendsService.incrementViewCount(uid);
+    if (uid) {
+        const resolvedAccountId = typeof data.accountId === "string" && data.accountId.trim()
+            ? data.accountId.trim()
+            : (state.activeViewProfileContext && typeof state.activeViewProfileContext.accountId === "string"
+                ? state.activeViewProfileContext.accountId.trim()
+                : "");
+        const resolvedVisibility = data && typeof data.settings === "object" && typeof data.settings.visibility === "string"
+            ? data.settings.visibility.trim()
+            : "";
+        FriendsService.incrementViewCount(uid, {
+            accountId: resolvedAccountId,
+            visibility: resolvedVisibility
+        }).then((nextViews) => {
+            if (!Number.isFinite(nextViews)) return;
+            if (data && typeof data === "object") {
+                if (!data.profile || typeof data.profile !== "object") data.profile = {};
+                data.profile.views = nextViews;
+            }
+            if (viewCountEl) {
+                viewCountEl.textContent = Number(nextViews).toLocaleString();
+            }
+        }).catch((error) => {
+            console.warn("Failed to update benchmark view count UI:", error);
+        });
+    }
 }
 
 function lockViewModeInteractiveInputs() {
@@ -446,7 +509,7 @@ function resetViewModeHorizontalScroll() {
     });
 }
 
-export async function enterViewMode(data, uid) {
+export async function enterViewMode(data, uid, options = {}) {
     const showPrivateProfileOverlay = requireDep("showPrivateProfileOverlay");
     const hidePrivateProfileOverlay = requireDep("hidePrivateProfileOverlay");
     const syncAuthenticatedBackNavigationGuard = requireDep("syncAuthenticatedBackNavigationGuard");
@@ -494,7 +557,8 @@ export async function enterViewMode(data, uid) {
 
     applyViewModeChrome();
     applyViewModeDataSnapshot(normalizedData);
-    const configToUse = resolveBestViewModeConfig(normalizedData);
+    const configOverride = normalizeViewModeConfigOverride(options && options.configOverride);
+    const configToUse = configOverride || resolveBestViewModeConfig(normalizedData);
     applyViewModeConfigAndTheme(normalizedData, configToUse);
     applyViewModeProfileHeader(normalizedData);
     applyViewModeTrophiesAchievementsAndViews(normalizedData, uid);

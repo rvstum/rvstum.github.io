@@ -234,6 +234,7 @@ function getMinScreenshotLoadingMs() {
 let modalLockScrollY = 0;
 let modalScrollLocked = false;
 let activeGlobalModalTouchContainer = null;
+let activeGlobalModalTouchX = 0;
 let activeGlobalModalTouchY = 0;
 
 function syncGlobalModalScrollLock() {
@@ -271,19 +272,75 @@ function findScrollableModalAncestor(target, modalEl) {
     let node = target instanceof Element ? target : null;
     while (node && node !== modalEl) {
         const style = window.getComputedStyle(node);
+        const overflowX = style ? style.overflowX : "";
         const overflowY = style ? style.overflowY : "";
+        const canScrollX = (overflowX === "auto" || overflowX === "scroll")
+            && node.scrollWidth > (node.clientWidth + 1);
         const canScrollY = (overflowY === "auto" || overflowY === "scroll")
             && node.scrollHeight > (node.clientHeight + 1);
-        if (canScrollY) return node;
+        if (canScrollX || canScrollY) return node;
         node = node.parentElement;
     }
     return null;
 }
 
-function canContinueTouchScroll(container, deltaY) {
+function findScrollableModalAncestorForDelta(target, modalEl, deltaX, deltaY) {
+    let node = target instanceof Element ? target : null;
+    const scrollableAncestors = [];
+    while (node && node !== modalEl) {
+        const style = window.getComputedStyle(node);
+        const overflowX = style ? style.overflowX : "";
+        const overflowY = style ? style.overflowY : "";
+        const canScrollX = (overflowX === "auto" || overflowX === "scroll")
+            && node.scrollWidth > (node.clientWidth + 1);
+        const canScrollY = (overflowY === "auto" || overflowY === "scroll")
+            && node.scrollHeight > (node.clientHeight + 1);
+        if (canScrollX || canScrollY) {
+            scrollableAncestors.push({ node, canScrollX, canScrollY });
+        }
+        node = node.parentElement;
+    }
+    if (!scrollableAncestors.length) return null;
+
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+
+    if (absDeltaX > absDeltaY && absDeltaX > 0) {
+        const horizontalMatch = scrollableAncestors.find((entry) => entry.canScrollX);
+        if (horizontalMatch) return horizontalMatch.node;
+    }
+
+    if (absDeltaY > absDeltaX && absDeltaY > 0) {
+        const verticalMatch = scrollableAncestors.find((entry) => entry.canScrollY);
+        if (verticalMatch) return verticalMatch.node;
+    }
+
+    return scrollableAncestors[0].node;
+}
+
+function canContinueTouchScroll(container, deltaX, deltaY) {
     if (!container) return false;
+    const style = window.getComputedStyle(container);
+    const overflowX = style ? style.overflowX : "";
+    const overflowY = style ? style.overflowY : "";
+    const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
     const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-    if (maxScrollTop <= 0) return false;
+    const canScrollX = (overflowX === "auto" || overflowX === "scroll") && maxScrollLeft > 0;
+    const canScrollY = (overflowY === "auto" || overflowY === "scroll") && maxScrollTop > 0;
+
+    if (!canScrollX && !canScrollY) return false;
+
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+    const useHorizontalAxis = canScrollX && (!canScrollY || absDeltaX > absDeltaY);
+
+    if (useHorizontalAxis) {
+        if (deltaX > 0 && container.scrollLeft <= 0) return false;
+        if (deltaX < 0 && container.scrollLeft >= (maxScrollLeft - 1)) return false;
+        return true;
+    }
+
+    if (!canScrollY) return canScrollX;
     if (deltaY > 0 && container.scrollTop <= 0) return false;
     if (deltaY < 0 && container.scrollTop >= (maxScrollTop - 1)) return false;
     return true;
@@ -301,21 +358,26 @@ function shouldBlockGlobalModalTouchMove(event) {
     if (!activeOverlay) return false;
     if (!event.touches || !event.touches.length) return true;
 
+    const currentX = event.touches[0].clientX;
     const currentY = event.touches[0].clientY;
+    const deltaX = currentX - activeGlobalModalTouchX;
     const deltaY = currentY - activeGlobalModalTouchY;
+    activeGlobalModalTouchX = currentX;
     activeGlobalModalTouchY = currentY;
 
     if (!activeOverlay.contains(event.target)) return true;
 
-    const scrollContainer = findScrollableModalAncestor(event.target, activeOverlay) || activeGlobalModalTouchContainer;
+    const scrollContainer = findScrollableModalAncestorForDelta(event.target, activeOverlay, deltaX, deltaY)
+        || activeGlobalModalTouchContainer;
     if (!scrollContainer || !activeOverlay.contains(scrollContainer)) return true;
 
-    return !canContinueTouchScroll(scrollContainer, deltaY);
+    return !canContinueTouchScroll(scrollContainer, deltaX, deltaY);
 }
 
 function syncGlobalModalTouchLock() {
     if (getActiveModalOverlay()) return;
     activeGlobalModalTouchContainer = null;
+    activeGlobalModalTouchX = 0;
     activeGlobalModalTouchY = 0;
 }
 
@@ -326,6 +388,7 @@ export function bindModalOverlayQuickClose(modalEl, onQuickOverlayClick) {
     let outsidePressStartedAt = 0;
     let outsidePressStartedOnOverlay = false;
     let activeTouchScrollContainer = null;
+    let lastTouchClientX = 0;
     let lastTouchClientY = 0;
 
     modalEl.addEventListener("pointerdown", (e) => {
@@ -354,8 +417,11 @@ export function bindModalOverlayQuickClose(modalEl, onQuickOverlayClick) {
         if (!isMobileViewport()) return;
         if (!e.touches || !e.touches.length) return;
 
+        const currentX = e.touches[0].clientX;
         const currentY = e.touches[0].clientY;
+        const deltaX = currentX - lastTouchClientX;
         const deltaY = currentY - lastTouchClientY;
+        lastTouchClientX = currentX;
         lastTouchClientY = currentY;
 
         if (e.target === modalEl) {
@@ -363,13 +429,14 @@ export function bindModalOverlayQuickClose(modalEl, onQuickOverlayClick) {
             return;
         }
 
-        const scrollContainer = findScrollableModalAncestor(e.target, modalEl) || activeTouchScrollContainer;
+        const scrollContainer = findScrollableModalAncestorForDelta(e.target, modalEl, deltaX, deltaY)
+            || activeTouchScrollContainer;
         if (!scrollContainer || !modalEl.contains(scrollContainer)) {
             e.preventDefault();
             return;
         }
 
-        if (!canContinueTouchScroll(scrollContainer, deltaY)) {
+        if (!canContinueTouchScroll(scrollContainer, deltaX, deltaY)) {
             e.preventDefault();
         }
     }, { passive: false });
@@ -382,6 +449,7 @@ export function bindModalOverlayQuickClose(modalEl, onQuickOverlayClick) {
     modalEl.addEventListener("touchstart", (e) => {
         if (!isMobileViewport()) return;
         if (!e.touches || !e.touches.length) return;
+        lastTouchClientX = e.touches[0].clientX;
         lastTouchClientY = e.touches[0].clientY;
         activeTouchScrollContainer = findScrollableModalAncestor(e.target, modalEl);
     }, { passive: true });
@@ -602,6 +670,7 @@ export function setupShareUI(refreshRadarVisuals) {
             const activeOverlay = getActiveModalOverlay();
             if (!activeOverlay) return;
             if (!e.touches || !e.touches.length) return;
+            activeGlobalModalTouchX = e.touches[0].clientX;
             activeGlobalModalTouchY = e.touches[0].clientY;
             activeGlobalModalTouchContainer = findScrollableModalAncestor(e.target, activeOverlay);
         }, { capture: true, passive: true });
@@ -613,6 +682,7 @@ export function setupShareUI(refreshRadarVisuals) {
 
         document.addEventListener("touchend", () => {
             activeGlobalModalTouchContainer = null;
+            activeGlobalModalTouchX = 0;
             activeGlobalModalTouchY = 0;
         }, { capture: true, passive: true });
 

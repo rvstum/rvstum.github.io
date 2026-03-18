@@ -5,7 +5,7 @@ import {
     browserLocalPersistence,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
 import { getBenchmarkBasePath } from "./utils.js";
 import { alignMobileTitleBetweenTopAndBox } from "./authLayout.js?v=20260310-auth-mobile-stability-1";
@@ -231,9 +231,26 @@ export function initLoginUI() {
                 }
 
                 const savedLang = readString(LANGUAGE_STORAGE_KEY, "en");
-                setDoc(doc(db, "users", userCredential.user.uid), {
+                const userRef = doc(db, "users", userCredential.user.uid);
+                const userSnap = await getDoc(userRef);
+                const existingData = userSnap.exists() ? (userSnap.data() || {}) : {};
+                const existingProfile = existingData.profile && typeof existingData.profile === "object"
+                    ? existingData.profile
+                    : {};
+                const userPayload = {
                     settings: { language: savedLang }
-                }, { merge: true }).catch((e) => {
+                };
+                if (!userSnap.exists()) {
+                    userPayload.profile = {
+                        views: 0
+                    };
+                    userPayload.isNewUser = true;
+                } else if (!Number.isFinite(Number(existingProfile.views))) {
+                    userPayload.profile = {
+                        views: 0
+                    };
+                }
+                await setDoc(userRef, userPayload, { merge: true }).catch((e) => {
                     console.error("Error saving language preference:", e);
                 });
                 await navigateAfterLogin(userCredential.user, { source: rememberMe ? "remember-me-login" : "session-login" });

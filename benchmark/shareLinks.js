@@ -4,7 +4,7 @@ import { getBenchmarkBasePath } from "./utils.js";
 import { getCurrentConfig } from "./configManager.js";
 import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
+import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 
 const shareLinkDeps = {
     applyConfig: null

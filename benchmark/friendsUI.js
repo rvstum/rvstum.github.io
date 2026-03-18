@@ -20,7 +20,7 @@ import {
     resolveTargetUidFromIdentifier,
     setLoading,
     showRemoveFriendConfirmModal
-} from "./friendsCoreUI.js?v=20260311-friends-layout-8";
+} from "./friendsCoreUI.js?v=20260317-guild-view-fix-2";
 import { getCachedElementById, setHidden } from "./utils/domUtils.js";
 
 function getFriendsListContent() {

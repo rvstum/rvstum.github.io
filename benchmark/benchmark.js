@@ -66,10 +66,10 @@ import * as RadarUI from "./radarUI.js";
 import * as FriendsUI from "./friendsUI.js?v=20260311-friends-layout-8";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
-import * as UserService from "./userService.js?v=20260310-public-slug-directory-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260311-view-mode-compare-2";
-import * as ShareManager from "./shareManager.js?v=20260311-desktop-screenshot-warmup-4";
-import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260311-desktop-screenshot-warmup-4";
+import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
+import * as ViewModeManager from "./viewModeManager.js?v=20260317-profile-view-cooldown-2";
+import * as ShareManager from "./shareManager.js?v=20260317-modal-touch-scroll-1";
+import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260317-modal-touch-scroll-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as LayoutRuntime from "./layoutRuntime.js";
 import {
@@ -91,9 +91,11 @@ import {
 import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
-import * as AuthManager from "./authManager.js?v=20260316-remembered-handoff-lock-1";
+import * as AuthManager from "./authManager.js?v=20260317-profile-views-bootstrap-2";
 import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-friends-layout-8";
+import { initFriendsLeaderboardModalController } from "./friendsLeaderboardModalUI.js?v=20260318-friends-leaderboard-order-i18n-1";
+import { hydrateUserRecord } from "./friendsCoreUI.js?v=20260317-guild-view-fix-2";
 import { initAuthLifecycle } from "./authLifecycle.js?v=20260316-remembered-handoff-lock-1";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
 import { handleProfileLink } from "./routeManager.js?v=20260311-view-mode-language-fix-2";
@@ -101,10 +103,10 @@ import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-ex
 import { initProfileModalController } from "./profileModalUI.js?v=20260311-profile-original-sync-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260311-profile-original-sync-1";
-import { initSettingsUI } from "./settingsUI.js?v=20260309-modal-lang-dropdown-1";
+import { initSettingsUI } from "./settingsUI.js?v=20260317-leaderboard-filter-dropdown-width-1";
 import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260311-compare-theme-colors-1";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
-import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260310-score-link-lang-sync-1";
+import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260318-leaderboard-language-sync-1";
 import { createSettingsStateController } from "./settingsStateUI.js?v=20260311-pacman-settings-desktop-1";
 import { createTopNavController } from "./topNavUI.js";
 import { hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260316-remembered-handoff-lock-1";
@@ -114,6 +116,7 @@ const LAST_ACTIVE_AUTH_UID_STORAGE_KEY = "benchmark_last_active_user_uid";
 const MOBILE_SW_CLEANUP_SESSION_KEY = "__benchmark_mobile_sw_cleanup_done__";
 let settingsUIController = null;
 let friendsModalController = null;
+let friendsLeaderboardController = null;
 let confirmModalController = null;
 let onboardingUI = null;
 let languageController = null;
@@ -1144,6 +1147,11 @@ function initModuleConfigurations() {
                 settingsUIController.setupMobileSettingsDropdowns();
             }
         },
+        setupMobileLeaderboardDropdowns: () => {
+            if (settingsUIController && typeof settingsUIController.setupMobileLeaderboardDropdowns === "function") {
+                settingsUIController.setupMobileLeaderboardDropdowns();
+            }
+        },
         renderTrophies: TrophyUI.renderTrophies,
         renderAchievementsIfOpen: () => {
             const achievementsModalEl = getCachedElementById("achievementsModal");
@@ -1164,6 +1172,11 @@ function initModuleConfigurations() {
                     FriendsUI.loadFriendRequests(),
                     FriendsUI.loadRemoveFriendsList()
                 ]).catch(console.error);
+            }
+        },
+        refreshLeaderboardIfOpen: () => {
+            if (friendsLeaderboardController && typeof friendsLeaderboardController.refreshActive === "function") {
+                friendsLeaderboardController.refreshActive().catch(console.error);
             }
         },
         renderGuildsList: () => {
@@ -1460,6 +1473,70 @@ function initFriendsModalBindings() {
     }
 }
 
+function initFriendsLeaderboardBindings() {
+    friendsLeaderboardController = initFriendsLeaderboardModalController({
+        bindModalOverlayQuickClose,
+        onSelectEntry: async ({ entry, viewConfig } = {}) => {
+            const safeEntry = entry && typeof entry === "object" ? entry : null;
+            const fallbackSnapshot = safeEntry && safeEntry.snapshot && typeof safeEntry.snapshot === "object"
+                ? safeEntry.snapshot
+                : {};
+            const profileUid = safeEntry && typeof safeEntry.uid === "string"
+                ? safeEntry.uid.trim()
+                : "";
+            let hydratedRecord = null;
+            if (profileUid) {
+                try {
+                    hydratedRecord = await hydrateUserRecord(profileUid, fallbackSnapshot);
+                } catch (error) {
+                    console.warn("Failed to rehydrate leaderboard profile entry; falling back to cached row data.", error);
+                }
+            }
+
+            const resolvedSnapshot = hydratedRecord && hydratedRecord.snapshot && typeof hydratedRecord.snapshot === "object"
+                ? hydratedRecord.snapshot
+                : fallbackSnapshot;
+            const explicitPublicSlug = typeof resolvedSnapshot.publicSlug === "string" && resolvedSnapshot.publicSlug.trim()
+                ? resolvedSnapshot.publicSlug.trim()
+                : (safeEntry && typeof safeEntry.publicSlug === "string" && safeEntry.publicSlug.trim()
+                    ? safeEntry.publicSlug.trim()
+                    : "");
+            const baseProfileData = hydratedRecord && hydratedRecord.data && typeof hydratedRecord.data === "object"
+                ? hydratedRecord.data
+                : (safeEntry && safeEntry.data && typeof safeEntry.data === "object" ? safeEntry.data : {});
+            const profileData = {
+                ...baseProfileData,
+                ...(resolvedSnapshot.username ? { username: resolvedSnapshot.username } : {}),
+                ...(explicitPublicSlug ? { publicSlug: explicitPublicSlug } : {})
+            };
+
+            if (resolvedSnapshot && typeof resolvedSnapshot === "object") {
+                profileData.settings = {
+                    ...(baseProfileData && baseProfileData.settings && typeof baseProfileData.settings === "object"
+                        ? baseProfileData.settings
+                        : {}),
+                    ...(resolvedSnapshot.visibility ? { visibility: resolvedSnapshot.visibility } : {})
+                };
+                profileData.profile = {
+                    ...(baseProfileData && baseProfileData.profile && typeof baseProfileData.profile === "object"
+                        ? baseProfileData.profile
+                        : {}),
+                    ...(Array.isArray(resolvedSnapshot.guilds) && resolvedSnapshot.guilds.length
+                        ? { guilds: resolvedSnapshot.guilds }
+                        : {}),
+                    ...(resolvedSnapshot.username ? { username: resolvedSnapshot.username } : {}),
+                    ...(resolvedSnapshot.flag ? { flag: resolvedSnapshot.flag } : {}),
+                    ...(resolvedSnapshot.pic ? { pic: resolvedSnapshot.pic } : {})
+                };
+            }
+
+            await ViewModeManager.enterViewMode(profileData, profileUid, {
+                configOverride: viewConfig
+            });
+        }
+    });
+}
+
 function initTrophyUI() {
     TrophyUI.initTrophySystem({
         saveUserData,
@@ -1693,6 +1770,7 @@ function initUIControllers() {
     runInitStep('rules modal', initRulesModalBindings);
     runInitStep('private home button', initPrivateHomeBinding);
     runInitStep('friends modal', initFriendsModalBindings);
+    runInitStep('friends leaderboard', initFriendsLeaderboardBindings);
     runInitStep('trophy UI', initTrophyUI);
     runInitStep('cave enhancements', initCaveEnhancements);
     runInitStep('account id UI', initAccountIdUIBindings);

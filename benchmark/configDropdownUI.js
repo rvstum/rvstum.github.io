@@ -44,6 +44,15 @@ export function setupConfigDropdownsUI(options = {}) {
         { boxId: "userMenuBox", key: null }
     ];
 
+    const syncDropdownWidth = (box, menu) => {
+        if (!box || !menu) return;
+        const boxWidth = Math.ceil(box.getBoundingClientRect().width || box.offsetWidth || 0);
+        if (!Number.isFinite(boxWidth) || boxWidth <= 0) return;
+        menu.style.width = `${boxWidth}px`;
+        menu.style.minWidth = `${boxWidth}px`;
+        menu.style.maxWidth = `${boxWidth}px`;
+    };
+
     const closeAll = (exceptBox = null) => {
         configs.forEach(({ boxId }) => {
             const box = getCachedElementById(boxId);
@@ -87,6 +96,10 @@ export function setupConfigDropdownsUI(options = {}) {
             const willOpen = !menu.classList.contains("show");
             closeAll(box);
             if (willOpen) {
+                if (boxId === "userMenuBox") {
+                    syncDropdownWidth(box, menu);
+                    requestAnimationFrame(() => syncDropdownWidth(box, menu));
+                }
                 menu.classList.add("show");
                 if (arrow) arrow.classList.add("rotate");
             } else {

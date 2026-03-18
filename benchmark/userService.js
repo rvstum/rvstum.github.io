@@ -10,6 +10,7 @@ const ACCOUNT_DIRECTORY_COLLECTION = "publicAccountDirectory";
 const FRIEND_REQUESTS_COLLECTION = "friendRequests";
 const FRIENDSHIPS_COLLECTION = "friendships";
 const ACCOUNT_DIRECTORY_CACHE_TTL_MS = 30000;
+const MAX_PROFILE_GUILDS = 6;
 const accountDirectoryCacheByAccountId = new Map();
 const accountDirectoryCacheByUid = new Map();
 const accountDirectoryCacheByPublicSlug = new Map();
@@ -65,6 +66,22 @@ function normalizeUidArray(value) {
     return [...new Set(value
         .map((item) => (typeof item === "string" ? item.trim() : ""))
         .filter((item) => item !== ""))];
+}
+
+function normalizeGuildList(value) {
+    if (!Array.isArray(value)) return [];
+    return [...new Set(value
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter((item) => item !== ""))]
+        .slice(0, MAX_PROFILE_GUILDS);
+}
+
+function resolveGuildListFromData(data = {}) {
+    const safeData = data && typeof data === "object" ? data : {};
+    const profile = safeData.profile && typeof safeData.profile === "object" ? safeData.profile : {};
+    const fromProfile = normalizeGuildList(profile.guilds);
+    if (fromProfile.length) return fromProfile;
+    return normalizeGuildList(safeData.guilds);
 }
 
 function getTimedCacheValue(cache, key) {
@@ -199,6 +216,7 @@ function buildAccountDirectoryPreview(userData = {}) {
         rankIndex: derivePublicRankIndex(safeData),
         flag: typeof profile.flag === "string" ? profile.flag.trim() : "",
         pic: typeof profile.pic === "string" ? profile.pic.trim() : "",
+        guilds: resolveGuildListFromData(safeData),
         publicSlug: explicitPublicSlug || buildProfileSlug(username || "player", accountId, fallbackUid),
         visibility
     };
@@ -235,6 +253,7 @@ export async function syncAccountDirectoryEntry(uid, accountId, userData = null)
         payload.rankIndex = preview.rankIndex;
         payload.flag = preview.flag || "";
         payload.pic = preview.pic || "";
+        payload.guilds = Array.isArray(preview.guilds) ? preview.guilds : [];
         payload.publicSlug = preview.publicSlug || "";
         payload.visibility = preview.visibility || "everyone";
     }
