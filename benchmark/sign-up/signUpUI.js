@@ -46,6 +46,9 @@ const handleSignup = () => {
             try {
                 const savedLang = readString(LANGUAGE_STORAGE_KEY, "en");
                 await setDoc(doc(db, "users", userCredential.user.uid), {
+                    profile: {
+                        views: 0
+                    },
                     settings: { language: savedLang },
                     isNewUser: true
                 }, { merge: true });
