@@ -1,6 +1,6 @@
 import { auth } from "./client.js";
-import { state, setCurrentConfigState } from "./appState.js";
-import { readJson, GUILDS_STORAGE_KEY } from "./storage.js";
+import { state, setCurrentConfigState, getCurrentConfigState } from "./appState.js";
+import { readJson, readString, GUILDS_STORAGE_KEY, SCORE_UPDATED_AT_STORAGE_KEY } from "./storage.js";
 import { t } from "./i18n.js";
 import { getFlagUrl } from "./utils.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
@@ -26,7 +26,8 @@ const viewModeDeps = {
     renderSeasonalTrophyList: null,
     openImageViewer: null,
     showConfirmModal: null,
-    updateViewProfileUrl: null
+    updateViewProfileUrl: null,
+    cancelPendingRankSync: null
 };
 
 function requireDep(name) {
@@ -39,6 +40,31 @@ function requireDep(name) {
 
 function normalizeRecord(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function cloneSerializableData(value) {
+    if (Array.isArray(value)) {
+        return value.map((entry) => cloneSerializableData(entry));
+    }
+    if (!value || typeof value !== "object") {
+        return value;
+    }
+    const clone = {};
+    Object.entries(value).forEach(([key, entry]) => {
+        clone[key] = cloneSerializableData(entry);
+    });
+    return clone;
+}
+
+function captureViewModeRestoreSnapshot() {
+    return {
+        savedScores: ScoreManager.getSavedScoresSnapshot(),
+        savedCaveLinks: cloneSerializableData(state.savedCaveLinks),
+        savedConfigThemes: cloneSerializableData(state.savedConfigThemes),
+        currentConfig: getCurrentConfigState(),
+        scoresDirty: state.scoresDirty === true,
+        scoresUpdatedAt: Number(readString(SCORE_UPDATED_AT_STORAGE_KEY, "0") || 0)
+    };
 }
 
 function normalizeViewModeData(data = {}) {
@@ -251,6 +277,7 @@ export function clearViewModeChrome() {
     state.activeViewProfileContext = null;
     state.compareViewEnabled = false;
     state.viewerCompareScores = {};
+    state.viewModeRestoreSnapshot = null;
     document.body.classList.remove("view-mode");
     document.dispatchEvent(new CustomEvent("benchmark:collapse-sub-inputs"));
     syncViewModeExitButtonTheme(0);
@@ -531,7 +558,14 @@ export async function enterViewMode(data, uid, options = {}) {
     const normalizedData = normalizeViewModeData(data);
 
     hidePrivateProfileOverlay();
-    ScoreManager.saveCurrentScores();
+    if (!state.isViewMode || !state.viewModeRestoreSnapshot) {
+        ScoreManager.saveCurrentScores();
+        state.viewModeRestoreSnapshot = captureViewModeRestoreSnapshot();
+    }
+    ScoreManager.cancelPendingScoreSave();
+    if (typeof viewModeDeps.cancelPendingRankSync === "function") {
+        viewModeDeps.cancelPendingRankSync();
+    }
     updateViewProfileUrl(normalizedData, uid);
     if (user) {
         syncAuthenticatedBackNavigationGuard({ enabled: true });
@@ -552,7 +586,9 @@ export async function enterViewMode(data, uid, options = {}) {
         publicSlug: resolvedPublicSlug,
         rankIndex: resolveViewModeRankIndex(normalizedData)
     };
-    state.viewerCompareScores = ScoreManager.getSavedScoresSnapshot();
+    state.viewerCompareScores = state.viewModeRestoreSnapshot && state.viewModeRestoreSnapshot.savedScores
+        ? ScoreManager.normalizeSavedScoresRecord(state.viewModeRestoreSnapshot.savedScores)
+        : ScoreManager.getSavedScoresSnapshot();
     state.compareViewEnabled = false;
 
     applyViewModeChrome();

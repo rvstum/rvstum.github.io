@@ -133,6 +133,12 @@ let authGateActive = false;
 let authenticatedBackNavigationGuardActive = false;
 let authenticatedBackNavigationGuardHasSentinel = false;
 
+function clearPendingRankSync() {
+    if (!rankSyncDebounceTimer) return;
+    clearTimeout(rankSyncDebounceTimer);
+    rankSyncDebounceTimer = null;
+}
+
 function resolveBenchmarkAssetUrl(assetPath) {
     const raw = typeof assetPath === "string" ? assetPath.trim() : "";
     if (!raw || typeof window === "undefined") return raw;
@@ -348,6 +354,7 @@ function resetSessionScopedState() {
     state.scoresHydrated = false;
     state.scoresDirty = false;
     state.maxUnlockedRankIndex = 0;
+    state.viewModeRestoreSnapshot = null;
     if (state.ratingUpdateRafId) {
         cancelAnimationFrame(state.ratingUpdateRafId);
         state.ratingUpdateRafId = null;
@@ -366,10 +373,7 @@ function resetSessionScopedState() {
         clearTimeout(state.saveScoresDebounceTimer);
         state.saveScoresDebounceTimer = null;
     }
-    if (rankSyncDebounceTimer) {
-        clearTimeout(rankSyncDebounceTimer);
-        rankSyncDebounceTimer = null;
-    }
+    clearPendingRankSync();
 
     if (typeof ViewModeManager?.clearViewModeChrome === "function") {
         ViewModeManager.clearViewModeChrome();
@@ -1126,7 +1130,8 @@ function initModuleConfigurations() {
         renderSeasonalTrophyList: TrophyUI.renderSeasonalTrophyList,
         openImageViewer,
         showConfirmModal,
-        updateViewProfileUrl: Slugs.updateViewProfileUrl
+        updateViewProfileUrl: Slugs.updateViewProfileUrl,
+        cancelPendingRankSync: clearPendingRankSync
     });
 
     FriendsUI.configure({
@@ -1359,10 +1364,14 @@ function applyAutoRankThemeForCurrentConfig() {
 function handleRatingsUpdated() {
     refreshRadarVisuals();
     applyAutoRankThemeForCurrentConfig();
+    if (state.isViewMode) {
+        clearPendingRankSync();
+        return;
+    }
 
     // Auto-sync rank to profile to ensure friends see the correct status
     if (auth.currentUser && Number.isFinite(state.lastMainRankIndex) && state.lastMainRankIndex >= 0) {
-        if (rankSyncDebounceTimer) clearTimeout(rankSyncDebounceTimer);
+        clearPendingRankSync();
         rankSyncDebounceTimer = setTimeout(() => {
             const rankIndex = Math.floor(state.lastMainRankIndex);
             Promise.allSettled([
@@ -1467,6 +1476,7 @@ function initFriendsModalBindings() {
                 exitViewModeContainer,
                 loadUserProfile,
                 applyStoredSettings,
+                applyConfig,
                 syncAuthenticatedBackNavigationGuard
             });
         });

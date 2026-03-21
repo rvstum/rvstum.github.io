@@ -98,6 +98,12 @@ function cloneScoresArray(scores) {
     return Array.isArray(scores) ? [...scores] : [];
 }
 
+function areScoreArraysEqual(left, right) {
+    if (!Array.isArray(left) || !Array.isArray(right)) return false;
+    if (left.length !== right.length) return false;
+    return left.every((value, index) => normalizeNumericScoreValue(value) === normalizeNumericScoreValue(right[index]));
+}
+
 function cloneScoresRecord(record) {
     const normalized = normalizeScoresRecord(record);
     const clone = {};
@@ -172,6 +178,21 @@ function isLocalDebugHost() {
     if (typeof window === "undefined" || !window.location) return false;
     const host = window.location.hostname || "";
     return host === "localhost" || host === "127.0.0.1";
+}
+
+function clearPendingScoreSaveTimer() {
+    if (!state.saveScoresDebounceTimer) return;
+    clearTimeout(state.saveScoresDebounceTimer);
+    state.saveScoresDebounceTimer = null;
+}
+
+function schedulePendingScoreSave() {
+    clearPendingScoreSaveTimer();
+    state.saveScoresDebounceTimer = setTimeout(() => {
+        state.saveScoresDebounceTimer = null;
+        if (state.isViewMode) return;
+        saveSavedScores().catch(console.error);
+    }, isLocalDebugHost() ? 5 : 1000);
 }
 
 function canSaveSignedInScores(resetIntent = false) {
@@ -422,15 +443,16 @@ function persistScoresForConfig(config, scores) {
         resolvedConfig.stat,
         resolvedConfig.mount
     );
-    state.savedScores[key] = cloneScoresArray(scores);
+    const nextScores = cloneScoresArray(scores);
+    if (areScoreArraysEqual(state.savedScores[key], nextScores)) {
+        return;
+    }
+    state.savedScores[key] = nextScores;
     state.scoresDirty = true;
     removeItem(SCORE_RESET_PENDING_STORAGE_KEY);
     writeString(SCORE_UPDATED_AT_STORAGE_KEY, String(Date.now()));
     writeJson(SCORE_STORAGE_KEY, state.savedScores);
-    clearTimeout(state.saveScoresDebounceTimer);
-    state.saveScoresDebounceTimer = setTimeout(() => {
-        saveSavedScores().catch(console.error);
-    }, isLocalDebugHost() ? 5 : 1000);
+    schedulePendingScoreSave();
 }
 
 function writeScoresSnapshotLocally(scoresUpdatedAt = Date.now()) {
@@ -488,8 +510,13 @@ export function loadSavedScores() {
 }
 
 export async function saveSavedScores(options = {}) {
-    const scoresUpdatedAt = Date.now();
+    const allowInViewMode = options && options.allowInViewMode === true;
     const resetIntent = options && options.resetIntent === true;
+    clearPendingScoreSaveTimer();
+    if (state.isViewMode && !allowInViewMode) {
+        return false;
+    }
+    const scoresUpdatedAt = Date.now();
     if (!canSaveSignedInScores(resetIntent)) {
         return false;
     }
@@ -544,6 +571,15 @@ export function saveCurrentScores() {
     if (!canSaveSignedInScores(false)) return;
     const scores = Array.from(document.querySelectorAll(".score-input")).map((input) => Number(input.value) || 0);
     persistScoresForConfig(getCurrentConfig(), scores);
+}
+
+export function cancelPendingScoreSave() {
+    clearPendingScoreSaveTimer();
+}
+
+export function queuePendingScoreSave() {
+    if (state.isViewMode || !state.scoresDirty) return;
+    schedulePendingScoreSave();
 }
 
 export function loadScores() {
@@ -613,6 +649,23 @@ export function getScoresForConfigRecord(record, config = null) {
 
 export function getSavedScoresSnapshot() {
     return cloneScoresRecord(state.savedScores);
+}
+
+export function restoreSavedScoresSnapshot(snapshot, options = {}) {
+    clearPendingScoreSaveTimer();
+    const normalized = normalizeScoresRecord(snapshot);
+    state.savedScores = normalized;
+    writeJson(SCORE_STORAGE_KEY, normalized);
+
+    const updatedAt = Number(options && options.scoresUpdatedAt);
+    if (Number.isFinite(updatedAt) && updatedAt > 0) {
+        writeString(SCORE_UPDATED_AT_STORAGE_KEY, String(updatedAt));
+    } else {
+        removeItem(SCORE_UPDATED_AT_STORAGE_KEY);
+    }
+
+    state.scoresDirty = !!(options && options.scoresDirty);
+    return cloneScoresRecord(normalized);
 }
 
 export function getAlternateScoreValueForRow(rowIndex) {

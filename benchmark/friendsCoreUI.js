@@ -1,6 +1,6 @@
 import { auth } from "./client.js";
 import { getRuntimeAccountId, state } from "./appState.js";
-import { FINAL_RANK_INDEX, RANK_NAMES, RANK_TEXT_COLORS, STELLAR_TROPHY_FILTER } from "./constants.js";
+import { BRONZE_TROPHY_FILTER, FINAL_RANK_INDEX, RANK_NAMES, RANK_TEXT_COLORS, STELLAR_TROPHY_FILTER } from "./constants.js";
 import { t, tf } from "./i18n.js";
 import { calculateRankFromData } from "./scoring.js";
 import * as Slugs from "./slugs.js";
@@ -242,7 +242,7 @@ function resolveEntryRankText(entry) {
 function getRankTrophyFilter(rankIndex) {
     switch (normalizeRankIndex(rankIndex)) {
         case 1: return "grayscale(100%)";
-        case 2: return "sepia(1) hue-rotate(-35deg) saturate(3) brightness(0.65)";
+        case 2: return BRONZE_TROPHY_FILTER;
         case 3: return "grayscale(100%) brightness(1.3)";
         case 4: return "sepia(1) hue-rotate(5deg) saturate(2.5) brightness(0.9)";
         case 5: return "sepia(1) hue-rotate(130deg) saturate(1.5) brightness(1.1)";

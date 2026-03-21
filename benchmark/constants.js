@@ -24,6 +24,7 @@ export const SCORE_TEXT_COLORS = RANKS.map((rank) => rank.scoreTextColor);
 export const RANK_LINE_COLORS = RANKS.map((rank) => rank.lineColor);
 export const FINAL_RANK_INDEX = RANKS.length - 1;
 
+export const BRONZE_TROPHY_FILTER = 'sepia(1) hue-rotate(-18deg) saturate(4.2) brightness(0.84)';
 export const STELLAR_TROPHY_FILTER = 'sepia(1) hue-rotate(-18deg) saturate(4.8) brightness(1.05)';
 export const DEFAULT_BAR_COLOR = 'rgba(255, 255, 255, 0.02)';
 export const DEFAULT_SLANTED_COLOR = 'rgba(0, 0, 0, 0.55)';

@@ -1,6 +1,14 @@
 import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
-import { readString, readJson, CACHED_VIEWS_STORAGE_KEY, ACHIEVEMENTS_STORAGE_KEY } from "./storage.js";
+import {
+    readString,
+    readJson,
+    writeJson,
+    CACHED_VIEWS_STORAGE_KEY,
+    ACHIEVEMENTS_STORAGE_KEY,
+    CAVE_LINKS_STORAGE_KEY,
+    CONFIG_THEMES_STORAGE_KEY
+} from "./storage.js";
 import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
 import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as PacmanUI from "./pacmanUI.js";
@@ -18,12 +26,47 @@ function closeOverlayModal(id) {
     modal.classList.remove("closing");
 }
 
+function cloneSerializableData(value) {
+    if (Array.isArray(value)) {
+        return value.map((entry) => cloneSerializableData(entry));
+    }
+    if (!value || typeof value !== "object") {
+        return value;
+    }
+    const clone = {};
+    Object.entries(value).forEach(([key, entry]) => {
+        clone[key] = cloneSerializableData(entry);
+    });
+    return clone;
+}
+
+function restoreViewerStateSnapshot() {
+    const snapshot = state.viewModeRestoreSnapshot && typeof state.viewModeRestoreSnapshot === "object"
+        ? state.viewModeRestoreSnapshot
+        : null;
+    if (!snapshot) return null;
+
+    ScoreManager.restoreSavedScoresSnapshot(snapshot.savedScores, {
+        scoresDirty: snapshot.scoresDirty === true,
+        scoresUpdatedAt: Number(snapshot.scoresUpdatedAt) || 0
+    });
+
+    state.savedCaveLinks = cloneSerializableData(snapshot.savedCaveLinks);
+    writeJson(CAVE_LINKS_STORAGE_KEY, state.savedCaveLinks);
+
+    state.savedConfigThemes = cloneSerializableData(snapshot.savedConfigThemes);
+    writeJson(CONFIG_THEMES_STORAGE_KEY, state.savedConfigThemes);
+
+    return snapshot;
+}
+
 export async function exitViewMode(options = {}) {
     const {
         user,
         exitViewModeContainer,
         loadUserProfile,
         applyStoredSettings,
+        applyConfig,
         syncAuthenticatedBackNavigationGuard = null
     } = options;
 
@@ -73,6 +116,10 @@ export async function exitViewMode(options = {}) {
         url.searchParams.delete("id");
         window.history.pushState({}, "", url);
     }
+
+    const restoreSnapshot = restoreViewerStateSnapshot();
+    const restoreSnapshotHadDirtyScores = !!(restoreSnapshot && restoreSnapshot.scoresDirty);
+    state.viewModeRestoreSnapshot = null;
 
     ScoreManager.loadSavedScores();
     ScoreManager.loadSavedCaveLinks();
@@ -143,9 +190,21 @@ export async function exitViewMode(options = {}) {
         applyStoredSettings();
     }
 
-    RankingUI.updateScoreRequirements(ScoreManager.getBaseScoresForConfig());
-    ScoreManager.loadScores();
-    ScoreManager.loadCaveLinks();
+    const restoreConfig = restoreSnapshot && restoreSnapshot.currentConfig && typeof applyConfig === "function"
+        ? restoreSnapshot.currentConfig
+        : null;
+    if (restoreConfig) {
+        applyConfig(restoreConfig, { skipSaveCurrent: true });
+    } else {
+        RankingUI.updateScoreRequirements(ScoreManager.getBaseScoresForConfig());
+        ScoreManager.loadScores();
+        ScoreManager.loadCaveLinks();
+    }
+
+    if (restoreSnapshotHadDirtyScores) {
+        state.scoresDirty = true;
+        ScoreManager.queuePendingScoreSave();
+    }
 
     RadarUI.setRadarMode("combined", false);
     RadarUI.updateRadar();

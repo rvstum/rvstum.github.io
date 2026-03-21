@@ -23,6 +23,7 @@ export const state = {
     subInputModeEnabled: false,
     activeSubInputRowIndex: -1,
     activeViewProfileContext: null,
+    viewModeRestoreSnapshot: null,
     pageLoaderHideTimeout: null,
     pageLoaderStartedAt: (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(),
     theme: {

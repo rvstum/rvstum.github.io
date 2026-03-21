@@ -1,6 +1,7 @@
 import { auth } from "./client.js";
 import { t } from "./i18n.js";
 import {
+    BRONZE_TROPHY_FILTER,
     CONFIG_OPTIONS,
     FINAL_RANK_INDEX,
     RADAR_CATEGORY_WEIGHTS,
@@ -149,7 +150,7 @@ function getShimmerAnimationDelay() {
 function getRankTrophyFilter(rankIndex) {
     switch (normalizeRankIndex(rankIndex)) {
         case 1: return "grayscale(100%)";
-        case 2: return "sepia(1) hue-rotate(-35deg) saturate(3) brightness(0.65)";
+        case 2: return BRONZE_TROPHY_FILTER;
         case 3: return "grayscale(100%) brightness(1.3)";
         case 4: return "sepia(1) hue-rotate(5deg) saturate(2.5) brightness(0.9)";
         case 5: return "sepia(1) hue-rotate(130deg) saturate(1.5) brightness(1.1)";
@@ -735,9 +736,21 @@ export function createFriendsLeaderboardUI(options = {}) {
 
             const rankCell = document.createElement("div");
             rankCell.className = "leaderboard-cell leaderboard-rank-cell";
+            const rankIconShell = document.createElement("span");
+            rankIconShell.className = "leaderboard-rank-icon-shell";
             if (item.rankIndex <= 0) {
                 rankCell.classList.add("is-unranked");
+                rankIconShell.classList.add("is-empty");
             }
+
+            const rankMeta = document.createElement("div");
+            rankMeta.className = "leaderboard-rank-meta";
+
+            const ratingValue = document.createElement("span");
+            ratingValue.className = "leaderboard-rank-rating";
+            ratingValue.textContent = formatNumber(item.metric.totalRating);
+            applyRankTextStyle(ratingValue, item.rankIndex);
+
             const rankText = document.createElement("span");
             rankText.className = "leaderboard-rank-text";
             rankText.innerHTML = item.rankText;
@@ -750,15 +763,12 @@ export function createFriendsLeaderboardUI(options = {}) {
                 rankIcon.setAttribute("aria-hidden", "true");
                 const trophyFilter = getRankTrophyFilter(item.rankIndex);
                 if (trophyFilter) rankIcon.style.filter = trophyFilter;
-                rankCell.appendChild(rankIcon);
+                rankIconShell.appendChild(rankIcon);
             }
-            rankCell.appendChild(rankText);
-            row.appendChild(createRowMetricCell(
-                formatNumber(item.trophyTotal),
-                "leaderboard-trophy-cell"
-            ));
-            row.appendChild(createTopBaddyCell(item.metric));
-            row.appendChild(createRowMetricCell(formatNumber(item.metric.totalRating)));
+            rankMeta.appendChild(ratingValue);
+            rankMeta.appendChild(rankText);
+            rankCell.appendChild(rankMeta);
+            rankCell.appendChild(rankIconShell);
             row.appendChild(rankCell);
 
             if (onSelectEntry) {
