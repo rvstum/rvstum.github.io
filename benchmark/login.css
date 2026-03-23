@@ -181,16 +181,20 @@ textarea:focus {
     pointer-events: none;
 }
 
-.password-visibility-toggle .icon-eye-off {
+.password-visibility-toggle .icon-eye {
     display: none;
+}
+
+.password-visibility-toggle .icon-eye-off {
+    display: block;
 }
 
 .password-input-shell.is-password-visible .password-visibility-toggle .icon-eye {
-    display: none;
+    display: block;
 }
 
 .password-input-shell.is-password-visible .password-visibility-toggle .icon-eye-off {
-    display: block;
+    display: none;
 }
 
 .input-group input:focus {
