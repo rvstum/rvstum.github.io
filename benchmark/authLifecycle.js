@@ -5,7 +5,7 @@ import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden } from "./utils/domUtils.js";
 import { getBenchmarkBasePath, normalizeFriendRequestIds, isMobileViewport } from "./utils.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import * as AuthManager from "./authManager.js?v=20260317-profile-views-bootstrap-2";
+import * as AuthManager from "./authManager.js?v=20260322-live-view-count-1";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as ViewModeManager from "./viewModeManager.js?v=20260317-profile-view-cooldown-2";
@@ -278,6 +278,7 @@ export function initAuthLifecycle(options = {}) {
                 doc(db, "users", user.uid),
                 (docSnap) => {
                     const data = docSnap.data();
+                    AuthManager.syncLiveProfileViewCount(user.uid, data);
                     const latestUserDocRequests = normalizeFriendRequestIds(data && data.friendRequests);
                     const tabFriendRequests = getCachedElementById("tabFriendRequests");
                     const requestsTabActive = tabFriendRequests && tabFriendRequests.classList.contains("active");

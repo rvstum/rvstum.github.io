@@ -140,6 +140,59 @@ textarea:focus {
     min-width: 0;
 }
 
+.password-input-shell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-shell input {
+    padding-right: 46px;
+}
+
+.password-visibility-toggle {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: #a69062;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.password-visibility-toggle:hover,
+.password-visibility-toggle:focus-visible {
+    color: #ffd15d;
+}
+
+.password-visibility-icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+    pointer-events: none;
+}
+
+.password-visibility-toggle .icon-eye-off {
+    display: none;
+}
+
+.password-input-shell.is-password-visible .password-visibility-toggle .icon-eye {
+    display: none;
+}
+
+.password-input-shell.is-password-visible .password-visibility-toggle .icon-eye-off {
+    display: block;
+}
+
 .input-group input:focus {
     border-color: #6b553a;
 }

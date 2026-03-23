@@ -11,11 +11,18 @@ import {
     updateDoc,
     where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { db } from "./client.js";
+import { auth, db } from "./client.js";
 import { FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
 import { calculateRankFromData } from "./scoring.js";
 import * as ScoreManager from "./scoreManager.js";
-import { PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, readJson, writeJson } from "./storage.js";
+import {
+    PROFILE_VIEW_COOLDOWNS_STORAGE_KEY,
+    PROFILE_VIEW_GUEST_ID_STORAGE_KEY,
+    readJson,
+    readString,
+    writeJson,
+    writeString
+} from "./storage.js";
 import * as UserService from "./userService.js";
 import { resolveProfileAccountId, resolveProfileSlug, resolveProfileUsername } from "./slugs.js";
 
@@ -23,7 +30,9 @@ const USERS_COLLECTION = "users";
 const FRIEND_REQUESTS_COLLECTION = "friendRequests";
 const FRIENDSHIPS_COLLECTION = "friendships";
 const PROFILE_VIEW_COOLDOWN_MS = 5 * 60 * 1000;
+const PROFILE_VIEW_COOLDOWN_KEY_SEPARATOR = "::";
 const MAX_PROFILE_GUILDS = 6;
+let cachedGuestProfileViewerId = "";
 
 function normalizeUid(value) {
     return typeof value === "string" ? value.trim() : "";
@@ -372,6 +381,62 @@ export function buildFriendshipId(userA, userB) {
     return ids.length ? ids[0] : "";
 }
 
+function generateGuestProfileViewerId() {
+    try {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+            return window.crypto.randomUUID();
+        }
+    } catch (_) {
+        // Ignore crypto access failures and fall back to a time-based identifier.
+    }
+
+    return `guest_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getGuestProfileViewerId() {
+    if (cachedGuestProfileViewerId) return cachedGuestProfileViewerId;
+    const storedId = readString(PROFILE_VIEW_GUEST_ID_STORAGE_KEY, "").trim();
+    if (storedId) {
+        cachedGuestProfileViewerId = storedId;
+        return storedId;
+    }
+    const generatedId = generateGuestProfileViewerId();
+    cachedGuestProfileViewerId = generatedId;
+    writeString(PROFILE_VIEW_GUEST_ID_STORAGE_KEY, generatedId);
+    return generatedId;
+}
+
+function resolveProfileViewCooldownViewerKey(options = {}) {
+    const explicitViewerKey = typeof options?.viewerKey === "string" ? options.viewerKey.trim() : "";
+    if (explicitViewerKey) return explicitViewerKey;
+
+    const currentViewerUid = normalizeUid(auth && auth.currentUser ? auth.currentUser.uid : "");
+    if (currentViewerUid) return `auth:${currentViewerUid}`;
+
+    const guestViewerId = getGuestProfileViewerId();
+    return guestViewerId ? `guest:${guestViewerId}` : "guest:unknown";
+}
+
+function buildProfileViewCooldownKey(uid, viewerKey) {
+    const normalizedUid = normalizeUid(uid);
+    const normalizedViewerKey = typeof viewerKey === "string" ? viewerKey.trim() : "";
+    if (!normalizedUid || !normalizedViewerKey) return "";
+    return `${normalizedViewerKey}${PROFILE_VIEW_COOLDOWN_KEY_SEPARATOR}${normalizedUid}`;
+}
+
+function getProfileViewCooldownKeyCandidates(uid, viewerKey) {
+    const normalizedUid = normalizeUid(uid);
+    if (!normalizedUid) return [];
+
+    const keys = [];
+    const scopedKey = buildProfileViewCooldownKey(normalizedUid, viewerKey);
+    if (scopedKey) keys.push(scopedKey);
+
+    // Honor existing installs briefly while migrating away from profile-only cooldown keys.
+    keys.push(normalizedUid);
+    return keys;
+}
+
 function readProfileViewCooldownMap() {
     const raw = readJson(PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, {});
     const safeMap = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
@@ -396,19 +461,26 @@ function readProfileViewCooldownMap() {
     return nextMap;
 }
 
-function getProfileViewCooldownExpiry(uid) {
-    const normalizedUid = normalizeUid(uid);
-    if (!normalizedUid) return 0;
+function getProfileViewCooldownExpiry(uid, viewerKey) {
     const cooldownMap = readProfileViewCooldownMap();
-    const expiresAt = Number(cooldownMap[normalizedUid]);
-    return Number.isFinite(expiresAt) ? expiresAt : 0;
+    return getProfileViewCooldownKeyCandidates(uid, viewerKey).reduce((latestExpiry, key) => {
+        const expiresAt = Number(cooldownMap[key]);
+        return Number.isFinite(expiresAt) ? Math.max(latestExpiry, expiresAt) : latestExpiry;
+    }, 0);
 }
 
-function setProfileViewCooldown(uid, now = Date.now()) {
+function setProfileViewCooldown(uid, viewerKey, now = Date.now()) {
     const normalizedUid = normalizeUid(uid);
     if (!normalizedUid) return false;
     const cooldownMap = readProfileViewCooldownMap();
-    cooldownMap[normalizedUid] = now + PROFILE_VIEW_COOLDOWN_MS;
+    const expiresAt = now + PROFILE_VIEW_COOLDOWN_MS;
+    const scopedKey = buildProfileViewCooldownKey(normalizedUid, viewerKey);
+    if (scopedKey) {
+        cooldownMap[scopedKey] = expiresAt;
+        delete cooldownMap[normalizedUid];
+    } else {
+        cooldownMap[normalizedUid] = expiresAt;
+    }
     return writeJson(PROFILE_VIEW_COOLDOWNS_STORAGE_KEY, cooldownMap);
 }
 
@@ -417,7 +489,8 @@ export async function incrementViewCount(uid, options = {}) {
     if (!normalizedUid) return false;
     const normalizedAccountId = typeof options?.accountId === "string" ? options.accountId.trim() : "";
     const normalizedVisibility = typeof options?.visibility === "string" ? options.visibility.trim() : "";
-    if (getProfileViewCooldownExpiry(normalizedUid) > Date.now()) {
+    const viewerCooldownKey = resolveProfileViewCooldownViewerKey(options);
+    if (getProfileViewCooldownExpiry(normalizedUid, viewerCooldownKey) > Date.now()) {
         return false;
     }
     try {
@@ -438,7 +511,7 @@ export async function incrementViewCount(uid, options = {}) {
                 };
             }
             await setDoc(userRef, createPayload, { merge: true });
-            setProfileViewCooldown(normalizedUid);
+            setProfileViewCooldown(normalizedUid, viewerCooldownKey);
             return 1;
         }
         const data = userSnap.data() || {};
@@ -450,7 +523,7 @@ export async function incrementViewCount(uid, options = {}) {
                 views: nextViews
             }
         }, { merge: true });
-        setProfileViewCooldown(normalizedUid);
+        setProfileViewCooldown(normalizedUid, viewerCooldownKey);
         return nextViews;
     } catch (error) {
         if (!isPermissionLikeError(error)) {

@@ -3,6 +3,7 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import { auth, db } from "../client.js";
 import { getBenchmarkBasePath } from "../utils.js";
 import { alignMobileTitleBetweenTopAndBox } from "../authLayout.js";
+import { initPasswordVisibilityToggles } from "../authPasswordToggle.js?v=20260322-password-toggle-1";
 import { readString, LANGUAGE_STORAGE_KEY } from "../storage.js";
 
 const currentPath = (window.location.pathname || "").toLowerCase();
@@ -17,6 +18,8 @@ const signupBtn = document.getElementById("signupBtn");
 const goToLoginLink = document.getElementById("goToLoginLink");
 const errorMessage = document.getElementById("error-message");
 const tAuth = (key) => (window.authT ? window.authT(key) : key);
+
+initPasswordVisibilityToggles();
 
 const animatePress = (element) => {
     if (!element) return;

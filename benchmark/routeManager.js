@@ -2,8 +2,8 @@ import { getRuntimeAccountId } from "./appState.js";
 import { getRememberedAccountIdForUid } from "./accountId.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
-import * as ViewModeManager from "./viewModeManager.js?v=20260317-profile-view-cooldown-2";
-import * as AuthManager from "./authManager.js?v=20260317-profile-views-bootstrap-2";
+import * as ViewModeManager from "./viewModeManager.js?v=20260322-profile-view-cooldown-guest-1";
+import * as AuthManager from "./authManager.js?v=20260322-live-view-count-1";
 import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";
 import { showPageLoader } from "./pageLoaderUI.js";
 

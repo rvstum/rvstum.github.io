@@ -298,6 +298,43 @@ export function markCurrentFriendRequestsViewed() {
     state.hasPendingRequests = false;
 }
 
+function resolveProfileViewsFromData(data = null) {
+    const safeData = data && typeof data === "object" ? data : {};
+    const profile = safeData.profile && typeof safeData.profile === "object" ? safeData.profile : {};
+    const profileViews = Number(profile.views);
+    if (Number.isFinite(profileViews)) {
+        return Math.max(0, Math.floor(profileViews));
+    }
+    const rootViews = Number(safeData.views);
+    if (Number.isFinite(rootViews)) {
+        return Math.max(0, Math.floor(rootViews));
+    }
+    return 0;
+}
+
+export function syncLiveProfileViewCount(uid, data = null) {
+    const targetUid = typeof uid === "string" ? uid.trim() : "";
+    const activeUid = auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid.trim() : "";
+    if (!targetUid || !activeUid || activeUid !== targetUid) return 0;
+
+    const views = resolveProfileViewsFromData(data);
+    writeString(CACHED_VIEWS_STORAGE_KEY, views);
+
+    const viewedUid = state.activeViewProfileContext && typeof state.activeViewProfileContext.uid === "string"
+        ? state.activeViewProfileContext.uid.trim()
+        : "";
+    const isViewingDifferentProfile = !!(state.isViewMode && viewedUid && viewedUid !== targetUid);
+    if (isViewingDifferentProfile) {
+        return views;
+    }
+
+    const viewCountEl = getCachedElementById("viewCount");
+    if (viewCountEl) {
+        viewCountEl.textContent = views.toLocaleString();
+    }
+    return views;
+}
+
 export async function loadUserProfile(user, hooks = {}) {
     const {
         initOnboarding = () => {},
@@ -419,12 +456,7 @@ export async function loadUserProfile(user, hooks = {}) {
             ProfileUI.updateMainPageGuildDisplay();
             ProfileUI.updateMainHeaderLayout();
 
-            const viewCountEl = getCachedElementById("viewCount");
-            if (viewCountEl) {
-                const views = data.profile.views || 0;
-                viewCountEl.textContent = views.toLocaleString();
-                writeString(CACHED_VIEWS_STORAGE_KEY, views);
-            }
+            syncLiveProfileViewCount(sessionUid, data);
 
             if (data.profile.trophies) {
                 writeJson(SEASONAL_TROPHIES_STORAGE_KEY, data.profile.trophies);

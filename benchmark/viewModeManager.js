@@ -7,7 +7,7 @@ import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from 
 import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 import * as ThemeUI from "./themeUI.js?v=20260310-reset-theme-fix-1";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
-import * as FriendsService from "./friendsService.js?v=20260317-profile-view-cooldown-1";
+import * as FriendsService from "./friendsService.js?v=20260322-profile-view-cooldown-guest-1";
 import * as RadarUI from "./radarUI.js";
 import * as RankingUI from "./rankingUI.js?v=20260311-compare-theme-colors-1";
 import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";

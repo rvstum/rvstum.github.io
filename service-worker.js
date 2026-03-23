@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kdassist-v1.9.6'; // Change version number to force update
+const CACHE_NAME = 'kdassist-v1.9.9'; // Change version number to force update
 const urlsToCache = [
   './',
   './index.html',
@@ -20,6 +20,14 @@ function shouldUseNetworkFirst(request, acceptHeader) {
   }
 
   return request.url.endsWith('.js') || request.url.endsWith('.css') || request.url.endsWith('.mjs');
+}
+
+function buildNetworkFirstRequest(request) {
+  try {
+    return new Request(request, { cache: 'no-store' });
+  } catch (error) {
+    return request;
+  }
 }
 
 // Install event - force immediate activation
@@ -60,7 +68,7 @@ self.addEventListener('fetch', event => {
   const accept = event.request.headers.get('accept') || '';
   if (shouldUseNetworkFirst(event.request, accept)) {
     event.respondWith(
-      fetch(event.request).then(response => {
+      fetch(buildNetworkFirstRequest(event.request)).then(response => {
         if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then(cache => {

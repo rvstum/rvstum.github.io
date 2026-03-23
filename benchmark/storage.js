@@ -20,6 +20,7 @@ export const ACHIEVEMENTS_STORAGE_KEY = 'benchmark_achievements';
 export const DEFAULT_CONFIG_STORAGE_KEY = 'benchmark_default_config';
 export const CACHED_VIEWS_STORAGE_KEY = 'benchmark_cached_views';
 export const PROFILE_VIEW_COOLDOWNS_STORAGE_KEY = 'benchmark_profile_view_cooldowns_v1';
+export const PROFILE_VIEW_GUEST_ID_STORAGE_KEY = 'benchmark_profile_view_guest_id_v1';
 export const SEASONAL_TROPHIES_STORAGE_KEY = 'benchmark_seasonal_trophies';
 export const PROFILE_PIC_STORAGE_KEY = 'benchmark_profile_pic';
 export const PROFILE_PIC_ORIGINAL_STORAGE_KEY = 'benchmark_profile_pic_original';

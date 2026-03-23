@@ -9,6 +9,7 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/
 import { auth, db } from "./client.js";
 import { getBenchmarkBasePath } from "./utils.js";
 import { alignMobileTitleBetweenTopAndBox } from "./authLayout.js?v=20260310-auth-mobile-stability-1";
+import { initPasswordVisibilityToggles } from "./authPasswordToggle.js?v=20260322-password-toggle-1";
 import {
     readString,
     LANGUAGE_STORAGE_KEY
@@ -197,6 +198,7 @@ function clearLoginRedirectGuards() {
 export function initLoginUI() {
     normalizeLoginPath();
     mobileServiceWorkerCleanupPromise = cleanupMobileServiceWorkerControl();
+    initPasswordVisibilityToggles();
 
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
