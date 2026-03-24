@@ -1,4 +1,5 @@
 import { auth } from "./client.js";
+import { getRuntimeAccountId, state as appState } from "./appState.js";
 import { t } from "./i18n.js";
 import {
     BRONZE_TROPHY_FILTER,
@@ -218,6 +219,24 @@ function formatNumber(value) {
     return new Intl.NumberFormat(undefined, {
         maximumFractionDigits: 0
     }).format(Math.max(0, Number(value) || 0));
+}
+
+function wait(ms) {
+    return new Promise((resolve) => {
+        window.setTimeout(resolve, Math.max(0, Number(ms) || 0));
+    });
+}
+
+function pulseInteractiveElement(element, className) {
+    if (!element || !className) return;
+    element.classList.remove(className);
+    if (typeof element.offsetWidth === "number") {
+        void element.offsetWidth;
+    }
+    element.classList.add(className);
+    window.setTimeout(() => {
+        element.classList.remove(className);
+    }, 180);
 }
 
 function resolveEntryName(entry) {
@@ -486,14 +505,29 @@ function createTopBaddyCell(metric = {}) {
 }
 
 function buildCurrentUserEntry(currentUserData = null) {
-    const currentUid = pickFirstString(auth && auth.currentUser ? auth.currentUser.uid : "");
+    const currentUser = auth && auth.currentUser ? auth.currentUser : null;
+    const currentUid = pickFirstString(currentUser ? currentUser.uid : "");
     if (!currentUid) return null;
+    const fallbackData = {
+        ...(currentUserData && typeof currentUserData === "object" ? currentUserData : {}),
+        ...(currentUser && typeof currentUser.displayName === "string" && currentUser.displayName.trim()
+            ? { username: currentUser.displayName.trim() }
+            : {}),
+        ...(getRuntimeAccountId() ? { accountId: getRuntimeAccountId() } : {}),
+        ...(appState && appState.savedScores && typeof appState.savedScores === "object"
+            ? { scores: appState.savedScores }
+            : {})
+    };
     return {
         kind: "self",
         id: `self__${currentUid}`,
         uid: currentUid,
-        snapshot: buildSnapshotFromUserData(currentUserData || {}, { uid: currentUid }),
-        data: safeObject(currentUserData),
+        snapshot: buildSnapshotFromUserData(fallbackData, {
+            uid: currentUid,
+            username: currentUser && currentUser.displayName ? currentUser.displayName : "",
+            accountId: getRuntimeAccountId()
+        }),
+        data: safeObject(fallbackData),
         createdAt: 0,
         updatedAt: 0,
         raw: null
@@ -524,7 +558,8 @@ export function createFriendsLeaderboardUI(options = {}) {
         page: 0,
         entries: [],
         currentUserFlag: "",
-        bound: false
+        bound: false,
+        refreshToken: 0
     };
     const onSelectEntry = typeof options.onSelectEntry === "function"
         ? options.onSelectEntry
@@ -779,10 +814,14 @@ export function createFriendsLeaderboardUI(options = {}) {
                         viewConfig: resolveEntryViewConfig(item.entry, state.filters)
                     });
                 };
-                row.addEventListener("click", handleSelect);
+                row.addEventListener("click", () => {
+                    pulseInteractiveElement(row, "leaderboard-row--pressed");
+                    requestAnimationFrame(handleSelect);
+                });
                 row.addEventListener("keydown", (event) => {
                     if (event.key !== "Enter" && event.key !== " ") return;
                     event.preventDefault();
+                    pulseInteractiveElement(row, "leaderboard-row--pressed");
                     handleSelect();
                 });
             }
@@ -839,23 +878,40 @@ export function createFriendsLeaderboardUI(options = {}) {
     async function refresh() {
         bindControls();
         syncFilterControls();
+        const refreshToken = state.refreshToken + 1;
+        state.refreshToken = refreshToken;
 
         if (!elements.list) return;
         resetListViewport();
         renderState(t("leaderboard_loading"));
         await waitForNextPaint();
+        if (refreshToken !== state.refreshToken) return;
 
         if (!auth.currentUser) {
             state.entries = [];
             state.currentUserFlag = "";
+            if (refreshToken !== state.refreshToken) return;
             render();
             return;
         }
 
-        const [entries, currentUserData] = await Promise.all([
+        let [entries, currentUserData] = await Promise.all([
             loadHydratedFriendEntries(auth.currentUser.uid),
             readCurrentUserData()
         ]);
+        const mirroredFriendCount = Array.isArray(safeObject(currentUserData).friends)
+            ? safeObject(currentUserData).friends.filter((value) => typeof value === "string" && value.trim()).length
+            : 0;
+
+        if ((!currentUserData || (!entries.length && mirroredFriendCount > 0)) && refreshToken === state.refreshToken) {
+            await wait(160);
+            if (refreshToken !== state.refreshToken) return;
+            [entries, currentUserData] = await Promise.all([
+                loadHydratedFriendEntries(auth.currentUser.uid),
+                readCurrentUserData()
+            ]);
+        }
+        if (refreshToken !== state.refreshToken) return;
 
         const nextEntries = [];
         const seenUids = new Set();
@@ -869,6 +925,7 @@ export function createFriendsLeaderboardUI(options = {}) {
 
         state.entries = nextEntries;
         state.currentUserFlag = getCurrentUserCountryFlag(currentUserData);
+        if (refreshToken !== state.refreshToken) return;
         render();
     }
 

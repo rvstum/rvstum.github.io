@@ -10,6 +10,19 @@
         document.body.appendChild(banner);
     };
     const releaseLoader = function () {
+        if (document.body) {
+            document.body.classList.remove("benchmark-boot-loading");
+        }
+        try {
+            delete window.__BENCHMARK_FORCE_BOOT_HOLD__;
+        } catch (_) {
+            window.__BENCHMARK_FORCE_BOOT_HOLD__ = false;
+        }
+        try {
+            delete window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__;
+        } catch (_) {
+            window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__ = 0;
+        }
         if (released) return;
         const loader = document.getElementById("pageLoader");
         if (!loader) {
@@ -48,4 +61,3 @@
 
     window.__releaseBenchmarkLoader = releaseLoader;
 })();
-

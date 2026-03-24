@@ -1138,6 +1138,12 @@ function initModuleConfigurations() {
         calculateRankFromData,
         enterViewMode: ViewModeManager.enterViewMode,
         closeFriendsModal: closeFriendsModalUI,
+        openFriendProfile: async (entry) => {
+            closeFriendsModalUI();
+            await openProfileEntryInViewMode(entry, {
+                hydrateWarningLabel: "Failed to rehydrate friend profile entry; falling back to cached row data."
+            });
+        },
         showConfirmModal,
         updateNotificationVisibility,
         onFriendRequestsLoaded: (uid, requests, requestsTabActive) => {
@@ -1487,63 +1493,74 @@ function initFriendsLeaderboardBindings() {
     friendsLeaderboardController = initFriendsLeaderboardModalController({
         bindModalOverlayQuickClose,
         onSelectEntry: async ({ entry, viewConfig } = {}) => {
-            const safeEntry = entry && typeof entry === "object" ? entry : null;
-            const fallbackSnapshot = safeEntry && safeEntry.snapshot && typeof safeEntry.snapshot === "object"
-                ? safeEntry.snapshot
-                : {};
-            const profileUid = safeEntry && typeof safeEntry.uid === "string"
-                ? safeEntry.uid.trim()
-                : "";
-            let hydratedRecord = null;
-            if (profileUid) {
-                try {
-                    hydratedRecord = await hydrateUserRecord(profileUid, fallbackSnapshot);
-                } catch (error) {
-                    console.warn("Failed to rehydrate leaderboard profile entry; falling back to cached row data.", error);
-                }
-            }
-
-            const resolvedSnapshot = hydratedRecord && hydratedRecord.snapshot && typeof hydratedRecord.snapshot === "object"
-                ? hydratedRecord.snapshot
-                : fallbackSnapshot;
-            const explicitPublicSlug = typeof resolvedSnapshot.publicSlug === "string" && resolvedSnapshot.publicSlug.trim()
-                ? resolvedSnapshot.publicSlug.trim()
-                : (safeEntry && typeof safeEntry.publicSlug === "string" && safeEntry.publicSlug.trim()
-                    ? safeEntry.publicSlug.trim()
-                    : "");
-            const baseProfileData = hydratedRecord && hydratedRecord.data && typeof hydratedRecord.data === "object"
-                ? hydratedRecord.data
-                : (safeEntry && safeEntry.data && typeof safeEntry.data === "object" ? safeEntry.data : {});
-            const profileData = {
-                ...baseProfileData,
-                ...(resolvedSnapshot.username ? { username: resolvedSnapshot.username } : {}),
-                ...(explicitPublicSlug ? { publicSlug: explicitPublicSlug } : {})
-            };
-
-            if (resolvedSnapshot && typeof resolvedSnapshot === "object") {
-                profileData.settings = {
-                    ...(baseProfileData && baseProfileData.settings && typeof baseProfileData.settings === "object"
-                        ? baseProfileData.settings
-                        : {}),
-                    ...(resolvedSnapshot.visibility ? { visibility: resolvedSnapshot.visibility } : {})
-                };
-                profileData.profile = {
-                    ...(baseProfileData && baseProfileData.profile && typeof baseProfileData.profile === "object"
-                        ? baseProfileData.profile
-                        : {}),
-                    ...(Array.isArray(resolvedSnapshot.guilds) && resolvedSnapshot.guilds.length
-                        ? { guilds: resolvedSnapshot.guilds }
-                        : {}),
-                    ...(resolvedSnapshot.username ? { username: resolvedSnapshot.username } : {}),
-                    ...(resolvedSnapshot.flag ? { flag: resolvedSnapshot.flag } : {}),
-                    ...(resolvedSnapshot.pic ? { pic: resolvedSnapshot.pic } : {})
-                };
-            }
-
-            await ViewModeManager.enterViewMode(profileData, profileUid, {
+            await openProfileEntryInViewMode(entry, {
                 configOverride: viewConfig
             });
         }
+    });
+}
+
+async function openProfileEntryInViewMode(entry, options = {}) {
+    const safeEntry = entry && typeof entry === "object" ? entry : null;
+    const fallbackSnapshot = safeEntry && safeEntry.snapshot && typeof safeEntry.snapshot === "object"
+        ? safeEntry.snapshot
+        : {};
+    const profileUid = safeEntry && typeof safeEntry.uid === "string"
+        ? safeEntry.uid.trim()
+        : "";
+    let hydratedRecord = null;
+    if (profileUid) {
+        try {
+            hydratedRecord = await hydrateUserRecord(profileUid, fallbackSnapshot);
+        } catch (error) {
+            console.warn(
+                options && typeof options.hydrateWarningLabel === "string" && options.hydrateWarningLabel.trim()
+                    ? options.hydrateWarningLabel.trim()
+                    : "Failed to rehydrate profile entry; falling back to cached row data.",
+                error
+            );
+        }
+    }
+
+    const resolvedSnapshot = hydratedRecord && hydratedRecord.snapshot && typeof hydratedRecord.snapshot === "object"
+        ? hydratedRecord.snapshot
+        : fallbackSnapshot;
+    const explicitPublicSlug = typeof resolvedSnapshot.publicSlug === "string" && resolvedSnapshot.publicSlug.trim()
+        ? resolvedSnapshot.publicSlug.trim()
+        : (safeEntry && typeof safeEntry.publicSlug === "string" && safeEntry.publicSlug.trim()
+            ? safeEntry.publicSlug.trim()
+            : "");
+    const baseProfileData = hydratedRecord && hydratedRecord.data && typeof hydratedRecord.data === "object"
+        ? hydratedRecord.data
+        : (safeEntry && safeEntry.data && typeof safeEntry.data === "object" ? safeEntry.data : {});
+    const profileData = {
+        ...baseProfileData,
+        ...(resolvedSnapshot.username ? { username: resolvedSnapshot.username } : {}),
+        ...(explicitPublicSlug ? { publicSlug: explicitPublicSlug } : {})
+    };
+
+    if (resolvedSnapshot && typeof resolvedSnapshot === "object") {
+        profileData.settings = {
+            ...(baseProfileData && baseProfileData.settings && typeof baseProfileData.settings === "object"
+                ? baseProfileData.settings
+                : {}),
+            ...(resolvedSnapshot.visibility ? { visibility: resolvedSnapshot.visibility } : {})
+        };
+        profileData.profile = {
+            ...(baseProfileData && baseProfileData.profile && typeof baseProfileData.profile === "object"
+                ? baseProfileData.profile
+                : {}),
+            ...(Array.isArray(resolvedSnapshot.guilds) && resolvedSnapshot.guilds.length
+                ? { guilds: resolvedSnapshot.guilds }
+                : {}),
+            ...(resolvedSnapshot.username ? { username: resolvedSnapshot.username } : {}),
+            ...(resolvedSnapshot.flag ? { flag: resolvedSnapshot.flag } : {}),
+            ...(resolvedSnapshot.pic ? { pic: resolvedSnapshot.pic } : {})
+        };
+    }
+
+    await ViewModeManager.enterViewMode(profileData, profileUid, {
+        configOverride: options && options.configOverride ? options.configOverride : null
     });
 }
 

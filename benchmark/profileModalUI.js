@@ -164,6 +164,7 @@ export function initProfileModalController(options = {}) {
     const saveImageBtn = getCachedElementById("saveImageBtn");
 
     let pendingProtectedAction = null;
+    let profileModalCloseTimer = 0;
 
     let cropState = { x: 0, y: 0, scale: 1 };
     let isCropDragging = false;
@@ -231,10 +232,23 @@ export function initProfileModalController(options = {}) {
         clearStatusMessage(profilePicMessage);
     }
 
+    function clearProfileModalCloseTimer() {
+        if (!profileModalCloseTimer) return;
+        clearTimeout(profileModalCloseTimer);
+        profileModalCloseTimer = 0;
+    }
+
     function closeProfileModalUI() {
         closeCropper();
-        if (profileModal) profileModal.classList.remove("show");
         resetProfileSensitiveVisibility();
+        if (!profileModal) return;
+        clearProfileModalCloseTimer();
+        profileModal.classList.add("closing");
+        profileModalCloseTimer = window.setTimeout(() => {
+            profileModal.classList.remove("show");
+            profileModal.classList.remove("closing");
+            profileModalCloseTimer = 0;
+        }, 200);
     }
 
     function applyCropTransform() {
@@ -575,6 +589,10 @@ export function initProfileModalController(options = {}) {
     if (userProfileBtn) {
         userProfileBtn.addEventListener("click", () => {
             if (state && state.isViewMode) return;
+            clearProfileModalCloseTimer();
+            if (profileModal) {
+                profileModal.classList.remove("closing");
+            }
             resetProfileSensitiveVisibility();
             initProfileModalState();
         });

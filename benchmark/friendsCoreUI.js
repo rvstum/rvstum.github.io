@@ -303,6 +303,18 @@ function sortEntriesByName(entries) {
     return [...entries].sort((left, right) => resolveEntryName(left).localeCompare(resolveEntryName(right), undefined, { sensitivity: "base" }));
 }
 
+function pulseInteractiveElement(element, className) {
+    if (!element || !className) return;
+    element.classList.remove(className);
+    if (typeof element.offsetWidth === "number") {
+        void element.offsetWidth;
+    }
+    element.classList.add(className);
+    window.setTimeout(() => {
+        element.classList.remove(className);
+    }, 180);
+}
+
 function dispatchFriendStateEvent(uids) {
     document.dispatchEvent(new CustomEvent("benchmark:friends-request-state", {
         detail: {
@@ -589,6 +601,7 @@ export async function loadHydratedFriendEntries(currentUid) {
     const cachedEntries = getTimedCacheValue(hydratedFriendEntriesCache, normalizedUid);
     if (cachedEntries) return await cachedEntries;
 
+    let shouldPersistResolvedCache = true;
     const pendingEntries = (async () => {
         const [friendships, currentUserData] = await Promise.all([
             safeLoadFriendEdges(() => FriendsService.listFriendships(normalizedUid), "friendships query"),
@@ -626,13 +639,19 @@ export async function loadHydratedFriendEntries(currentUid) {
                 raw: friendship
             };
         }));
-        return sortEntriesByName(hydrated.filter(Boolean));
+        const resolvedEntries = sortEntriesByName(hydrated.filter(Boolean));
+        shouldPersistResolvedCache = !!currentUserData && (resolvedEntries.length > 0 || targetUids.length === 0);
+        return resolvedEntries;
     })();
 
     setTimedCacheValue(hydratedFriendEntriesCache, normalizedUid, pendingEntries);
     try {
         const resolvedEntries = await pendingEntries;
-        setTimedCacheValue(hydratedFriendEntriesCache, normalizedUid, resolvedEntries);
+        if (shouldPersistResolvedCache) {
+            setTimedCacheValue(hydratedFriendEntriesCache, normalizedUid, resolvedEntries);
+        } else {
+            hydratedFriendEntriesCache.delete(normalizedUid);
+        }
         return resolvedEntries;
     } catch (error) {
         hydratedFriendEntriesCache.delete(normalizedUid);
@@ -859,12 +878,16 @@ export function renderFriendViewEntries(container, entries, options = {}) {
 
         if (interactive) {
             card.addEventListener("click", () => {
-                if (typeof options.onSelect === "function") {
-                    options.onSelect(entry);
-                    return;
-                }
-                const openProfile = coreDeps.openFriendProfile || defaultOpenFriendProfile;
-                openProfile(entry);
+                pulseInteractiveElement(card, "friend-item--pressed");
+                const runSelection = () => {
+                    if (typeof options.onSelect === "function") {
+                        options.onSelect(entry);
+                        return;
+                    }
+                    const openProfile = coreDeps.openFriendProfile || defaultOpenFriendProfile;
+                    openProfile(entry);
+                };
+                requestAnimationFrame(runSelection);
             });
         }
 
