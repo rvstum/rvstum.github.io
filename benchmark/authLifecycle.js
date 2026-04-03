@@ -12,7 +12,7 @@ import * as ViewModeManager from "./viewModeManager.js?v=20260317-profile-view-c
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf, currentLanguage } from "./i18n.js";
 import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";
-import { showPageLoader } from "./pageLoaderUI.js?v=20260403-loader-nav-lock-1";
+import { showPageLoader } from "./pageLoaderUI.js?v=20260403-loader-visible-idempotent-2";
 
 const AUTH_REFERRER_BLOCK_HINT = "The request is blocked by Firebase API key restrictions (check authorized domains / API key HTTP referrers).";
 const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY = "__benchmark_mobile_restore_suppress_next_loader__";

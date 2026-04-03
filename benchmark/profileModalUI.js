@@ -15,7 +15,7 @@ import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 import { compressImageFileToDataUrl } from "./imageUtils.js";
 import { resetAccountIdVisibility } from "./accountId.js";
-import { showPageLoader, hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260403-loader-nav-lock-1";
+import { showPageLoader, hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260403-loader-visible-idempotent-2";
 import { getCachedElementById, setHidden } from "./utils/domUtils.js";
 import {
     writeString,
