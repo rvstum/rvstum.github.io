@@ -96,11 +96,11 @@ import * as PacmanUI from "./pacmanUI.js";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260311-friends-layout-8";
 import { initFriendsLeaderboardModalController } from "./friendsLeaderboardModalUI.js?v=20260318-friends-leaderboard-order-i18n-1";
 import { hydrateUserRecord } from "./friendsCoreUI.js?v=20260317-guild-view-fix-2";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260322-live-view-count-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20260403-loader-nav-lock-1";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
-import { handleProfileLink } from "./routeManager.js?v=20260311-view-mode-language-fix-2";
+import { handleProfileLink } from "./routeManager.js?v=20260403-loader-nav-lock-1";
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260311-exit-slug-fix-1";
-import { initProfileModalController } from "./profileModalUI.js?v=20260311-profile-original-sync-1";
+import { initProfileModalController } from "./profileModalUI.js?v=20260403-loader-nav-lock-1";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260311-profile-original-sync-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260317-leaderboard-filter-dropdown-width-1";
@@ -109,7 +109,7 @@ import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI
 import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260318-leaderboard-language-sync-1";
 import { createSettingsStateController } from "./settingsStateUI.js?v=20260311-pacman-settings-desktop-1";
 import { createTopNavController } from "./topNavUI.js";
-import { hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260316-remembered-handoff-lock-1";
+import { hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260403-loader-nav-lock-1";
 
 const PAGE_LOADER_MIN_VISIBLE_MS = 1300;
 const LAST_ACTIVE_AUTH_UID_STORAGE_KEY = "benchmark_last_active_user_uid";

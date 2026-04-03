@@ -1,9 +1,27 @@
 import { state } from "./appState.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 
+const PAGE_LOADER_SHOW_LOCK_WINDOW_KEY = "__BENCHMARK_PAGE_LOADER_SHOWN_THIS_NAVIGATION__";
+
 function releaseBootVisibilityLock() {
     if (typeof document === "undefined") return;
     document.body.classList.remove("benchmark-boot-loading");
+}
+
+function hasShownPageLoaderThisNavigation() {
+    if (typeof window === "undefined") return false;
+    return !!window[PAGE_LOADER_SHOW_LOCK_WINDOW_KEY];
+}
+
+function markPageLoaderShownThisNavigation() {
+    if (typeof window === "undefined") return;
+    window[PAGE_LOADER_SHOW_LOCK_WINDOW_KEY] = true;
+}
+
+function markInitialBootLoaderShown() {
+    if (typeof document === "undefined") return;
+    if (!document.getElementById("pageLoader")) return;
+    markPageLoaderShownThisNavigation();
 }
 
 function getBootLoaderSuppressionUntil() {
@@ -29,14 +47,19 @@ function shouldSuppressBootLoader() {
     return false;
 }
 
-export function showPageLoader() {
-    if (shouldSuppressBootLoader()) return;
+markInitialBootLoaderShown();
+
+export function showPageLoader(options = {}) {
+    const allowRepeatInSameNavigation = !!options.allowRepeatInSameNavigation;
+    if (!allowRepeatInSameNavigation && shouldSuppressBootLoader()) return;
+    if (!allowRepeatInSameNavigation && hasShownPageLoaderThisNavigation()) return;
     const loader = getCachedElementById("pageLoader");
     if (!loader) return;
     if (state.pageLoaderHideTimeout) {
         clearTimeout(state.pageLoaderHideTimeout);
         state.pageLoaderHideTimeout = null;
     }
+    markPageLoaderShownThisNavigation();
     state.pageLoaderStartedAt = (typeof performance !== "undefined" && performance.now)
         ? performance.now()
         : Date.now();
@@ -67,6 +90,7 @@ export function hidePageLoader(options = {}, minVisibleMs = 1300) {
 
     if (state.pageLoaderHideTimeout) clearTimeout(state.pageLoaderHideTimeout);
     state.pageLoaderHideTimeout = setTimeout(() => {
+        state.pageLoaderHideTimeout = null;
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 releaseBootVisibilityLock();

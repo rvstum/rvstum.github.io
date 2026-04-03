@@ -12,7 +12,7 @@ import * as ViewModeManager from "./viewModeManager.js?v=20260317-profile-view-c
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf, currentLanguage } from "./i18n.js";
 import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";
-import { showPageLoader } from "./pageLoaderUI.js?v=20260316-remembered-handoff-lock-1";
+import { showPageLoader } from "./pageLoaderUI.js?v=20260403-loader-nav-lock-1";
 
 const AUTH_REFERRER_BLOCK_HINT = "The request is blocked by Firebase API key restrictions (check authorized domains / API key HTTP referrers).";
 const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY = "__benchmark_mobile_restore_suppress_next_loader__";
@@ -245,7 +245,7 @@ export function initAuthLifecycle(options = {}) {
                     if (reloadBtn) reloadBtn.onclick = () => window.location.reload();
                     if (signOutBtn) {
                         signOutBtn.onclick = () => {
-                            showPageLoader();
+                            showPageLoader({ allowRepeatInSameNavigation: true });
                             signOut(auth)
                                 .then(() => {
                                     window.location.replace(Slugs.getBenchmarkLoginUrl());

@@ -23,8 +23,12 @@ const LOGIN_BOOT_WINDOW_MS = 45000;
 const LOGIN_HANDOFF_SESSION_KEY = "__benchmark_login_handoff__";
 const LOGIN_HANDOFF_WINDOW_MS = 30000;
 const MOBILE_SW_CLEANUP_SESSION_KEY = "__benchmark_mobile_sw_cleanup_done__";
-let authNavigationInFlight = false;
+let authNavigationInFlight = !!(typeof window !== "undefined" && window.__BENCHMARK_LOGIN_REDIRECT_STARTED__);
 let mobileServiceWorkerCleanupPromise = null;
+
+function isLoginRedirectStarted() {
+    return !!(typeof window !== "undefined" && window.__BENCHMARK_LOGIN_REDIRECT_STARTED__);
+}
 
 function normalizeLoginPath() {
     const lowerPath = (window.location.pathname || "").toLowerCase();
@@ -145,7 +149,7 @@ function clearLegacyAutoRestoreBootstrap() {
 }
 
 async function navigateAfterLogin(user, options = {}) {
-    if (!user || authNavigationInFlight) return;
+    if (!user || authNavigationInFlight || isLoginRedirectStarted()) return;
     authNavigationInFlight = true;
 
     const source = typeof options.source === "string" && options.source.trim()
@@ -169,6 +173,9 @@ async function navigateAfterLogin(user, options = {}) {
         authNavigationInFlight = false;
         return;
     }
+    if (typeof window !== "undefined") {
+        window.__BENCHMARK_LOGIN_REDIRECT_STARTED__ = true;
+    }
     window.location.replace(targetUrl.toString());
 }
 
@@ -185,7 +192,11 @@ function tAuth(key) {
 }
 
 function clearLoginRedirectGuards() {
+    authNavigationInFlight = false;
     try {
+        if (typeof window !== "undefined") {
+            window.__BENCHMARK_LOGIN_REDIRECT_STARTED__ = false;
+        }
         sessionStorage.removeItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_BOOT_WINDOW_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
@@ -196,6 +207,7 @@ function clearLoginRedirectGuards() {
 }
 
 export function initLoginUI() {
+    if (isLoginRedirectStarted()) return;
     normalizeLoginPath();
     mobileServiceWorkerCleanupPromise = cleanupMobileServiceWorkerControl();
     initPasswordVisibilityToggles();
@@ -307,6 +319,7 @@ export function initLoginUI() {
     });
 
     onAuthStateChanged(auth, async (user) => {
+        if (isLoginRedirectStarted()) return;
         if (!user) return;
         if (!user.emailVerified) return;
         await navigateAfterLogin(user, { source: "remembered-session" });

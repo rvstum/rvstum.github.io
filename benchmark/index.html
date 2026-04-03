@@ -9,6 +9,106 @@
     <title>Login - Benchmark</title>
     <link rel="icon" type="image/png" href="../icons/baddy.png">
     <script src="mobileViewportGuard.js?v=20260310-sub-score-input-1"></script>
+    <style>
+        html.auth-bootstrap-pending body {
+            display: none !important;
+        }
+    </style>
+    <script>
+        (function earlyRememberedAuthRedirect() {
+            var root = document.documentElement;
+            root.classList.add("auth-bootstrap-pending");
+            var redirecting = false;
+            var FIREBASE_API_KEY = "AIzaSyAiZHVFIXe8LrxGS-TklX-pIqC135IpIbY";
+            var LOGIN_AUTH_BOOTSTRAP_SESSION_KEY = "__benchmark_login_auth_boot__";
+            var LOGIN_BOOT_WINDOW_SESSION_KEY = "__benchmark_login_boot_window__";
+            var LOGIN_HANDOFF_SESSION_KEY = "__benchmark_login_handoff__";
+            var LOGIN_AUTH_BOOTSTRAP_WINDOW_MS = 15000;
+            var LOGIN_BOOT_WINDOW_MS = 45000;
+            var LOGIN_HANDOFF_WINDOW_MS = 30000;
+
+            function getBenchmarkBasePath() {
+                var pathname = window.location.pathname || "";
+                var lower = pathname.toLowerCase();
+                var marker = "/benchmark";
+                var markerIndex = lower.indexOf(marker);
+                if (markerIndex >= 0) {
+                    return pathname.slice(0, markerIndex + marker.length) || "/benchmark";
+                }
+                var fallback = pathname.replace(/\/[^/]*$/, "");
+                return fallback || "/benchmark";
+            }
+
+            function resolveSignedInUrl() {
+                return getBenchmarkBasePath() + "/benchmark.html";
+            }
+
+            function hasPersistedVerifiedUser(storage) {
+                if (!storage) return false;
+                try {
+                    for (var i = 0; i < storage.length; i += 1) {
+                        var key = storage.key(i);
+                        if (!key || key.indexOf("firebase:authUser:") !== 0) continue;
+                        var raw = storage.getItem(key);
+                        if (!raw) continue;
+                        var parsed = JSON.parse(raw);
+                        if (!parsed || typeof parsed !== "object") continue;
+                        if (parsed.apiKey !== FIREBASE_API_KEY) continue;
+                        if (!parsed.uid) continue;
+                        if (parsed.emailVerified === false) continue;
+                        var tokenManager = parsed.stsTokenManager && typeof parsed.stsTokenManager === "object"
+                            ? parsed.stsTokenManager
+                            : null;
+                        var hasSessionToken = !!(tokenManager && (tokenManager.refreshToken || tokenManager.accessToken));
+                        if (!hasSessionToken) continue;
+                        return true;
+                    }
+                } catch (e) {
+                    return false;
+                }
+                return false;
+            }
+
+            function armLoginRedirectGuards() {
+                try {
+                    var now = Date.now();
+                    sessionStorage.setItem(LOGIN_AUTH_BOOTSTRAP_SESSION_KEY, JSON.stringify({
+                        source: "remembered-session",
+                        startedAt: now,
+                        expiresAt: now + LOGIN_AUTH_BOOTSTRAP_WINDOW_MS
+                    }));
+                    sessionStorage.setItem(LOGIN_BOOT_WINDOW_SESSION_KEY, JSON.stringify({
+                        source: "remembered-session",
+                        startedAt: now,
+                        expiresAt: now + LOGIN_BOOT_WINDOW_MS,
+                        count: 0
+                    }));
+                    sessionStorage.setItem(LOGIN_HANDOFF_SESSION_KEY, JSON.stringify({
+                        source: "remembered-session",
+                        startedAt: now,
+                        expiresAt: now + LOGIN_HANDOFF_WINDOW_MS
+                    }));
+                } catch (e) {}
+            }
+
+            try {
+                var hasRememberedUser = hasPersistedVerifiedUser(window.sessionStorage)
+                    || hasPersistedVerifiedUser(window.localStorage);
+                if (!hasRememberedUser) return;
+                redirecting = true;
+                window.__BENCHMARK_LOGIN_REDIRECT_STARTED__ = true;
+                armLoginRedirectGuards();
+                window.location.replace(new URL(resolveSignedInUrl(), window.location.origin).toString());
+            } catch (e) {
+                redirecting = false;
+            } finally {
+                if (!redirecting) {
+                    root.classList.remove("auth-bootstrap-pending");
+                    window.__BENCHMARK_LOGIN_REDIRECT_STARTED__ = false;
+                }
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="login.css?v=20260322-password-toggle-1">
 </head>
 <body>
@@ -46,6 +146,6 @@
     <script src="auth-footer-loader.js"></script>
     <script type="module" src="auth-i18n.js?v=20260309-auth-lang-dropdown-mobile-2"></script>
     <script type="module" src="footer-baddy.js"></script>
-    <script type="module" src="loginUI.js?v=20260322-password-toggle-1"></script>
+    <script type="module" src="loginUI.js?v=20260403-prepaint-auth-1"></script>
 </body>
 </html>
