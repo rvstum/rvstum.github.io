@@ -420,7 +420,7 @@ async function createLobby() {
   }
 }
 
-function setCreatingLobbyOverlay(visible) {
+function setCreatingLobbyOverlay(visible, text = "Creating Lobby...") {
   let overlay = document.getElementById("creatingLobbyOverlay");
   if (!overlay && visible) {
     overlay = document.createElement("div");
@@ -430,7 +430,11 @@ function setCreatingLobbyOverlay(visible) {
     overlay.innerHTML = '<p class="creating-lobby-text">Creating Lobby...</p><div class="creating-lobby-spinner"></div>';
     document.body.appendChild(overlay);
   }
-  if (overlay) overlay.hidden = !visible;
+  if (overlay) {
+    const label = overlay.querySelector(".creating-lobby-text");
+    if (label) label.textContent = text;
+    overlay.hidden = !visible;
+  }
 }
 
 async function createUnusedLobbyCode(backend) {
@@ -609,6 +613,7 @@ function subscribeToLobby() {
       // A cold local cache reports the doc as missing before the server replies.
       // Only a server-confirmed absence means the lobby is really gone.
       if (snapshot.metadata.fromCache) return;
+      setCreatingLobbyOverlay(false);
       if (session.role === "guest") handleForcedLobbyExit("Host has left.");
       else leaveLobby({ preserveView: true, preserveRemote: true });
       return;
@@ -617,7 +622,13 @@ function subscribeToLobby() {
     const nextLobby = snapshot.data();
     updateServerClockOffset(nextLobby.updatedAt);
     session.lobby = nextLobby;
-    if (previousStatus === "waiting" && session.lobby.status === "playing") {
+    // The host has pressed Start and is preparing the match: everyone leaves the lobby right away.
+    if (session.lobby.status === "starting") {
+      setCreatingLobbyOverlay(true, "Waiting for players...");
+    } else if (previousStatus === "starting" && session.lobby.status === "waiting") {
+      setCreatingLobbyOverlay(false);
+    }
+    if ((previousStatus === "waiting" || previousStatus === "starting") && session.lobby.status === "playing") {
       session.waitingForRematch = false;
       session.gameStarted = false;
     }
@@ -763,6 +774,7 @@ function publishDepartureNotice(player) {
 async function handleForcedLobbyExit(message) {
   if (session.forcedExitHandled) return;
   session.forcedExitHandled = true;
+  setCreatingLobbyOverlay(false);
   await leaveLobby({ preserveView: true, preserveRemote: true });
   getMenuApi()?.exitMultiplayerMatch?.();
   showLobbyMessage(message);
@@ -1805,9 +1817,13 @@ async function startHostedMatch() {
   session.busy = true;
   dom.hostStartButton.disabled = true;
   dom.hostStartButton.textContent = "Preparing match...";
+  const lobbyRef = session.backend.fs.doc(session.backend.db, LOBBY_COLLECTION, session.lobbyCode);
   try {
+    await session.backend.fs.updateDoc(lobbyRef, {
+      status: "starting",
+      updatedAt: session.backend.fs.serverTimestamp(),
+    });
     const roundIds = await getGameApi().createMultiplayerRoundPlan(session.lobby.settings);
-    const lobbyRef = session.backend.fs.doc(session.backend.db, LOBBY_COLLECTION, session.lobbyCode);
     const batch = session.backend.fs.writeBatch(session.backend.db);
     session.players.forEach((player) => {
       batch.set(playerRef(session.backend, session.lobbyCode, player.id), {
@@ -1840,6 +1856,10 @@ async function startHostedMatch() {
     await batch.commit();
   } catch (error) {
     console.error(error);
+    session.backend.fs.updateDoc(lobbyRef, {
+      status: "waiting",
+      updatedAt: session.backend.fs.serverTimestamp(),
+    }).catch(() => {});
     dom.hostStartButton.disabled = false;
     dom.hostStartButton.textContent = "Start Match";
   } finally {
@@ -1853,6 +1873,8 @@ async function beginSharedMatch() {
   const ownPlayer = session.players.find((player) => player.id === uid);
   if (!uid || !ownPlayer) return;
   session.gameStarted = true;
+  // The moment the host starts, everyone leaves the lobby for a waiting screen while the match loads.
+  setCreatingLobbyOverlay(true, "Waiting for players...");
   try {
     await getGameApi().startMultiplayerGame({
       lobbyCode: session.lobbyCode,
@@ -1870,6 +1892,8 @@ async function beginSharedMatch() {
   } catch (error) {
     session.gameStarted = false;
     console.error("Could not start multiplayer match", error);
+  } finally {
+    setCreatingLobbyOverlay(false);
   }
 }
 

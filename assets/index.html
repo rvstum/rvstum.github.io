@@ -1393,15 +1393,32 @@
                 font-size: 10px;
             }
 
-            /* Very narrow phones can't spare the side room: controls shift left so nothing overlaps. */
-            @media (max-width: 359px) {
-                .pager {
-                    display: flex;
-                    justify-content: space-between;
+            /* Narrow phones: the page controls stay centered on the screen with Reset in the far corner;
+               everything is compacted so the two never overlap. */
+            @media (max-width: 419px) {
+                .pager .reset-btn {
+                    padding: 6px 5px;
+                    font-size: 9px;
                 }
 
-                .pager .reset-btn {
-                    order: 10;
+                .pager-nav {
+                    gap: 2px;
+                    min-width: 0;
+                }
+
+                .pager button {
+                    padding: 6px 4px;
+                    font-size: 10px;
+                }
+
+                .pager .page-indicator {
+                    font-size: 9px;
+                }
+            }
+
+            @media (max-width: 349px) {
+                #first {
+                    display: none;
                 }
             }
 
@@ -1999,6 +2016,18 @@
             }
             searchToolbar.style.top = `${Math.max(0, top)}px`;
             searchToolbar.style.visibility = 'visible';
+            keepFileTypeRowClearOfSearch();
+        }
+
+        // The file-type chips share a line with the search box: they get only the room to its left
+        // (and scroll sideways inside it), so the search box never sits on top of a chip.
+        function keepFileTypeRowClearOfSearch() {
+            typeFiltersEl.style.maxWidth = '';
+            const bar = searchToolbar.getBoundingClientRect();
+            const row = typeFiltersEl.getBoundingClientRect();
+            if (!bar.width || !row.width || bar.bottom <= row.top || bar.top >= row.bottom) return;
+            const room = bar.left - row.left - 8;
+            if (room > 0 && room < row.width) typeFiltersEl.style.maxWidth = `${Math.floor(room)}px`;
         }
 
         function renderGrid() {

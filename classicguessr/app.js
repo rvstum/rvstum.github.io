@@ -776,6 +776,7 @@ function positionMobileModeTitle() {
   const activeView = mobileMenuViews.find((view) => !view.classList.contains("hidden"));
   if (!isMobileMenu || !activeView) {
     dom.soloPageBrand.style.removeProperty("--mobile-page-title-center");
+    fitMobileMenuViewToViewport();
     fitMobileLobbyToViewport();
     return;
   }
@@ -800,7 +801,30 @@ function positionMobileModeTitle() {
     ? Math.min(Math.max(idealCenter, homeClearanceCenter), lowestCenterBeforePicker)
     : idealCenter;
   dom.soloPageBrand.style.setProperty("--mobile-page-title-center", `${centeredWithoutOverlap}px`);
+  fitMobileMenuViewToViewport();
   fitMobileLobbyToViewport();
+}
+
+// The mode picker and singleplayer setup shrink to fit whatever height is left under the title,
+// so nothing is cut off on short phones and nothing overlaps the feedback button.
+function fitMobileMenuViewToViewport() {
+  const views = [dom.soloModePicker, dom.playMenuView].filter(Boolean);
+  views.forEach((view) => view.style.removeProperty("--mobile-view-fit"));
+  const activeView = views.find((view) => !view.classList.contains("hidden"));
+  if (!activeView || !dom.menuScreen || !window.matchMedia("(max-width: 820px)").matches
+    || dom.menuScreen.classList.contains("hidden")) return;
+
+  const screenRect = dom.menuScreen.getBoundingClientRect();
+  const viewTop = activeView.getBoundingClientRect().top - screenRect.top;
+  const bottomPadding = Number.parseFloat(window.getComputedStyle(dom.menuScreen).paddingBottom) || 0;
+  const feedbackRoom = activeView === dom.soloModePicker ? 56 : 0;
+  const content = activeView === dom.playMenuView
+    ? activeView.querySelector(".solo-setup-panel") || activeView
+    : activeView;
+  const naturalHeight = Math.max(1, content.scrollHeight);
+  const availableHeight = dom.menuScreen.clientHeight - viewTop - bottomPadding - feedbackRoom - 4;
+  const scale = Math.floor(Math.min(1, availableHeight / naturalHeight) * 1000) / 1000;
+  if (scale < 1 && scale > 0.3) activeView.style.setProperty("--mobile-view-fit", String(scale));
 }
 
 function scheduleMobilePageTitlePosition() {
@@ -815,8 +839,8 @@ function positionMobileGameHeader() {
   const isMobileGame = window.matchMedia("(max-width: 820px)").matches
     && !dom.gameScreen.classList.contains("hidden");
 
-  if (!timerPill || !hud || !isMobileGame) {
-    timerPill?.style.removeProperty("top");
+  if (!timerPill || !hud || !isMobileGame || (dom.teamHealthHud && !dom.teamHealthHud.classList.contains("hidden"))) {
+    if (!(dom.teamHealthHud && !dom.teamHealthHud.classList.contains("hidden"))) timerPill?.style.removeProperty("top");
     return;
   }
 
@@ -842,34 +866,58 @@ function positionTeamHealthHud() {
   dom.teamHealthHud.style.setProperty("--team-health-center-x", `${centerX}px`);
   dom.teamHealthHud.style.setProperty("--team-health-width", `${tileRect.width}px`);
 
-  if (window.matchMedia("(max-width: 820px)").matches) {
-    const timerPill = dom.timerLabel?.closest(".hud-pill--timer");
-    const roundScoreGroup = dom.scoreLabel?.closest(".hud-stats");
-    const healthRect = dom.teamHealthHud.getBoundingClientRect();
-    const timerRect = timerPill?.getBoundingClientRect();
-    const roundScoreRect = roundScoreGroup?.getBoundingClientRect();
-    if (timerRect && roundScoreRect && healthRect.height) {
-      const timerCenterY = timerRect.top + timerRect.height / 2;
-      const roundScoreCenterY = roundScoreRect.top + roundScoreRect.height / 2;
-      const centerY = (timerCenterY + roundScoreCenterY) / 2;
-      if (Math.abs(timerCenterY - roundScoreCenterY) >= healthRect.height + 4) {
-        dom.teamHealthHud.style.setProperty(
-          "--team-health-top",
-          `${Math.max(0, centerY - screenRect.top - healthRect.height / 2)}px`,
-        );
-      } else {
-        dom.teamHealthHud.style.removeProperty("--team-health-top");
-      }
-    }
-  } else {
-    dom.teamHealthHud.style.removeProperty("--team-health-top");
+  const timerPill = dom.timerLabel?.closest(".hud-pill--timer");
+  const hud = dom.teamHealthHud;
+  const isMobileCompetitive = window.matchMedia("(max-width: 900px) and (orientation: portrait)").matches
+    && !hud.classList.contains("hidden");
+  if (!isMobileCompetitive) {
+    hud.style.removeProperty("--team-health-top");
+    if (window.matchMedia("(max-width: 820px)").matches === false) timerPill?.style.removeProperty("top");
+    return;
   }
+
+  // Health bars (with their text) sit vertically centered between the score box and the location
+  // box; the timer sits vertically centered between the health bars and the top of the screen.
+  const statsRect = dom.scoreLabel?.closest(".hud-stats")?.getBoundingClientRect();
+  const healthHeight = hud.getBoundingClientRect().height;
+  if (!statsRect || !healthHeight) return;
+  const gapTop = statsRect.bottom;
+  const gapBottom = tileRect.top;
+  const healthTop = Math.max(gapTop, gapTop + (gapBottom - gapTop - healthHeight) / 2);
+  hud.style.setProperty("--team-health-top", `${healthTop - screenRect.top}px`);
+
+  const hudEl = timerPill?.closest(".hud");
+  if (timerPill && hudEl) {
+    const timerHeight = timerPill.getBoundingClientRect().height;
+    const timerCenter = (screenRect.top + healthTop) / 2;
+    timerPill.style.top = `${timerCenter - timerHeight / 2 - hudEl.getBoundingClientRect().top}px`;
+  }
+}
+
+// When the location image is limited by height, the map panel narrows to the same width and stays
+// centered under it, so the two boxes always line up.
+function matchMapWidthToLocationBox() {
+  const screen = dom.gameScreen;
+  if (!screen || !dom.tileImage) return;
+  screen.style.removeProperty("--tile-side-inset");
+  if (!window.matchMedia("(max-width: 900px) and (orientation: portrait)").matches
+    || screen.classList.contains("hidden")) return;
+  const screenRect = screen.getBoundingClientRect();
+  const tileRect = dom.tileImage.getBoundingClientRect();
+  if (!tileRect.width) return;
+  const inset = tileRect.left - screenRect.left;
+  if (inset > 0) screen.style.setProperty("--tile-side-inset", `${inset}px`);
 }
 
 function scheduleMobileGameHeaderPosition() {
   window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+    const image = dom.tileImage;
+    if (image?.naturalWidth && image.naturalHeight) {
+      image.parentElement?.style.setProperty("--tile-ratio", String(image.naturalWidth / image.naturalHeight));
+    }
     positionMobileGameHeader();
     positionTeamHealthHud();
+    matchMapWidthToLocationBox();
   }));
 }
 

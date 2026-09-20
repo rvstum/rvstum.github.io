@@ -7091,46 +7091,46 @@ button:disabled {
     transform: translate(-50%, -50%);
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .multiplayer-panel-heading {
+  .multiplayer-lobby-panel.is-2v2 .multiplayer-panel-heading {
     padding-bottom: 0.35rem;
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .multiplayer-panel-heading h2 {
+  .multiplayer-lobby-panel.is-2v2 .multiplayer-panel-heading h2 {
     font-size: clamp(1.55rem, 4.8vh, 2.35rem);
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .multiplayer-panel-heading div > span {
+  .multiplayer-lobby-panel.is-2v2 .multiplayer-panel-heading div > span {
     display: none;
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .lobby-section,
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .solo-setting-block {
+  .multiplayer-lobby-panel.is-2v2 .lobby-section,
+  .multiplayer-lobby-panel.is-2v2 .solo-setting-block {
     gap: 0.3rem;
     padding: 0.48rem 0.58rem;
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .lobby-username-section input {
+  .multiplayer-lobby-panel.is-2v2 .lobby-username-section input {
     min-height: 2.05rem;
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .lobby-players-section {
+  .multiplayer-lobby-panel.is-2v2 .lobby-players-section {
     min-height: 0;
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .lobby-player-grid {
+  .multiplayer-lobby-panel.is-2v2 .lobby-player-grid {
     grid-template-rows: repeat(2, minmax(2.9rem, 1fr));
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .lobby-player-card {
+  .multiplayer-lobby-panel.is-2v2 .lobby-player-card {
     min-height: 2.9rem;
     padding-block: 0.32rem;
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .settings-option {
+  .multiplayer-lobby-panel.is-2v2 .settings-option {
     min-height: 2.1rem;
   }
 
-  .multiplayer-lobby-panel.is-2v2:not(.multiplayer-guest-panel) .multiplayer-panel-actions button {
+  .multiplayer-lobby-panel.is-2v2 .multiplayer-panel-actions button {
     min-height: 2.55rem;
   }
 }
@@ -9775,4 +9775,101 @@ button:disabled {
   border-top-color: #b8f08f;
   border-radius: 999px;
   animation: menuSpinnerSpin 720ms linear infinite;
+}
+
+/* Mobile fit: the mode picker and singleplayer setup scale down instead of being cut off. */
+@media (max-width: 820px) {
+  .solo-menu-screen > .solo-mode-picker:not(.hidden),
+  .solo-menu-screen > .solo-menu-shell:not(.hidden) {
+    transform: scale(var(--mobile-view-fit, 1));
+    transform-origin: top center;
+  }
+}
+
+/* Mobile competitive game: one deterministic header (title | timer | round + score), the team
+   health bars in their own band underneath, then the clue image. Nothing overlaps at any size. */
+@media (max-width: 900px) and (orientation: portrait) {
+  .game-screen .team-health-hud:not(.hidden) {
+    top: var(--team-health-top, calc(3.95rem + env(safe-area-inset-top))) !important;
+    right: calc(0.45rem + env(safe-area-inset-right));
+    left: calc(0.45rem + env(safe-area-inset-left)) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: auto !important;
+    gap: 0.4rem;
+    transform: none !important;
+  }
+
+  .game-screen:has(.team-health-hud:not(.hidden)) .clue-stage {
+    top: calc(7.05rem + env(safe-area-inset-top));
+  }
+}
+
+/* Narrow phones: give the title, timer and round/score boxes their own space in the header. */
+@media (max-width: 400px) {
+  .game-screen .hud .game-brand .classicguessr-title-image,
+  .game-screen .game-brand .classicguessr-title-image {
+    width: 30vw;
+    max-width: 30vw;
+  }
+
+  .game-screen .hud-pill {
+    min-width: 3rem;
+    padding: 0.35rem 0.3rem;
+  }
+
+  .game-screen .hud-pill--timer {
+    min-width: 4rem;
+    padding: 0;
+  }
+}
+
+/* Mobile portrait: the location image always fits inside its own area (never runs under the map). */
+@media (max-width: 900px) and (orientation: portrait) {
+  .clue-stage {
+    container-type: size;
+  }
+
+  .clue-stage .tile-image {
+    width: min(100cqw, calc(100cqh * var(--tile-ratio, 1.6)));
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+/* Mobile portrait: the map box is exactly as wide as the location box above it. */
+@media (max-width: 900px) and (orientation: portrait) {
+  .game-screen .map-panel {
+    right: var(--tile-side-inset, calc(0.45rem + env(safe-area-inset-right)));
+    left: var(--tile-side-inset, calc(0.45rem + env(safe-area-inset-left)));
+  }
+}
+
+/* The guest lobby uses exactly the same sizing as the host lobby, so the panel (and its Switch
+   buttons) scales identically: the Leave button stays on one line like the host's Back button. */
+@media (max-width: 900px) {
+  #guestLobbyLeaveButton {
+    min-width: 0;
+    padding-inline: 0.5rem;
+    white-space: nowrap;
+    font-size: 0.82rem;
+  }
+}
+
+/* Mobile: keep the "#/4 players" count visible next to the Players label. */
+.multiplayer-lobby-panel.is-2v2 .lobby-players-section > .lobby-section-copy > span {
+  display: block;
+  white-space: nowrap;
+}
+
+/* Leave Lobby always matches the "Waiting for host" button beside it in height. */
+#guestLobbyLeaveButton {
+  align-self: stretch;
+  margin-top: 0;
+  height: auto;
+  min-height: 0;
+}
+
+.multiplayer-panel-actions:has(#guestLobbyLeaveButton) {
+  align-items: stretch;
 }

@@ -293,7 +293,7 @@ service cloud.firestore {
       allow update: if isLobbyHost()
         && request.resource.data.hostUid == resource.data.hostUid
         && request.resource.data.code == resource.data.code
-        && request.resource.data.status in ["waiting", "playing", "finished"]
+        && request.resource.data.status in ["waiting", "starting", "playing", "finished"]
         && request.resource.data.teamMode in ["1v1", "2v2"]
         && request.resource.data.maxPlayers in [2, 4];
 

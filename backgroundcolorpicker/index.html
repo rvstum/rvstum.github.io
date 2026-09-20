@@ -551,7 +551,7 @@
             .picker-group {
                 flex: 1;
                 margin: -5px -10px -5px;
-                min-height: 210px;
+                min-height: clamp(80px, 27dvh, 210px);
             }
         }
 
@@ -1063,6 +1063,14 @@
         const homeMenuButton = document.getElementById('home-menu-button');
 
         function centerPageTitle() {
+            const isMobile = window.matchMedia('(max-width: 820px)').matches;
+            imageContainer.style.marginTop = '';
+            if (isMobile) {
+                // Always leave room under the home button for the whole title, so it never overlaps the image.
+                const room = homeMenuButton.getBoundingClientRect().bottom + pageTitle.getBoundingClientRect().height + 12;
+                const deficit = room - imageContainer.getBoundingClientRect().top;
+                if (deficit > 0) imageContainer.style.marginTop = `${90 + deficit}px`;
+            }
             const imageTop = imageContainer.getBoundingClientRect().top;
             const titleHeight = pageTitle.getBoundingClientRect().height;
             if (!window.matchMedia('(max-width: 820px)').matches) {
@@ -1075,9 +1083,16 @@
             pageTitle.style.top = `${Math.max(buttonBottom, midpoint - titleHeight / 2)}px`;
         }
 
-        window.addEventListener('resize', centerPageTitle);
-        window.addEventListener('load', centerPageTitle);
-        centerPageTitle();
+        // Title spacing first (it can push the image down), then the panel fills the rest, then the title re-centers.
+        function layoutPage() {
+            document.body.style.paddingTop = '';
+            centerPageTitle();
+            fitPanelToBottom();
+            centerPageTitle();
+        }
+        window.addEventListener('resize', layoutPage);
+        window.addEventListener('load', layoutPage);
+        layoutPage();
     </script>
     <script>
         (() => {
