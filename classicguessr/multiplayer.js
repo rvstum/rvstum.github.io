@@ -12,6 +12,16 @@ const SHARED_COUNTDOWN_MS = 3 * 1000;
 const ROUND_REVEAL_LEAD_MS = 700;
 const ROUND_DAMAGE_LEAD_MS = ROUND_REVEAL_LEAD_MS + 1100 + 250;
 const PLAYER_NAME_STORAGE_KEY = "classicguessr-player-name";
+// Set while hosting a lobby. A refresh closes the lobby, so the reloaded page returns the host to
+// the multiplayer host/join page instead of the main menu.
+const HOSTING_STORAGE_KEY = "classicguessr-was-hosting";
+
+function setHostingFlag(isHosting) {
+  try {
+    if (isHosting) sessionStorage.setItem(HOSTING_STORAGE_KEY, "1");
+    else sessionStorage.removeItem(HOSTING_STORAGE_KEY);
+  } catch { /* storage unavailable */ }
+}
 const PRESENCE_HEARTBEAT_MS = 12 * 1000;
 // The reaper polls faster than the heartbeat so a disconnect is noticed promptly once the
 // timeout lapses. The timeout only needs to tolerate a few missed beats now that false
@@ -394,7 +404,7 @@ async function createLobby() {
     session.forcedExitHandled = false;
     dom.hostCode.value = code;
     dom.hostLink.value = buildLobbyLink(code);
-    updateAddressBar(code);
+    setHostingFlag(true);
     renderLobbyPlayers();
     syncUsernameInputs();
 
@@ -2092,6 +2102,7 @@ async function leaveLobby(options = {}) {
   session.guessNoticeKeys.clear();
   clearDeadlineResolutionTimer();
   if (!options.preserveUrl) updateAddressBar("");
+  if (role === "host") setHostingFlag(false);
   if (!code || !backend?.auth.currentUser) return;
 
   try {
@@ -2166,7 +2177,15 @@ function updateAddressBar(code) {
 
 function openLobbyFromInviteLink() {
   const code = normalizeLobbyCode(new URLSearchParams(window.location.search).get("lobby"));
-  if (!code) return;
+  if (!code) {
+    let wasHosting = false;
+    try { wasHosting = sessionStorage.getItem(HOSTING_STORAGE_KEY) === "1"; } catch { /* ignore */ }
+    if (wasHosting) {
+      setHostingFlag(false);
+      window.setTimeout(() => getMenuApi()?.showMultiplayerView(), 0);
+    }
+    return;
+  }
   window.setTimeout(() => {
     getMenuApi()?.showMultiplayerView();
     showJoinView();

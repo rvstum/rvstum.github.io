@@ -9873,3 +9873,17 @@ button:disabled {
 .multiplayer-panel-actions:has(#guestLobbyLeaveButton) {
   align-items: stretch;
 }
+
+/* Mobile: Join, Joined, Sent and Switch all stretch across the whole player box. */
+@media (max-width: 900px) {
+  .multiplayer-lobby-panel.is-2v2 .lobby-player-actions {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .multiplayer-lobby-panel.is-2v2 .lobby-player-actions .lobby-slot-action {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+}
