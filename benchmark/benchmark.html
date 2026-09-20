@@ -25,26 +25,17 @@
             pointer-events: none;
             z-index: 2147483647;
             transition: opacity 420ms ease;
+            will-change: opacity;
         }
 
         html.page-entered .page-transition-overlay {
             opacity: 0;
         }
 
-        body > :not(.page-transition-overlay):not(script) {
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 420ms ease, transform 420ms ease;
-        }
-
-        html.page-entered body > :not(.page-transition-overlay):not(script) {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
+        /* Only the single black overlay fades. Fading and sliding every page element at once (as this page
+           used to) is far too heavy for a page this size, which made the fade stutter on phones. */
         @media (prefers-reduced-motion: reduce) {
-            .page-transition-overlay,
-            body > :not(.page-transition-overlay):not(script) {
+            .page-transition-overlay {
                 transition: none;
             }
         }

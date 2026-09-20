@@ -313,6 +313,10 @@
             grid-column: 2;
         }
 
+        .tab-spacer {
+            display: none;
+        }
+
         .tab-icon {
             grid-column: 3;
             justify-self: center;
@@ -825,6 +829,12 @@
             visibility: hidden;
         }
 
+        .gallery-toolbar.below-filters {
+            left: 0;
+            right: 0;
+            width: 100%;
+        }
+
         .gallery-toolbar::before {
             content: "";
             position: absolute;
@@ -1102,6 +1112,11 @@
             margin-bottom: 0;
         }
 
+        /* Phones show the hint above the gallery instead (see the mobile block below). */
+        .shield-hold-hint--mobile {
+            display: none;
+        }
+
         .shield-hold-hint {
             color: #cfe0d2;
             font-size: 9px;
@@ -1311,23 +1326,31 @@
             font-size: clamp(10px, 3vw, 12px);
         }
 
-        /* Very narrow phones: no room for an icon next to a centered label. */
-        @media (max-width: 360px) {
-            .tab-icon {
-                display: none;
-            }
-        }
-
         @media (max-width: 600px) {
+            /* Phones: the icon sits below the tab name (below "Museum" where there is one), centered. */
             .tab {
-                padding: 11px 2px;
+                grid-template-columns: minmax(0, 1fr);
+                justify-items: center;
+                row-gap: 4px;
+                padding: 9px 2px 8px;
                 font-size: 8px;
                 letter-spacing: 0;
             }
 
+            .tab-label,
             .tab-icon {
-                height: 11px;
-                max-width: 13px;
+                grid-column: 1;
+            }
+
+            /* The Shields tab has no "Museum" line: its text and icon sit centered in the box. */
+            .tab {
+                align-content: center;
+            }
+
+            .tab-icon {
+                justify-self: center;
+                height: 16px;
+                max-width: 22px;
             }
 
             .page-title {
@@ -1363,6 +1386,32 @@
                 --card-min: 84px;
             }
 
+            /* "Hold to view shields" sits above the gallery, far right, on the same line as "Only supporting 152x80". */
+            .type-filter-header .shield-hold-hint {
+                display: none;
+            }
+
+            .shield-hold-hint--mobile {
+                display: block;
+                position: absolute;
+                right: 0;
+                bottom: 0;
+            }
+
+            .shield-hold-hint--mobile[hidden] {
+                display: none;
+            }
+
+            .preview-controls {
+                position: relative;
+                margin-top: -7px; /* tighter space under the last filter row */
+            }
+
+            /* Tighter space between "Filter by file type" and "Filter by majority color". */
+            #colorBlock {
+                margin-top: -7px;
+            }
+
             /* One row: page controls centered, Reset in the far-right corner, sized to fit narrow screens. */
             .pager {
                 display: grid;
@@ -1382,6 +1431,7 @@
             .pager .page-indicator {
                 font-size: 11px;
                 white-space: nowrap;
+                margin-inline: 4px; /* a little room between Prev, the page text and Next */
             }
 
             .pager .reset-btn {
@@ -1500,7 +1550,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div class="tabs" id="tabs" role="tablist">
-                        <button class="tab active" type="button" role="tab" aria-selected="true" data-tab="shields"><span class="tab-label">Shields</span><img class="tab-icon" src="shieldicon.png" alt=""></button>
+                        <button class="tab active" type="button" role="tab" aria-selected="true" data-tab="shields"><span class="tab-label"><span class="tab-spacer" aria-hidden="true">&nbsp;</span>Shields</span><img class="tab-icon" src="shieldicon.png" alt=""></button>
                         <button class="tab" type="button" role="tab" aria-selected="false" data-tab="hats"><span class="tab-label">Hat<span class="tab-sub">Museum</span></span><img class="tab-icon" src="haticon.png" alt=""></button>
                         <button class="tab" type="button" role="tab" aria-selected="false" data-tab="accessories"><span class="tab-label">Accessory<span class="tab-sub">Museum</span></span><img class="tab-icon" src="accessoryicon.png" alt=""></button>
                         <button class="tab" type="button" role="tab" aria-selected="false" data-tab="mounts"><span class="tab-label">Mounts<span class="tab-sub">Museum</span></span><img class="tab-icon" src="mounticon.png" alt=""></button>
@@ -1548,6 +1598,7 @@
                     </div>
                     <div class="switch-note" id="previewNote">Only supporting 152x80</div>
                 </div>
+                <div class="shield-hold-hint shield-hold-hint--mobile" id="shieldHoldHintMobile"><strong>Hold to view shields</strong></div>
                 <div class="switch-row" id="setshieldRow">
                     <span class="switch-label" id="setshieldLabel">Setshield</span>
                     <button class="switch" type="button" id="setshieldSwitch" role="switch" aria-checked="true" aria-labelledby="setshieldLabel"></button>
@@ -2000,8 +2051,14 @@
             const toolbarHeight = searchToolbar.offsetHeight;
             let top = gridEl.offsetTop - toolbarHeight - 8;
             const mobileSearchLayout = window.matchMedia('(max-width: 600px)').matches;
+            // Phones: the search box gets its own full-width line above the file-type filter (room is
+            // reserved for it), so it can never sit on top of a chip whatever the screen size.
+            const typeFilterBlock = typeFiltersEl.closest('.type-filter-block') || typeFiltersEl;
+            typeFiltersEl.style.marginBottom = '';
+            typeFilterBlock.style.marginTop = mobileSearchLayout ? `${toolbarHeight + 8}px` : '';
+            searchToolbar.classList.toggle('below-filters', mobileSearchLayout);
             const alignmentTarget = mobileSearchLayout
-                ? typeFiltersEl
+                ? null
                 : currentCat === 'shields'
                     ? document.getElementById('setshieldRow')
                     : (currentCat === 'hats' || currentCat === 'accessories')
@@ -2009,7 +2066,10 @@
                         : currentCat === 'mounts'
                             ? typeFiltersEl
                             : null;
-            if (alignmentTarget) {
+            if (mobileSearchLayout) {
+                const viewRect = document.getElementById('shieldsView').getBoundingClientRect();
+                top = typeFilterBlock.getBoundingClientRect().top - viewRect.top - toolbarHeight - 8;
+            } else if (alignmentTarget) {
                 const viewRect = document.getElementById('shieldsView').getBoundingClientRect();
                 const targetRect = alignmentTarget.getBoundingClientRect();
                 top = targetRect.top - viewRect.top + ((targetRect.height - toolbarHeight) / 2);
@@ -2673,6 +2733,7 @@
             previewLabel.textContent = 'Character Preview';
             setshieldRow.hidden = !cat.setCmd;
             shieldHoldHint.hidden = currentCat !== 'shields';
+            document.getElementById('shieldHoldHintMobile').hidden = currentCat !== 'shields';
             gridEl.classList.toggle('pixelated', currentCat !== 'shields');
             gridEl.dataset.cat = currentCat;
             infoPopupEl.textContent = `${cat.label} will be updated from time to time in big batches, bear with me as I still need to collect them!`;

@@ -197,11 +197,61 @@
     <script type="module" src="footer-baddy.js"></script>
     <script type="module" src="loginUI.js?v=20260403-prepaint-auth-1"></script>
     <script>
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                document.documentElement.classList.add("page-entered");
+        (() => {
+            const root = document.documentElement;
+            const overlay = document.querySelector(".page-transition-overlay");
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            let leaving = false;
+
+            function enterPage() {
+                leaving = false;
+                if (overlay) overlay.style.display = "block";
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        root.classList.add("page-entered");
+                        if (overlay) {
+                            setTimeout(() => {
+                                if (!leaving) overlay.style.display = "none";
+                            }, reducedMotion ? 0 : 500);
+                        }
+                    });
+                });
+            }
+
+            enterPage();
+            // Coming back with the browser back button restores the page from cache, so fade in again.
+            window.addEventListener("pageshow", (event) => {
+                if (event.persisted) enterPage();
             });
-        });
+
+            // Leaving for the KDAssist menu: fade everything out to black first, then navigate.
+            document.querySelectorAll(".auth-home-link").forEach((link) => {
+                link.addEventListener("click", (event) => {
+                    if (
+                        leaving ||
+                        event.defaultPrevented ||
+                        event.button !== 0 ||
+                        event.metaKey ||
+                        event.ctrlKey ||
+                        event.shiftKey ||
+                        event.altKey
+                    ) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    leaving = true;
+                    if (overlay) {
+                        overlay.style.display = "block";
+                        void overlay.offsetWidth;
+                    }
+                    root.classList.remove("page-entered");
+                    setTimeout(() => {
+                        window.location.href = link.href;
+                    }, reducedMotion ? 0 : 440);
+                });
+            });
+        })();
     </script>
 </body>
 </html>

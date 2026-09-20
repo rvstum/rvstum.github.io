@@ -152,9 +152,14 @@ async function update() {
         const f = path.join(DIR, name);
         try {
             if (await isInvisible(f)) {
-                fs.unlinkSync(f);
+                // --no-delete (used by the automatic GitHub run) only hides it from the list.
+                if (!process.argv.includes('--no-delete')) {
+                    fs.unlinkSync(f);
+                    console.log('  removed invisible shield: ' + name);
+                } else {
+                    console.log('  hidden invisible shield (file kept): ' + name);
+                }
                 names = names.filter((n) => n !== name);
-                console.log('  removed invisible shield: ' + name);
             }
         } catch (e) { /* unreadable image: leave it alone */ }
     }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kdassist-v1.12.6';
+const CACHE_NAME = 'kdassist-v1.12.7';
 const urlsToCache = [
   './',
   './index.html',
@@ -22,7 +22,9 @@ function shouldUseNetworkFirst(request, acceptHeader) {
     return true;
   }
 
-  return request.url.endsWith('.js') || request.url.endsWith('.css') || request.url.endsWith('.mjs');
+  // File lists (shields.json etc.) must always be fresh so newly added files show up.
+  const path = request.url.split('?')[0];
+  return path.endsWith('.js') || path.endsWith('.css') || path.endsWith('.mjs') || path.endsWith('.json');
 }
 
 function buildNetworkFirstRequest(request) {
