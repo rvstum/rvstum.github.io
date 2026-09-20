@@ -343,7 +343,7 @@ async function createLobby() {
   if (session.busy) return;
   session.busy = true;
   setStatus(dom.connectionStatus);
-  getMenuApi()?.showHostLobbyView();
+  setCreatingLobbyOverlay(true);
   dom.hostStartButton.disabled = true;
   session.players = [];
   session.lobbyReady = false;
@@ -405,16 +405,32 @@ async function createLobby() {
     setStatus(dom.connectionStatus);
     renderLobbyPlayers();
     subscribeToLobby();
+    getMenuApi()?.showHostLobbyView();
   } catch (error) {
     console.error(error);
+    getMenuApi()?.showHostLobbyView();
     session.lobbyReady = false;
     dom.hostPlayerCount.textContent = "Lobby creation failed";
     dom.hostCode.value = "Unavailable";
     dom.hostLink.value = "Unavailable";
     setStatus(dom.connectionStatus, friendlyError(error), true);
   } finally {
+    setCreatingLobbyOverlay(false);
     session.busy = false;
   }
+}
+
+function setCreatingLobbyOverlay(visible) {
+  let overlay = document.getElementById("creatingLobbyOverlay");
+  if (!overlay && visible) {
+    overlay = document.createElement("div");
+    overlay.id = "creatingLobbyOverlay";
+    overlay.className = "creating-lobby-overlay";
+    overlay.setAttribute("role", "status");
+    overlay.innerHTML = '<p class="creating-lobby-text">Creating Lobby...</p><div class="creating-lobby-spinner"></div>';
+    document.body.appendChild(overlay);
+  }
+  if (overlay) overlay.hidden = !visible;
 }
 
 async function createUnusedLobbyCode(backend) {
