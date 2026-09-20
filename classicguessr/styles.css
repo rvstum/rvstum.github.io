@@ -9696,6 +9696,14 @@ button:disabled {
 }
 
 @media (max-width: 900px) {
+  #multiplayerHostView.multiplayer-lobby-panel.is-2v2 .solo-setting-copy > span {
+    display: block;
+    color: rgba(218, 238, 213, 0.68);
+    font-size: clamp(0.6rem, 2.7vw, 0.7rem);
+    font-weight: 650;
+    line-height: 1.3;
+  }
+
   #multiplayerGuestView .solo-setting-copy > .lobby-field-label {
     gap: 0.32rem;
     font-size: 0.68rem;
@@ -9720,6 +9728,18 @@ button:disabled {
 
   #multiplayerHostView,
   #multiplayerGuestView {
+    position: absolute !important;
+    top: var(--mobile-lobby-top, 4rem) !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: 50% !important;
+    width: min(36rem, calc(100% - 1rem));
+    height: auto;
+    max-height: none;
+    margin: 0;
+    translate: none !important;
+    transform: translateX(-50%) scale(var(--mobile-lobby-fit-scale, 1)) !important;
     transform-origin: top center;
+    zoom: 1 !important;
   }
 }

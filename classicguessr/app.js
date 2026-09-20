@@ -733,25 +733,31 @@ function fitMobileLobbyToViewport() {
     && !dom.menuScreen?.classList.contains("hidden");
 
   lobbyViews.forEach((view) => {
-    if (view !== activeLobby || !isMobileLobby) view.style.removeProperty("zoom");
+    view.style.removeProperty("zoom");
+    if (view !== activeLobby || !isMobileLobby) {
+      view.style.removeProperty("--mobile-lobby-fit-scale");
+      view.style.removeProperty("--mobile-lobby-top");
+    }
   });
   if (!isMobileLobby || !dom.menuScreen) return;
 
+  const screenRect = dom.menuScreen.getBoundingClientRect();
   const screenStyle = window.getComputedStyle(dom.menuScreen);
-  const verticalPadding = (Number.parseFloat(screenStyle.paddingTop) || 0)
-    + (Number.parseFloat(screenStyle.paddingBottom) || 0);
-  const panelShift = Number.parseFloat(
-    activeLobby.style.getPropertyValue("--mobile-title-panel-shift"),
-  ) || 0;
-  const availableHeight = Math.max(1, dom.menuScreen.clientHeight - verticalPadding - panelShift);
-  const naturalHeight = Math.max(1, activeLobby.scrollHeight);
+  const topPadding = Number.parseFloat(screenStyle.paddingTop) || 0;
+  const bottomPadding = Number.parseFloat(screenStyle.paddingBottom) || 0;
+  const titleRect = dom.soloPageBrand?.getBoundingClientRect();
+  const pageHomeLink = dom.homeLinks.find((link) => link.classList.contains("solo-menu-home-link--page"));
+  const homeRect = pageHomeLink?.getBoundingClientRect();
+  const titleBottom = titleRect ? titleRect.bottom - screenRect.top : 0;
+  const homeBottom = homeRect ? homeRect.bottom - screenRect.top : 0;
+  const panelTop = Math.max(topPadding, titleBottom + 8, homeBottom + 8);
+  const availableHeight = Math.max(1, dom.menuScreen.clientHeight - panelTop - bottomPadding - 4);
+  const naturalHeight = Math.max(1, activeLobby.scrollHeight, activeLobby.offsetHeight);
   const fitScale = Math.min(1, availableHeight / naturalHeight);
   const roundedScale = Math.floor(fitScale * 1000) / 1000;
-  const currentScale = Number.parseFloat(activeLobby.style.zoom) || 1;
 
-  if (Math.abs(currentScale - roundedScale) > 0.001) {
-    activeLobby.style.zoom = String(roundedScale);
-  }
+  activeLobby.style.setProperty("--mobile-lobby-top", `${panelTop}px`);
+  activeLobby.style.setProperty("--mobile-lobby-fit-scale", String(roundedScale));
 }
 
 function positionMobileModeTitle() {
