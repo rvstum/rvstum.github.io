@@ -6393,7 +6393,7 @@ button:disabled {
 
   .multiplayer-lobby-panel.is-2v2 .multiplayer-panel-heading div > span,
   .multiplayer-lobby-panel.is-2v2 .lobby-section-copy > span,
-  .multiplayer-lobby-panel.is-2v2 .solo-setting-copy > span {
+  #multiplayerHostView.multiplayer-lobby-panel.is-2v2 .solo-setting-copy > span {
     display: none;
   }
 
@@ -8280,11 +8280,14 @@ button:disabled {
 }
 
 .lobby-host-only-label {
+  flex: 0 0 auto;
   margin-left: 0.35rem;
   color: #f4cf58;
   font-size: 0.56rem;
   font-weight: 900;
   letter-spacing: 0.02em;
+  text-transform: none;
+  white-space: nowrap;
 }
 
 .lobby-competitive-section.is-locked .settings-switch-grid {
