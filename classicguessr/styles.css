@@ -9887,3 +9887,11 @@ button:disabled {
     min-width: 0;
   }
 }
+
+/* Spectating is animated per frame in script, so the old 260ms CSS transitions (which restarted on
+   every network update and made the view look like ~5 fps) are switched off. */
+.spectator-viewport > img,
+.spectator-marker,
+.spectator-own-marker {
+  transition: none;
+}

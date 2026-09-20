@@ -4436,6 +4436,7 @@ function renderSpectatorViews(players, ownMarkerData) {
     const panX = clamp(Number(player.panX) || 0, 1 - zoom, 0);
     const panY = clamp(Number(player.panY) || 0, 1 - zoom, 0);
     let card = Array.from(dom.spectatorGrid.children).find((entry) => entry.dataset.playerId === playerId);
+    const isNewCard = !card;
     if (!card) {
       card = document.createElement("article");
       card.dataset.playerId = playerId;
@@ -4455,15 +4456,16 @@ function renderSpectatorViews(players, ownMarkerData) {
     const viewport = card.querySelector(".spectator-viewport");
     const image = viewport.querySelector("img");
     if (image.src !== mapSource) image.src = mapSource;
-    image.style.setProperty("--spectator-zoom", String(zoom));
-    image.style.setProperty("--spectator-pan-x", `${panX * 100}%`);
-    image.style.setProperty("--spectator-pan-y", `${panY * 100}%`);
-
-    const viewportWidth = viewport.clientWidth;
-    const viewportHeight = viewport.clientHeight;
+    // Network updates only set the target; a frame loop glides the view toward it (see below).
+    const target = { z: zoom, cx: (0.5 - panX) / zoom, cy: (0.5 - panY) / zoom };
+    let anim = spectatorAnimations.get(playerId);
+    if (!anim || isNewCard) anim = { cur: { ...target }, target, pt: null, own: null };
+    else anim.target = target;
+    spectatorAnimations.set(playerId, anim);
 
     if (player.x != null && player.y != null && Number.isFinite(Number(player.x)) && Number.isFinite(Number(player.y))) {
       const visualPoint = getVisualMapPoint(Number(player.x), Number(player.y));
+      anim.pt = visualPoint;
       let marker = viewport.querySelector(".spectator-marker");
       if (!marker) {
         marker = document.createElement("i");
@@ -4474,9 +4476,8 @@ function renderSpectatorViews(players, ownMarkerData) {
         viewport.appendChild(marker);
       }
       marker.querySelector(".spectator-marker-label").textContent = player.name || "Player";
-      marker.style.setProperty("--marker-x", `${(panX + visualPoint.x * zoom) * viewportWidth}px`);
-      marker.style.setProperty("--marker-y", `${(panY + visualPoint.y * zoom) * viewportHeight}px`);
     } else {
+      anim.pt = null;
       viewport.querySelector(".spectator-marker")?.remove();
     }
 
@@ -4487,23 +4488,28 @@ function renderSpectatorViews(players, ownMarkerData) {
       && Number.isFinite(Number(ownMarkerData.y))
     ) {
       const ownVisualPoint = getVisualMapPoint(Number(ownMarkerData.x), Number(ownMarkerData.y));
+      anim.own = ownVisualPoint;
       let ownMarker = viewport.querySelector(".spectator-own-marker");
       if (!ownMarker) {
         ownMarker = document.createElement("i");
         viewport.appendChild(ownMarker);
       }
       ownMarker.className = `spectator-own-marker is-${ownMarkerData.team === "blue" ? "blue" : "red"}`;
-      ownMarker.style.setProperty("--marker-x", `${(panX + ownVisualPoint.x * zoom) * viewportWidth}px`);
-      ownMarker.style.setProperty("--marker-y", `${(panY + ownVisualPoint.y * zoom) * viewportHeight}px`);
     } else {
+      anim.own = null;
       viewport.querySelector(".spectator-own-marker")?.remove();
     }
 
     dom.spectatorGrid.appendChild(card);
+    applySpectatorFrame(card, anim);
   });
+  startSpectatorAnimation();
 
   Array.from(dom.spectatorGrid.children).forEach((card) => {
-    if (!visibleIds.has(card.dataset.playerId || "")) card.remove();
+    if (!visibleIds.has(card.dataset.playerId || "")) {
+      spectatorAnimations.delete(card.dataset.playerId || "");
+      card.remove();
+    }
   });
 
   dom.spectatorPanel.dataset.playerCount = String(players.length);
@@ -4511,7 +4517,72 @@ function renderSpectatorViews(players, ownMarkerData) {
   dom.mapShell.classList.toggle("is-spectating", players.length > 0);
 }
 
+// Spectating stays smooth even though the other player's view arrives only a few times a second:
+// each frame the shown view eases toward the latest target (zoom in log space, centre linearly).
+const spectatorAnimations = new Map();
+let spectatorAnimationFrame = 0;
+let spectatorAnimationLast = 0;
+const SPECTATOR_EASE_MS = 90;
+
+function applySpectatorFrame(card, anim) {
+  const viewport = card.querySelector(".spectator-viewport");
+  const image = viewport?.querySelector("img");
+  if (!viewport || !image) return;
+  const zoom = clamp(anim.cur.z, 1, MAX_MAP_ZOOM);
+  const panX = clamp(0.5 - anim.cur.cx * zoom, 1 - zoom, 0);
+  const panY = clamp(0.5 - anim.cur.cy * zoom, 1 - zoom, 0);
+  image.style.setProperty("--spectator-zoom", String(zoom));
+  image.style.setProperty("--spectator-pan-x", `${panX * 100}%`);
+  image.style.setProperty("--spectator-pan-y", `${panY * 100}%`);
+  const width = viewport.clientWidth;
+  const height = viewport.clientHeight;
+  const place = (selector, point) => {
+    const marker = point ? viewport.querySelector(selector) : null;
+    if (!marker) return;
+    marker.style.setProperty("--marker-x", `${(panX + point.x * zoom) * width}px`);
+    marker.style.setProperty("--marker-y", `${(panY + point.y * zoom) * height}px`);
+  };
+  place(".spectator-marker", anim.pt);
+  place(".spectator-own-marker", anim.own);
+}
+
+function startSpectatorAnimation() {
+  if (spectatorAnimationFrame || !spectatorAnimations.size) return;
+  spectatorAnimationLast = 0;
+  spectatorAnimationFrame = window.requestAnimationFrame(stepSpectatorAnimation);
+}
+
+function stepSpectatorAnimation(now) {
+  spectatorAnimationFrame = 0;
+  const elapsed = spectatorAnimationLast ? Math.min(64, now - spectatorAnimationLast) : 16;
+  spectatorAnimationLast = now;
+  const ease = 1 - Math.exp(-elapsed / SPECTATOR_EASE_MS);
+  let moving = false;
+  spectatorAnimations.forEach((anim, playerId) => {
+    const { cur, target } = anim;
+    const zoomGap = Math.log(target.z / cur.z);
+    const cxGap = target.cx - cur.cx;
+    const cyGap = target.cy - cur.cy;
+    if (Math.abs(zoomGap) < 0.0004 && Math.abs(cxGap) < 0.00004 && Math.abs(cyGap) < 0.00004) {
+      if (cur.z !== target.z || cur.cx !== target.cx || cur.cy !== target.cy) {
+        cur.z = target.z; cur.cx = target.cx; cur.cy = target.cy;
+      } else {
+        return;
+      }
+    } else {
+      cur.z *= Math.exp(zoomGap * ease);
+      cur.cx += cxGap * ease;
+      cur.cy += cyGap * ease;
+      moving = true;
+    }
+    const card = Array.from(dom.spectatorGrid?.children || []).find((entry) => entry.dataset.playerId === playerId);
+    if (card) applySpectatorFrame(card, anim);
+  });
+  if (moving) spectatorAnimationFrame = window.requestAnimationFrame(stepSpectatorAnimation);
+}
+
 function clearSpectatorViews() {
+  spectatorAnimations.clear();
   if (dom.spectatorGrid) dom.spectatorGrid.innerHTML = "";
   if (dom.spectatorPanel) {
     dom.spectatorPanel.classList.add("hidden");

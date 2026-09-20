@@ -1,8 +1,15 @@
 const FIREBASE_VERSION = "10.12.2";
 const LOBBY_COLLECTION = "classicGuessrLobbies";
+// Spectator map views stream through the Realtime Database (built for rapid small updates);
+// lobbies, players and results stay in Firestore.
+const REALTIME_DATABASE_URL = "https://benchmark-5a89f-default-rtdb.firebaseio.com";
+const SPECTATE_PATH = "classicGuessrSpectate";
 const LOBBY_CODE_LENGTH = 6;
 const LOBBY_LIFETIME_MS = 6 * 60 * 60 * 1000;
 const CARD_PRESS_MS = 70;
+// How often the local map view is sent to spectators; the spectator side glides between updates.
+const VIEW_WRITE_MS = 160;
+const VIEW_WRITE_REALTIME_MS = 50;
 const COMPETITIVE_RESPONSE_MS = 10 * 1000;
 const ROUND_CLOCK_LEAD_MS = 750;
 const SHARED_COUNTDOWN_MS = 3 * 1000;
@@ -177,6 +184,9 @@ const session = {
   guessNoticeKeys: new Set(),
   forcedExitHandled: false,
   viewWriteHandle: 0,
+  viewStates: {},
+  unsubscribeViews: null,
+  viewDisconnectSet: false,
   pendingViewState: null,
   lastViewSignature: "",
   serverClockOffsetMs: null,
@@ -223,10 +233,12 @@ async function ensureBackend() {
   if (session.backendPromise) return session.backendPromise;
 
   session.backendPromise = (async () => {
-    const [appModule, authModule, firestoreModule] = await Promise.all([
+    const [appModule, authModule, firestoreModule, realtimeModule] = await Promise.all([
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js`),
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js`),
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js`),
+      // Optional: spectating falls back to Firestore if this fails to load.
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-database.js`).catch(() => null),
     ]);
     const app = appModule.getApps().length
       ? appModule.getApp()
@@ -236,7 +248,17 @@ async function ensureBackend() {
       await authModule.signInAnonymously(auth);
     }
     const db = firestoreModule.getFirestore(app);
-    session.backend = { auth, db, fs: firestoreModule };
+    let rt = null;
+    let rtdb = null;
+    try {
+      if (realtimeModule) {
+        rt = realtimeModule;
+        rtdb = realtimeModule.getDatabase(app, REALTIME_DATABASE_URL);
+      }
+    } catch (error) {
+      console.error("Realtime Database unavailable, spectating uses Firestore", error);
+    }
+    session.backend = { auth, db, fs: firestoreModule, rt, rtdb };
     return session.backend;
   })();
 
@@ -712,6 +734,20 @@ function subscribeToLobby() {
     console.error("Could not sync lobby players", error);
   });
 
+  if (backend.rtdb) {
+    try {
+      const viewsRef = backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}`);
+      session.unsubscribeViews = backend.rt.onValue(viewsRef, (snapshot) => {
+        session.viewStates = snapshot.val() || {};
+        publishSpectatorViews();
+      }, (error) => {
+        console.error("Could not sync spectator views", error);
+      });
+    } catch (error) {
+      console.error("Could not sync spectator views", error);
+    }
+  }
+
   startPresence();
 }
 
@@ -806,6 +842,9 @@ function stopSubscriptions() {
   session.unsubscribePlayers?.();
   session.unsubscribeLobby = null;
   session.unsubscribePlayers = null;
+  session.unsubscribeViews?.();
+  session.unsubscribeViews = null;
+  session.viewStates = {};
   stopPresence();
 }
 
@@ -1344,6 +1383,7 @@ async function enterMultiplayerRound(detail = {}) {
   session.viewWriteHandle = 0;
   session.pendingViewState = null;
   session.lastViewSignature = "";
+  clearOwnSpectateView();
   session.currentRound = Math.max(0, Number(detail.roundIndex) || 0);
   session.deadlineWriteRound = -1;
   session.roundClockWriteRound = -1;
@@ -1369,7 +1409,22 @@ function queueViewState(detail = {}) {
   if (signature === session.lastViewSignature || signature === session.pendingViewState?.signature) return;
   session.pendingViewState = { ...detail, zoom, panX, panY, signature };
   if (session.viewWriteHandle) return;
-  session.viewWriteHandle = window.setTimeout(flushViewState, 160);
+  session.viewWriteHandle = window.setTimeout(flushViewState, viewWriteInterval());
+}
+
+function viewWriteInterval() {
+  return session.backend?.rtdb ? VIEW_WRITE_REALTIME_MS : VIEW_WRITE_MS;
+}
+
+function ownSpectateRef(backend = session.backend) {
+  if (!backend?.rtdb || !session.lobbyCode) return null;
+  return backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${session.lobbyCode}/${backend.auth.currentUser.uid}`);
+}
+
+function clearOwnSpectateView() {
+  const ref = ownSpectateRef();
+  if (!ref) return;
+  session.backend.rt.remove(ref).catch(() => {});
 }
 
 async function flushViewState() {
@@ -1385,6 +1440,29 @@ async function flushViewState() {
   const zoom = Number(detail.zoom);
   const panX = Number(detail.panX);
   const panY = Number(detail.panY);
+  const viewRef = ownSpectateRef();
+  if (viewRef) {
+    try {
+      if (!session.viewDisconnectSet) {
+        session.viewDisconnectSet = true;
+        session.backend.rt.onDisconnect(viewRef).remove();
+      }
+      await session.backend.rt.set(viewRef, {
+        roundIndex: Number(detail.roundIndex),
+        zoom,
+        panX,
+        panY,
+        updatedAtMs: Date.now(),
+      });
+      session.lastViewSignature = detail.signature || "";
+    } catch (error) {
+      console.error("Could not sync multiplayer spectator view", error);
+    }
+    if (session.pendingViewState && !session.viewWriteHandle) {
+      session.viewWriteHandle = window.setTimeout(flushViewState, viewWriteInterval());
+    }
+    return;
+  }
   try {
     await session.backend.fs.setDoc(
       playerRef(session.backend, session.lobbyCode, session.backend.auth.currentUser.uid),
@@ -1405,7 +1483,7 @@ async function flushViewState() {
     console.error("Could not sync multiplayer spectator view", error);
   }
   if (session.pendingViewState && !session.viewWriteHandle) {
-    session.viewWriteHandle = window.setTimeout(flushViewState, 160);
+    session.viewWriteHandle = window.setTimeout(flushViewState, viewWriteInterval());
   }
 }
 
@@ -1539,6 +1617,10 @@ function publishVisibleMarkers() {
   }));
 }
 
+function viewStateOf(player) {
+  return session.viewStates?.[player.id] || player.viewState || null;
+}
+
 function publishSpectatorViews() {
   if (!session.lobbyCode || session.lobby?.status !== "playing") return;
   const uid = session.backend?.auth.currentUser?.uid;
@@ -1579,9 +1661,10 @@ function publishSpectatorViews() {
     ? session.players
       .filter((player) => (
         player.id === spectatedOpponent.id
-        && Number(player.viewState?.roundIndex) === session.currentRound
+        && Number(viewStateOf(player)?.roundIndex) === session.currentRound
       ))
       .map((player) => {
+        const view = viewStateOf(player);
         const hasGuess = Number(player.guessState?.roundIndex) === session.currentRound
           && player.guessState?.x != null
           && player.guessState?.y != null
@@ -1591,9 +1674,9 @@ function publishSpectatorViews() {
           uid: player.id,
           name: player.name || "Player",
           team: player.team === "blue" ? "blue" : "red",
-          zoom: Number(player.viewState.zoom) || 1,
-          panX: Number(player.viewState.panX) || 0,
-          panY: Number(player.viewState.panY) || 0,
+          zoom: Number(view.zoom) || 1,
+          panX: Number(view.panX) || 0,
+          panY: Number(view.panY) || 0,
           x: hasGuess ? Number(player.guessState.x) : null,
           y: hasGuess ? Number(player.guessState.y) : null,
         };
@@ -2086,6 +2169,11 @@ async function leaveLobby(options = {}) {
   session.viewWriteHandle = 0;
   session.pendingViewState = null;
   session.lastViewSignature = "";
+  if (code && backend?.rtdb && backend.auth.currentUser) {
+    backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}/${backend.auth.currentUser.uid}`)).catch(() => {});
+    if (role === "host") backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}`)).catch(() => {});
+  }
+  session.viewDisconnectSet = false;
   stopSubscriptions();
   session.lobbyCode = "";
   session.role = "";

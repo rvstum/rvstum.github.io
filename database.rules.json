@@ -1,0 +1,21 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "classicGuessrSpectate": {
+      "$code": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.hasChildren(['roundIndex', 'zoom', 'panX', 'panY'])",
+          "roundIndex": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 1000" },
+          "zoom": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 80" },
+          "panX": { ".validate": "newData.isNumber() && newData.val() >= -80 && newData.val() <= 0" },
+          "panY": { ".validate": "newData.isNumber() && newData.val() >= -80 && newData.val() <= 0" },
+          "updatedAtMs": { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
+      }
+    }
+  }
+}
