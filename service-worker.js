@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kdassist-v1.10.0'; // Change version number to force update
+const CACHE_NAME = 'kdassist-v1.11.0';
 const urlsToCache = [
   './',
   './index.html',
