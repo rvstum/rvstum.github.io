@@ -736,6 +736,8 @@ function subscribeToLobby() {
 
   if (backend.rtdb) {
     try {
+      // The connection only exists while a lobby is open (see leaveLobby), so idle menus use no slot.
+      backend.rt.goOnline(backend.rtdb);
       const viewsRef = backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}`);
       session.unsubscribeViews = backend.rt.onValue(viewsRef, (snapshot) => {
         session.viewStates = snapshot.val() || {};
@@ -2169,9 +2171,20 @@ async function leaveLobby(options = {}) {
   session.viewWriteHandle = 0;
   session.pendingViewState = null;
   session.lastViewSignature = "";
-  if (code && backend?.rtdb && backend.auth.currentUser) {
-    backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}/${backend.auth.currentUser.uid}`)).catch(() => {});
-    if (role === "host") backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}`)).catch(() => {});
+  if (code && backend?.rtdb) {
+    const removals = [];
+    if (backend.auth.currentUser) {
+      removals.push(backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}/${backend.auth.currentUser.uid}`)));
+      if (role === "host") removals.push(backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}`)));
+    }
+    // Once our data is cleared, close the Realtime Database connection so it stops counting against
+    // the connection limit. Skipped if another lobby was opened in the meantime.
+    Promise.race([
+      Promise.allSettled(removals),
+      new Promise((resolve) => window.setTimeout(resolve, 1500)),
+    ]).then(() => {
+      if (!session.lobbyCode) backend.rt.goOffline(backend.rtdb);
+    });
   }
   session.viewDisconnectSet = false;
   stopSubscriptions();
