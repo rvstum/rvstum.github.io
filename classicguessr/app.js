@@ -12,6 +12,8 @@ const MAX_MAP_ZOOM = 80;
 const ANSWER_FOCUS_MIN_ZOOM = 6;
 const ANSWER_FOCUS_DELAY_MS = 250;
 const ANSWER_FOCUS_DURATION_MS = 1100;
+const ANSWER_FOCUS_MP_DURATION_MS = 1600;
+const ANSWER_FOCUS_MAX_ZOOM = 14;
 
 // A hidden tab throttles setInterval heavily, which would freeze the shared round timers and
 // leave a backgrounded player stuck on a finished round. Worker timers are not throttled, so
@@ -539,6 +541,7 @@ function init() {
   loadMapImageOffset();
   bindSoloEvents();
   bindMultiplayerGameEvents();
+  blockPageZoom();
   bindDiscordPopup();
   startLocationBadgeAnimation();
   updateMapTransform();
@@ -602,6 +605,17 @@ function bindDiscordPopup() {
   });
 }
 
+// iOS Safari ignores user-scalable=no, so a stray pinch can zoom the whole page and leave it stuck
+// that way. The map handles its own pinch zoom through pointer events and is unaffected. Taps are left
+// alone on purpose so rapid double-taps on buttons still register.
+function blockPageZoom() {
+  const stop = (event) => event.preventDefault();
+  ["gesturestart", "gesturechange", "gestureend"].forEach((name) => document.addEventListener(name, stop, { passive: false }));
+  document.addEventListener("touchmove", (event) => {
+    if (event.touches.length > 1 && !event.target.closest?.("#mapViewport, .map-shell")) event.preventDefault();
+  }, { passive: false });
+}
+
 function bindMultiplayerGameEvents() {
   window.addEventListener("classicguessr:multiplayer-markers", (event) => {
     if (!state.multiplayerSession || event.detail?.lobbyCode !== state.multiplayerSession.lobbyCode) return;
@@ -609,7 +623,7 @@ function bindMultiplayerGameEvents() {
   });
   window.addEventListener("classicguessr:multiplayer-spectators", (event) => {
     if (!state.multiplayerSession || event.detail?.lobbyCode !== state.multiplayerSession.lobbyCode) return;
-    renderSpectatorViews(event.detail.players || [], event.detail.ownMarker || null);
+    renderSpectatorViews(event.detail.players || [], event.detail.ownMarker || null, event.detail.teammateMarkers || []);
   });
   window.addEventListener("classicguessr:multiplayer-health", (event) => {
     if (!state.multiplayerSession || event.detail?.lobbyCode !== state.multiplayerSession.lobbyCode) return;
@@ -3541,7 +3555,9 @@ function revealRound(reason) {
   }
 
   clearRoundFlowTimers();
-  clearSpectatorViews();
+  // A spectated camera stays on screen so the reveal can fly it to the answer (see focusMapOnAnswer).
+  spectatorRevealActive = spectatorAnimations.size > 0 && Boolean(dom.spectatorGrid?.children.length);
+  if (!spectatorRevealActive) clearSpectatorViews();
   setClueBlackout(false);
   state.revealed = true;
   state.roundInputLocked = false;
@@ -3576,15 +3592,22 @@ function revealRound(reason) {
   positionMarker(dom.answerMarker, tile.mapX / GRAAL_MAP_WIDTH, tile.mapY / GRAAL_MAP_HEIGHT);
   dom.scoreLabel.textContent = formatNumber(state.score);
   dom.guessButton.disabled = true;
-  hide(dom.guessButton);
   const hasAnotherMultiplayerRound = Boolean(
     state.multiplayerSession
     && !state.multiplayerSession.matchOver
     && (state.multiplayerSession.competitive || state.roundIndex + 1 < getTotalRounds())
   );
-  if (hasAnotherMultiplayerRound) hide(dom.nextButton);
-  else show(dom.nextButton);
-  dom.mapActions?.classList.toggle("is-collapsed", hasAnotherMultiplayerRound);
+  // Between multiplayer rounds the disabled "Locked in" button stays put through the reveal; the
+  // next round's setup swaps it back to "Place a pin".
+  if (hasAnotherMultiplayerRound) {
+    dom.guessButton.textContent = "Locked in";
+    show(dom.guessButton);
+    hide(dom.nextButton);
+  } else {
+    hide(dom.guessButton);
+    show(dom.nextButton);
+  }
+  dom.mapActions?.classList.remove("is-collapsed");
   dom.nextButton.textContent = state.multiplayerSession?.matchOver
     || (!state.multiplayerSession?.competitive && state.roundIndex + 1 >= getTotalRounds())
     ? "View results"
@@ -3879,53 +3902,105 @@ function setCountdownClueHidden(isHidden) {
   dom.tileImage.classList.toggle("is-countdown-hidden", isHidden);
 }
 
+// Camera used for the answer reveal: zoom plus the map point (0-1) at the centre of the view.
+function getMapCamera(width, height) {
+  const zoom = clamp(state.mapZoom, 1, MAX_MAP_ZOOM);
+  return {
+    z: zoom,
+    cx: (width * 0.5 - state.mapPanX) / (width * zoom),
+    cy: (height * 0.5 - state.mapPanY) / (height * zoom),
+  };
+}
+
+function setMapCamera(camera, width, height) {
+  const zoom = clamp(camera.z, 1, MAX_MAP_ZOOM);
+  state.mapZoom = zoom;
+  state.mapPanX = zoom <= 1 ? 0 : clamp(width * 0.5 - camera.cx * width * zoom, width - width * zoom, 0);
+  state.mapPanY = zoom <= 1 ? 0 : clamp(height * 0.5 - camera.cy * height * zoom, height - height * zoom, 0);
+  updateMapTransform(width, height);
+}
+
+// The zoom the reveal settles on: close enough to read the answer, but pulled back from an extreme
+// zoom, and wide enough to keep the player's own guess in frame when it is reasonably near.
+function getAnswerFocusZoom(answerPoint, guessPoint, startZoom) {
+  const zoomNeededToCenter = Math.max(
+    0.5 / answerPoint.x,
+    0.5 / (1 - answerPoint.x),
+    0.5 / answerPoint.y,
+    0.5 / (1 - answerPoint.y),
+  );
+  const minZoom = Math.max(ANSWER_FOCUS_MIN_ZOOM, zoomNeededToCenter);
+  let preferredZoom = Math.min(startZoom, ANSWER_FOCUS_MAX_ZOOM);
+  if (guessPoint) {
+    const spread = Math.max(Math.abs(guessPoint.x - answerPoint.x), Math.abs(guessPoint.y - answerPoint.y), 0.0005);
+    preferredZoom = Math.min(0.4 / spread, ANSWER_FOCUS_MAX_ZOOM);
+  }
+  return clamp(Math.max(minZoom, preferredZoom), 1, MAX_MAP_ZOOM);
+}
+
+// Glides the camera from one view to another in two beats: first a pan at the current zoom, then
+// the zoom in or out onto the answer. The zoom only begins once the pan is nearly done, so the two
+// never fight each other. A trip with no real pan spends the whole duration zooming.
+const CAMERA_PAN_END = 0.6;
+const CAMERA_ZOOM_START = 0.5;
+
+function getCameraFlightPlan(start, end, fixedDurationMs) {
+  const distance = Math.hypot(end.cx - start.cx, end.cy - start.cy);
+  const startLog = Math.log(start.z);
+  const endLog = Math.log(end.z);
+  const hasPan = distance > 0.002;
+  const durationMs = fixedDurationMs
+    || clamp(ANSWER_FOCUS_DURATION_MS + Math.abs(endLog - startLog) * 260 + distance * 1400, ANSWER_FOCUS_DURATION_MS, 2400);
+  return { distance, startLog, endLog, hasPan, durationMs };
+}
+
+function smootherStep(value) {
+  const t = clamp(value, 0, 1);
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+function sampleCameraFlight(start, end, plan, progress) {
+  const panProgress = plan.hasPan ? smootherStep(progress / CAMERA_PAN_END) : 1;
+  const zoomProgress = plan.hasPan ? smootherStep((progress - CAMERA_ZOOM_START) / (1 - CAMERA_ZOOM_START)) : smootherStep(progress);
+  return {
+    z: Math.exp(plan.startLog + (plan.endLog - plan.startLog) * zoomProgress),
+    cx: start.cx + (end.cx - start.cx) * panProgress,
+    cy: start.cy + (end.cy - start.cy) * panProgress,
+  };
+}
+
 function focusMapOnAnswer(tile, delayMs = 0, onComplete = null) {
   const width = dom.mapShell.clientWidth;
   const height = dom.mapShell.clientHeight;
 
   if (!width || !height || !tile) {
     dom.nextButton.disabled = false;
+    if (spectatorRevealActive) clearSpectatorViews();
     onComplete?.();
     return;
   }
 
   const answerPoint = getVisualMapPoint(tile.mapX / GRAAL_MAP_WIDTH, tile.mapY / GRAAL_MAP_HEIGHT);
-  const safeAnswerX = clamp(answerPoint.x, 0.0001, 0.9999);
-  const safeAnswerY = clamp(answerPoint.y, 0.0001, 0.9999);
-  const targetScreenX = 0.5;
-  const targetScreenY = 0.5;
-  const zoomNeededToCenter = Math.max(
-    targetScreenX / safeAnswerX,
-    (1 - targetScreenX) / (1 - safeAnswerX),
-    targetScreenY / safeAnswerY,
-    (1 - targetScreenY) / (1 - safeAnswerY),
-  );
-  const requiredZoom = clamp(
-    Math.max(ANSWER_FOCUS_MIN_ZOOM, zoomNeededToCenter),
-    1,
-    MAX_MAP_ZOOM,
-  );
-  // Once the player is already close enough, preserve their zoom. Forcing an
-  // additional zoom here makes a nearby answer appear to dip away and return.
-  const targetZoom = state.mapZoom >= requiredZoom ? state.mapZoom : requiredZoom;
-  const targetPanX = targetZoom <= 1
-    ? 0
-    : clamp(width * targetScreenX - safeAnswerX * width * targetZoom, width - width * targetZoom, 0);
-  const targetPanY = targetZoom <= 1
-    ? 0
-    : clamp(height * targetScreenY - safeAnswerY * height * targetZoom, height - height * targetZoom, 0);
-  const startZoom = state.mapZoom;
-  const startPanX = state.mapPanX;
-  const startPanY = state.mapPanY;
-  const isAlreadyFocused = Math.abs(targetZoom - startZoom) < 0.001
-    && Math.abs(targetPanX - startPanX) < 1
-    && Math.abs(targetPanY - startPanY) < 1;
+  answerPoint.x = clamp(answerPoint.x, 0.0001, 0.9999);
+  answerPoint.y = clamp(answerPoint.y, 0.0001, 0.9999);
+  const guessPoint = state.pendingGuess ? getVisualMapPoint(state.pendingGuess.x, state.pendingGuess.y) : null;
+
+  // While spectating an opponent, the reveal flies their camera (what is on screen right now) to the
+  // answer instead of cutting back to our own view first; the main map takes over once it lands.
+  const spectatorCard = spectatorRevealActive ? beginSpectatorAnswerReveal(answerPoint) : null;
+  const spectatorAnim = spectatorCard ? spectatorAnimations.get(spectatorCard.dataset.playerId || "") : null;
+  const start = spectatorAnim ? { ...spectatorAnim.cur } : getMapCamera(width, height);
+  const end = { z: getAnswerFocusZoom(answerPoint, guessPoint, start.z), cx: answerPoint.x, cy: answerPoint.y };
+  const plan = getCameraFlightPlan(start, end, state.multiplayerSession ? ANSWER_FOCUS_MP_DURATION_MS : 0);
+  const isAlreadyFocused = Math.abs(end.z - start.z) < 0.001 && plan.distance < 0.00002 && !spectatorAnim;
 
   state.roundInputLocked = true;
   state.mapNavigationLocked = true;
   dom.nextButton.disabled = true;
 
   const finishAnswerFocus = (done) => {
+    setMapCamera(end, width, height);
+    if (spectatorRevealActive) clearSpectatorViews();
     dom.mapShell.classList.remove("is-answer-focusing");
     state.roundInputLocked = false;
     state.mapNavigationLocked = false;
@@ -3937,25 +4012,24 @@ function focusMapOnAnswer(tile, delayMs = 0, onComplete = null) {
     state.answerFocusDelayHandle = 0;
 
     if (isAlreadyFocused) {
-      state.mapZoom = targetZoom;
-      state.mapPanX = targetPanX;
-      state.mapPanY = targetPanY;
-      updateMapTransform();
-      const synchronizedRevealDelay = state.multiplayerSession ? ANSWER_FOCUS_DURATION_MS : 0;
-      if (synchronizedRevealDelay > 0) {
+      setMapCamera(end, width, height);
+      // Keep multiplayer clients in step: everyone waits the same length whatever their camera did.
+      if (state.multiplayerSession) {
         state.answerFocusDelayHandle = window.setTimeout(() => {
           state.answerFocusDelayHandle = 0;
-          state.roundInputLocked = false;
-          state.mapNavigationLocked = false;
-          dom.nextButton.disabled = false;
-          onComplete?.();
-        }, synchronizedRevealDelay);
+          finishAnswerFocus(onComplete);
+        }, plan.durationMs);
       } else {
-        state.roundInputLocked = false;
-        state.mapNavigationLocked = false;
-        dom.nextButton.disabled = false;
-        onComplete?.();
+        finishAnswerFocus(onComplete);
       }
+      return;
+    }
+
+    // No animation frames arrive while the tab is hidden, and this animation's completion is
+    // what starts the damage sequence and next-round countdown. Snap straight to the focused
+    // camera so a backgrounded player stays on the same round as everyone else.
+    if (document.hidden) {
+      finishAnswerFocus(onComplete);
       return;
     }
 
@@ -3963,13 +4037,15 @@ function focusMapOnAnswer(tile, delayMs = 0, onComplete = null) {
     dom.mapShell.classList.add("is-answer-focusing");
 
     const animateAnswerFocus = (timestamp) => {
-      const progress = clamp((timestamp - animationStartedAt) / ANSWER_FOCUS_DURATION_MS, 0, 1);
-      const easedProgress = progress * progress * progress * (progress * (progress * 6 - 15) + 10);
+      const progress = clamp((timestamp - animationStartedAt) / plan.durationMs, 0, 1);
+      const camera = sampleCameraFlight(start, end, plan, progress);
 
-      state.mapZoom = startZoom + (targetZoom - startZoom) * easedProgress;
-      state.mapPanX = startPanX + (targetPanX - startPanX) * easedProgress;
-      state.mapPanY = startPanY + (targetPanY - startPanY) * easedProgress;
-      updateMapTransform(width, height);
+      if (spectatorAnim) {
+        spectatorAnim.cur = camera;
+        applySpectatorFrame(spectatorCard, spectatorAnim);
+      } else {
+        setMapCamera(camera, width, height);
+      }
 
       if (progress < 1) {
         state.answerFocusHandle = window.requestAnimationFrame(animateAnswerFocus);
@@ -3979,18 +4055,6 @@ function focusMapOnAnswer(tile, delayMs = 0, onComplete = null) {
       state.answerFocusHandle = 0;
       finishAnswerFocus(onComplete);
     };
-
-    // No animation frames arrive while the tab is hidden, and this animation's completion is
-    // what starts the damage sequence and next-round countdown. Snap straight to the focused
-    // camera so a backgrounded player stays on the same round as everyone else.
-    if (document.hidden) {
-      state.mapZoom = targetZoom;
-      state.mapPanX = targetPanX;
-      state.mapPanY = targetPanY;
-      updateMapTransform(width, height);
-      finishAnswerFocus(onComplete);
-      return;
-    }
 
     state.answerFocusHandle = window.requestAnimationFrame(animateAnswerFocus);
   };
@@ -4416,10 +4480,10 @@ function renderMultiplayerMarkers(markers) {
   });
 }
 
-function renderSpectatorViews(players, ownMarkerData) {
+function renderSpectatorViews(players, ownMarkerData, teammateMarkers = []) {
   if (!dom.spectatorPanel || !dom.spectatorGrid) return;
   if (state.revealed) {
-    clearSpectatorViews();
+    if (!spectatorRevealActive) clearSpectatorViews();
     return;
   }
   const mapSource = dom.mapImage.currentSrc || dom.mapImage.src || dom.mapImage.dataset.src || "";
@@ -4500,6 +4564,25 @@ function renderSpectatorViews(players, ownMarkerData) {
       viewport.querySelector(".spectator-own-marker")?.remove();
     }
 
+    // Teammates' guesses stay visible while spectating, like our own.
+    const mates = new Map();
+    teammateMarkers.forEach((mate) => {
+      const mateId = String(mate.uid || "");
+      if (!mateId || !Number.isFinite(Number(mate.x)) || !Number.isFinite(Number(mate.y))) return;
+      let mateMarker = viewport.querySelector(`.spectator-mate-marker[data-mate-id="${CSS.escape(mateId)}"]`);
+      if (!mateMarker) {
+        mateMarker = document.createElement("i");
+        mateMarker.dataset.mateId = mateId;
+        viewport.appendChild(mateMarker);
+      }
+      mateMarker.className = `spectator-mate-marker is-${mate.team === "blue" ? "blue" : "red"}`;
+      mates.set(mateId, getVisualMapPoint(Number(mate.x), Number(mate.y)));
+    });
+    viewport.querySelectorAll(".spectator-mate-marker").forEach((element) => {
+      if (!mates.has(element.dataset.mateId || "")) element.remove();
+    });
+    anim.mates = mates;
+
     dom.spectatorGrid.appendChild(card);
     applySpectatorFrame(card, anim);
   });
@@ -4520,6 +4603,7 @@ function renderSpectatorViews(players, ownMarkerData) {
 // Spectating stays smooth even though the other player's view arrives only a few times a second:
 // each frame the shown view eases toward the latest target (zoom in log space, centre linearly).
 const spectatorAnimations = new Map();
+let spectatorRevealActive = false;
 let spectatorAnimationFrame = 0;
 let spectatorAnimationLast = 0;
 const SPECTATOR_EASE_MS = 90;
@@ -4544,6 +4628,8 @@ function applySpectatorFrame(card, anim) {
   };
   place(".spectator-marker", anim.pt);
   place(".spectator-own-marker", anim.own);
+  place(".spectator-answer-marker", anim.answer);
+  anim.mates?.forEach((point, mateId) => place(`.spectator-mate-marker[data-mate-id="${CSS.escape(mateId)}"]`, point));
 }
 
 function startSpectatorAnimation() {
@@ -4559,6 +4645,7 @@ function stepSpectatorAnimation(now) {
   const ease = 1 - Math.exp(-elapsed / SPECTATOR_EASE_MS);
   let moving = false;
   spectatorAnimations.forEach((anim, playerId) => {
+    if (anim.revealing) return;
     const { cur, target } = anim;
     const zoomGap = Math.log(target.z / cur.z);
     const cxGap = target.cx - cur.cx;
@@ -4581,7 +4668,29 @@ function stepSpectatorAnimation(now) {
   if (moving) spectatorAnimationFrame = window.requestAnimationFrame(stepSpectatorAnimation);
 }
 
+// Freezes the network-driven spectator animation and drops the correct-location marker onto the
+// card so the reveal flight can take over its camera. Returns the card being flown, if any.
+function beginSpectatorAnswerReveal(answerPoint) {
+  const card = Array.from(dom.spectatorGrid?.children || [])[0];
+  const anim = card ? spectatorAnimations.get(card.dataset.playerId || "") : null;
+  if (!card || !anim) {
+    clearSpectatorViews();
+    return null;
+  }
+  anim.revealing = true;
+  anim.answer = answerPoint;
+  const viewport = card.querySelector(".spectator-viewport");
+  if (!viewport.querySelector(".spectator-answer-marker")) {
+    const marker = document.createElement("i");
+    marker.className = "spectator-answer-marker";
+    viewport.appendChild(marker);
+  }
+  applySpectatorFrame(card, anim);
+  return card;
+}
+
 function clearSpectatorViews() {
+  spectatorRevealActive = false;
   spectatorAnimations.clear();
   if (dom.spectatorGrid) dom.spectatorGrid.innerHTML = "";
   if (dom.spectatorPanel) {
@@ -5392,8 +5501,10 @@ function getMapPointFromClient(clientX, clientY) {
   }
 
   return {
-    x: clamp((visualPoint.x * state.mapImageWidth + state.mapImageOffsetX) / GRAAL_MAP_WIDTH, 0, 1),
-    y: clamp((visualPoint.y * state.mapImageHeight + state.mapImageOffsetY) / GRAAL_MAP_HEIGHT, 0, 1),
+    // Not clamped to the game's coordinate range: the picture extends past it (cloud border), and
+    // clamping made every click in that band snap back to the edge like an invisible wall.
+    x: (visualPoint.x * state.mapImageWidth + state.mapImageOffsetX) / GRAAL_MAP_WIDTH,
+    y: (visualPoint.y * state.mapImageHeight + state.mapImageOffsetY) / GRAAL_MAP_HEIGHT,
   };
 }
 

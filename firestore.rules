@@ -297,7 +297,14 @@ service cloud.firestore {
         && request.resource.data.teamMode in ["1v1", "2v2"]
         && request.resource.data.maxPlayers in [2, 4];
 
-      allow delete: if isLobbyHost();
+      // Abandoned lobbies (host closed the tab, crashed, ...) can be swept up by any player once
+      // they are long past expiry. Keep the 12h grace in step with STALE_LOBBY_GRACE_MS in the game.
+      function isStaleLobby(data) {
+        return data.expiresAtMs is number
+          && request.time.toMillis() > data.expiresAtMs + 43200000;
+      }
+
+      allow delete: if isLobbyHost() || (signedIn() && isStaleLobby(resource.data));
 
       match /players/{playerId} {
         function parentLobby() {
@@ -328,6 +335,7 @@ service cloud.firestore {
           && (
             playerId == request.auth.uid
             || isParentHost()
+            || isStaleLobby(parentLobby().data)
           );
       }
     }
