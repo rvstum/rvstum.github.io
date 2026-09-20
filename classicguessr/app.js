@@ -725,6 +725,35 @@ function showModePicker() {
   scheduleMobilePageTitlePosition();
 }
 
+function fitMobileLobbyToViewport() {
+  const lobbyViews = [dom.multiplayerHostView, dom.multiplayerGuestView].filter(Boolean);
+  const activeLobby = lobbyViews.find((view) => !view.classList.contains("hidden"));
+  const isMobileLobby = Boolean(activeLobby)
+    && window.matchMedia("(max-width: 900px)").matches
+    && !dom.menuScreen?.classList.contains("hidden");
+
+  lobbyViews.forEach((view) => {
+    if (view !== activeLobby || !isMobileLobby) view.style.removeProperty("zoom");
+  });
+  if (!isMobileLobby || !dom.menuScreen) return;
+
+  const screenStyle = window.getComputedStyle(dom.menuScreen);
+  const verticalPadding = (Number.parseFloat(screenStyle.paddingTop) || 0)
+    + (Number.parseFloat(screenStyle.paddingBottom) || 0);
+  const panelShift = Number.parseFloat(
+    activeLobby.style.getPropertyValue("--mobile-title-panel-shift"),
+  ) || 0;
+  const availableHeight = Math.max(1, dom.menuScreen.clientHeight - verticalPadding - panelShift);
+  const naturalHeight = Math.max(1, activeLobby.scrollHeight);
+  const fitScale = Math.min(1, availableHeight / naturalHeight);
+  const roundedScale = Math.floor(fitScale * 1000) / 1000;
+  const currentScale = Number.parseFloat(activeLobby.style.zoom) || 1;
+
+  if (Math.abs(currentScale - roundedScale) > 0.001) {
+    activeLobby.style.zoom = String(roundedScale);
+  }
+}
+
 function positionMobileModeTitle() {
   if (!dom.soloPageBrand || !dom.menuScreen) return;
   const mobileMenuViews = [
@@ -741,6 +770,7 @@ function positionMobileModeTitle() {
   const activeView = mobileMenuViews.find((view) => !view.classList.contains("hidden"));
   if (!isMobileMenu || !activeView) {
     dom.soloPageBrand.style.removeProperty("--mobile-page-title-center");
+    fitMobileLobbyToViewport();
     return;
   }
 
@@ -764,6 +794,7 @@ function positionMobileModeTitle() {
     ? Math.min(Math.max(idealCenter, homeClearanceCenter), lowestCenterBeforePicker)
     : idealCenter;
   dom.soloPageBrand.style.setProperty("--mobile-page-title-center", `${centeredWithoutOverlap}px`);
+  fitMobileLobbyToViewport();
 }
 
 function scheduleMobilePageTitlePosition() {
@@ -980,6 +1011,7 @@ function bindSoloEvents() {
     positionMobileModeTitle();
     scheduleMobileGameHeaderPosition();
   });
+  window.visualViewport?.addEventListener("resize", scheduleMobilePageTitlePosition);
   dom.soloPageBrand?.querySelector("img")?.addEventListener("load", positionMobileModeTitle);
   dom.tileImage?.addEventListener("load", scheduleMobileGameHeaderPosition);
   if (typeof ResizeObserver === "function") {
