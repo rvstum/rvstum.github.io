@@ -1,0 +1,11 @@
+{
+  "name": "shield-tools",
+  "private": true,
+  "scripts": {
+    "shields": "node build-shield-colors.js",
+    "watch": "node build-shield-colors.js --watch"
+  },
+  "dependencies": {
+    "sharp": "^0.34.0"
+  }
+}

@@ -25,6 +25,11 @@ service cloud.firestore {
         : "everyone";
     }
 
+    function friendshipExistsForReaders(userA, userB) {
+      return exists(/databases/$(database)/documents/friendships/$(userA + "__" + userB))
+        || exists(/databases/$(database)/documents/friendships/$(userB + "__" + userA));
+    }
+
     function sameGuild(targetData) {
       return signedIn() && profileGuildsFromData(targetData).hasAny(
         profileGuildsFromData(
@@ -42,6 +47,7 @@ service cloud.firestore {
           && visibilityFromData(resource.data) == "friends"
           && (
             asList(resource.data.friends).hasAny([request.auth.uid])
+            || friendshipExistsForReaders(userId, request.auth.uid)
             || sameGuild(resource.data)
           )
         );
@@ -67,6 +73,42 @@ service cloud.firestore {
 
     function profileViews(data) {
       return profileMap(data).get('views', 0);
+    }
+
+    function accountDirectoryDoc(accountId) {
+      return get(/databases/$(database)/documents/publicAccountDirectory/$(accountId));
+    }
+
+    function canReadDirectoryBackedProfile(accountId, userId) {
+      return exists(/databases/$(database)/documents/publicAccountDirectory/$(accountId))
+        && (
+          accountDirectoryDoc(accountId).data.visibility == "everyone"
+          || isOwner(userId)
+          || (
+            signedIn()
+            && accountDirectoryDoc(accountId).data.visibility == "friends"
+            && friendshipExistsForReaders(userId, request.auth.uid)
+          )
+        );
+    }
+
+    function validInitialProfileViewCountCreate(userId) {
+      return !isOwner(userId)
+        && request.resource.data.keys().hasOnly(['profile', 'accountId', 'settings'])
+        && request.resource.data.accountId is string
+        && request.resource.data.accountId.size() > 0
+        && canReadDirectoryBackedProfile(request.resource.data.accountId, userId)
+        && accountDirectoryDoc(request.resource.data.accountId).data.uid is string
+        && accountDirectoryDoc(request.resource.data.accountId).data.uid == userId
+        && request.resource.data.settings is map
+        && request.resource.data.settings.keys().hasOnly(['visibility'])
+        && request.resource.data.settings.visibility is string
+        && request.resource.data.settings.visibility
+          == accountDirectoryDoc(request.resource.data.accountId).data.visibility
+        && request.resource.data.profile is map
+        && request.resource.data.profile.keys().hasOnly(['views'])
+        && request.resource.data.profile.views is int
+        && request.resource.data.profile.views == 1;
     }
 
     function validProfileViewCountUpdate(userId) {
@@ -131,7 +173,9 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if canReadUserDoc(userId);
-      allow create, delete: if isOwner(userId);
+      allow create: if isOwner(userId)
+        || validInitialProfileViewCountCreate(userId);
+      allow delete: if isOwner(userId);
 
       allow update: if isOwner(userId)
         || validRemoteRequestMirrorUpdate(userId)
@@ -144,7 +188,11 @@ service cloud.firestore {
     }
 
     match /publicAccountDirectory/{accountId} {
-      allow read: if signedIn();
+      allow read: if signedIn()
+        || (
+          resource.data.visibility is string
+          && resource.data.visibility == "everyone"
+        );
       allow create: if signedIn()
         && request.resource.data.uid is string
         && request.resource.data.uid == request.auth.uid
@@ -223,6 +271,65 @@ service cloud.firestore {
       allow delete: if signedIn()
         && resource.data.users is list
         && resource.data.users.hasAny([request.auth.uid]);
+    }
+
+    match /classicGuessrLobbies/{lobbyCode} {
+      function isLobbyHost() {
+        return signedIn()
+          && resource.data.hostUid is string
+          && resource.data.hostUid == request.auth.uid;
+      }
+
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+        && lobbyCode.size() == 6
+        && request.resource.data.code == lobbyCode
+        && request.resource.data.hostUid == request.auth.uid
+        && request.resource.data.status == "waiting"
+        && request.resource.data.teamMode in ["1v1", "2v2"]
+        && request.resource.data.maxPlayers in [2, 4];
+
+      allow update: if isLobbyHost()
+        && request.resource.data.hostUid == resource.data.hostUid
+        && request.resource.data.code == resource.data.code
+        && request.resource.data.status in ["waiting", "playing", "finished"]
+        && request.resource.data.teamMode in ["1v1", "2v2"]
+        && request.resource.data.maxPlayers in [2, 4];
+
+      allow delete: if isLobbyHost();
+
+      match /players/{playerId} {
+        function parentLobby() {
+          return get(/databases/$(database)/documents/classicGuessrLobbies/$(lobbyCode));
+        }
+
+        function isParentHost() {
+          return signedIn()
+            && parentLobby().data.hostUid is string
+            && parentLobby().data.hostUid == request.auth.uid;
+        }
+
+        allow read: if signedIn();
+
+        allow create: if signedIn()
+          && playerId == request.auth.uid
+          && request.resource.data.uid == request.auth.uid
+          && parentLobby().data.status == "waiting";
+
+        allow update: if signedIn()
+          && request.resource.data.uid == resource.data.uid
+          && (
+            playerId == request.auth.uid
+            || isParentHost()
+          );
+
+        allow delete: if signedIn()
+          && (
+            playerId == request.auth.uid
+            || isParentHost()
+          );
+      }
     }
 
     match /{document=**} {

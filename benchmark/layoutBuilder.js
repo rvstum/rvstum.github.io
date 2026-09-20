@@ -126,7 +126,6 @@ function createVerticalLabel({ title, titleKey, iconSrc, iconClass, boxClass }) 
 function createScoreLinkToggle() {
     const button = createElement("button", "score-link-toggle");
     button.type = "button";
-    button.dataset.tooltip = "Sub-Input for Points";
     button.setAttribute("aria-label", "Sub-Input for Points");
     button.appendChild(createLinkIcon());
     return button;

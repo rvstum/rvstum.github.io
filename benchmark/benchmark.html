@@ -14,13 +14,53 @@
         window.__BENCHMARK_SHARE_SERVICE_URL__ = "http://localhost:3000";
     </script>
     <script type="module" src="modernScreenshotLoader.js?v=20260312-mobile-cache-refresh-1"></script>
-    <link rel="stylesheet" href="benchmark.css?v=20260318-leaderboard-mobile-right-cols-left-1">
+    <link rel="stylesheet" href="benchmark.css?v=20260919-mobile-fit-1">
+    <style>
+        .page-transition-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000000;
+            opacity: 1;
+            pointer-events: none;
+            z-index: 2147483647;
+            transition: opacity 420ms ease;
+        }
+
+        html.page-entered .page-transition-overlay {
+            opacity: 0;
+        }
+
+        body > :not(.page-transition-overlay):not(script) {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 420ms ease, transform 420ms ease;
+        }
+
+        html.page-entered body > :not(.page-transition-overlay):not(script) {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .page-transition-overlay,
+            body > :not(.page-transition-overlay):not(script) {
+                transition: none;
+            }
+        }
+    </style>
 </head>
 <body class="benchmark-boot-loading">
+    <div class="page-transition-overlay" aria-hidden="true"></div>
     <div id="pageLoader" class="page-loader">
         <div class="page-loader-spinner"></div>
         <div class="page-loader-text">Loading...</div>
     </div>
+    <a class="benchmark-home-link benchmark-home-link--desktop" href="/" aria-label="Open the KDAssist menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path class="benchmark-home-icon-body" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+    </a>
     <script>
         (function applyLoginHandoffBootHold() {
             try {
@@ -119,6 +159,12 @@
     </svg>
 <div id="benchmark-content">
     <div class="controls-container">
+        <a class="benchmark-home-link benchmark-home-link--mobile" href="/" aria-label="Open the KDAssist menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path class="benchmark-home-icon-body" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </a>
         <div class="small-inner-box" id="platformBox">
             <span id="platformText" class="platform-label platform-label--mobile">Mobile</span>
             <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
@@ -1198,20 +1244,22 @@
     <!-- Global Image Cropper & Input -->
     <input type="file" id="profilePicInput" class="is-hidden" accept="image/*">
     <div class="cropper-container initially-hidden" id="cropperContainer">
-        <div class="cropper-area" id="cropperArea">
-            <img id="cropperImage" src="" alt="">
-            <div class="cropper-overlay">
-                <div class="crop-guide-box"></div>
-                <div class="crop-guide-circle"></div>
-                <div class="crop-crosshair"></div>
+        <div class="cropper-dialog">
+            <div class="cropper-area" id="cropperArea">
+                <img id="cropperImage" src="" alt="">
+                <div class="cropper-overlay">
+                    <div class="crop-guide-box"></div>
+                    <div class="crop-guide-circle"></div>
+                    <div class="crop-crosshair"></div>
+                </div>
             </div>
-        </div>
-        <input type="range" id="cropperZoom" min="0.05" max="3" step="0.01" value="1" class="settings-select cropper-zoom-input">
-        <div class="cropper-action-row">
-            <button class="settings-btn cropper-center-btn" id="centerImageBtn" data-i18n="center">Center</button>
-            <div class="cropper-action-buttons">
-                <button class="settings-btn danger" id="cancelImageBtn" data-i18n="cancel">Cancel</button>
-                <button class="settings-btn primary" id="saveImageBtn" data-i18n="save">Save</button>
+            <input type="range" id="cropperZoom" min="0.05" max="3" step="0.01" value="1" class="settings-select cropper-zoom-input">
+            <div class="cropper-action-row">
+                <button class="settings-btn cropper-center-btn" id="centerImageBtn" data-i18n="center">Center</button>
+                <div class="cropper-action-buttons">
+                    <button class="settings-btn danger" id="cancelImageBtn" data-i18n="cancel">Cancel</button>
+                    <button class="settings-btn primary" id="saveImageBtn" data-i18n="save">Save</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1223,8 +1271,63 @@
     </div>
 
     <script type="module" src="footer-baddy.js?v=20260312-mobile-cache-refresh-1"></script>
-    <script type="module" src="layoutBuilder.js?v=20260311-view-mode-compare-2"></script>
+    <script type="module" src="layoutBuilder.js?v=20260917-remove-sub-input-tooltip"></script>
     <script type="module" src="scrollSyncUI.js?v=20260310-sub-score-input-1"></script>
-    <script type="module" src="benchmark.js?v=20260403-early-auth-loader-lock-2"></script>
+    <script type="module" src="benchmark.js?v=20260919-view-mode-dropdown-sync-1"></script>
+    <script>
+        (() => {
+            const root = document.documentElement;
+            const overlay = document.querySelector(".page-transition-overlay");
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            let leaving = false;
+
+            function enterPage() {
+                leaving = false;
+                if (overlay) overlay.style.display = "block";
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        root.classList.add("page-entered");
+                        if (overlay) {
+                            setTimeout(() => {
+                                if (!leaving) overlay.style.display = "none";
+                            }, reducedMotion ? 0 : 500);
+                        }
+                    });
+                });
+            }
+
+            enterPage();
+            window.addEventListener("pageshow", (event) => {
+                if (event.persisted) enterPage();
+            });
+
+            document.querySelectorAll(".benchmark-home-link").forEach((link) => {
+                link.addEventListener("click", (event) => {
+                    if (
+                        leaving ||
+                        event.defaultPrevented ||
+                        event.button !== 0 ||
+                        event.metaKey ||
+                        event.ctrlKey ||
+                        event.shiftKey ||
+                        event.altKey
+                    ) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    leaving = true;
+                    if (overlay) {
+                        overlay.style.display = "block";
+                        void overlay.offsetWidth;
+                    }
+                    root.classList.remove("page-entered");
+                    setTimeout(() => {
+                        window.location.href = link.href;
+                    }, reducedMotion ? 0 : 420);
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

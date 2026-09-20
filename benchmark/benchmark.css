@@ -492,6 +492,53 @@ html {
     fill: #fff;
 }
 
+.benchmark-home-link {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--app-text);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.benchmark-home-link--desktop {
+    position: fixed;
+    top: 4px;
+    left: clamp(12px, 2vw, 18px);
+    z-index: 2147483646;
+}
+
+.benchmark-home-link--mobile {
+    display: none;
+}
+
+.benchmark-home-link:hover,
+.benchmark-home-link:focus-visible {
+    color: #ffffff;
+    outline: none;
+}
+
+.benchmark-home-link svg {
+    width: 32px;
+    height: 32px;
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));
+}
+
+.benchmark-home-icon-body {
+    fill: #000000;
+}
+
 .mobile-top-links .mobile-link {
     justify-content: center;
     gap: 4px;
@@ -736,7 +783,15 @@ body.benchmark-boot-loading {
 }
 
 body.benchmark-boot-loading #responsive-wrapper,
-body.benchmark-boot-loading #privateProfilePage {
+body.benchmark-boot-loading #privateProfilePage,
+body.benchmark-boot-loading .benchmark-home-link {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#pageLoader:not(.is-hidden) ~ .benchmark-home-link,
+#pageLoader:not(.is-hidden) ~ #responsive-wrapper .benchmark-home-link {
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
@@ -805,13 +860,12 @@ body.modal-open {
     max-width: 1584px;
     height: auto;
     background-color: var(--panel-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: none;
     border: 1px solid var(--panel-border);
     border-radius: 24px;
     position: relative;
     overflow: hidden;
     box-shadow: none;
-    animation: gradualBlur 1.5s ease-out forwards;
     isolation: isolate;
 }
 
@@ -819,12 +873,11 @@ body.modal-open {
     width: 100%;
     max-width: 1584px;
     background-color: var(--panel-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: none;
     border: 1px solid var(--panel-border);
     border-radius: 24px;
     padding: 18px 22px 22px;
     box-shadow: none;
-    animation: gradualBlur 1.5s ease-out forwards;
     position: relative;
     overflow: hidden;
 }
@@ -1211,7 +1264,7 @@ body.view-mode .cave-play-edit {
     max-width: 1584px;
     height: 72px;
     background-color: var(--panel-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: none;
     border: 1px solid var(--panel-border);
     border-radius: 20px;
     display: flex;
@@ -1219,8 +1272,9 @@ body.view-mode .cave-play-edit {
     padding: 0 20px;
     position: relative;
     z-index: 10;
-    animation: gradualBlur 1.5s ease-out forwards;
     overflow: hidden;
+    isolation: isolate;
+    transform: translateZ(0);
 }
 
 .profile-circle {
@@ -1887,13 +1941,12 @@ body.view-mode .cave-play-edit {
     width: 100%;
     max-width: 1584px;
     background-color: var(--panel-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: none;
     border: 1px solid var(--panel-border);
     border-radius: 24px;
     display: flex;
     padding: 20px;
     overflow: visible;
-    animation: gradualBlur 1.5s ease-out forwards;
     position: relative;
     min-height: 150px;
 }
@@ -3235,32 +3288,6 @@ body.mobile-layout-active .sub-score-popout:focus-within .sub-score-input {
 .score-link-toggle::after {
     content: none;
     display: none;
-}
-
-.score-link-tooltip-floating {
-    position: fixed;
-    left: 0;
-    top: 0;
-    padding: 4px 8px;
-    border: 1px solid #333;
-    border-radius: 6px;
-    background: rgba(10, 10, 10, 0.98);
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: bold;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translate(-50%, -100%);
-    transition: opacity 0.15s ease, visibility 0.15s ease;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32);
-    z-index: 10050;
-}
-
-.score-link-tooltip-floating.show {
-    opacity: 1;
-    visibility: visible;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -4888,19 +4915,33 @@ input:-webkit-autofill:active {
     background-repeat: no-repeat;
 }
 
+/* Centred by a full-screen flex overlay rather than a translate offset, matching the other
+   modals here. Translate centring pushes the top of a tall dialog off-screen with no way to
+   scroll back to it, which is what broke on short windows and on mobile. */
 .cropper-container {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    inset: 0;
     z-index: 20000;
+    padding: 20px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.cropper-container:not(.is-hidden):not(.initially-hidden) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cropper-dialog {
     background: #1a1a1a;
     padding: 20px;
     border-radius: 12px;
     border: 1px solid #333;
     box-shadow: none;
-    width: 90%;
+    width: 100%;
     max-width: 500px;
+    margin: auto;
 }
 
 .cropper-area {
@@ -7109,6 +7150,28 @@ body.view-mode .achievement-proof-upload.has-image {
         max-width: none !important;
     }
 
+    .benchmark-home-link--desktop {
+        display: none;
+    }
+
+    .benchmark-home-link--mobile {
+        display: inline-flex;
+        position: absolute;
+        left: 0;
+        top: auto;
+        bottom: calc(100% + var(--user-menu-gap));
+        width: 35px;
+        height: 35px;
+        min-width: 35px;
+        margin-right: 0 !important;
+        z-index: 4;
+    }
+
+    .benchmark-home-link svg {
+        width: 22px;
+        height: 22px;
+    }
+
     .controls-container > #platformBox,
     .controls-container > #timeBox,
     .controls-container > #statBox,
@@ -7349,20 +7412,24 @@ body.view-mode .achievement-proof-upload.has-image {
         display: none;
     }
 
+    /* The single auto margin sits on the copy link so it and Compare travel to the right as
+       one group, leaving the copy text directly left of the Compare button instead of the
+       two being pushed to opposite ends of the row. */
     body.view-mode #mobileCopyLinkBtn {
         position: relative;
         top: 0;
         left: 0;
         flex: 0 1 auto;
         min-width: 0;
-        margin-right: auto;
-        justify-content: flex-start;
+        margin-left: auto;
+        margin-right: 0;
+        justify-content: flex-end;
     }
 
     body.view-mode #mobileCompareShell {
         display: flex;
         flex: 0 0 auto;
-        margin-left: auto;
+        margin-left: 0;
         justify-content: flex-end;
         position: relative;
     }
@@ -10060,4 +10127,16 @@ html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open
         min-width: 0;
         justify-content: center;
     }
+}
+
+/* Universal fit for the mobile top links row. benchmark.js shrinks the label size (--mobile-top-links-size)
+   only when the row would run into the home button, so this works at any screen size and in any language. */
+body.mobile-layout-active .mobile-top-links.is-fitted .mobile-link > span,
+body.mobile-layout-active .mobile-top-links.is-fitted #mobileCompareBtn > span,
+body.mobile-layout-active .mobile-top-links.is-fitted .mobile-link-icon {
+    font-size: var(--mobile-top-links-size) !important;
+}
+
+body.mobile-layout-active .mobile-top-links.is-fitted {
+    gap: 5px;
 }

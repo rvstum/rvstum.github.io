@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Suffix Calibration Tool</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #0a0a0a;
+            color: #ccc;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #00ff00;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .main {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        /* LEFT: controls */
+        .controls {
+            width: 320px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .panel {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .panel-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            border-bottom: 1px solid #222;
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+        }
+
+        label { font-size: 11px; color: #888; }
+
+        input[type="text"] {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 7px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            border-radius: 4px;
+            width: 100%;
+            outline: none;
+        }
+
+        input[type="text"]:focus { border-color: #555; }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            appearance: none;
+            background: #222;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00ff00;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .val {
+            color: #00ff00;
+            font-size: 13px;
+            min-width: 44px;
+            text-align: right;
+        }
+
+        .save-btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 9px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            transition: background 0.15s;
+        }
+
+        .save-btn:hover { background: #00cc00; }
+        .save-btn:active { transform: scale(0.98); }
+
+        /* RIGHT: side-by-side previews */
+        .previews {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .preview-pair {
+            display: flex;
+            gap: 12px;
+        }
+
+        .preview-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .preview-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #555;
+        }
+
+        .img-wrap {
+            position: relative;
+            width: 100%;
+            background: #3b5998;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #222;
+        }
+
+        .img-wrap img {
+            width: 100%;
+            display: block;
+            border-radius: 6px;
+        }
+
+        .color-overlay {
+            position: absolute;
+            inset: 0;
+            border-radius: 6px;
+            pointer-events: none;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        /* Upload zone */
+        .upload-zone {
+            width: 100%;
+            aspect-ratio: 6 / 1;
+            border: 2px dashed #333;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #444;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: border-color 0.2s;
+            background: #0d0d0d;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover { border-color: #555; color: #666; }
+        .upload-zone.has-image { border-style: solid; border-color: #333; }
+
+        .upload-zone img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-text { pointer-events: none; }
+
+        /* Saved matches table */
+        .matches {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 14px;
+        }
+
+        .matches-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            text-align: left;
+            color: #555;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 8px;
+            border-bottom: 1px solid #222;
+        }
+
+        td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #1a1a1a;
+            color: #aaa;
+        }
+
+        td.suffix-cell { color: #00ff00; font-weight: bold; }
+        td.opacity-cell { color: #fff; }
+
+        .del-btn {
+            background: none;
+            border: none;
+            color: #444;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0 4px;
+        }
+
+        .del-btn:hover { color: #ff4444; }
+
+        .export-btn {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #00ff00;
+            padding: 8px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            margin-top: 10px;
+            transition: background 0.15s;
+        }
+
+        .export-btn:hover { background: #222; }
+
+        .hint { font-size: 10px; color: #444; line-height: 1.6; }
+
+        .current-suffix {
+            font-size: 28px;
+            color: #00ff00;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+        .opacity-display {
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .diff-indicator {
+            font-size: 10px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            color: #333;
+            font-size: 11px;
+            text-align: center;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Profile Color Suffix Calibration Tool</h1>
+
+<div class="main">
+    <!-- LEFT CONTROLS -->
+    <div class="controls">
+        <div class="panel">
+            <div class="panel-title">Current Suffix</div>
+            <label>Type suffix to test (e.g. AA, NP, ZZ)</label>
+            <input type="text" id="suffixInput" maxlength="2" placeholder="AA" value="AA">
+            <div class="row" style="justify-content: space-between; margin-top: 4px;">
+                <span class="current-suffix" id="suffixDisplay">AA</span>
+                <div style="text-align:right">
+                    <div class="hint">Slider position</div>
+                    <div class="opacity-display" id="sliderPosDisplay">0 / 675</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Web Opacity Tuner</div>
+            <label>Drag until web preview matches your game screenshot</label>
+            <div class="row">
+                <input type="range" id="opacitySlider" min="0" max="100" step="1" value="60">
+                <span class="val" id="opacityVal">60%</span>
+            </div>
+            <div class="hint">This controls only the web overlay opacity for comparison.</div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Base Color</div>
+            <label>Hex color (without suffix)</label>
+            <input type="text" id="colorInput" value="#000000" maxlength="7">
+        </div>
+
+        <button class="save-btn" id="saveBtn">✓ Save Match</button>
+
+        <div class="hint" style="padding: 0 4px;">
+            1. Type a suffix above<br>
+            2. Screenshot game at that suffix<br>
+            3. Upload screenshot on the right<br>
+            4. Drag slider until web matches game<br>
+            5. Click Save Match
+        </div>
+    </div>
+
+    <!-- RIGHT PREVIEWS -->
+    <div class="previews">
+        <div class="preview-pair">
+            <div class="preview-box">
+                <div class="preview-label">Game Screenshot</div>
+                <div class="upload-zone" id="uploadZone">
+                    <span class="upload-text">Click to upload game screenshot</span>
+                    <img id="gameImg" style="display:none">
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+            </div>
+
+            <div class="preview-box">
+                <div class="preview-label">Web Preview</div>
+                <div class="img-wrap" id="webPreview">
+                    <img src="icons/profilebackground1.png" id="bgImg" alt="background"
+                         onerror="this.style.opacity='0.15'; this.style.filter='brightness(0.3)'">
+                    <div class="color-overlay" id="colorOverlay"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved matches -->
+        <div class="matches">
+            <div class="matches-title">Saved Matches (<span id="matchCount">0</span>)</div>
+            <table id="matchTable">
+                <thead>
+                    <tr>
+                        <th>Suffix</th>
+                        <th>Opacity %</th>
+                        <th>CSS Value</th>
+                        <th>Slider Pos</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="matchBody">
+                    <tr><td colspan="5" class="empty-state">No matches saved yet</td></tr>
+                </tbody>
+            </table>
+            <button class="export-btn" id="exportBtn">Export as JS Lookup Table</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const suffixInput = document.getElementById('suffixInput');
+    const suffixDisplay = document.getElementById('suffixDisplay');
+    const sliderPosDisplay = document.getElementById('sliderPosDisplay');
+    const opacitySlider = document.getElementById('opacitySlider');
+    const opacityVal = document.getElementById('opacityVal');
+    const colorInput = document.getElementById('colorInput');
+    const colorOverlay = document.getElementById('colorOverlay');
+    const webPreview = document.getElementById('webPreview');
+    const saveBtn = document.getElementById('saveBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const fileInput = document.getElementById('fileInput');
+    const gameImg = document.getElementById('gameImg');
+    const uploadZone = document.getElementById('uploadZone');
+    const matchBody = document.getElementById('matchBody');
+    const matchCount = document.getElementById('matchCount');
+
+    let matches = {};
+
+    function suffixToSliderPos(suffix) {
+        if (!suffix || suffix.length !== 2) return 0;
+        const s = suffix.toUpperCase();
+        const c1 = s.charCodeAt(0) - 65;
+        const c2 = s.charCodeAt(1) - 65;
+        if (c1 < 0 || c1 > 25 || c2 < 0 || c2 > 25) return 0;
+        return c1 * 26 + c2;
+    }
+
+    function updateOverlay() {
+        const opacity = parseInt(opacitySlider.value) / 100;
+        const color = colorInput.value || '#000000';
+        colorOverlay.style.backgroundColor = color;
+        colorOverlay.style.opacity = opacity.toFixed(2);
+        webPreview.style.backgroundColor = color;
+        opacityVal.textContent = opacitySlider.value + '%';
+    }
+
+    function updateSuffix() {
+        const raw = suffixInput.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2);
+        suffixInput.value = raw;
+        suffixDisplay.textContent = raw || '--';
+        const pos = suffixToSliderPos(raw);
+        sliderPosDisplay.textContent = pos + ' / 675';
+
+        // If we already have a saved match for this suffix, load it
+        if (matches[raw] !== undefined) {
+            opacitySlider.value = matches[raw];
+            updateOverlay();
+        }
+    }
+
+    function renderTable() {
+        const keys = Object.keys(matches).sort();
+        matchCount.textContent = keys.length;
+        if (keys.length === 0) {
+            matchBody.innerHTML = '<tr><td colspan="5" class="empty-state">No matches saved yet</td></tr>';
+            return;
+        }
+        matchBody.innerHTML = keys.map(k => {
+            const op = matches[k];
+            const cssVal = Math.round(op * 2.55).toString(16).padStart(2, '0').toUpperCase();
+            const pos = suffixToSliderPos(k);
+            return `<tr>
+                <td class="suffix-cell">${k}</td>
+                <td class="opacity-cell">${op}%</td>
+                <td>#000000${cssVal}</td>
+                <td>${pos}</td>
+                <td><button class="del-btn" onclick="deleteMatch('${k}')">✕</button></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function deleteMatch(suffix) {
+        delete matches[suffix];
+        renderTable();
+    }
+    window.deleteMatch = deleteMatch;
+
+    saveBtn.addEventListener('click', () => {
+        const suffix = suffixInput.value.toUpperCase();
+        if (suffix.length !== 2) {
+            saveBtn.textContent = '⚠ Enter 2-letter suffix first';
+            setTimeout(() => saveBtn.textContent = '✓ Save Match', 1500);
+            return;
+        }
+        matches[suffix] = parseInt(opacitySlider.value);
+        renderTable();
+        saveBtn.textContent = `✓ Saved ${suffix}!`;
+        setTimeout(() => saveBtn.textContent = '✓ Save Match', 1200);
+    });
+
+    exportBtn.addEventListener('click', () => {
+        const keys = Object.keys(matches).sort();
+        if (keys.length === 0) {
+            alert('No matches saved yet!');
+            return;
+        }
+        const entries = keys.map(k => `  "${k}": ${matches[k]}`).join(',\n');
+        const output = `// Suffix → opacity % lookup table\n// Generated from calibration tool\nconst SUFFIX_OPACITY = {\n${entries}\n};\n\n// Usage: SUFFIX_OPACITY["AA"] → number (0-100)\n// Interpolate between known values for unknowns`;
+        
+        const blob = new Blob([output], { type: 'text/javascript' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'suffix_lookup.js';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        gameImg.src = url;
+        gameImg.style.display = 'block';
+        uploadZone.classList.add('has-image');
+        const span = uploadZone.querySelector('.upload-text');
+        if (span) span.style.display = 'none';
+    });
+
+    suffixInput.addEventListener('input', updateSuffix);
+    opacitySlider.addEventListener('input', updateOverlay);
+    colorInput.addEventListener('input', updateOverlay);
+
+    // Keyboard: left/right arrows to nudge opacity
+    document.addEventListener('keydown', (e) => {
+        if (document.activeElement === suffixInput || document.activeElement === colorInput) return;
+        if (e.key === 'ArrowLeft') {
+            opacitySlider.value = Math.max(0, parseInt(opacitySlider.value) - 1);
+            updateOverlay();
+        } else if (e.key === 'ArrowRight') {
+            opacitySlider.value = Math.min(100, parseInt(opacitySlider.value) + 1);
+            updateOverlay();
+        }
+    });
+
+    updateOverlay();
+    updateSuffix();
+</script>
+</body>
+</html>

@@ -67,7 +67,7 @@ import * as FriendsUI from "./friendsUI.js?v=20260311-friends-layout-8";
 import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260311-view-mode-compare-2";
 import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
-import * as ViewModeManager from "./viewModeManager.js?v=20260322-profile-view-cooldown-guest-1";
+import * as ViewModeManager from "./viewModeManager.js?v=20260919-view-mode-dropdown-sync-1";
 import * as ShareManager from "./shareManager.js?v=20260317-modal-touch-scroll-1";
 import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260317-modal-touch-scroll-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
@@ -104,7 +104,7 @@ import { initProfileModalController } from "./profileModalUI.js?v=20260403-loade
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260311-profile-original-sync-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260317-leaderboard-filter-dropdown-width-1";
-import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260311-compare-theme-colors-1";
+import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260917-remove-sub-input-tooltip";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
 import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260318-leaderboard-language-sync-1";
 import { createSettingsStateController } from "./settingsStateUI.js?v=20260311-pacman-settings-desktop-1";
@@ -934,6 +934,31 @@ function syncMobileBenchmarkGeometry() {
     });
 }
 
+// The mobile "Copy Benchmark Link / Compare / Options" row grows leftwards from the user menu and can
+// run into the home button. Instead of hand-tuned font sizes per device, shrink the labels until the
+// row fits the space actually available, whatever the screen width or language.
+function fitMobileTopLinks() {
+    const links = document.querySelector('.mobile-top-links');
+    const home = document.querySelector('.benchmark-home-link--mobile');
+    if (!links) return;
+    links.classList.remove('is-fitted');
+    links.style.removeProperty('--mobile-top-links-size');
+    if (!home || !document.body.classList.contains('mobile-layout-active') || document.body.classList.contains('view-mode')) return;
+    if (!links.getClientRects().length || !home.getClientRects().length) return;
+
+    const minGap = 6;
+    const fits = () => links.getBoundingClientRect().left >= home.getBoundingClientRect().right + minGap;
+    if (fits()) return;
+
+    const label = links.querySelector('.mobile-link > span');
+    const naturalSize = label ? parseFloat(getComputedStyle(label).fontSize) || 12 : 12;
+    links.classList.add('is-fitted');
+    for (let size = naturalSize - 0.5; size >= 7; size -= 0.5) {
+        links.style.setProperty('--mobile-top-links-size', `${size}px`);
+        if (fits()) return;
+    }
+}
+
 function syncMobileHoneycombMask() {
     const rankBox = getCachedQuery('roundedInnerBox', () => document.querySelector('.rounded-inner-box'));
     const isMobile = isMobileViewport();
@@ -968,6 +993,8 @@ function syncMobileHoneycombMask() {
     document.body.classList.toggle('mobile-layout-active', isMobile);
     const container = getCachedQuery('benchmarkContainer', () => document.querySelector('.container'));
     if (container) container.classList.toggle('mobile-layout-active', isMobile);
+    fitMobileTopLinks();
+    requestAnimationFrame(() => requestAnimationFrame(fitMobileTopLinks));
     scheduleMobileBenchmarkGeometrySync({ immediate: true, settleFrames: 3 });
 }
 
@@ -993,6 +1020,14 @@ function initStartupSideEffects() {
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', syncMobileHoneycombMask, { passive: true });
     }
+    // Labels change with the language and when the Compare button appears/disappears.
+    const topLinks = document.querySelector('.mobile-top-links');
+    if (topLinks && typeof MutationObserver === 'function') {
+        new MutationObserver(() => requestAnimationFrame(fitMobileTopLinks))
+            .observe(topLinks, { childList: true, characterData: true, subtree: true });
+    }
+    new MutationObserver(() => requestAnimationFrame(fitMobileTopLinks))
+        .observe(document.documentElement, { attributes: true, attributeFilter: ['data-benchmark-lang'] });
     if (document.fonts && typeof document.fonts.ready?.then === 'function') {
         document.fonts.ready.then(() => {
             scheduleMobileBenchmarkGeometrySync({ settleFrames: 3 });
@@ -1127,6 +1162,7 @@ function initModuleConfigurations() {
         syncAuthenticatedBackNavigationGuard,
         applyMountConfigVisual,
         syncPlatformLabelColor,
+        syncConfigDropdownActiveStates,
         renderSeasonalTrophyList: TrophyUI.renderSeasonalTrophyList,
         openImageViewer,
         showConfirmModal,

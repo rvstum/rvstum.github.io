@@ -1,3339 +1,1144 @@
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <link rel="manifest" href="manifest.json">
-        <meta charset="UTF-8">
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-        <meta http-equiv="Pragma" content="no-cache">
-        <meta http-equiv="Expires" content="0">
-        <meta name="robots" content="noimageindex">
-
-        <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-60DVCGD21Q"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-60DVCGD21Q');
+        if (/^(?:www\.)?kdassist\.org$/i.test(window.location.hostname)) {
+            window.location.replace('/treasuremaps/' + window.location.search + window.location.hash);
+        }
     </script>
-
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <title>Graal Classic Treasure Maps</title>
-        <meta name="description" content="Having trouble finding a map? Use this filtering system to reveal the correct location!">
-        <meta property="og:description" content="Having trouble finding a map? Use this filtering system to reveal the correct location!">
-        <meta name="theme-color" content="#000000">
-        <link rel="icon" href="icons/map2a.png" type="image/png">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDAssist</title>
+    <link rel="icon" type="image/png" href="/menu/kdassisticon.png?v=20260912">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="/icons/kdassist-180.png">
     <style>
-        
-    :root {
-                --preview-scale: 1.25;
-            }
-            
-            html {
-                height: 100%;
-                width: 100%;
-                overflow: hidden;
-                position: fixed;
-            }
-            
-            /* Hide visible scroll indicators while preserving scroll */
-            ::-webkit-scrollbar {
-                width: 0;
-                height: 0;
-                background: transparent;
-            }
-            ::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            ::-webkit-scrollbar-thumb {
-                background: transparent;
-                border: none;
-            }
-            ::-webkit-scrollbar-thumb:hover {
-                background: transparent;
-            }
-    * {
-            margin: 0;
-            padding: 0;
+        :root {
+            --bg: #000000;
+            --text: #e8edf8;
+            --muted: #8e99ad;
+            --accent: #ffffff;
+            --accent-soft: rgba(255, 255, 255, 0.18);
+            --line: rgba(255, 255, 255, 0.1);
+            --page-transition-duration: 420ms;
+            --overlay-transition-duration: 360ms;
+        }
+
+        * {
             box-sizing: border-box;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-            
-            /* Lock all major sections in place */
-            .top-section, .section-overworld, .section-cavern, 
-            .section-advanced, .section-reset-wrapper {
-                position: relative !important;
-                touch-action: pan-y !important;
-                overscroll-behavior: none !important;
-            }
-
-            body {
-                height: 100%;
-                width: 100%;
-                overflow: hidden;
-                position: fixed;
-                overscroll-behavior: none;
-                background-color: #000;
-                color: #d4af37;
-                font-family: Arial, sans-serif;
-                padding: 0;
-            }
-
-            body::before {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-image: url('icons/untitled5.png');
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-                filter: contrast(1.1) saturate(1.05);
-                z-index: -2;
-            }
-
-            body::after {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.90);
-                z-index: -1;
-            }
-
-     #app-layout {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 5px 0 0 0;
-       overscroll-behavior: none;
-        touch-action: pan-y;
-       -webkit-overflow-scrolling: touch;
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      z-index: 0;
-}
-
-    .container {
-                max-width: 1000px;
-                margin: 0 auto;
-                padding: 0 20px;
-            }
-
-    .install-content-scroll {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-            
-            .footer-wrapper {
-                position: relative;
-                width: 100%;
-                padding-bottom: 2px;
-                z-index: 1;
-                background: transparent;
-            }
-
-    .top-section {
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr;
-                gap: 0px;
-                margin-bottom: 0px;
-                padding-bottom: 0px;
-            }
-
-    .section-title {
-        color: #ffc43d;
-        font-size: 16px;
-        font-weight: bold;
-        margin-bottom: 0px;
-        text-decoration: underline;
-        text-shadow: 0 0 15px rgba(255, 196, 61, 0.4);
-    }
-
-    .section-subtitle {
-                color: #ffffff;
-                font-size: 11px;
-                margin-bottom: 0px;
-            }
-
-    .region-icons {
-        display: grid;
-        grid-template-columns: repeat(4, auto);
-        gap: 20px;
-        max-width: 100%;
-        justify-content: start;
-    }
-
-    .icon-item {
-        text-align: center;
-        cursor: pointer;
-        padding: 0px 1px;
-        border: none;
-        border-radius: 0px;
-        transition: all 0.2s;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    @media (hover: hover) {
-        .icon-item:hover .icon-placeholder,
-        .icon-item:hover .icon-label {
-            transform: scale(1.1);
-            filter: drop-shadow(0 0 4px rgba(255, 196, 61, 0.15));
-        }
-    }
-
-    .icon-item .icon-label {
-        padding: 2px 8px;
-        border-radius: 4px;
-        display: inline-block;
-    }
-
-    .icon-item.selected .icon-label {
-        background: #DAA520;
-        box-shadow: 0 0 10px rgba(218, 165, 32, 0.5);
-    }
-
-    .icon-placeholder {
-        width: 50px;
-        height: 50px;
-        margin: 0 auto 0px;
-        border-radius: 4px;
-        transition: transform 0.2s ease;
-    }
-
-    .icon-placeholder img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .icon-label {
-        color: #ffffff;
-        font-size: 11px;
-        margin-top: 2px;
-        transition: transform 0.2s ease;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-
-    .icon-item.mobile-active .icon-placeholder,
-    .icon-item.mobile-active .icon-label {
-        animation: tapPulse 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        transform: none;
-    }
-
-    .icon-label.highlight {
-        color: #ffffff;
-    }
-
-    .entity-icons {
-        display: grid;
-        grid-template-columns: repeat(3, auto);
-        gap: 20px;
-        justify-content: start;
-    }
-            .filter-category-section {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        margin-bottom: 30px;
-    }
-
-    .filter-category-grid {
-        display: grid;
-        gap: 8px;
-        margin-top: 15px;
-    }
-
-    .advanced-section {
-        margin-bottom: 8px;
-        padding: 5px 0px;
-        background: transparent;
-        border-radius: 8px;
-        display: inline-block;
-        vertical-align: top;
-        pointer-events: auto;
-    }
-
-    /* Advanced slider: restore original size/padding (force overrides) */
-    .advanced-section .slider-container {
-        width: 360px;
-        max-width: 80vw;
-        padding: 0 !important;
-    }
-
-
-
-    .advanced-title {
-                color: #ffc43d;
-                font-size: 16px;
-                font-weight: bold;
-                margin-bottom: 0px;
-                text-decoration: underline;
-                text-align: center;
-            }
-
-    .advanced-subtitle {
-        color: #ffffff;
-        font-size: 12px;
-        margin-bottom: 5px;
-        text-align: center;
-    }
-
-    .slider-row {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 0px;
-            }
-
-    .tree-graphic {
-                width: 110px;
-                text-align: center;
-                position: relative;
-                height: 100px;
-                margin: 0 auto;
-            }
-
-            .tree-icon {
-                width: 95px;
-                height: 95px;
-                position: absolute;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 3;
-                top: 5px;
-            }
-
-            .tree-icon img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-
-            .tree-behind-left,
-            .tree-behind-right {
-                position: absolute;
-                width: 75px;
-                height: 75px;
-                top: -5px;
-            }
-
-            .tree-behind-left {
-                left: auto;
-                right: 42%;
-                z-index: 1;
-                opacity: 1;
-            }
-
-            .tree-behind-right {
-                left: 42%;
-                right: auto;
-                z-index: 2;
-                opacity: 1;
-            }
-
-            .tree-behind-left img,
-            .tree-behind-right img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-
-    .slider-container {
-        width: 100%;
-        position: relative;
-        padding: 0 10%;
-        margin-top: -18px;
-        touch-action: pan-y;
-    }  
-
-            .slider-track {
-        position: relative;
-        height: 80px;
-        padding-top: 40px;
-    }
-
-            .slider {
-        width: 100%;
-        -webkit-appearance: none;
-        height: 24px;
-        background: transparent;
-        outline: none;
-        border-radius: 2px;
-        position: absolute;
-        top: 28px;
-        pointer-events: none;
-        z-index: 10;
-        touch-action: none;
-    }
-
-            .slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        width: 12px;
-        height: 24px;
-        background: #FFD700;
-        border: 2px solid #fdf6ce;
-        cursor: pointer;
-        border-radius: 12px;
-        pointer-events: auto;
-        position: relative;
-        z-index: 3;
-        box-shadow: 0 0 0 15px transparent;
-    }
-
-            .slider::-moz-range-thumb {
-        width: 12px;
-        height: 24px;
-        background: #FFD700;
-        border: 2px solid #fdf6ce;
-        cursor: pointer;
-        border-radius: 12px;
-        pointer-events: auto;
-        position: relative;
-        z-index: 3;
-        box-shadow: 0 0 0 15px transparent;
-    }
-
-    .slider-track-bg {
-        position: absolute;
-        width: 100%;
-        height: 4px;
-        background: #bf9904;
-        border-radius: 2px;
-        top: 38px;
-        z-index: 0;
-    }
-
-    .slider-fill {
-        position: absolute;
-        height: 4px;
-        background: #fdf6ce;
-        border-radius: 2px;
-        top: 38px;
-        pointer-events: none;
-        z-index: 5;
-    }
-
-            .slider-labels {
-        position: absolute;
-        width: 100%;
-        top: 5px;
-        left: 0;
-        display: block;
-        padding: 0;
-        color: #ffffff;
-        font-size: 12px;
-        pointer-events: none;
-    }
-
-    .slider-labels span,
-    .slider-ticks span {
-        position: absolute;
-        left: 0;
-        transform: translateX(-50%);
-        display: block;
-        text-align: center;
-    }
-
-    .slider-ticks {
-        position: absolute;
-        width: 100%;
-        top: 62px;
-        left: 0;
-        display: block;
-        padding: 0;
-        pointer-events: none;
-    }
-
-    .slider-labels, .slider-ticks { z-index: 6; }
-    /* Strong overrides for advanced slider labels/ticks placed after general rules */
-    .advanced-section .slider-labels {
-        left: 0 !important;
-        right: 0 !important;
-        padding: 0 !important;
-    }
-    .advanced-section .slider-ticks {
-        left: 0 !important;
-        right: 0 !important;
-        padding: 0 !important;
-    }
-
-    .slider-tick {
-        /* original subtle tick style: thin vertical line */
-        width: 2px;
-        height: 8px;
-        background: #FFD700;
-        border: none;
-        border-radius: 1px;
-        position: absolute;
-        transform: translateX(-50%);
-        top: 0;
-        z-index: 6;
-        display: block;
-        box-shadow: none;
-    }
-
-
-    .preview-box {
-                width: 180px;
-                height: 180px;
-                background: transparent;
-                border: none;
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-            }
-
-    .preview-content {
-                width: 150px;
-                height: 150px;
-                border-radius: 4px;
-                position: relative;
-                z-index: 2;
-                overflow: visible;
-            }
-
-    .old-man-behind {
-                position: absolute;
-                width: 80px;
-                height: 80px;
-                bottom: 75%;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 3;
-                pointer-events: none;
-            }
-
-    .preview-content img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-                display: block;
-                transform: scale(var(--preview-scale));
-                transform-origin: center center;
-            }
-
-    .old-man-behind img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-                transform: scale(var(--preview-scale));
-                transform-origin: center center;
-            }
-    .reset-button {
-        width: auto;
-        padding: 12px 150px;
-        background: #000;
-        border: 2px solid #f4ecba;
-        color: #f4ecba;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        transition: all 0.2s;
-        display: inline-block;
-        touch-action: manipulation;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-        position: relative;
-        z-index: 10;
-    }
-
-    .mobile-reset { display: none; }
-
-    .nav-right-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-    }
-
-    .page-counter {
-        color: #ffedc5;
-        font-size: 16px;
-        font-weight: bold;
-        margin-bottom: 2px;
-        white-space: nowrap;
-        min-width: 50px;
-        text-align: center;
-    }
-
-    @media (hover: hover) {
-        .reset-button:hover {
-            background: #211d0e;
-            border-color: #f4ecba;
-            box-shadow: 0 0 15px rgba(244, 236, 186, 0.15);
-        }
-    }
-
-    .reset-button.mobile-active {
-        background: #211d0e;
-        border-color: #f4ecba;
-    }
-
-    .gallery-wrapper {
-                display: flex;
-                align-items: center;
-                gap: 20px;
-                margin-bottom: -10px;
-                margin-top: -10px;
-                position: relative;
-            }
-
-    .nav-arrow {
-                width: 35px;
-                height: 35px;
-                background: transparent;
-                border: none;
-                cursor: pointer;
-                border-radius: 8px;
-                transition: all 0.2s;
-                padding: 0;
-                overflow: visible;
-                flex-shrink: 0;
-                touch-action: manipulation;
-            }
-
-            .nav-arrow img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-                transition: filter 0.2s;
-            }
-
-    .nav-arrow:hover:not(:disabled) {
-                transform: scale(1.1);
-            }
-
-    .nav-arrow:hover:not(:disabled) img {
-                filter: brightness(1.10);
-            }
-
-            @keyframes tapPulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.15); }
-                100% { transform: scale(1); }
-            }
-
-            @keyframes tapBrightness {
-                0% { filter: brightness(1); }
-                50% { filter: brightness(1.3); }
-                100% { filter: brightness(1); }
-            }
-
-            .nav-arrow.mobile-active {
-                animation: none;
-                transform: none;
-            }
-
-            .nav-arrow.mobile-active img {
-                animation: tapPulse 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            }
-
-            .nav-arrow:disabled {
-                opacity: 0.3;
-                cursor: not-allowed;
-            }
-
-    .gallery-grid {
-                display: grid;
-                grid-template-columns: repeat(6, 1fr);
-                column-gap: 2px;
-                row-gap: 0px !important;
-                flex: 1;
-                align-items: start;
-            }
-
-    .nav-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        margin-top: 0px;
-        position: relative;
-        z-index: 50;
-    }
-
-    .map-thumbnail {
-    background: transparent;
-    border: none;
-    border-radius: 0px;
-    overflow: hidden;
-    aspect-ratio: 1;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin: 0 !important;
-    padding: 0 !important;
-    line-height: 0;
-    display: block;
-    z-index: 1;
-}
-
-            @media (hover: hover) {
-                .map-thumbnail:hover {
-                    transform: scale(1.05);
-                }
-            }
-
-            @keyframes mapTap {
-                0% { transform: scale(1); }
-                50% { transform: scale(0.95); }
-                100% { transform: scale(1); }
-            }
-
-            .map-thumbnail.mobile-active {
-                animation: mapTap 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            }
-
-            .map-thumbnail img {
-                display: block;
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-                margin: 0;
-                padding: 0;
-                vertical-align: top;
-            }
-
-    .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.3);
-                display: none;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                cursor: pointer;
-            }
-
-            .modal-overlay.active {
-                display: flex;
-                animation: fadeIn 0.2s ease;
-            }
-
-            .modal-content {
-                max-width: 90%;
-                max-height: 90%;
-                position: relative;
-                opacity: 0;
-                text-align: center;
-                filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
-            }
-
-            .modal-content.image-loaded {
-                opacity: 1;
-                animation: eyeOpen 0.4s ease-out;
-            }
-
-            .modal-content.closing {
-                animation: eyeClose 0.2s ease-in forwards;
-            }
-
-    .modal-content img {
-                width: 100%;
-                max-height: 60vh;
-                border: none;
-                border-radius: 0px;
-                display: block;
-                margin: 0 auto;
-            }
-
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-
-            @keyframes eyeOpen {
-                0% { transform: scaleY(0); }
-                100% { transform: scaleY(1); }
-            }
-
-            @keyframes eyeClose {
-                0% { transform: scaleY(1); }
-                100% { transform: scaleY(0); }
-            }
-
-            @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
-            }
-
-            .modal-overlay.closing {
-                animation: fadeOut 0.2s ease-out forwards;
-            }
-
-            .install-modal-content.closing {
-                animation: eyeClose 0.2s ease-in forwards;
-            }
-
-            .bottom-section {
-                margin-top: 10px;
-                padding-top: 0px;
-                position: relative;
-            }
-
-            .highfive-image {
-                width: 100px;
-                margin: 0 auto 0px;
-            }
-
-            .highfive-image img {
-                width: 100%;
-                height: auto;
-                display: block;
-            }
-
-            .logo-image {
-                max-width: 400px;
-                margin: -50px auto 0;
-                touch-action: none !important;
-            }
-
-            .actions-wrapper {
-                position: absolute;
-                left: calc(50% + 180px);
-                top: 10px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 15px;
-                z-index: 50;
-                pointer-events: auto;
-            }
-
-            .feedback-container {
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                text-decoration: none;
-                transition: transform 0.2s;
-                touch-action: manipulation;
-            }
-
-            .feedback-container:hover {
-                transform: scale(1.1);
-            }
-
-            .feedback-text {
-                color: #ffc43d;
-                font-size: 12px;
-                font-weight: bold;
-                margin-bottom: 5px;
-                text-shadow: 2px 2px 0px #000;
-                white-space: nowrap;
-            }
-
-            .feedback-icon {
-                width: 40px;
-                height: 40px;
-            }
-
-            .feedback-icon img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-
-            .install-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                text-decoration: none;
-                transition: transform 0.2s;
-                touch-action: manipulation;
-                cursor: pointer;
-                pointer-events: auto;
-            }
-
-            .install-container:hover {
-                transform: scale(1.1);
-            }
-
-            .install-text {
-                color: #ffc43d;
-                font-size: 12px;
-                font-weight: bold;
-                margin-bottom: 5px;
-                text-shadow: 2px 2px 0px #000;
-                white-space: nowrap;
-            }
-
-            .install-icon {
-                width: 40px;
-                height: 40px;
-            }
-
-            .install-icon img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-
-            .logo-image img {
-                width: 100%;
-                height: auto;
-                display: block;
-            }
-
-            .credits {
-                text-align: center;
-                color: #ffffff;
-                font-size: 10px;
-                line-height: 1.4;
-                margin-top: -55px;
-            }
-
-            .debug-info {
-        display: none;
-            }	
-
-    .gallery-desktop-container {
-        max-width: 900px !important;
-        margin: -15px auto -15px;
-        padding: 0 20px;
-        width: 100%;
-        position: relative;
-        z-index: 1;
-    }
-
-    @media (min-width: 1025px) {
-        #mapGallery {
-            display: grid !important;
-            width: 100% !important;
-        }
-    }
-
-    .footer-section {
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        width: 100%; 
-        margin-top: 5px; 
-        padding: 5px 0 12px 0; 
-        background: transparent; 
-        border-top: 1px solid #1a1810;
-    }
-
-    @media (min-width: 1025px) {
-        .footer-wrapper {
-            background: transparent !important;
-        }
-
-        .footer-section {
-            background: transparent !important;
-        }
-
-        .legal-footer {
-            background-color: rgba(0, 0, 0, 0.9) !important;
-            box-shadow: none !important;
-        }
-    }
-
-    /* Loading Spinner */
-    .spinner {
-        border: 3px solid rgba(255, 196, 61, 0.1);
-        border-radius: 50%;
-        border-top: 3px solid #ffc43d;
-        width: 50px;
-        height: 50px;
-        box-shadow: 0 0 15px rgba(255, 196, 61, 0.2);
-        animation: spin 1s linear infinite;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        margin-top: -20px;
-        margin-left: -20px;
-        display: none;
-        z-index: 1001;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    /* Download Button */
-    .modal-image-wrapper {
-        position: relative;
-        display: inline-block;
-        max-width: 60%;
-        max-height: 60vh;
-    }
-
-    .download-btn {
-        position: absolute;
-        bottom: -15px;
-        right: -15px;
-        width: 36px;
-        height: 36px;
-        background-color: #000;
-        border: 2px solid #a58f3e;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 20;
-        text-decoration: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        transition: transform 0.2s;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease, transform 0.2s;
-    }
-
-    .download-btn:hover {
-        transform: scale(1.1);
-        background-color: #1a1a1a;
-    }
-
-    .download-btn:active {
-        transform: scale(0.95);
-    }
-
-    .modal-content.image-loaded .download-btn {
-        opacity: 1;
-        pointer-events: auto;
-        transition-delay: 0.1s;
-    }
-
-    /* Install Modal Styles */
-    .install-modal-content {
-        background-color: #181818;
-        width: 90%;
-        max-width: 400px;
-        padding: 0;
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        max-height: 80vh;
-        animation: eyeOpen 0.4s ease-out;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 0 1px rgba(255, 196, 61, 0.1);
-        overflow: visible;
-    }
-
-    .install-header-wrapper {
-        width: 100%;
-        padding: 25px 20px 15px;
-        background: linear-gradient(to bottom, #202020, #181818);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        z-index: 2;
-        border-radius: 12px 12px 0 0;
-    }
-
-    .install-close-btn {
-        position: absolute;
-        top: -15px;
-        right: -15px;
-        width: 36px;
-        height: 36px;
-        background-color: #000;
-        border: 2px solid #a58f3e;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 20;
-        padding: 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        transition: transform 0.2s;
-    }
-
-    .install-close-btn:hover {
-        transform: scale(1.1) rotate(90deg);
-        background-color: #1a1a1a;
-    }
-
-    .install-close-btn:active {
-        transform: scale(0.95);
-    }
-
-    .install-title {
-        color: #ffc43d;
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 15px;
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-
-    .install-divider-main {
-        width: 85%;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #ffc43d, transparent);
-        flex-shrink: 0;
-        opacity: 0.8;
-    }
-
-    .install-content-scroll {
-        padding: 20px 25px;
-        width: 100%;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .install-section-title {
-        color: #ffc43d;
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-family: 'Verdana', sans-serif;
-    }
-
-    .install-text-content {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 8px;
-        padding: 12px 15px;
-        color: #ccc;
-        font-size: 14px;
-        line-height: 1.5;
-        width: 100%;
-        text-align: left;
-    }
-
-    .install-divider-sub {
-        width: 100%;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, #333, transparent);
-        margin: 5px 0;
-    }
-
-    .install-guide-img {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        margin: 10px auto;
-        border-radius: 4px;
-        border: 1px solid rgba(255, 196, 61, 0.3);
-    }
-
-    /* Desktop Navigation Styles */
-    @media (min-width: 1025px) {
-        .gallery-desktop-container .nav-controls {
-            position: static !important;
-            height: 0 !important;
-            margin: 0 !important;
-            width: 100% !important;
-            display: block !important;
-        }
-
-        .gallery-desktop-container #prevBtn {
-            position: absolute !important;
-            left: -40px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            width: 45px !important;
-            height: 45px !important;
-            margin: 0 !important;
-            z-index: 50 !important;
-        }
-
-        .gallery-desktop-container #nextBtn {
-            position: absolute !important;
-            right: -40px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            width: 45px !important;
-            height: 45px !important;
-            margin: 0 !important;
-            z-index: 50 !important;
-        }
-
-        .gallery-desktop-container #pageCounter {
-            position: absolute !important;
-            right: -40px !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            margin-top: -35px !important;
-            width: 45px !important;
-            text-align: center !important;
-            display: flex !important;
-            justify-content: center !important;
-            z-index: 51 !important;
-        }
-    }
-
-    /* ==================== MOBILE SUPPORT ==================== */
-
-    /* Tablet and Mobile - 1024px and smaller */
-    @media (max-width: 1024px) {
-        /* Keep the scrollbar hidden on mobile as well */
-        ::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
         }
 
         html {
-        overflow-x: hidden;
-        width: 100%;
-        max-width: 100vw;
-        overscroll-behavior-x: none;
-        overscroll-behavior-y: none;
-    }
-    body {
-        overflow-x: hidden;
-        width: 100%;
-        max-width: 100vw;
-        position: fixed;
-        overscroll-behavior-x: none;
-        overscroll-behavior-y: none;
-    }
+            background: #000000;
+        }
 
-        /* Force hardware acceleration and touch handling to prevent delays */
-    button, .nav-arrow {
-        touch-action: manipulation;
-    }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #000000;
+            color: var(--text);
+            font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+            overflow: hidden;
+        }
 
-        .container {
-            padding: 0 10px;
-            padding-bottom: 0px;
-            overflow-x: hidden;
+        body::before {
+            content: none;
+        }
+
+        body::after {
+            display: none;
+        }
+
+        .leaf {
+            position: fixed;
+            top: 0;
+            z-index: -1;
+            pointer-events: none;
+            border-radius: 2px 12px;
+            background: currentColor;
+            filter: blur(0.5px);
+            opacity: 0;
+        }
+
+        @keyframes leaf-float {
+            0% {
+                transform: translateY(-10vh) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% {
+                transform: translateY(110vh) translateX(var(--leaf-drift)) rotate(var(--leaf-rotation));
+                opacity: 0;
+            }
+        }
+
+        @keyframes leaf-sway {
+            0%, 100% { transform: translateX(-20px); }
+            50% { transform: translateX(20px); }
+        }
+
+        .leaf-inner {
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            border-radius: inherit;
+            animation: leaf-sway 3s ease-in-out infinite;
+        }
+
+        .page {
             position: relative;
+            min-height: 100vh;
+            isolation: isolate;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity var(--page-transition-duration) ease, transform var(--page-transition-duration) ease;
         }
 
-        /* Mobile animation speed (instant) */
-    .icon-item {
-        transition: none;
-    }
-    .reset-button {
-        transition: all 0.1s;
-    }
-    .icon-placeholder, .icon-label {
-        transition: none;
-    }
-    
-        /* Reorder sections for mobile */
-        #mainContainer {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
+        .page.is-visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .top-section {
-            display: contents !important;
-        }
-
-        .section-region { order: 1; width: 100%; }
-        .section-overworld { order: 2; margin: 0 !important; margin-top: -15px !important; }
-        .section-cavern { order: 3; margin: 0 !important; margin-top: -15px !important; }
-        .section-entity { order: 4; width: 100%; margin-top: -15px !important; }
-        .section-entity > div { margin-top: 0 !important; }
-        .section-addition { order: 5; width: 100%; margin-top: -15px !important; }
-        .section-advanced { order: 6; margin-top: -35px !important; margin-bottom: 0px !important; pointer-events: none; }
-        .section-reset-wrapper { order: 7; }
-
-        /* Region section - 2x2 grid */
-        .region-icons {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            justify-items: center;
-        }
-
-        /* Entity section - 4 columns in one row */
-        .entity-icons {
-            display: grid !important;
-            grid-template-columns: repeat(4, 1fr) !important;
-            gap: 15px;
-            justify-items: center;
-        }
-
-        /* Addition section - centered */
-        .addition-icons {
-            display: flex;
-            justify-content: center;
-            margin: 0 auto;
-        }
-
-        /* Overworld filters - 4 columns grid */
-        #overworldFilters {
-            grid-template-columns: repeat(4, 1fr) !important;
-            gap: 15px !important;
-            justify-items: center;
-        }
-
-        /* Cavern filters - 4 columns grid */
-        #cavernFilters {
-            grid-template-columns: repeat(4, 1fr) !important;
-            gap: 15px !important;
-            justify-items: center;
-        }
-
-        /* Section titles styling */
-        .section-title {
-            font-size: 24px;
-            text-align: left;
-            color: #ffc43d;
-        }
-
-        .section-subtitle {
-            font-size: 14px;
-            text-align: left;
-        }
-
-        /* Icon items */
-        .icon-item {
+        /* Install App: bottom-right corner, icon above the text. Fades in with the page. */
+        .install-btn {
+            position: fixed;
+            right: max(14px, env(safe-area-inset-right));
+            bottom: max(14px, env(safe-area-inset-bottom));
+            z-index: 5;
             display: flex;
             flex-direction: column;
             align-items: center;
+            gap: 6px;
+            padding: 8px 10px;
+            background: none;
+            border: 0;
+            border-radius: 10px;
+            color: #ffffff;
+            font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity var(--page-transition-duration) ease, color 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .icon-placeholder {
-            width: 80px;
-            height: 80px;
+        .page.is-visible ~ .install-btn {
+            opacity: 1;
         }
 
-        .icon-label {
-            font-size: 15px;
-            text-align: center;
+        .install-word {
+            color: #9a9a9a;
+        }
+
+        /* Sized to sit with the text, keeping the icon's own 127x160 proportions. */
+        .install-btn img {
+            width: auto;
+            height: 56px;
+            display: block;
+        }
+
+        .install-btn[hidden] {
+            display: none;
+        }
+
+        .install-tip {
+            position: fixed;
+            right: max(14px, env(safe-area-inset-right));
+            bottom: calc(max(14px, env(safe-area-inset-bottom)) + 100px);
+            z-index: 6;
+            max-width: min(260px, calc(100vw - 28px));
+            padding: 10px 12px;
+            background: rgba(20, 20, 20, 0.96);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+            line-height: 1.4;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .install-tip.is-open {
+            opacity: 1;
+        }
+
+        .transition-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--overlay-transition-duration) ease;
+            z-index: 10;
+        }
+
+        .transition-overlay.is-active {
+            opacity: 1;
+        }
+
+        .menu-block {
+            position: absolute;
+            left: 42px;
+            bottom: 34px;
+            width: min(460px, calc(100vw - 72px));
+        }
+
+        .title {
+            display: inline-block;
+            margin: 0 0 20px;
+            font-size: clamp(4.8rem, 13vw, 8.4rem);
+            line-height: 0.88;
+            font-weight: 800;
+            font-family: Impact, Haettenschweiler, "Franklin Gothic Heavy", "Arial Narrow Bold", sans-serif;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #ffffff;
+            text-shadow: 0 0 18px rgba(255, 255, 255, 0.4);
+        }
+
+        .title::after {
+            content: "";
+            display: block;
+            width: clamp(360px, 54vw, 1000px);
+            height: 5px;
+            margin-top: 12px;
+            background: linear-gradient(90deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 58%, rgba(255, 255, 255, 0) 100%);
+            box-shadow: 0 0 24px var(--accent-soft);
+        }
+
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin: 0 0 28px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .menu-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text);
+            text-decoration: none;
+            font-size: clamp(0.75rem, 1.45vw, 1.05rem);
+            letter-spacing: 0.16em;
+            -webkit-tap-highlight-color: transparent;
+            transform-origin: center;
+            transition: color 160ms ease, transform 160ms ease, text-shadow 160ms ease;
+        }
+
+        .menu-link-secondary {
+            font-size: clamp(0.56rem, 1.02vw, 0.74rem);
+            letter-spacing: 0.14em;
+        }
+
+        .menu-item-secondary {
+            margin-top: 18px;
+        }
+
+        .menu-item-secondary + .menu-item-secondary {
+            margin-top: -4px;
+        }
+
+        .menu-button {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            font-family: inherit;
+            font-weight: inherit;
+            line-height: inherit;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .about-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.78);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 220ms ease;
+            z-index: 20;
+        }
+
+        .about-overlay.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .about-panel {
+            width: min(520px, 100%);
+            padding: 22px 22px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(6, 6, 6, 0.96);
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 220ms ease, transform 220ms ease;
+        }
+
+        .about-overlay.is-open .about-panel {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .about-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .about-title {
+            margin: 0;
+            color: #f0f4ff;
+            font-size: 0.92rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .about-close {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: rgba(240, 244, 255, 0.74);
+            font: inherit;
+            font-size: 0.78rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: color 160ms ease, opacity 160ms ease;
+        }
+
+        .about-close:hover,
+        .about-close:focus-visible {
+            color: #ffffff;
+            opacity: 1;
+            outline: none;
+        }
+
+        .about-body {
+            color: rgba(232, 237, 248, 0.76);
+            font-size: 0.78rem;
+            line-height: 1.7;
+            letter-spacing: 0.04em;
+        }
+
+        .about-body p {
+            margin: 0 0 12px;
+        }
+
+        .about-body strong {
+            font-weight: 700;
+            color: #ffffff;
+            -webkit-text-stroke: 0.15px currentColor;
+        }
+
+        .about-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .feedback-option-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+            width: 100%;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .feedback-option-box:hover,
+        .feedback-option-box:focus-visible {
+            border-color: rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.06);
+            transform: scale(1.03) !important;
+            color: #ffffff;
+            text-shadow: 0 0 18px rgba(255, 255, 255, 0.16);
+            outline: none;
+        }
+
+        .copy-success {
+            position: absolute;
+            bottom: -22px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #4ade80;
+            font-size: 0.68rem;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 220ms ease, transform 220ms ease;
+            transform: translateY(-4px);
+        }
+
+        .copy-success.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback-icon-svg {
+            width: 28px;
+            height: 28px;
+            opacity: 0.7;
             margin-top: 4px;
         }
 
-    /* Advanced section positioning - CENTERED */
-    .section-advanced {
-        grid-template-columns: 1fr !important;
-        display: flex !important;
-        justify-content: center !important;
-        width: 100vw !important;
-        margin-left: calc(-50vw + 50%) !important;
-    }
-
-    div[style*="grid-column: 7 / 9"] {
-        grid-column: 1 / -1 !important;
-        display: flex !important;
-        justify-content: center !important;
-        width: 100% !important;
-    }
-
-    /* Center and make advanced section full width */
-    .advanced-section {
-        width: 100vw !important;
-        margin-left: calc(-50vw + 50%) !important;
-        padding: 20px 0 0 0 !important;
-        pointer-events: auto !important;
-        text-align: center;
-    }
-
-    /* Force override inline styles */
-    div[style*="margin-bottom: 0px; padding: 5px 0px"] {
-        width: 100vw !important;
-        margin-left: calc(-50vw + 50%) !important;
-    }
-
-    /* SLIDER FULL WIDTH - EXTEND TO EDGES */
-    .advanced-section .slider-container {
-        width: 85% !important;
-        max-width: none !important;
-        padding: 0 10px !important;
-        margin: -10px auto 0 auto !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Make slider track match the label/tick width */
-    .advanced-section .slider-track,
-    .advanced-section .slider-track-bg,
-    .advanced-section .slider-fill,
-    .advanced-section .slider {
-        width: 100% !important;
-        left: 0 !important;
-        right: 0 !important;
-    }
-
-    /* Medium thickness for mobile slider */
-    .advanced-section .slider {
-        height: 44px !important;
-        border-radius: 0px !important;
-        top: 18px !important;
-        width: calc(100% + 32px) !important;
-        left: -16px !important;
-    }
-
-    /* Fix for PWA Android rendering offset */
-    @media (display-mode: standalone) {
-        .advanced-section .slider {
-            top: 18px !important;
-        }
-    }
-
-    .advanced-section .slider::-webkit-slider-thumb {
-        width: 44px !important;
-        height: 44px !important;
-        border: none !important;
-        border-radius: 0 !important;
-        background-color: transparent !important;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='24' viewBox='0 0 12 24'%3E%3Crect x='1' y='1' width='10' height='22' rx='5' fill='%23FFD700' stroke='%23fdf6ce' stroke-width='2'/%3E%3C/svg%3E") !important;
-        background-repeat: no-repeat !important;
-        background-position: center !important;
-        box-shadow: none !important;
-        margin-top: 0px !important;
-        pointer-events: auto !important;
-    }
-
-    .advanced-section .slider::-moz-range-thumb {
-        width: 44px !important;
-        height: 44px !important;
-        border: none !important;
-        border-radius: 0 !important;
-        background-color: transparent !important;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='24' viewBox='0 0 12 24'%3E%3Crect x='1' y='1' width='10' height='22' rx='5' fill='%23FFD700' stroke='%23fdf6ce' stroke-width='2'/%3E%3C/svg%3E") !important;
-        background-repeat: no-repeat !important;
-        background-position: center !important;
-        box-shadow: none !important;
-        margin-top: 0px !important;
-        pointer-events: auto !important;
-    }
-
-    /* Make entire slider area tappable on mobile */
-    .advanced-section .slider {
-        padding: 0px 0 !important;
-        margin-top: 0px !important;
-        pointer-events: none !important;
-    }
-
-    /* Fix the slider fill to show properly */
-    .advanced-section .slider-fill {
-        position: absolute !important;
-        height: 6px !important;
-        background: #fdf6ce !important;
-        border-radius: 3px !important;
-        top: 37px !important;
-        left: 0 !important;
-        z-index: 5 !important;
-        pointer-events: none !important;
-        display: block !important;
-        visibility: visible !important;
-    }
-
-    .advanced-section .slider-track-bg {
-        position: absolute !important;
-        height: 6px !important;
-        background: #bf9904 !important;
-        border-radius: 3px !important;
-        top: 37px !important;
-        left: 0 !important;
-        width: 100% !important;
-        z-index: 0 !important;
-    }
-
-    .advanced-section .slider {
-        z-index: 10 !important;
-    }
-
-    /* Allow JS to position labels/ticks correctly on mobile */
-    .advanced-section .slider-labels,
-    .advanced-section .slider-ticks {
-        display: block !important;
-        padding: 0 !important;
-        width: 100% !important;
-        left: 0 !important;
-        right: 0 !important;
-        font-size: 16px !important;
-    }
-
-    .advanced-title {
-        font-size: 24px;
-        text-align: center;
-    }
-
-    .advanced-subtitle {
-        font-size: 16px;
-        text-align: center;
-            margin-bottom: 2px !important;
-    }
-
-        /* Show tree behind elements on small screens */
-        .tree-behind-left,
-        .tree-behind-right {
-            display: block !important;
-            width: 80px;
-            height: 80px;
-            top: 5px !important;
+        .feedback-content {
+            display: flex;
+            align-items: stretch;
+            gap: 24px;
+            padding: 10px 0;
         }
 
-        /* Adjust tree graphic size */
-        .tree-graphic {
-            width: 130px;
-            height: 120px;
-            margin: -5px auto 0 auto;
-        }
-
-        .tree-icon {
-            width: 115px;
-            height: 115px;
-            top: 15px;
-        }
-
-        .slider-row {
+        .feedback-column {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        /* Hide preview box on mobile */
-        div[style*="position: absolute; right: 0; top: -160px"] {
-            display: none !important;
-        }
-
-        /* Reset button - FIXED AT BOTTOM OF SCREEN */
-        .section-reset-wrapper {
-            position: static !important;
-            height: auto !important;
-        }
-
-        /* Reset button - FIXED AT BOTTOM OF SCREEN */
-.section-reset-wrapper {
-    position: static !important;
-    height: auto !important;
-}
-
-.desktop-reset { display: none !important; }
-
-/* MAKE RESET BUTTON VERTICALLY BIGGER */
-.reset-button {
-    padding: 20px 20px !important;
-    width: 90% !important;
-    max-width: none !important;
-    font-size: 22px !important;
-    margin: 0 auto !important;
-    height: auto !important;
-    font-weight: bold !important;
-    position: relative !important;
-    z-index: 100 !important;
-}
-
-.mobile-reset {
-    display: block !important;
-    position: fixed !important;
-    bottom: 10px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 90% !important;
-    z-index: 100 !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
-}
-
-        .gallery-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-    z-index: 1 !important;
-    position: relative !important;
-    column-gap: 2px !important;
-    row-gap: 0px !important;
-    margin-bottom: 0px !important;
-    display: grid !important;
-    width: 95% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    margin-top: -55px !important;
-}
-
-    .nav-controls {
-        margin-top: -30px !important;
-        width: 95% !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-    }
-
-.map-thumbnail {
-}
-        
-        /* MOVE GALLERY CLOSER TO SMALL LINE ABOVE */
-    .gallery-wrapper {
-        flex-direction: column;
-        gap: 0;
-        margin-top: -15px !important;
-            margin-bottom: 60px !important;
-        position: relative;
-        padding-bottom: 0px !important;
-    }
-
-        .nav-right-wrapper {
-            display: contents;
-        }
-
-        .page-counter {
-            position: static !important;
-            transform: none !important;
-            margin-top: 0px !important;
-            z-index: 51 !important;
-            font-size: 18px !important;
-            min-width: 60px !important;
-        }
-
-        /* MAKE ARROWS BIGGER AND POSITION CLOSER TO GALLERY */
-    .nav-arrow {
-        width: 80px !important;
-        height: 80px !important;
-        position: static !important;
-        margin-top: 0px !important;
-        z-index: 50 !important;
-    }
-
-        #prevBtn {
-            left: auto !important;
-        }
-
-        #nextBtn {
-            right: auto !important;
-        }
-
-        /* Add padding to bottom of page for fixed reset button */
-    body {
-        padding-bottom: 0px !important;
-    }
-
-    .footer-section {
-        padding-bottom: 12px !important;
-        background: transparent !important;
-        margin-top: 0px;
-        padding-top: 2px !important;
-    }
-
-    .legal-footer {
-        padding-bottom: 95px !important;
-        box-shadow: none !important;
-    }
-
-        /* Make modal image larger on mobile */
-        .modal-image-wrapper {
-            max-width: 95% !important;
-            max-height: 80vh;
-        }
-
-        .modal-content img {
-            max-width: 100% !important;
-            max-height: 80vh;
-        }
-
-        /* Logo and credits */
-        .logo-image {
-            max-width: 300px;
-        }
-
-        /* REMOVE MASSIVE EMPTY SPACE AT BOTTOM */
-    .credits {
-        font-size: 9px !important;
-        padding: 0 10px;
-        margin-bottom: 0px;
-        padding-bottom: 2px;
-    }
-
-    .disclaimer {
-        font-size: 8px !important;
-    }
-
-        /* Bottom section spacing for reset button */
-    .bottom-section {
-        margin-bottom: 0px;
-    }
-
-        /* Adjust actions wrapper for mobile */
-        .actions-wrapper {
-            left: auto !important;
-            right: 2px !important;
-            top: 10px !important;
-            z-index: 50 !important;
-            pointer-events: auto !important;
-        }
-
-        .feedback-container .feedback-text {
-            font-size: 9px !important;
-        }
-        
-        .gallery-desktop-container {
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            z-index: 1;
-        }
-
-        .feedback-container .feedback-icon {
-            width: 28px !important;
-            height: 28px !important;
-            pointer-events: auto !important;
-        }
-
-        .install-text {
-            font-size: 9px !important;
-        }
-
-        .install-icon {
-            width: 28px !important;
-            height: 28px !important;
-            pointer-events: auto !important;
-        }
-
-        .logo-container img {
-            pointer-events: none !important;
-        }
-
-        /* Custom Mobile Adjustments */
-        .divider-line-short {
-            width: 70% !important;
-        }
-
-        .section-entity {
-            text-align: left !important;
-            padding-left: 0 !important;
-        }
-        .section-entity > div {
-            display: block !important;
-            text-align: left !important;
-            width: 100% !important;
-            margin-top: 0 !important;
-        }
-        .entity-icons {
-            padding-left: 0;
-        }
-
-        .section-addition .section-title,
-        .section-addition .section-subtitle {
-            text-align: center !important;
-        }
-
-        /* Close gap between slider and gallery lines */
-        .gallery-divider {
-            margin-top: -25px !important;
-        }
-    }
-
-    /* Tablet specific adjustments (768px - 1024px) */
-    @media (min-width: 768px) and (max-width: 1024px) {
-        .actions-wrapper {
-            right: 40px !important;
-        }
-        .feedback-container .feedback-text {
-            font-size: 12px !important;
-        }
-        .feedback-container .feedback-icon {
-            width: 36px !important;
-            height: 36px !important;
-        }
-        .install-text {
-            font-size: 12px !important;
-        }
-        .install-icon {
-            width: 36px !important;
-            height: 36px !important;
-        }
-        .nav-controls {
-            margin-top: -45px !important;
-        }
-    }
-
-    /* Extra small phones - 480px and smaller */
-    @media (max-width: 480px) {
-        /* Gallery - still 3 columns */
-        .gallery-grid {
-            grid-template-columns: repeat(3, 1fr) !important;
-            column-gap: 1.5px !important;
-            row-gap: 0px !important;
-            margin-bottom: 0px !important;
-        }
-
-        /* Keep 2x2 for regions */
-        .region-icons {
-            grid-template-columns: repeat(2, 1fr);
+            justify-content: center;
+            text-align: center;
             gap: 12px;
         }
 
-        /* Keep 4 columns for entities */
-        .entity-icons {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+        .feedback-column p {
+            margin: 0;
+            font-size: 0.72rem;
+            color: var(--muted);
+            line-height: 1.4;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* Overworld and Cavern - 4 columns on small phones */
-        #overworldFilters {
-            grid-template-columns: repeat(4, 1fr) !important;
-            gap: 12px !important;
+        .vertical-divider {
+            width: 1px;
+            background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+            flex-shrink: 0;
         }
 
-        #cavernFilters {
-            grid-template-columns: repeat(4, 1fr) !important;
-            gap: 12px !important;
+        .about-credits {
+            margin-top: 18px;
+            text-align: right;
+            font-size: 0.56rem;
+            color: var(--muted);
+            opacity: 0.5;
         }
 
-        /* Icon sizes */
-        .icon-placeholder {
-            width: 75px;
-            height: 75px;
+        .menu-link:visited,
+        .menu-link:active {
+            color: var(--text);
         }
 
-        .icon-label {
-            font-size: 14px;
+        .menu-link:hover,
+        .menu-link:focus-visible {
+            color: #ffffff;
+            transform: scale(1.05);
+            text-shadow: 0 0 18px rgba(255, 255, 255, 0.16);
+            outline: none;
         }
 
-        /* Navigation arrows */
-        .nav-arrow {
-        width: 80px !important;
-        height: 80px !important;
-        position: static !important;
-        z-index: 50 !important;
-    }
-
-        /* Reset button */
-        .reset-button {
-            padding: 25px 15px;
-            font-size: 14px;
-            width: calc(100% - 20px);
-            margin: 0 auto;
-        }
-
-        /* Smaller section titles */
-        .section-title {
-            font-size: 22px;
-        }
-
-        .section-subtitle {
-            font-size: 13px;
-        }
-
-        /* Tree graphic smaller */
-        .tree-graphic {
-            width: 120px;
-            height: 110px;
-        }
-
-        .tree-icon {
-            width: 105px;
-            height: 105px;
-        }
-
-        .advanced-title {
-            font-size: 22px;
-        }
-
-        .advanced-subtitle {
-            font-size: 15px;
-        }
-    }
-
-    /* Mobile 412px adjustments */
-    @media (max-width: 430px) {
-        .actions-wrapper {
-            right: 5px !important;
-        }
-        .feedback-container .feedback-text {
-            font-size: 8px !important;
-        }
-        .feedback-container .feedback-icon {
-            width: 26px !important;
-            height: 26px !important;
-        }
-        .install-text {
-            font-size: 8px !important;
-        }
-        .install-icon {
-            width: 26px !important;
-            height: 26px !important;
-        }
-    }
-
-    /* Mobile 375px adjustments */
-    @media (max-width: 400px) {
-        .actions-wrapper {
-            right: 5px !important;
-        }
-        .feedback-container .feedback-text {
-            font-size: 7px !important;
-        }
-        .feedback-container .feedback-icon {
-            width: 22px !important;
-            height: 22px !important;
-        }
-        .install-text {
-            font-size: 7px !important;
-        }
-        .install-icon {
-            width: 22px !important;
-            height: 22px !important;
-        }
-    }
-
-    /* Small mobile devices - 374px and smaller (e.g. 320px) */
-    @media (max-width: 374px) {
-        /* Reduce icon size to prevent grid overflow */
-        .icon-placeholder {
-            width: 65px !important;
-            height: 65px !important;
-        }
-
-        /* Reduce gaps */
-        #overworldFilters,
-        #cavernFilters,
-        .entity-icons,
-        .region-icons {
-            gap: 5px !important;
-        }
-
-        /* Reduce container padding to maximize space */
-        .container {
-            padding: 0 5px !important;
-        }
-
-        /* Adjust reset button to fit */
-        .reset-button {
-            font-size: 18px !important;
-            padding: 15px 0 !important;
-            width: 100% !important;
-        }
-
-        /* Adjust actions wrapper for small screens */
-        .actions-wrapper {
-            right: 5px !important;
-        }
-        .feedback-container .feedback-text {
-            font-size: 7px !important;
-        }
-        .feedback-container .feedback-icon {
-            width: 20px !important;
-            height: 20px !important;
-        }
-        .install-text {
-            font-size: 7px !important;
-        }
-        .install-icon {
-            width: 20px !important;
-            height: 20px !important;
-        }
-
-        .footer-section {
-            padding-bottom: 12px !important;
-        }
-
-        .legal-footer {
-            padding-bottom: 85px !important;
-        }
-    }
-    }
-
-            .mobile-download-controls {
-                display: flex !important;
-                width: 100% !important;
-                max-width: none !important;
-                margin: 0 auto 0 auto !important;
-                background: transparent !important;
-                border: none !important;
-                border-radius: 0 !important;
-                padding: 0 !important;
-                flex-direction: row !important;
-                align-items: center !important;
-                justify-content: space-between !important;
-                box-shadow: none !important;
-                position: relative !important;
-                z-index: 200 !important;
-                box-sizing: border-box !important;
-                height: 36px !important;
-                pointer-events: auto !important;
+        @media (max-width: 820px) {
+            :root {
+                --page-transition-duration: 520ms;
+                --overlay-transition-duration: 480ms;
             }
 
-            .mobile-spacer {
-                display: none;
-                height: 10px;
+            html,
+            body {
                 width: 100%;
+                height: 100dvh;
+                min-height: 0;
+                overflow: hidden;
             }
 
-            @media (max-width: 1024px) {
-                .mobile-spacer {
-                    display: block !important;
-                }
+            body {
+                position: fixed;
+                inset: 0;
             }
 
-            @media (min-width: 1025px) {
-                .mobile-download-controls {
-                    display: none !important;
-                }
+            body::before {
+                content: none;
             }
 
-            .download-label {
-                color: #f4ecba;
-                font-weight: bold;
-                font-size: 16px;
-                margin: 0 128px 0 25px !important;
-                padding: 0 0 0 10px !important;
-                line-height: normal !important;
-                height: 36px !important;
-                position: static !important;
-                display: flex !important;
-                align-items: center !important;
-                background: #0e0c06 !important;
-                border: 2px solid #f4ecba !important;
-                flex: 1 !important;
-                padding-right: 0 !important;
-                border-radius: 0 !important;
-                pointer-events: auto !important;
+            .leaf {
+                display: none !important;
             }
 
-            .download-toggle {
-                background: #080703;
-                border: 1px solid #453e23;
-                color: #7d7960;
-                padding: 8px 20px;
-                border-radius: 0 !important;
-                font-weight: bold;
-                cursor: pointer;
-                min-width: 100px;
-                transition: all 0.2s;
-                position: relative !important;
-                top: -36px !important;
-                margin: 0 25px 0 auto !important;
-                height: 36px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                pointer-events: auto !important;
-                z-index: 1000 !important;
-            }
-
-
-            .download-toggle.enabled {
-                background: #f4ecba;
-                color: #000;
-                box-shadow: 0 0 10px rgba(244, 236, 186, 0.3);
-            }
-            
-            .download-toggle.mobile-active {
-                animation: tapPulse 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            }
-
-            .legal-footer {
+            .page {
+                position: fixed;
+                inset: 0;
+                display: grid;
                 width: 100%;
-                background-color: rgba(0, 0, 0, 0.9);
-                padding: 15px 0;
-                border-top: 1px solid #1a1810;
+                min-height: 0;
+                height: 100dvh;
+                place-items: center;
+                overflow: hidden;
+                padding:
+                    calc(0.75rem + env(safe-area-inset-top))
+                    calc(0.75rem + env(safe-area-inset-right))
+                    calc(0.75rem + env(safe-area-inset-bottom))
+                    calc(0.75rem + env(safe-area-inset-left));
+            }
+
+            .menu-block {
+                position: static;
+                display: grid;
+                width: min(32rem, 100%);
+                max-height: 100%;
+                align-content: center;
+                gap: clamp(0.4rem, 1.5dvh, 0.7rem);
+                overflow: hidden;
+                padding: clamp(1rem, 5vw, 1.6rem);
+                border: 0;
+                border-radius: 0;
+                background: transparent;
                 box-shadow: none;
-                display: flex;
+                backdrop-filter: none;
+                text-align: center;
+                transform: none;
+            }
+
+            .title {
+                display: block;
+                max-width: 100%;
+                margin: 0;
+                font-size: clamp(2.65rem, 13vw, 5rem);
+                letter-spacing: 0.09em;
+                line-height: 0.92;
+            }
+
+            .title::after {
+                width: 100%;
+                height: 3px;
+                margin-top: clamp(0.55rem, 2dvh, 0.85rem);
+                margin-left: auto;
+                margin-right: auto;
+                background: linear-gradient(
+                    90deg,
+                    rgba(199, 208, 223, 0.12) 0%,
+                    rgba(199, 208, 223, 0.6) 18%,
+                    var(--accent) 50%,
+                    rgba(199, 208, 223, 0.6) 82%,
+                    rgba(199, 208, 223, 0.12) 100%
+                );
+            }
+
+            .feedback-content {
+                flex-direction: column;
+                gap: 0.3rem;
+                padding: 0;
+            }
+
+            #feedbackOverlay .about-panel {
+                overflow: hidden;
+            }
+
+            #feedbackOverlay .about-header {
+                margin-bottom: 0.5rem;
+            }
+
+            #feedbackOverlay .feedback-column {
+                gap: 0.35rem;
+            }
+
+            #feedbackOverlay .feedback-column p {
+                min-height: 0;
+                line-height: 1.2;
+            }
+
+            #feedbackOverlay .copy-success {
+                position: static;
+                min-height: 0.9rem;
                 justify-content: center;
-                gap: 15px;
-                flex-wrap: wrap;
+                transform: none;
             }
 
-            .legal-link {
-                color: #ccc494;
-                font-size: 10px;
-                text-decoration: none;
-                transition: color 0.2s;
+            .vertical-divider {
+                width: 100%;
+                height: 1px;
+                background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
             }
 
-            .legal-link:hover {
-                color: #ffc43d;
+            .menu-list {
+                display: grid;
+                width: 100%;
+                align-items: stretch;
+                gap: 0;
+                margin: 0;
+                padding: 0;
             }
 
-    /* ==================== END OF MOBILE SUPPORT ==================== */
+            .menu-list li {
+                width: 100%;
+            }
 
-        </style>
-    </head>
-    <body ondragstart="return false;" ondrop="return false;">
+            .menu-block .menu-link {
+                display: flex;
+                width: 100%;
+                min-height: clamp(1.25rem, 3.3dvh, 1.55rem);
+                align-items: center;
+                justify-content: center;
+                padding: 0.02rem 0.7rem;
+                border: 0;
+                border-radius: 0;
+                background: transparent;
+                font-size: clamp(0.72rem, 3.4vw, 0.92rem);
+                letter-spacing: 0.12em;
+                line-height: 1.05;
+            }
 
-        <div id="app-layout">
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 5px; width: 100%;">
-            <div class="divider-line-short" style="width: 40%; height: 2px; background-color: #f5c645;"></div>
-            <div style="width: 100%; height: 2px; background-color: #fdf6ce;"></div>
-        </div>
+            .menu-block .menu-link:hover,
+            .menu-block .menu-link:focus-visible {
+                background: transparent;
+                transform: scale(1.018);
+            }
 
-        <div class="container" id="mainContainer">
-            <div class="debug-info" id="debugInfo"></div>
-            
-    <div class="top-section">
-        <div class="section-region">
-            <div class="section-title">Region</div>
-    <div class="region-icons" style="margin-top: 8px;">
-    <div class="icon-item" data-filter="Overworld">
-                    <div class="icon-placeholder"><img src="icons/deco28.png" alt="Overworld"></div>
-                    <div class="icon-label">Overworld</div>
-                </div>
-                <div class="icon-item" data-filter="Snow">
-                    <div class="icon-placeholder"><img src="icons/deco27.png" alt="Snow"></div>
-                    <div class="icon-label">Snow</div>
-                </div>
-                <div class="icon-item" data-filter="Cavern">
-                    <div class="icon-placeholder"><img src="icons/deco26.png" alt="Cavern"></div>
-                    <div class="icon-label">Cavern</div>
-                </div>
-                <div class="icon-item" data-filter="Big City">
-                    <div class="icon-placeholder"><img src="icons/deco29.png" alt="Big City"></div>
-                    <div class="icon-label">Big City</div>
-                </div>
+            .menu-block .menu-link-secondary {
+                min-height: clamp(1.2rem, 3.1dvh, 1.5rem);
+                font-size: clamp(0.6rem, 2.8vw, 0.72rem);
+            }
+
+            .menu-item-secondary {
+                margin-top: 0.8rem;
+            }
+
+            .menu-item-secondary + .menu-item-secondary {
+                margin-top: -0.15rem;
+            }
+
+            .about-overlay {
+                align-items: center;
+                overflow: hidden;
+                padding:
+                    calc(0.75rem + env(safe-area-inset-top))
+                    calc(0.75rem + env(safe-area-inset-right))
+                    calc(0.75rem + env(safe-area-inset-bottom))
+                    calc(0.75rem + env(safe-area-inset-left));
+            }
+
+            .about-panel {
+                width: min(32rem, 100%);
+                max-height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto;
+                padding: 1rem;
+                border-radius: 0.9rem;
+            }
+        }
+
+        @media (max-width: 820px) and (max-height: 520px) {
+            .page {
+                padding: 0.4rem;
+            }
+
+            .menu-block {
+                width: min(29rem, 100%);
+                gap: 0.45rem;
+                padding: 0.65rem;
+                border-radius: 0.75rem;
+            }
+
+            .title {
+                font-size: clamp(2rem, 9dvh, 3rem);
+            }
+
+            .title::after {
+                margin-top: 0.35rem;
+            }
+
+            .menu-list {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.3rem;
+            }
+
+            .menu-item-secondary,
+            .menu-item-secondary + .menu-item-secondary {
+                grid-column: span 1;
+                margin-top: 0;
+            }
+
+            .menu-block .menu-link,
+            .menu-block .menu-link-secondary {
+                min-height: 1.8rem;
+                padding: 0.16rem 0.3rem;
+                font-size: clamp(0.54rem, 2.3vw, 0.7rem);
+                letter-spacing: 0.07em;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .page,
+            .transition-overlay,
+            .about-overlay,
+            .about-panel,
+            .menu-link,
+            .menu-link::before {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="transition-overlay" aria-hidden="true"></div>
+    <main class="page">
+        <section class="menu-block" aria-label="KDASSIST main menu">
+            <h1 class="title">KDASSIST</h1>
+
+            <ul class="menu-list">
+                <li><a class="menu-link" href="/treasuremaps/">Treasure Maps</a></li>
+                <li><a class="menu-link" href="/classicguessr/">ClassicGuessr</a></li>
+                <li><a class="menu-link" href="/benchmark/">BK Benchmark</a></li>
+                <li><a class="menu-link" href="/backgroundcolorpicker/">BG Color Picker</a></li>
+                <li><a class="menu-link" href="/assets/">Assets</a></li>
+                <li class="menu-item-secondary"><button class="menu-link menu-link-secondary menu-button" type="button" id="feedbackButton">Feedback</button></li>
+                <li class="menu-item-secondary"><button class="menu-link menu-link-secondary menu-button" type="button" id="aboutButton">About</button></li>
+            </ul>
+        </section>
+    </main>
+
+    <button class="install-btn" type="button" id="installButton" aria-label="Install App">
+        <img src="/menu/kdassisticon.png" alt="">
+        <span><span class="install-word">Install</span> App</span>
+    </button>
+    <div class="install-tip" id="installTip" role="status"></div>
+
+    <div class="about-overlay" id="aboutOverlay" aria-hidden="true">
+        <section class="about-panel" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+            <div class="about-header">
+                <h2 class="about-title" id="aboutTitle">About</h2>
+                <button class="about-close" type="button" id="aboutCloseButton">Close</button>
+            </div>
+            <div class="about-body">
+                <p>KDAssist is a <strong>fan-made website</strong> and is <strong>not endorsed, maintained, sponsored, or affiliated with Toonslab</strong> in any way. To be completely clear, this project is <strong>entirely non-profit</strong>. It is all provided <strong>for free</strong>, because, well, I'm simply passionate about it.</p>
+                <p>The project was created purely <strong>for fun</strong>, to <strong>support the community</strong>, and to give players something useful and entertaining to enjoy.</p>
+            </div>
+            <div class="about-credits">Website created by Rustum</div>
+        </section>
     </div>
-        </div>
 
-        <div class="section-entity" style="text-align: center;">
-            <div style="display: inline-block; text-align: left; margin-top: 0px;">
-                <div class="section-title">Entity</div>
-                <div class="entity-icons" id="entityFilters" style="margin-top: 8px;">
-                    <div class="icon-item" data-filter="Baddy">
-                        <div class="icon-placeholder"><img src="icons/Deco18.png" alt="Baddy"></div>
-                        <div class="icon-label">Baddy</div>
+    <div class="about-overlay" id="feedbackOverlay" aria-hidden="true">
+        <section class="about-panel" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+            <div class="about-header">
+                <h2 class="about-title" id="feedbackTitle">Feedback</h2>
+                <button class="about-close" type="button" id="feedbackCloseButton">Close</button>
+            </div>
+            <div class="feedback-content">
+                <div class="feedback-column" style="position: relative;">
+                    <p>Directly message me via Discord</p>
+                    <div class="feedback-option-box menu-link menu-link-secondary" id="discordOptionBox">
+                        <span>rvstu</span>
+                        <svg class="feedback-icon-svg" viewBox="0 0 127.14 96.36" fill="currentColor" aria-hidden="true"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.71,32.65-1.82,56.6.48,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.42,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1,105.25,105.25,0,0,0,32.24-16.14h0C130.46,50.45,121.78,26.72,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5.12-12.67,11.41-12.67S54,46,53.86,53,48.74,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5.12-12.67,11.41-12.67S96.08,46,95.93,53,90.76,65.69,84.69,65.69Z"/></svg>
                     </div>
-                    <div class="icon-item" data-filter="NPC">
-                        <div class="icon-placeholder"><img src="icons/Deco17.png" alt="NPC"></div>
-                        <div class="icon-label">NPC</div>
-                    </div>
-                    <div class="icon-item" data-filter="Bug">
-                        <div class="icon-placeholder"><img src="icons/Deco19.png" alt="Bug"></div>
-                        <div class="icon-label">Bug</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    <div class="section-addition" style="text-align: center;">
-            <div class="section-title">Addition</div>
-    <div class="section-subtitle">(<span style="color: #ffc23e;">containing</span> tables, chairs, boxes, statues, bridges, market stands, pillars etc. that <span style="color: #ffedc5; text-decoration: underline;">isn't</span> included in the filter list)</div>
-    <div class="addition-icons" id="additionFilters" style="display: inline-block; margin-top: 8px;">
-                <div class="icon-item" data-filter="Other">
-                    <div class="icon-placeholder"><img src="icons/deco31.png" alt="Other"></div>
-                    <div class="icon-label">Other</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section-overworld" style="margin-bottom: 0px; margin-top: -25px;">
-        <div class="section-title" style="position: relative; top: 5px;">Overworld</div>
-        <div id="overworldFilters" style="display: grid; grid-template-columns: repeat(14, auto); gap: 5px 15px; justify-content: start; margin-top: 8px;">
-            <div class="icon-item" data-filter="Tree">
-                <div class="icon-placeholder"><img src="icons/Deco1.png" alt="Tree"></div>
-                <div class="icon-label">Tree</div>
-            </div>
-            <div class="icon-item" data-filter="Red Tree">
-                <div class="icon-placeholder"><img src="icons/Deco2.png" alt="Red Tree"></div>
-                <div class="icon-label" style="white-space: nowrap;">Red Tree</div>
-            </div>
-            <div class="icon-item" data-filter="Trunk">
-                <div class="icon-placeholder"><img src="icons/Deco3.png" alt="Trunk"></div>
-                <div class="icon-label">Trunk</div>
-            </div>
-            <div class="icon-item" data-filter="Grass">
-                <div class="icon-placeholder"><img src="icons/Deco4.png" alt="Grass"></div>
-                <div class="icon-label">Grass</div>
-            </div>
-            <div class="icon-item" data-filter="Bush">
-                <div class="icon-placeholder"><img src="icons/Deco5.png" alt="Bush"></div>
-                <div class="icon-label">Bush</div>
-            </div>
-            <div class="icon-item" data-filter="Flower">
-                <div class="icon-placeholder"><img src="icons/Deco10.png" alt="Flower"></div>
-                <div class="icon-label">Flower</div>
-            </div>
-            <div class="icon-item" data-filter="Water">
-                <div class="icon-placeholder"><img src="icons/Deco13.png" alt="Water"></div>
-                <div class="icon-label">Water</div>
-            </div>
-            <div class="icon-item" data-filter="Dirt">
-                <div class="icon-placeholder"><img src="icons/Deco6.png" alt="Dirt"></div>
-                <div class="icon-label">Dirt</div>
-            </div>
-            <div class="icon-item" data-filter="Sign">
-                <div class="icon-placeholder"><img src="icons/Deco8.png" alt="Sign"></div>
-                <div class="icon-label">Sign</div>
-            </div>
-            <div class="icon-item" data-filter="Stone">
-                <div class="icon-placeholder"><img src="icons/Deco7.png" alt="Stone"></div>
-                <div class="icon-label">Stone</div>
-            </div>
-            <div class="icon-item" data-filter="Building">
-                <div class="icon-placeholder"><img src="icons/Deco16.png" alt="Building"></div>
-                <div class="icon-label">Building</div>
-            </div>
-            <div class="icon-item" data-filter="Doorway">
-                <div class="icon-placeholder"><img src="icons/Deco15.png" alt="Doorway"></div>
-                <div class="icon-label">Doorway</div>
-            </div>
-            <div class="icon-item" data-filter="Path">
-                <div class="icon-placeholder"><img src="icons/Deco11.png" alt="Path"></div>
-                <div class="icon-label">Path</div>
-            </div>
-            <div class="icon-item" data-filter="Boundary">
-                <div class="icon-placeholder"><img src="icons/Deco14.png" alt="Boundary"></div>
-                <div class="icon-label">Boundary</div>
-            </div>
-            <div class="icon-item" data-filter="Fence">
-                <div class="icon-placeholder"><img src="icons/deco32.png" alt="Fence"></div>
-                <div class="icon-label">Fence</div>
-            </div>
-            <div class="icon-item" data-filter="Hedge">
-                <div class="icon-placeholder"><img src="icons/deco30.png" alt="Hedge"></div>
-                <div class="icon-label">Hedge</div>
-            </div>
-    </div>
-    </div>
-
-    <div class="section-cavern" style="margin-bottom: 0px;">
-        <div class="section-title" style="position: relative; top: 5px; z-index: 15;">Cavern</div>
-        <div id="cavernFilters" style="display: grid; grid-template-columns: repeat(4, auto); gap: 15px; justify-content: start; margin-top: 8px; position: relative; z-index: 15;">
-            <div class="icon-item" data-filter="Boulder">
-                <div class="icon-placeholder"><img src="icons/Deco12.png" alt="Boulder"></div>
-                <div class="icon-label">Boulder</div>
-            </div>
-            <div class="icon-item" data-filter="Rail">
-                <div class="icon-placeholder"><img src="icons/Deco20.png" alt="Rail"></div>
-                <div class="icon-label">Rail</div>
-            </div>
-            <div class="icon-item" data-filter="Mushroom">
-                <div class="icon-placeholder"><img src="icons/Deco9.png" alt="Mushroom"></div>
-                <div class="icon-label">Mushroom</div>
-            </div>
-            <div class="icon-item" data-filter="Void">
-                <div class="icon-placeholder"><img src="icons/Deco21.png" alt="Void"></div>
-                <div class="icon-label">Void</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section-advanced" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 0px; margin-top: -130px; margin-bottom: 0px; pointer-events: none;">
-        <div style="grid-column: 7 / 9; display: flex; justify-content: center;">
-    <div class="advanced-section" style="margin-bottom: 0px; padding: 5px 0px; pointer-events: auto;">
-                <div class="advanced-title">Advanced</div>
-                <div class="advanced-subtitle">Number of Trees</div>
-                <div class="slider-row">
-                    <div class="tree-graphic">
-                        <div class="tree-behind-left"><img src="icons/Deco1.png" alt="Tree"></div>
-                        <div class="tree-icon"><img src="icons/Deco1.png" alt="Tree"></div>
-                        <div class="tree-behind-right"><img src="icons/Deco1.png" alt="Tree"></div>
-                    </div>
-
-                    <div class="slider-container">
-                        <div class="slider-track">
-                            <div class="slider-track-bg"></div>
-                            <div class="slider-fill" id="sliderFill"></div>
-                            <input type="range" min="1" max="8" step="0.01" value="1" class="slider" id="treeSliderMin">
-                            <input type="range" min="1" max="8" step="0.01" value="8" class="slider" id="treeSliderMax">
-                        </div>
-                        <div class="slider-labels">
-                            <span>1</span>
-                            <span>2</span>
-                            <span>3</span>
-                            <span>4</span>
-                            <span>5</span>
-                            <span>6</span>
-                            <span>7</span>
-                            <span>8</span>
-                        </div>
-                        <div class="slider-ticks">
-                            <span class="slider-tick"></span>
-                            <span class="slider-tick"></span>
-                            <span class="slider-tick"></span>
-                            <span class="slider-tick"></span>
-                            <span class="slider-tick"></span>
-                            <span class="slider-tick"></span>
-                            <span class="slider-tick"></span>
-                            <span class="slider-tick"></span>
-                        </div>
+                    <div class="copy-success" id="copySuccess">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Username Copied
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
 
-    <div class="section-reset-wrapper" style="position: relative; height: 0;">
-        <div style="position: absolute; left: 0; top: -65px;">
-            <button class="reset-button desktop-reset" id="resetBtnDesktop">Reset</button>
-        </div>
-        
-        <div style="position: absolute; right: 0; top: -160px;">
-            <div class="preview-box">
-                <div class="old-man-behind"><img src="icons/deco25.gif" alt="Old Man"></div>
-                <div class="preview-content"><img src="icons/deco24.png" alt="Preview"></div>
-            </div>
-        </div>
-    </div>
+    <script>
+        const page = document.querySelector(".page");
+        const menuLinks = document.querySelectorAll(".menu-link");
+        const transitionOverlay = document.querySelector(".transition-overlay");
+        const aboutButton = document.querySelector("#aboutButton");
+        const feedbackButton = document.querySelector("#feedbackButton");
+        const aboutOverlay = document.querySelector("#aboutOverlay");
+        const feedbackOverlay = document.querySelector("#feedbackOverlay");
+        const aboutCloseButton = document.querySelector("#aboutCloseButton");
+        const feedbackCloseButton = document.querySelector("#feedbackCloseButton");
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        const mobileViewport = window.matchMedia("(max-width: 640px)");
+        let audioContext = null;
+        let lastHoverSoundAt = 0;
+        let isNavigating = false;
+        let keyboardNavigationActive = false;
 
-    </div>
-
-    <div class="gallery-divider" style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: -5px; margin-bottom: 0px; width: 100%;">
-        <div style="width: 100%; height: 2px; background-color: #fdf6ce;"></div>
-        <div class="divider-line-short" style="width: 40%; height: 2px; background-color: #f5c645;"></div>
-    </div>
-
-    <div class="gallery-desktop-container">
-        <div class="mobile-spacer"></div>
-        <div class="mobile-download-controls">
-            <div class="download-label">Map Download</div>
-            <button id="downloadToggleBtn" class="download-toggle">Disabled</button>
-        </div>
-        <div class="spinner" id="gallerySpinner"></div>
-        <div class="gallery-grid" id="mapGallery" style="display: inline-grid; grid-template-columns: repeat(6, 1fr); column-gap: 4px; row-gap: 2px; flex: 1; align-items: start;">
-        </div>
-        <div class="nav-controls">
-            <button class="nav-arrow" id="prevBtn" style="width: 35px; height: 35px; background: transparent; border: none; cursor: pointer; border-radius: 8px; transition: all 0.2s; padding: 0; overflow: visible; flex-shrink: 0; touch-action: manipulation; display: inline-block; position: relative;"><img src="icons/copyofdeco33.png" alt="Previous" style="width: 100%; height: 100%; object-fit: contain;"></button>
-            <div id="pageCounter" class="page-counter" style="color: #ffedc5; font-size: 16px; font-weight: bold; margin-bottom: 2px; white-space: nowrap; min-width: 50px; text-align: center; display: inline-block;"><span style="color: #e6d5b1">1</span><span style="color: #ffc43d">/1</span></div>
-            <button class="nav-arrow" id="nextBtn" style="width: 35px; height: 35px; background: transparent; border: none; cursor: pointer; border-radius: 8px; transition: all 0.2s; padding: 0; overflow: visible; flex-shrink: 0; touch-action: manipulation; display: inline-block; position: relative;"><img src="icons/copyofdeco33edited.png" alt="Next" style="width: 100%; height: 100%; object-fit: contain;"></button>
-        </div>
-    </div>
-
-        <div style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 0px; margin-bottom: 0px; width: 100%;">
-        <div class="divider-line-short" style="width: 40%; height: 2px; background-color: #f5c645;"></div>
-        <div style="width: 100%; height: 2px; background-color: #fdf6ce;"></div>
-        <div style="position: absolute; top: 2px; left: 0; width: 100%; height: 120px; padding: 0; overflow: hidden; z-index: -1;">
-            <svg viewBox="0 0 1200 120" preserveAspectRatio="none" style="width: 100%; height: 100%; display: block; filter: blur(0.5px);">
-                <defs>
-                    <pattern id="stripes" patternUnits="userSpaceOnUse" width="2.5" height="120" patternTransform="rotate(25)">
-                        <line x1="0" y1="0" x2="0" y2="120" stroke="#000" stroke-width="1.5" opacity="1"/>
-                    </pattern>
-                </defs>
-                <path d="M0,0 H1200 V120 C1000,140 800,100 600,120 S200,140 0,120 Z" fill="#f5c645" opacity="0.03"/>
-                <path d="M0,0 H1200 V80 C1100,100 900,60 600,80 S100,100 0,80 Z" fill="#f5c645" opacity="0.04"/>
-                <path d="M0,0 H1200 V40 C950,60 750,20 600,40 S250,60 0,40 Z" fill="#f5c645" opacity="0.05"/>
-                <rect x="0" y="0" width="1200" height="120" fill="url(#stripes)"/>
-            </svg>
-        </div>
-    </div>
-
-    <div class="footer-wrapper">    <div style="width: 100px; margin: 0 auto 0px; position: relative; z-index: 1;">
-    <img src="icons/deco36.png" alt="High Five" style="width: 100%; height: auto; display: block; pointer-events: auto;">
-</div>
-    <div class="actions-wrapper">
-        <a href="https://forms.gle/TkDnT618VSgADYTd7" target="_blank" class="feedback-container">
-            <div class="feedback-text"><span style="color: #ffffff;">Send your</span> Feedback<span style="color: #ffffff;">!</span></div>
-            <div class="feedback-icon"><img src="icons/form1.png" alt="Feedback"></div>
-        </a>
-        <div class="install-container">
-            <div class="install-text">Install <span style="color: #ffffff;">App</span></div>
-            <div class="install-icon"><img src="icons/Mapicon.png" alt="Install"></div>
-        </div>
-    </div>
-    <div class="logo-container" style="max-width: 400px; margin: -60px auto 0; pointer-events: none; position: relative; z-index: 1;">
-    <img src="icons/kdassist.gif" alt="KDAssist" style="width: 100%; height: auto; display: block; pointer-events: none;">
-</div>
-    <div class="credits" style="text-align: center; color: #ffffff; font-size: 10px; line-height: 1.4; margin-top: -55px;">
-        Site made by <span style="color: #edf6c1;">Rustum</span>. Special thanks to <span style="color: #ffc43d;">Maddy</span>.<br>
-        <span class="disclaimer">This site is not affiliated, maintained, endorsed or sponsored by GraalOnline, All assets &copy; 2026 GraalOnline</span>
-    </div>
-</div>
-
-    <div class="footer-section">
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 12px;">
-            <div style="color: #9e8c58; font-size: 11px; font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 2px;">Honorable Mentions</div>
-            <div style="color: #666666; font-size: 10px; text-align: center; font-style: italic;">To those who contributed, provided useful feedback, or assisted in any way.</div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="width: 5px; height: 5px; background-color: #ffc43d; border-radius: 50%; box-shadow: 0 0 8px rgba(255, 196, 61, 0.5);"></div>
-                <div style="color: #ccaa44; font-size: 11px; text-align: center; font-weight: bold; letter-spacing: 0.5px;">Liz</div>
-        </div>
-    </div>
-    <div class="legal-footer">
-        <a href="terms-and-condition/index.html?from=index" class="legal-link">Terms & Conditions</a>
-        <a href="privacy-policy/index.html?from=index" class="legal-link">Privacy Policy</a>
-        <a href="dmca-copyright-policy/index.html?from=index" class="legal-link">DMCA Policy</a>
-        <a href="cookie-policy/index.html?from=index" class="legal-link">Cookie Policy</a>
-    </div>
-        </div>
-
-            <div class="modal-overlay" id="modalOverlay">
-                <div class="spinner" id="modalSpinner"></div>
-                <div class="modal-content">
-                    <div class="modal-image-wrapper">
-                        <img id="modalImage" src="" alt="Location">
-                        <button id="downloadBtn" class="download-btn" onclick="event.stopPropagation(); handleDownload()">
-    <svg viewBox="0 0 24 24" width="24" height="24">
-        <path d="M19 11.5h-4V5.5H9v6H5l7 7 7-7z" fill="#a58f3e"/>
-    </svg>
-</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-overlay" id="installModalOverlay">
-                <div class="install-modal-content" onclick="event.stopPropagation()">
-                    <button class="install-close-btn" id="installCloseBtn">
-                        <svg viewBox="0 0 24 24" width="24" height="24">
-                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="#a58f3e"/>
-                        </svg>
-                    </button>
-                    
-                    <div class="install-header-wrapper">
-                        <div class="install-title">App Installation</div>
-                        <div class="install-divider-main"></div>
-                    </div>
-                    
-                    <div class="install-content-scroll">
-                        <div class="install-section">
-                            <div class="install-section-title">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffc43d"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.68-.06-.86.26l-1.9 3.32c-2.46-.96-5.24-.96-7.7 0l-1.9-3.32c-.18-.32-.57-.41-.86-.26-.3.16-.42.54-.26.85l1.84 3.18C4.24 11.1 2.07 14.4 2 18h20c-.07-3.6-2.24-6.9-5.4-8.52zM7 15c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm10 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
-                                Android Guide
-                            </div>
-                            <div class="install-text-content">
-                                <div style="margin-bottom: 15px;">
-                                    <strong style="color: #ffc43d;">Step 1:</strong><br>
-                                    Find the 3 dots in the upper right-hand corner of the browser
-                                    <img src="icons/androidins1.png" class="install-guide-img" alt="Step 1">
-                                </div>
-                                <div style="margin-bottom: 15px;">
-                                    <strong style="color: #ffc43d;">Step 2:</strong><br>
-                                    Tap "Add app to Home Screen"
-                                    <img src="icons/androidins2.png" class="install-guide-img" alt="Step 2">
-                                </div>
-                                <div>
-                                    <strong style="color: #ffc43d;">Step 3:</strong><br>
-                                    Lastly, confirm by tapping "ADD TO HOME SCREEN"
-                                    <img src="icons/androidins3.png" class="install-guide-img" alt="Step 3">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="install-divider-sub"></div>
-                        
-                        <div class="install-section">
-                            <div class="install-section-title">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffc43d"><path d="M17.71 9.33c0-1.99 1.62-3.61 1.62-3.61s-1.42-1.6-3.75-1.6c-1.57 0-3.05.92-3.85.92-.81 0-2.03-.89-3.36-.89-1.73 0-3.33 1-4.23 2.56-1.81 3.13-.46 7.76 1.3 10.3 1.25 1.8 2.73 3.82 4.68 3.82 1.88 0 2.7-1.21 5.07-1.21 2.37 0 3.04 1.21 5.11 1.21 2.11 0 3.4-1.91 4.66-3.82.97-1.46 1.37-2.88 1.39-2.95-.03-.03-2.67-1.03-2.67-4.13zM15.53 2.61c.84-1.02 1.4-2.45 1.25-3.87-1.21.05-2.67.81-3.53 1.82-.77.89-1.44 2.32-1.26 3.69 1.35.11 2.71-.63 3.54-1.64z"/></svg>
-                            IOS Guide
-                            </div>
-                            <div class="install-text-content">
-                                <div style="margin-bottom: 15px;">
-                                    <strong style="color: #ffc43d;">Step 1:</strong><br>
-                                    Find this arrow symbol on the upper right-hand corner
-                                    <img src="icons/iosins1.png" class="install-guide-img" alt="Step 1">
-                                </div>
-                                <div>
-                                    <strong style="color: #ffc43d;">Step 2:</strong><br>
-                                    Tap "Add to Home Screen"
-                                    <img src="icons/iosins2.png" class="install-guide-img" alt="Step 2">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="install-divider-sub"></div>
-                        
-                        <div class="install-section">
-                            <div class="install-section-title">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffc43d"><path d="M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h6l-2 2v1h8v-1l-2-2h6c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z"/></svg>
-                                <div>Desktop Guide:<br><span style="color: #ffffff;">(Only for Chrome/Edge)</span></div>
-                            </div>
-                            <div class="install-text-content">
-                                <div style="margin-bottom: 15px;">
-                                    <strong style="color: #ffc43d;">Step 1:</strong><br>
-                                    Click Install App
-                                    <img src="icons/desktopins3.png" class="install-guide-img" alt="Step 1">
-                                </div>
-                                <div style="margin-bottom: 15px;">
-                                    <strong style="color: #ffc43d;">Step 2:</strong><br>
-                                    Click "Install"
-                                    <img src="icons/desktopins2.png" class="install-guide-img" alt="Step 2">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-    <button class="reset-button mobile-reset" id="resetBtnMobile">Reset</button>
-
-    <div id="updateOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 2147483647; flex-direction: column; align-items: center; justify-content: center;">
-        <div style="color: #ffc43d; font-size: 24px; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;">Updating</div>
-        <div style="position: relative; width: 80px; height: 80px;">
-            <img src="icons/map2a.png" id="updateImage" style="width: 100%; height: 100%; object-fit: contain; opacity: 0.2; transition: opacity 0.3s ease;">
-            <div id="updatePercent" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffffff; font-weight: bold; font-size: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">0%</div>
-        </div>
-    </div>
-
-        <script>
-            let allMaps = [];
-            let filteredMaps = [];
-            let currentPage = 0;
-            let mapsPerPage = window.innerWidth <= 1024 ? 15 : 18;
-            let filterDebounceTimer = null;
-            let isFilteringInProgress = false;
-            let loadTimeouts = [];
-            let preloadSequence = 0;
-            let isDownloadMode = false;
-            const imageCache = new Map();
-            
-            const filters = {
-                regions: [],
-                entities: [],
-                additions: [],
-                treeCountMin: 1,
-                treeCountMax: 8
-            };
-    document.addEventListener('DOMContentLoaded', function() {
-        setupEventListeners();
-        setupModal();
-        loadCSV();
-        positionSliderMarks();
-        setupMobileAnimations();
-        
-        // Prevent section dragging
-        document.body.style.userSelect = 'none';
-        
-        // Prevent dragging globally
-        window.addEventListener('dragstart', function(e) {
-            e.preventDefault();
-            return false;
-        }, { passive: false, capture: true });
-        
-        document.addEventListener('dragstart', function(e) {
-            e.preventDefault();
-            return false;
-        }, { passive: false, capture: true });
-        
-        // Prevent drag on all elements
-        document.querySelectorAll('*').forEach(el => {
-            el.setAttribute('draggable', 'false');
-            el.ondragstart = () => false;
-        });
-        
-        // Additional drag prevention for images
-        document.querySelectorAll('img').forEach(img => {
-            img.setAttribute('draggable', 'false');
-            img.ondragstart = () => false;
-            img.ondrag = () => false;
-        });
-        
+        requestAnimationFrame(() => {
+            page.classList.add("is-visible");
         });
 
-    if ('serviceWorker' in navigator) {
-        const isMobileServiceWorkerOptOut = () => {
-            try {
-                const mediaMobile = window.matchMedia("(max-width: 900px), (max-device-width: 900px)").matches;
-                const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
-                const screenObj = window.screen || {};
-                const shortSide = Math.min(screenObj.width || 0, screenObj.height || 0);
-                return mediaMobile || (coarsePointer && shortSide > 0 && shortSide <= 900);
-            } catch (e) {
-                return false;
-            }
-        };
+        window.addEventListener("pageshow", () => {
+            isNavigating = false;
+            transitionOverlay.classList.remove("is-active");
+            requestAnimationFrame(() => page.classList.add("is-visible"));
+        });
 
-        const armMobileServiceWorkerReload = () => {
-            if (!isMobileServiceWorkerOptOut()) {
+        function getAudioContext() {
+            if (!AudioContextClass) {
+                return null;
+            }
+
+            if (!audioContext) {
+                audioContext = new AudioContextClass();
+            }
+
+            return audioContext;
+        }
+
+        async function ensureAudioReady() {
+            const context = getAudioContext();
+            if (!context) {
+                return null;
+            }
+
+            if (context.state === "suspended") {
                 try {
-                    window.sessionStorage.removeItem('__kdassist_mobile_sw_disabled__');
-                    window.sessionStorage.removeItem('__kdassist_mobile_sw_controller_reload__');
-                } catch (e) {}
-                return;
-            }
-            const reloadFlag = '__kdassist_mobile_sw_controller_reload__';
-            try {
-                window.sessionStorage.removeItem('__kdassist_mobile_sw_disabled__');
-            } catch (e) {}
-            if (navigator.serviceWorker.controller) {
-                try {
-                    window.sessionStorage.removeItem(reloadFlag);
-                } catch (e) {}
-                return;
-            }
-            if (window.sessionStorage.getItem(reloadFlag) === 'done') return;
-            window.sessionStorage.setItem(reloadFlag, 'pending');
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (window.sessionStorage.getItem(reloadFlag) === 'done') return;
-                window.sessionStorage.setItem(reloadFlag, 'done');
-                window.location.reload();
-            }, { once: true });
-        };
-
-        if (isMobileServiceWorkerOptOut()) {
-            armMobileServiceWorkerReload();
-            navigator.serviceWorker.register('./service-worker.js').then(reg => {
-                reg.update();
-                if (navigator.serviceWorker.controller) {
-                    try {
-                        window.sessionStorage.removeItem('__kdassist_mobile_sw_controller_reload__');
-                    } catch (e) {}
+                    await context.resume();
+                } catch (error) {
+                    return null;
                 }
-            }).catch(err => console.log('Service Worker registration failed', err));
-        } else {
-        navigator.serviceWorker.register('./service-worker.js').then(reg => {
-            armMobileServiceWorkerReload();
-            const showUpdate = (worker) => {
-                const overlay = document.getElementById('updateOverlay');
-                const img = document.getElementById('updateImage');
-                const pct = document.getElementById('updatePercent');
-                
-                // Only show if we have a controller (not first visit)
-                if (!overlay || !navigator.serviceWorker.controller) return;
-                
-                overlay.style.display = 'flex';
-                let progress = 0;
-                let isComplete = false;
+            }
 
-                const updateUI = () => {
-                    if(pct) pct.textContent = Math.round(progress) + '%';
-                    if(img) img.style.opacity = 0.2 + (0.8 * (progress / 100));
-                };
+            return context;
+        }
 
-                const interval = setInterval(() => {
-                    if (isComplete) {
-                        progress += 4;
-                        if (progress >= 100) {
-                            progress = 100;
-                            updateUI();
-                            clearInterval(interval);
-                            localStorage.clear();
-                            sessionStorage.clear();
-                            if ('caches' in window) {
-                                caches.keys().then(names => {
-                                    Promise.all(names.map(name => caches.delete(name)))
-                                        .then(() => window.location.reload());
-                                });
-                            } else {
-                                window.location.reload();
-                            }
-                        } else {
-                            updateUI();
-                        }
-                    } else if(progress < 85) {
-                        progress += Math.random() * 2;
-                        if(progress > 85) progress = 85;
-                        updateUI();
-                    }
-                }, 50);
+        function shapeGain(context, startTime, attack, peak, decay) {
+            const gainNode = context.createGain();
+            gainNode.gain.setValueAtTime(0.0001, startTime);
+            gainNode.gain.exponentialRampToValueAtTime(peak, startTime + attack);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + attack + decay);
+            gainNode.connect(context.destination);
+            return gainNode;
+        }
 
-                const finish = () => {
-                    isComplete = true;
-                };
+        function getNavigationDelay() {
+            return 360;
+        }
 
-                if (worker.state === 'installed' || worker.state === 'waiting') {
-                    finish();
+        async function playHoverSound() {
+            const currentTimestamp = performance.now();
+            if (currentTimestamp - lastHoverSoundAt < 70) {
+                return;
+            }
+
+            const context = await ensureAudioReady();
+            if (!context) {
+                return;
+            }
+
+            lastHoverSoundAt = currentTimestamp;
+            const now = context.currentTime;
+            const firstGain = shapeGain(context, now, 0.0015, 0.05, 0.04);
+            const firstOscillator = context.createOscillator();
+            const firstFilter = context.createBiquadFilter();
+
+            firstOscillator.type = "square";
+            firstOscillator.frequency.setValueAtTime(1520, now);
+            firstOscillator.frequency.exponentialRampToValueAtTime(1120, now + 0.05);
+
+            firstFilter.type = "bandpass";
+            firstFilter.frequency.setValueAtTime(1450, now);
+            firstFilter.Q.setValueAtTime(5, now);
+
+            firstOscillator.connect(firstFilter);
+            firstFilter.connect(firstGain);
+
+            firstOscillator.start(now);
+            firstOscillator.stop(now + 0.055);
+
+            const secondStart = now + 0.02;
+            const secondGain = shapeGain(context, secondStart, 0.001, 0.03, 0.03);
+            const secondOscillator = context.createOscillator();
+            const secondFilter = context.createBiquadFilter();
+
+            secondOscillator.type = "square";
+            secondOscillator.frequency.setValueAtTime(980, secondStart);
+            secondOscillator.frequency.exponentialRampToValueAtTime(760, secondStart + 0.035);
+
+            secondFilter.type = "bandpass";
+            secondFilter.frequency.setValueAtTime(1000, secondStart);
+            secondFilter.Q.setValueAtTime(4, secondStart);
+
+            secondOscillator.connect(secondFilter);
+            secondFilter.connect(secondGain);
+
+            secondOscillator.start(secondStart);
+            secondOscillator.stop(secondStart + 0.04);
+        }
+
+        async function playClickSound() {
+            const context = await ensureAudioReady();
+            if (!context) {
+                return;
+            }
+
+            // Bubbly pop: a fast rising "bloop" with a smaller, higher bubble popping just after it.
+            const now = context.currentTime;
+
+            const bubble = (start, fromHz, toHz, rise, peak, decay) => {
+                const gainNode = shapeGain(context, start, 0.006, peak, decay);
+                const oscillator = context.createOscillator();
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(fromHz, start);
+                oscillator.frequency.exponentialRampToValueAtTime(toHz, start + rise);
+                oscillator.connect(gainNode);
+                oscillator.start(start);
+                oscillator.stop(start + rise + decay + 0.02);
+            };
+
+            bubble(now, 520, 1400, 0.055, 0.1, 0.06);
+            bubble(now + 0.022, 900, 2200, 0.04, 0.04, 0.045);
+        }
+
+        // Every click in the menu (links, Feedback, About, Close) shares the same bubbly pop.
+        function playPopSound() {
+            return playClickSound();
+        }
+
+        function handleKeyboardNavigation(event) {
+            if (event.key === "Tab" || event.key.startsWith("Arrow")) {
+                keyboardNavigationActive = true;
+            }
+            ensureAudioReady();
+        }
+
+        function handlePointerNavigation() {
+            keyboardNavigationActive = false;
+            ensureAudioReady();
+        }
+
+        function handleLinkFocus() {
+            if (!keyboardNavigationActive) {
+                return;
+            }
+
+            playHoverSound();
+        }
+
+        window.addEventListener("pointerdown", handlePointerNavigation, { passive: true });
+        window.addEventListener("keydown", handleKeyboardNavigation, { passive: true });
+
+        menuLinks.forEach((link) => {
+            link.addEventListener("pointerenter", playHoverSound);
+            link.addEventListener("focus", handleLinkFocus);
+            link.addEventListener("click", () => {
+                if (link.classList.contains("menu-link-secondary")) {
+                    playPopSound();
                 } else {
-                    worker.addEventListener('statechange', () => {
-                        if (worker.state === 'installed') finish();
-                    });
+                    playClickSound();
                 }
-            };
+            });
+        });
 
-            // Check if update is already in progress
-            if (reg.waiting) showUpdate(reg.waiting);
-            else if (reg.installing) showUpdate(reg.installing);
+        function openAbout() {
+            if (!aboutOverlay) {
+                return;
+            }
+
+            aboutOverlay.classList.add("is-open");
+            aboutOverlay.setAttribute("aria-hidden", "false");
+        }
+
+        function closeAbout() {
+            if (!aboutOverlay) {
+                return;
+            }
+
+            aboutOverlay.classList.remove("is-open");
+            aboutOverlay.setAttribute("aria-hidden", "true");
+        }
+
+        function openFeedback() {
+            if (!feedbackOverlay) return;
+            feedbackOverlay.classList.add("is-open");
+            feedbackOverlay.setAttribute("aria-hidden", "false");
+        }
+
+        function closeFeedback() {
+            if (!feedbackOverlay) return;
+            feedbackOverlay.classList.remove("is-open");
+            feedbackOverlay.setAttribute("aria-hidden", "true");
+        }
+
+        if (aboutButton) {
+            aboutButton.addEventListener("click", openAbout);
+        }
+
+        if (feedbackButton) {
+            feedbackButton.addEventListener("click", openFeedback);
+        }
+
+        if (aboutCloseButton) {
+            aboutCloseButton.addEventListener("pointerenter", playHoverSound);
+            aboutCloseButton.addEventListener("focus", handleLinkFocus);
+            aboutCloseButton.addEventListener("click", () => {
+                playPopSound();
+                closeAbout();
+            });
+        }
+
+        if (feedbackCloseButton) {
+            feedbackCloseButton.addEventListener("pointerenter", playHoverSound);
+            feedbackCloseButton.addEventListener("focus", handleLinkFocus);
+            feedbackCloseButton.addEventListener("click", () => {
+                playPopSound();
+                closeFeedback();
+            });
+        }
+
+        if (aboutOverlay) {
+            aboutOverlay.addEventListener("click", (event) => {
+                if (event.target === aboutOverlay) {
+                    closeAbout();
+                }
+                });
+            }
+
+            if (feedbackOverlay) {
+                feedbackOverlay.addEventListener("click", (event) => {
+                    if (event.target === feedbackOverlay) {
+                        closeFeedback();
+                    }
+            });
+        }
+
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                closeAbout();
+                closeFeedback();
+            }
+        });
+
+        menuLinks.forEach((link) => {
+            if (!(link instanceof HTMLAnchorElement)) {
+                return;
+            }
+
+            const opensNewTab = link.target === "_blank";
+            if (opensNewTab) {
+                return;
+            }
+
+            link.addEventListener("click", (event) => {
+                if (
+                    isNavigating ||
+                    event.defaultPrevented ||
+                    event.button !== 0 ||
+                    event.metaKey ||
+                    event.ctrlKey ||
+                    event.shiftKey ||
+                    event.altKey
+                ) {
+                    return;
+                }
+
+                event.preventDefault();
+                isNavigating = true;
+                page.classList.remove("is-visible");
+                transitionOverlay.classList.add("is-active");
+
+                window.setTimeout(() => {
+                    window.location.href = link.href;
+                }, getNavigationDelay());
+            });
+        });
+
+        const discordOptionBox = document.querySelector("#discordOptionBox");
+        const copySuccess = document.querySelector("#copySuccess");
+        let copyTimeout = null;
+
+        if (discordOptionBox) {
+            discordOptionBox.addEventListener("click", () => {
+                navigator.clipboard.writeText("rvstu").then(() => {
+                    if (copyTimeout) clearTimeout(copyTimeout);
+                    copySuccess.classList.add("is-visible");
+                    copyTimeout = setTimeout(() => {
+                        copySuccess.classList.remove("is-visible");
+                        copyTimeout = null;
+                    }, 3000);
+                });
+            });
+        }
+
+        function initLeaves() {
+            if (window.matchMedia("(max-width: 820px)").matches) return;
+
+            const colors = ['#2a3514', '#4c5f21', '#7b9231', '#b4c148', '#d4af37'];
+            const count = 45;
             
-            reg.addEventListener('updatefound', () => {
-                showUpdate(reg.installing);
-            });
+            for (let i = 0; i < count; i++) {
+                const leaf = document.createElement('div');
+                leaf.className = 'leaf';
+                const inner = document.createElement('div');
+                inner.className = 'leaf-inner';
+                leaf.appendChild(inner);
 
-            reg.update();
-        }).catch(err => console.log('Service Worker registration failed', err));
-        }
-    }
-
-            window.addEventListener('resize', function() {
-                positionSliderMarks();
+                const size = Math.random() * 14 + 6;
+                leaf.style.width = `${size}px`;
+                leaf.style.height = `${size * 0.7}px`;
+                leaf.style.left = `${Math.random() * 100}vw`;
+                leaf.style.color = colors[Math.floor(Math.random() * colors.length)];
                 
-                const newPerPage = window.innerWidth <= 1024 ? 15 : 18;
-                if (newPerPage !== mapsPerPage) {
-                    mapsPerPage = newPerPage;
-                    updateDisplay();
-                }
-            });
-
-            function setupModal() {
-                const modal = document.getElementById('modalOverlay');
+                const duration = Math.random() * 15 + 10;
+                const delay = Math.random() * duration;
+                leaf.style.setProperty('--leaf-drift', `${(Math.random() - 0.5) * 500}px`);
+                leaf.style.setProperty('--leaf-rotation', `${(Math.random() - 0.5) * 1440}deg`);
+                leaf.style.animation = `leaf-float ${duration}s linear -${delay}s infinite`;
+                inner.style.animationDuration = `${Math.random() * 2 + 2}s`;
+                inner.style.animationDelay = `${Math.random() * -5}s`;
                 
-                function closeModal() {
-                    const content = modal.querySelector('.modal-content');
-                    if (content.classList.contains('closing')) return;
-                    content.classList.add('closing');
-                    modal.classList.add('closing');
-                    content.addEventListener('animationend', () => {
-                        modal.classList.remove('active');
-                        modal.classList.remove('closing');
-                        content.classList.remove('closing');
-                        content.classList.remove('image-loaded');
-                    }, { once: true });
-                }
-
-                modal.addEventListener('click', function() {
-                    closeModal();
-                });
-
-                const installModal = document.getElementById('installModalOverlay');
-                
-                // Capture the install prompt
-                let deferredPrompt;
-                window.addEventListener('beforeinstallprompt', (e) => {
-                    e.preventDefault();
-                    deferredPrompt = e;
-                });
-
-                document.querySelector('.install-container').addEventListener('click', async function(e) {
-                    e.preventDefault();
-                    if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        const { outcome } = await deferredPrompt.userChoice;
-                        deferredPrompt = null;
-                    } else {
-                        installModal.classList.add('active');
-                    }
-                });
-
-                function closeInstallModal() {
-                    const content = installModal.querySelector('.install-modal-content');
-                    if (content.classList.contains('closing')) return;
-                    content.classList.add('closing');
-                    installModal.classList.add('closing');
-                    content.addEventListener('animationend', () => {
-                        installModal.classList.remove('active');
-                        installModal.classList.remove('closing');
-                        content.classList.remove('closing');
-                    }, { once: true });
-                }
-
-                installModal.addEventListener('click', function() {
-                    closeInstallModal();
-                });
-                
-                document.getElementById('installCloseBtn').addEventListener('click', function() {
-                    closeInstallModal();
-                });
+                document.body.appendChild(leaf);
             }
-async function handleDownload(url, name) {
-    const downloadBtn = document.getElementById('downloadBtn');
-    let imageUrl = url;
-    let imageName = name;
-
-    if (!imageUrl && downloadBtn) {
-        imageUrl = downloadBtn.dataset.imageUrl;
-        imageName = downloadBtn.dataset.imageName || 'graal-map.png';
-    }
-    
-    try {
-        // Load image into canvas to strip EXIF metadata (old creation date)
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = imageUrl;
-        });
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-        const file = new File([blob], imageName, { type: 'image/png' });
-        
-        // Use Share API on iOS (stays in PWA)
-        if (navigator.share && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                files: [file],
-                title: 'Graal Map Location',
-                text: 'Treasure map location'
-            });
-        } else {
-            // Fallback for desktop
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = imageName;
-            a.click();
-            URL.revokeObjectURL(url);
         }
-    } catch (error) {
-        console.error('Download failed:', error);
-    }
-}
-            function setupMobileAnimations() {
-        // Helper to add temporary class for animation
-        const triggerAnimation = (element, className, duration) => {
-            element.classList.remove(className);
-            void element.offsetWidth; // trigger reflow
-            element.classList.add(className);
-            setTimeout(() => {
-                element.classList.remove(className);
-            }, duration);
-        };
-
-        // Reset Button
-        const resetBtnMobile = document.getElementById('resetBtnMobile');
-        if (resetBtnMobile) {
-            resetBtnMobile.addEventListener('click', function() {
-                if (window.innerWidth > 1024) return;
-                triggerAnimation(this, 'mobile-active', 100);
+        initLeaves();
+    </script>
+    <script>
+        // Install App: uses the browser's install prompt where there is one, otherwise explains how.
+        (function () {
+            const button = document.getElementById('installButton');
+            const tip = document.getElementById('installTip');
+            let deferred = null;
+            let tipTimer = 0;
+            const installed = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            if (installed) { button.hidden = true; return; }
+            window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; });
+            window.addEventListener('appinstalled', () => { button.hidden = true; });
+            function showTip(text) {
+                tip.textContent = text;
+                tip.classList.add('is-open');
+                clearTimeout(tipTimer);
+                tipTimer = setTimeout(() => tip.classList.remove('is-open'), 6000);
+            }
+            button.addEventListener('click', async () => {
+                if (deferred) {
+                    deferred.prompt();
+                    try { await deferred.userChoice; } catch (e) { /* dismissed */ }
+                    deferred = null;
+                    return;
+                }
+                const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                showTip(ios
+                    ? 'Tap the Share button, then "Add to Home Screen".'
+                    : 'Open your browser menu and choose "Install app" or "Add to Home screen".');
+            });
+        })();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').catch(() => {});
             });
         }
-
-        // Nav Arrows
-        document.querySelectorAll('.nav-arrow').forEach(arrow => {
-            arrow.addEventListener('click', function() {
-                if (window.innerWidth > 1024 || this.disabled) return;
-                triggerAnimation(this, 'mobile-active', 180);
-            });
-        });
-
-        // Filter Icons
-        document.querySelectorAll('.icon-item').forEach(item => {
-            item.addEventListener('click', function() {
-                if (window.innerWidth > 1024) return;
-                triggerAnimation(this, 'mobile-active', 180);
-            });
-        });
-    }
-
-    function preloadImage(url) {
-        if (!imageCache.has(url)) {
-            const img = new Image();
-            img.src = url;
-            imageCache.set(url, url);
-        }
-    }
-
-    function handleMapClick(element, locationUrl, mapUrl) {
-        if (window.innerWidth <= 1024) {
-            element.classList.remove('mobile-active');
-            void element.offsetWidth;
-            element.classList.add('mobile-active');
-            setTimeout(() => element.classList.remove('mobile-active'), 200);
-            
-            if (isDownloadMode) {
-                setTimeout(() => {
-                    const filename = mapUrl.split('/').pop();
-                    handleDownload(mapUrl, filename);
-                }, 50);
-            } else {
-                setTimeout(() => showLocationImage(locationUrl), 50);
-            }
-        } else {
-            showLocationImage(locationUrl);
-        }
-    }
-
-    function showLocationImage(locationImage) {
-                const modal = document.getElementById('modalOverlay');
-                const modalImg = document.getElementById('modalImage');
-                const downloadBtn = document.getElementById('downloadBtn');
-                const spinner = document.getElementById('modalSpinner');
-                const modalContent = modal.querySelector('.modal-content');
-                
-                modalImg.style.display = 'none';
-                spinner.style.display = 'block';
-                modalContent.classList.remove('image-loaded');
-                modal.classList.add('active');
-                
-                // Force reflow to ensure animation plays every time
-                void modalContent.offsetWidth;
-                
-                if (downloadBtn) {
-    downloadBtn.dataset.imageUrl = locationImage;
-    downloadBtn.dataset.imageName = locationImage.split('/').pop();
-}
-                
-                const img = new Image();
-                img.onload = function() {
-                    requestAnimationFrame(() => {
-                        modalImg.src = locationImage;
-                        modalImg.style.display = 'block';
-                        spinner.style.display = 'none';
-                        modalContent.classList.add('image-loaded');
-                        imageCache.set(locationImage, locationImage);
-                    });
-                };
-                img.src = locationImage;
-            }
-
-            function setupEventListeners() {
-                // Add click handlers to all filter containers
-    // Add click handlers for region icons
-    document.querySelector('.region-icons').addEventListener('click', handleMultiSelect);
-    document.getElementById('entityFilters').addEventListener('click', handleMultiSelect);
-    document.getElementById('additionFilters').addEventListener('click', handleMultiSelect);
-
-    // Add click handlers for Overworld and Cavern filter sections
-    document.getElementById('overworldFilters').addEventListener('click', handleMultiSelect);
-    document.getElementById('cavernFilters').addEventListener('click', handleMultiSelect);
-                
-                const sliderMin = document.getElementById('treeSliderMin');
-                const sliderMax = document.getElementById('treeSliderMax');
-                
-                function handleSliderInput() {
-                    const minVal = parseFloat(sliderMin.value);
-                    const maxVal = parseFloat(sliderMax.value);
-                    
-                    // Prevent crossing with a small buffer during drag
-                    if (minVal > maxVal - 0.1) {
-                        if (this === sliderMin) sliderMin.value = maxVal - 0.1;
-                        else sliderMax.value = minVal + 0.1;
-                    }
-                    
-                    updateSliderFill();
-                    
-                    // Update filters with rounded values
-                    const roundedMin = Math.round(parseFloat(sliderMin.value));
-                    const roundedMax = Math.round(parseFloat(sliderMax.value));
-                    
-                    if (filters.treeCountMin !== roundedMin || filters.treeCountMax !== roundedMax) {
-                        filters.treeCountMin = roundedMin;
-                        filters.treeCountMax = roundedMax;
-                        debounceApplyFilters();
-                    }
-                }
-
-                function handleSliderChange() {
-                    // Snap to nearest integer on release
-                    let val = Math.round(parseFloat(this.value));
-                    this.value = val;
-                    
-                    // Ensure valid integer gap
-                    const min = Math.round(parseFloat(sliderMin.value));
-                    const max = Math.round(parseFloat(sliderMax.value));
-                    
-                    if (min >= max) {
-                        if (this === sliderMin) sliderMin.value = max - 1;
-                        else sliderMax.value = min + 1;
-                    }
-                    
-                    filters.treeCountMin = parseInt(sliderMin.value);
-                    filters.treeCountMax = parseInt(sliderMax.value);
-                    updateSliderFill();
-                    debounceApplyFilters();
-                    positionSliderMarks();
-                }
-                
-                sliderMin.addEventListener('input', handleSliderInput);
-                sliderMax.addEventListener('input', handleSliderInput);
-                sliderMin.addEventListener('change', handleSliderChange);
-                sliderMax.addEventListener('change', handleSliderChange);
-
-                // Reposition marks when sliders move
-                document.querySelectorAll('.advanced-section .slider').forEach(s => s.addEventListener('input', positionSliderMarks));
-                
-                updateSliderFill();
-                positionSliderMarks();
-
-                const desktopBtn = document.getElementById('resetBtnDesktop');
-                if(desktopBtn) desktopBtn.addEventListener('click', resetFilters);
-                const mobileBtn = document.getElementById('resetBtnMobile');
-                if(mobileBtn) mobileBtn.addEventListener('click', resetFilters);
-                document.getElementById('prevBtn').addEventListener('click', () => changePage(-1));
-                document.getElementById('nextBtn').addEventListener('click', () => changePage(1));
-                
-                const downloadToggleBtn = document.getElementById('downloadToggleBtn');
-                if (downloadToggleBtn) {
-                    downloadToggleBtn.addEventListener('click', function() {
-                        isDownloadMode = !isDownloadMode;
-                        this.textContent = isDownloadMode ? 'Enabled' : 'Disabled';
-                        this.classList.toggle('enabled', isDownloadMode);
-                        
-                        this.classList.remove('mobile-active');
-                        void this.offsetWidth;
-                        this.classList.add('mobile-active');
-                        setTimeout(() => this.classList.remove('mobile-active'), 180);
-                    });
-                }
-            }
-
-    function positionSliderMarks() {
-        // Enable for all screen sizes
-        // if (window.innerWidth <= 768) return;
-        
-        const container = document.querySelector('.advanced-section .slider-container');
-        if (!container) return;
-                const labels = container.querySelectorAll('.slider-labels span');
-                const ticks = container.querySelectorAll('.slider-ticks span');
-                const track = container.querySelector('.slider-track');
-                if (!track) return;
-                const count = Math.max(labels.length, ticks.length);
-                if (count <= 1) return;
-
-                // Use pixel positions based on the visible track area to ensure accurate alignment
-                const containerRect = container.getBoundingClientRect();
-                const trackRect = track.getBoundingClientRect();
-                const trackLeft = trackRect.left - containerRect.left;
-                const trackWidth = trackRect.width;
-                
-                // Adjust for thumb width (20px) so labels/ticks align with thumb centers
-                const thumbWidth = 12;
-                const effectiveWidth = trackWidth - thumbWidth;
-                const offset = thumbWidth / 2;
-
-                labels.forEach((el, i) => {
-                    const pct = (i / (count - 1));
-                    const x = trackLeft + offset + pct * effectiveWidth;
-                    // Place labels so their bottom is desiredGap above the track
-                    const desiredGap = -20; // Move closer to slider
-                    const labelsContainer = container.querySelector('.slider-labels');
-                    const labelsRect = labelsContainer ? labelsContainer.getBoundingClientRect() : containerRect;
-                    // measure label height
-                    const elRect = el.getBoundingClientRect();
-                    const labelHeight = elRect.height || 14;
-                    const labelTop = trackRect.top - containerRect.top - desiredGap - labelHeight;
-                    const leftRel = x - (labelsRect.left - containerRect.left);
-                    const topRel = labelTop - (labelsRect.top - containerRect.top);
-                    el.style.left = leftRel + 'px';
-                    el.style.top = topRel + 'px';
-                    el.style.position = 'absolute';
-                });
-
-                ticks.forEach((el, i) => {
-                    const pct = (i / (count - 1));
-                    const x = trackLeft + offset + pct * effectiveWidth;
-                    // Place ticks slightly below the track (closer by 4px)
-                    const tickY = trackRect.top - containerRect.top + trackRect.height + 4;
-                    const ticksContainer = container.querySelector('.slider-ticks');
-                    const ticksRect = ticksContainer ? ticksContainer.getBoundingClientRect() : containerRect;
-                    const leftRel = x - (ticksRect.left - containerRect.left);
-                    const topRel = tickY - (ticksRect.top - containerRect.top);
-                    const NUDGE = 12; // move ticks upward by this many pixels
-                    el.style.left = leftRel + 'px';
-                    el.style.top = (topRel - NUDGE) + 'px';
-                    el.style.position = 'absolute';
-                    // Force visual nudge via transform as a robust fallback
-                    el.style.transform = 'translateX(-50%) translateY(-12px)';
-                    el.style.background = '#FFD700';
-                    el.style.width = '2px';
-                    el.style.height = '8px';
-
-                    // Log computed and rendered positions for debugging (print rect top)
-                    const rect = el.getBoundingClientRect();
-                    console.log('tick pos', i, 'calculatedTop', (topRel - NUDGE), 'getRectTop', rect.top, 'rect', rect);
-                });
-            }
-
-            function handleRegionClick(e) {
-        const item = e.target.closest('.icon-item');
-        if (!item) return;
-        
-        const filter = item.dataset.filter;
-        
-        // Check if it's a region filter
-        if (['Overworld', 'Snow', 'Cavern', 'Big City'].includes(filter)) {
-            item.classList.toggle('selected');
-            
-            if (filters.regions.includes(filter)) {
-                filters.regions = filters.regions.filter(r => r !== filter);
-            } else {
-                filters.regions.push(filter);
-            }
-            
-            debounceApplyFilters();
-        }
-    }
-
-            function handleMultiSelect(e) {
-        const item = e.target.closest('.icon-item');
-        if (!item) return;
-        
-        const filter = item.dataset.filter;
-        
-        // Handle region filters (Overworld, Cavern, Snow, Big City)
-        if (['Overworld', 'Snow', 'Cavern', 'Big City'].includes(filter)) {
-            handleRegionClick.call(this, e);
-            return;
-        }
-        
-        item.classList.toggle('selected');
-        
-        if (filters.additions.includes(filter)) {
-            filters.additions = filters.additions.filter(f => f !== filter);
-        } else {
-            filters.additions.push(filter);
-        }
-        
-        if (filters.entities.includes(filter)) {
-            filters.entities = filters.entities.filter(f => f !== filter);
-        } else if (['Baddy', 'NPC', 'Bug'].includes(filter)) {
-            filters.entities.push(filter);
-        }
-        
-        debounceApplyFilters();
-    }
-
-            function extractFilename(wixUrl) {
-                if (!wixUrl) return '';
-                const parts = wixUrl.split('/');
-                const lastPart = parts[parts.length - 1];
-                const filename = lastPart.split('#')[0];
-                return filename || '';
-            }
-
-            function hasValue(value) {
-                // Check if a CSV cell value indicates presence of that feature
-                if (!value) return false;
-                const trimmed = value.trim().toLowerCase();
-                // Empty, whitespace only, empty brackets, or 'false' means not present
-                return trimmed !== '' && trimmed !== '[]' && trimmed !== 'false';
-            }
-
-            function loadCSV() {
-                fetch('maps.csv')
-                    .then(response => response.text())
-                    .then(csvText => {
-                        if (csvText.charCodeAt(0) === 0xFEFF) {
-                            csvText = csvText.slice(1);
-                        }
-                        Papa.parse(csvText, {
-                            header: false,
-                            skipEmptyLines: true,
-                            complete: function(results) {
-                                allMaps = results.data.map(row => {
-                                    if (!row[0]) return null;
-                                    
-                                    const mapObj = {
-                                        Thumbnail: row[0],
-                                        'Full Image': row[1],
-                                        _treeCount: parseInt(row[3]) || 0,
-                                        mapImage: 'maps/' + row[0] + '.png',
-                                        locationImage: 'locations/' + row[1] + '.png'
-                                    };
-                                    
-                                    // Add Biome and Tags as properties for filtering
-                                    if (row[2]) mapObj[row[2]] = "true";
-                                    for (let i = 4; i < row.length; i++) {
-                                        if (row[i]) mapObj[row[i].trim()] = "true";
-                                    }
-                                    
-                                    return mapObj;
-                                }).filter(item => item !== null);
-                                
-                                // Debug: Count Snow maps
-                                const snowCount = allMaps.filter(m => hasValue(m['Snow'])).length;
-                                console.log('Total maps loaded:', allMaps.length);
-                                console.log('Maps with Snow:', snowCount);
-                                
-                                // Show first few Snow entries for debugging
-                                const snowMaps = allMaps.filter(m => hasValue(m['Snow'])).slice(0, 5);
-                                console.log('Sample Snow maps:', snowMaps.map(m => ({
-                                    Snow: m.Snow,
-                                    mapImage: m.mapImage
-                                })));
-                                
-                                filteredMaps = [...allMaps];
-                                updateDisplay();
-                                updateDebugInfo();
-                            }
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error loading CSV:', error);
-                        document.getElementById('debugInfo').textContent = 'Error loading CSV: ' + error;
-                    });
-            }
-
-            function updateDebugInfo() {
-                const debugDiv = document.getElementById('debugInfo');
-                const snowCount = allMaps.filter(m => hasValue(m['Snow'])).length;
-                const overworldCount = allMaps.filter(m => hasValue(m['Overworld'])).length;
-                const cavernCount = allMaps.filter(m => hasValue(m['Cavern'])).length;
-                const bigCityCount = allMaps.filter(m => hasValue(m['Big City'])).length;
-                
-                debugDiv.innerHTML = `
-                    Total Maps: ${allMaps.length} | 
-                    Overworld: ${overworldCount} | 
-                    Snow: ${snowCount} | 
-                    Cavern: ${cavernCount} | 
-                    Big City: ${bigCityCount} | 
-                    Filtered: ${filteredMaps.length}
-                `;
-            }
-
-            function checkMapMatches(map) {
-                // Region filter
-                if (filters.regions.length > 0) {
-                    const matchesRegion = filters.regions.some(region => hasValue(map[region]));
-                    if (!matchesRegion) return false;
-                }
-                
-                // Entity filters - ALL selected entities must be present
-                if (filters.entities.length > 0) {
-                    const hasAllEntities = filters.entities.every(entity => hasValue(map[entity]));
-                    if (!hasAllEntities) return false;
-                }
-                
-                // Addition filters - ALL selected additions must be present
-                if (filters.additions.length > 0) {
-                    const hasAllAdditions = filters.additions.every(addition => hasValue(map[addition]));
-                    if (!hasAllAdditions) return false;
-                }
-                
-                // Tree count filter
-                if (filters.treeCountMin > 1 || filters.treeCountMax < 8) {
-                    const treeCount = map._treeCount;
-                    if (treeCount === 0) return false;
-                    if (treeCount < filters.treeCountMin || treeCount > filters.treeCountMax) return false;
-                }
-                
-                return true;
-            }
-
-            function debounceApplyFilters() {
-        // Cancel any pending filter application
-        if (filterDebounceTimer) {
-            cancelAnimationFrame(filterDebounceTimer);
-        }
-        // Use requestAnimationFrame for smooth, immediate updates
-        filterDebounceTimer = requestAnimationFrame(() => {
-            applyFilters();
-            filterDebounceTimer = null;
-        });
-    }
-
-            function applyFilters() {
-                if (isFilteringInProgress) return;
-                isFilteringInProgress = true;
-                
-                filteredMaps = allMaps.filter(map => checkMapMatches(map));
-
-                console.log('Filters applied:', filters);
-                
-                currentPage = 0;
-                updateDisplay();
-                updateDebugInfo();
-                
-                isFilteringInProgress = false;
-            }
-
-            function resetFilters() {
-        filters.regions = [];
-        filters.entities = [];
-        filters.additions = [];
-        filters.treeCountMin = 1;
-        filters.treeCountMax = 8;
-        document.querySelectorAll('.icon-item').forEach(item => {
-            item.classList.remove('selected');
-        });
-        document.getElementById('treeSliderMin').value = 1;
-        document.getElementById('treeSliderMax').value = 8;
-        updateSliderFill();
-        currentPage = 0;
-        debounceApplyFilters();
-    }
-
-            function updateSliderFill() {
-        const fill = document.getElementById('sliderFill');
-        const min = parseFloat(document.getElementById('treeSliderMin').value);
-        const max = parseFloat(document.getElementById('treeSliderMax').value);
-        const range = 8;
-        
-        const leftPercent = ((min - 1) / (range - 1)) * 100;
-        const rightPercent = ((max - 1) / (range - 1)) * 100;
-        
-        fill.style.setProperty('left', leftPercent + '%', 'important');
-        fill.style.setProperty('width', (rightPercent - leftPercent) + '%', 'important');
-        fill.style.setProperty('display', 'block', 'important');
-        
-        console.log('Fill updated:', leftPercent, rightPercent);
-    }
-
-            function updateDisplay() {
-        const gallery = document.getElementById('mapGallery');
-        const spinner = document.getElementById('gallerySpinner');
-        
-        if (spinner) spinner.style.display = 'block';
-        gallery.style.opacity = '0';
-        gallery.style.pointerEvents = 'none';
-
-        const start = currentPage * mapsPerPage;
-        const end = start + mapsPerPage;
-        const pageMaps = filteredMaps.slice(start, end);
-
-        let html = pageMaps.map((map, index) => `
-            <div class="map-thumbnail" draggable="false" onclick="handleMapClick(this, '${map.locationImage}', '${map.mapImage}')" ontouchstart="preloadImage('${map.locationImage}')" onmouseenter="preloadImage('${map.locationImage}')">
-                <img src="${map.mapImage}" alt="" onerror="this.style.display='none'" draggable="false">
-            </div>
-        `).join('');
-
-        // Fill remaining slots to maintain layout stability
-        const remainingSlots = mapsPerPage - pageMaps.length;
-        if (remainingSlots > 0) {
-            for (let i = 0; i < remainingSlots; i++) {
-                html += `
-                <div class="map-thumbnail" style="cursor: default; pointer-events: none;">
-                    <div style="width: 100%; padding-top: 100%;"></div>
-                </div>`;
-            }
-        }
-
-        gallery.innerHTML = html;
-
-        const images = gallery.querySelectorAll('img');
-        
-        const checkAllLoaded = () => {
-            if (spinner) spinner.style.display = 'none';
-            gallery.style.opacity = '1';
-            gallery.style.pointerEvents = 'auto';
-        };
-
-        const imagePromises = Array.from(images).map(img => {
-            if (img.decode) {
-                return img.decode().catch(() => {});
-            } else {
-                return new Promise(resolve => {
-                    if (img.complete) resolve();
-                    else {
-                        img.onload = resolve;
-                        img.onerror = resolve;
-                    }
-                });
-            }
-        });
-
-        Promise.all(imagePromises).then(checkAllLoaded);
-
-        // Sequential background preloading to prevent network congestion
-        // Only preload on desktop to save data/bandwidth on mobile
-        if (window.innerWidth > 1024) {
-        preloadSequence++;
-        const currentSequence = preloadSequence;
-        const imagesToPreload = pageMaps.filter(map => !imageCache.has(map.locationImage));
-
-        setTimeout(() => {
-            const preloadNext = (index) => {
-                if (index >= imagesToPreload.length || preloadSequence !== currentSequence) return;
-                
-                const img = new Image();
-                img.onload = () => {
-                    imageCache.set(imagesToPreload[index].locationImage, imagesToPreload[index].locationImage);
-                    preloadNext(index + 1);
-                };
-                img.onerror = () => preloadNext(index + 1);
-                img.src = imagesToPreload[index].locationImage;
-            };
-            preloadNext(0);
-        }, 1000);
-        }
-
-        const totalPages = Math.ceil(filteredMaps.length / mapsPerPage) || 1;
-        const current = currentPage + 1;
-        document.getElementById('pageCounter').innerHTML = `<span style="color: #e6d5b1">${current}</span><span style="color: #ffc43d">/${totalPages}</span>`;
-
-        document.getElementById('prevBtn').disabled = currentPage === 0;
-        document.getElementById('nextBtn').disabled = end >= filteredMaps.length;
-    }
-
-            function changePage(direction) {
-                const maxPage = Math.ceil(filteredMaps.length / mapsPerPage) - 1;
-                currentPage = Math.max(0, Math.min(maxPage, currentPage + direction));
-                updateDisplay();
-            }
-        </script>
-    </body>
-    </html>
+    </script>
+</body>
+</html>

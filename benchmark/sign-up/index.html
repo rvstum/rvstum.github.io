@@ -6,9 +6,16 @@
     <title>Sign Up - Benchmark</title>
     <link rel="icon" type="image/png" href="../../icons/baddy.png">
     <script src="../mobileViewportGuard.js?v=20260310-sub-score-input-1"></script>
-    <link rel="stylesheet" href="../login.css?v=20260322-password-toggle-1">
+    <link rel="stylesheet" href="../login.css?v=20260910-auth-layout-5">
 </head>
 <body>
+    <a class="auth-home-link" href="/" aria-label="Open the KDAssist menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path class="auth-home-icon-body" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+    </a>
+    <div class="auth-stage">
     <h1 class="app-title">Benchmark</h1>
     <div class="auth-main">
     <div class="login-container">
@@ -37,6 +44,7 @@
             <button type="button" class="auth-lang-button" id="authLangButton" aria-expanded="false">Language</button>
             <div class="auth-lang-menu" id="authLangMenu"></div>
         </div>
+    </div>
     </div>
     </div>
     <script src="../auth-footer-loader.js"></script>

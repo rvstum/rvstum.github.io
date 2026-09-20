@@ -1,10 +1,13 @@
-const CACHE_NAME = 'kdassist-v1.9.9'; // Change version number to force update
+const CACHE_NAME = 'kdassist-v1.10.0'; // Change version number to force update
 const urlsToCache = [
   './',
   './index.html',
+  './treasuremaps/',
+  './menu/kdassisticon.png',
   './benchmark/benchmark.html',
   './icons/map2a.png',
-  './maps.csv'
+  './maps.csv',
+  './icons/menubackground.png'
 ];
 
 function shouldUseNetworkFirst(request, acceptHeader) {

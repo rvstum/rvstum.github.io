@@ -1,0 +1,2741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assets</title>
+    <link rel="icon" type="image/png" sizes="64x64" href="shieldicon-tab.png">
+    <style>
+        /* green theme, taken from the page background */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background-color: #0a0a0a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #home-menu-button {
+            position: fixed;
+            top: clamp(12px, 2vw, 18px);
+            left: clamp(12px, 2vw, 18px);
+            z-index: 2147483647;
+        }
+
+        .home-menu-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            color: #9fc0a5;
+            text-decoration: none;
+            transition: transform 180ms ease, opacity 180ms ease;
+            background: rgba(8, 24, 12, 0.94);
+            border: 1px solid #2a6a3a;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .home-menu-link svg {
+            width: 32px;
+            height: 32px;
+            display: block;
+            fill: none;
+            stroke: currentColor;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 2;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
+        }
+
+        .home-menu-link .home-icon-body {
+            fill: #1c4a2a;
+        }
+
+        .home-menu-link:focus-visible {
+            outline: none;
+            transform: scale(1.15);
+        }
+
+        .home-menu-link:active {
+            transform: scale(0.9);
+            opacity: 0.7;
+        }
+
+        @media (hover: hover) {
+            .home-menu-link:hover {
+                transform: scale(1.15);
+                color: #cfe0d2;
+            }
+        }
+
+        .page-title {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: clamp(12px, 2vw, 18px) 16px 0;
+        }
+
+        .page-title-main {
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: var(--title-size);
+            letter-spacing: 4px;
+            text-shadow: 0 0 6px #000, 0 0 12px #000, 0 0 22px rgba(0, 0, 0, 0.9), 0 0 36px rgba(0, 0, 0, 0.7); /* black glow behind the title */
+        }
+
+        .page-subtitle {
+            color: #9fc0a5;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: clamp(11px, 1.4vw, 14px);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: calc(var(--title-size) * -0.3);
+            text-shadow: 0 0 5px #000, 0 0 10px #000, 0 0 18px rgba(0, 0, 0, 0.85);
+        }
+
+        /* The page is exactly one screen tall at any size: the panel fills whatever is left under the
+           title and the grid (see layoutGrid) shows only as many rows as fit. Nothing depends on a
+           specific screen width or height. */
+        html, body {
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
+        /* Pinned to the screen so nothing inside can create a sideways scroll on touch devices. */
+        body {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Same gap above and below the title, so it sits centered between the top of the screen and
+           the panel at any screen size. */
+        .page-title {
+            --title-gap: clamp(10px, 2.5vh, 26px);
+            --title-size: clamp(26px, 5vw, 60px);
+            flex: none;
+            padding: var(--title-gap) 16px;
+        }
+
+        /* The text alone is centered; the icon hangs off its right edge without shifting it. */
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 1.9em;
+        }
+
+        .title-text {
+            position: relative;
+        }
+
+        .title-icon {
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 0.3em;
+            height: 1.9em;
+            width: auto;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.25));
+        }
+
+        main {
+            width: min(94%, 1000px);
+            margin: 0 auto clamp(10px, 2vh, 16px);
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel {
+            flex: 1;
+            min-height: 0;
+            background: rgba(8, 24, 12, 0.94);
+            border: 1px solid #2a6a3a;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            padding: 18px 22px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-header {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        /* The count and the "!" button stay in the top row; the tabs sit underneath. */
+        .panel-subrow {
+            order: -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .panel-heading {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .info-wrap {
+            position: relative;
+            flex: none;
+        }
+
+        .info-btn {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1.5px solid #6f9d78;
+            border-radius: 50%;
+            color: #9fc0a5;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .info-btn[aria-expanded="true"] {
+            border-color: #00ff00;
+            color: #fff;
+        }
+
+        @media (hover: hover) {
+            .info-btn:hover {
+                border-color: #aecab3;
+                color: #fff;
+            }
+        }
+
+        .info-popup {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: min(260px, calc(100vw - 60px));
+            padding: 12px 14px;
+            background: #0c2010;
+            border: 1px solid #2a6a3a;
+            border-radius: 6px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            color: #cfe0d2;
+            font-size: 12px;
+            line-height: 1.5;
+            opacity: 0;
+            transform: translateY(-4px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 5;
+        }
+
+        .info-popup.open {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* Category tabs */
+        .tabs {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            width: 100%;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            position: relative;
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 12px 8px;
+            text-align: center;
+            background: #12301a;
+            border: 1px solid #2a6a3a;
+            border-radius: 4px;
+            color: #9fc0a5;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+
+        /* Small line under the tab name (hats, accessories and mounts) */
+        .tab-sub {
+            display: block;
+            margin-top: 2px;
+            font-size: 9px;
+            font-weight: normal;
+            letter-spacing: 0.5px;
+            text-transform: none;
+            opacity: 0.75;
+        }
+
+        /* Each tab has its icon pinned to the far right, sized by height so different image shapes all fit. */
+        .tab-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 26px;
+            width: auto;
+            max-width: 44px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            pointer-events: none;
+        }
+
+        @media (hover: hover) {
+            .tab:hover {
+                border-color: #7fa887;
+                color: #fff;
+            }
+        }
+
+        .tab.active {
+            border-color: #00ff00;
+            color: #fff;
+            background: #1a4224;
+        }
+
+        /* Each tab's content fills the rest of the panel. */
+        .tab-view {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Delete-list toolbox (temporary): marked cards get a red outline and a cross. */
+        .card.marked {
+            border-color: #ff4d4d;
+            box-shadow: inset 0 0 0 1px #ff4d4d;
+        }
+
+        .card.marked::after {
+            content: "\2715";
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            color: #ff4d4d;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .card {
+            position: relative;
+        }
+
+        .deltool {
+            position: fixed;
+            left: 12px;
+            bottom: 12px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .deltool[hidden] {
+            display: none;
+        }
+
+        .deltool-toggle {
+            padding: 6px 10px;
+            background: #222;
+            border: 1px dashed #ff4d4d;
+            border-radius: 4px;
+            color: #ffb3b3;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .deltool-box {
+            display: none;
+            width: 280px;
+            max-width: calc(100vw - 24px);
+            padding: 12px;
+            background: rgba(15, 15, 15, 0.97);
+            border: 1px solid #ff4d4d;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .deltool.open .deltool-box {
+            display: flex;
+        }
+
+        .deltool-title {
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .deltool-note {
+            color: #999;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        .deltool-list {
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 6px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #333;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10px;
+            color: #ddd;
+        }
+
+        .deltool-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .deltool-item span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .deltool-item button {
+            flex: none;
+            padding: 0 5px;
+            background: transparent;
+            border: 0;
+            color: #ff4d4d;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .deltool-empty {
+            color: #777;
+        }
+
+        .deltool-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .deltool-actions button {
+            flex: 1;
+            padding: 6px 8px;
+            background: #222;
+            border: 1px dashed #555;
+            border-radius: 4px;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        /* Popup shown when a hat, accessory or mount is clicked */
+        /* While the popup is open the gallery behind it is inert, so nothing in it can pick up a hover/focus outline. */
+        body.viewer-open .grid,
+        body.viewer-open .grid * {
+            pointer-events: none;
+        }
+
+        body.viewer-open .card,
+        body.viewer-open .card:hover {
+            border-color: #1c4a2a;
+        }
+
+        /* The box of the image open in the popup is outlined in the gallery behind it. */
+        body.viewer-open .card.viewing {
+            border-color: #00ff00;
+            box-shadow: 0 0 0 1px #00ff00;
+        }
+
+        .viewer[hidden] {
+            display: none;
+        }
+
+        .viewer {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .viewer-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(3px);
+        }
+
+        .viewer-card {
+            position: relative;
+            width: min(620px, 100%);
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 16px 18px 18px;
+            background: rgba(8, 24, 12, 0.98);
+            border: 1px solid #2a6a3a;
+            border-radius: 10px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+            animation: viewer-in 0.18s ease;
+        }
+
+        @keyframes viewer-in {
+            from { opacity: 0; transform: translateY(8px) scale(0.98); }
+            to { opacity: 1; transform: none; }
+        }
+
+        .viewer-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .viewer-title {
+            min-width: 0;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .viewer-close {
+            flex: none;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            background: #12301a;
+            border: 1px solid #2a6a3a;
+            border-radius: 6px;
+            color: #cfe0d2;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Fixed size: zooming scrolls the image inside the stage instead of growing the popup. */
+        .viewer-stage {
+            flex: none;
+            height: max(180px, min(50vh, 420px));
+            min-height: 0;
+            scrollbar-width: none; /* still scrolls and drags, just without visible bars */
+            display: flex;
+            padding: 14px;
+            overflow: auto;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background: #0c2010;
+            border: 1px solid #1c4a2a;
+            border-radius: 8px;
+        }
+
+        .viewer-stage::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* margin:auto centers the sheet while it fits and lets the stage scroll once it is zoomed larger. */
+        .viewer-sheet {
+            position: relative;
+            flex: none;
+            margin: auto;
+        }
+
+        .viewer-zoom {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .viewer-zoom button {
+            min-width: 28px;
+            height: 28px;
+            padding: 0 6px;
+            background: #12301a;
+            border: 1px solid #2a6a3a;
+            border-radius: 6px;
+            color: #cfe0d2;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        @media (hover: hover) {
+            .viewer-zoom button:hover {
+                border-color: #00ff00;
+            }
+        }
+
+        .viewer-stage.dragging {
+            cursor: grabbing;
+        }
+
+        .viewer-sheet img {
+            -webkit-user-drag: none;
+            user-select: none;
+            position: absolute;
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        .viewer-template {
+            left: 0;
+            top: 0;
+            pointer-events: none;
+        }
+
+        .viewer-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+        }
+
+        .viewer-meta > div {
+            padding: 8px 10px;
+            background: #0c2010;
+            border: 1px solid #1c4a2a;
+            border-radius: 6px;
+            min-width: 0;
+        }
+
+        .viewer-meta dt,
+        .viewer-meta .k {
+            color: #7fa887;
+            font-size: 9px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .viewer-meta .v {
+            margin-top: 3px;
+            color: #e6f0e8;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .viewer-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .viewer-count {
+            flex: 1 1 auto;
+            color: #cfe0d2;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .viewer-actions button:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .viewer-actions button,
+        .viewer-actions a {
+            flex: 0 0 auto;
+            min-width: 84px;
+            padding: 8px 12px;
+            background: #12301a;
+            border: 1px dashed #3f8f4f;
+            border-radius: 4px;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @media (hover: hover) {
+            .viewer-actions button:hover,
+            .viewer-actions a:hover,
+            .viewer-close:hover {
+                border-color: #00ff00;
+            }
+        }
+
+        .tab-view[hidden],
+        .switch-row[hidden] {
+            display: none;
+        }
+
+        /* Hats, accessories and mounts are small pixel art: keep them crisp when scaled up. */
+        .grid.pixelated .card-art img {
+            image-rendering: pixelated;
+        }
+
+        .tab-empty {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #6f9d78;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .panel-title {
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .panel-count {
+            color: #7fa887;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .filter-label {
+            color: #aecab3;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 7px;
+            padding: 5px 10px;
+            background: #12301a;
+            border: 1px solid #2a6a3a;
+            border-radius: 4px;
+            color: #bdd3c1;
+            font: inherit;
+            font-size: 11px;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+
+        @media (hover: hover) {
+            .chip:hover {
+                border-color: #7fa887;
+                color: #fff;
+            }
+        }
+
+        .chip.active {
+            border-color: #00ff00;
+            color: #fff;
+            background: #1a4224;
+        }
+
+        .chip-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .chip-num {
+            color: #6f9d78;
+            font-size: 10px;
+        }
+
+        .gallery-toolbar {
+            position: absolute;
+            right: 0;
+            z-index: 2;
+            display: flex;
+            justify-content: flex-end;
+            width: min(280px, 100%);
+            min-width: 0;
+            visibility: hidden;
+        }
+
+        .gallery-toolbar::before {
+            content: "";
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            z-index: 1;
+            width: 14px;
+            height: 14px;
+            transform: translateY(-50%);
+            background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='7' cy='7' r='4.5' fill='none' stroke='%236f9d78' stroke-width='1.7'/%3E%3Cpath d='M10.5 10.5L14 14' fill='none' stroke='%236f9d78' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .asset-search {
+            width: 100%;
+            min-width: 0;
+            padding: 8px 11px 8px 34px;
+            background: #0c2010;
+            border: 1px solid #2a6a3a;
+            border-radius: 4px;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .asset-search::placeholder {
+            color: #6f9d78;
+            opacity: 1;
+        }
+
+        .asset-search::-webkit-search-cancel-button {
+            width: 14px;
+            height: 14px;
+            margin-left: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: center / 14px 14px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 3l8 8M11 3l-8 8' fill='none' stroke='%2300ff00' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+            cursor: pointer;
+        }
+
+        .asset-search:focus {
+            border-color: #00ff00;
+            box-shadow: 0 0 0 1px rgba(0, 255, 0, 0.15);
+        }
+
+        .grid {
+            display: grid;
+            --card-min: 110px;
+            grid-template-columns: repeat(auto-fill, minmax(calc(var(--card-min) * var(--card-scale, 1)), 1fr));
+            gap: 10px;
+            flex: 1 1 0;
+            min-height: 0;
+        }
+
+        .card {
+            background: #0c2010;
+            border: 1px solid #1c4a2a;
+            border-radius: 6px;
+            padding: 10px 8px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: border-color 0.2s;
+        }
+
+        .card {
+            cursor: pointer;
+        }
+
+        /* Touch screens keep :hover stuck after a tap, so only apply it where a real hover exists. */
+        @media (hover: hover) {
+            .card:hover {
+                border-color: #6f9d78;
+            }
+        }
+
+        .card.copied {
+            border-color: #00ff00;
+            transition: none;
+        }
+
+        .card.copied .card-name {
+            color: #00ff00;
+        }
+
+        .card.hold-pending {
+            border-color: #00ff00;
+            box-shadow: inset 0 0 0 1px rgba(0, 255, 0, 0.35);
+        }
+
+        .card.fading {
+            transition: border-color 0.4s ease;
+        }
+
+        /* The shield sits on top of the character template; both fill the same box so they line up. */
+        /* Hats and accessories are wide sheets, mounts are tall: their cards are smaller and shaped to match
+           (--card-scale narrows the columns, data-aspect is the art's height/width used to count rows). */
+        .grid[data-cat="shields"] { --card-scale: 0.9; }
+        .grid[data-cat="hats"] { --card-scale: 0.86; }
+        .grid[data-cat="accessories"] { --card-scale: 0.92; }
+        .grid[data-cat="mounts"] { --card-scale: 0.8; }
+
+        .card-art {
+            position: relative;
+            width: 100%;
+            flex: 1 1 0;
+            min-height: 0;
+        }
+
+        /* .sheet is the 152x80 area the template occupies, centered in the card. Shield and template are
+           both drawn inside it so they always line up. */
+        .card-art {
+            container-type: size;
+        }
+
+        .sheet {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: min(100cqw, calc(100cqh * var(--sheet-w, 152) / var(--sheet-h, 80)));
+            aspect-ratio: var(--sheet-w, 152) / var(--sheet-h, 80);
+        }
+
+        .card-art img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: auto;
+        }
+
+        /* The template never intercepts clicks, so right-click always lands on the shield image itself
+           ("Open image in new tab", "Save image as", etc.). */
+        .card-art .template-img,
+        .card-art .template-over {
+            display: none;
+            pointer-events: none;
+        }
+
+        /* Character preview is supported only by full-size 152x80 shields. */
+        .grid.preview-on .card-art:not(.no-template) .template-img,
+        .grid.preview-on .card-art:not(.no-template) .template-over {
+            display: block;
+        }
+
+        /* Light switch */
+        .switch-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .switch {
+            position: relative;
+            width: 38px;
+            height: 20px;
+            padding: 0;
+            background: #12301a;
+            border: 1px solid #3f8f4f;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .switch::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #8fb396;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .switch[aria-checked="true"] {
+            border-color: #00ff00;
+            background: #14301a;
+        }
+
+        .switch[aria-checked="true"]::after {
+            transform: translateX(18px);
+            background: #00ff00;
+        }
+
+        .switch-note {
+            color: #7fa887;
+            font-size: 9px;
+        }
+
+        .preview-controls {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+        }
+
+        .preview-controls[hidden] {
+            display: none;
+        }
+
+        .preview-control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        #setshieldRow {
+            position: relative;
+        }
+
+        #setshieldRow::before {
+            content: "";
+            position: absolute;
+            left: -12px;
+            top: 2px;
+            bottom: 2px;
+            width: 1px;
+            background: #2a6a3a;
+            border-radius: 1px;
+        }
+
+        .switch-label {
+            color: #bdd3c1;
+            font-size: 11px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card-name {
+            width: 100%;
+            color: #7fa887;
+            font-size: 9px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .empty {
+            grid-column: 1 / -1;
+            align-self: center;
+            text-align: center;
+            color: #6f9d78;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .pager {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .pager {
+            position: relative;
+        }
+
+        .type-filter-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .type-filter-header .filter-label {
+            margin-bottom: 0;
+        }
+
+        .shield-hold-hint {
+            color: #cfe0d2;
+            font-size: 9px;
+            font-weight: 700;
+            line-height: normal;
+            white-space: nowrap;
+        }
+
+        .pager-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .page-jump {
+            position: relative;
+            display: flex;
+        }
+
+        .page-jump-menu {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 7px);
+            z-index: 8;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(34px, 1fr));
+            gap: 5px;
+            width: max-content;
+            max-width: min(230px, calc(100vw - 40px));
+            max-height: 190px;
+            padding: 8px;
+            overflow-y: auto;
+            background: #0c2010;
+            border: 1px solid #2a6a3a;
+            border-radius: 5px;
+            box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.55);
+            scrollbar-width: none;
+            transform: translateX(-50%);
+        }
+
+        .page-jump-menu::-webkit-scrollbar {
+            display: none;
+        }
+
+        .page-jump-menu[hidden] {
+            display: none;
+        }
+
+        .pager .page-jump-option {
+            min-width: 34px;
+            padding: 6px 7px;
+            border-style: solid;
+            color: #bdd3c1;
+        }
+
+        .pager .page-jump-option.active {
+            border-color: #00ff00;
+            background: #1a4224;
+            color: #fff;
+        }
+
+        /* Bottom-right corner of the panel */
+        .pager .reset-btn {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            padding: 7px 12px;
+            border-style: solid;
+            border-color: #2a6a3a;
+            color: #cfe0d2;
+        }
+
+        @media (hover: hover) {
+            .pager .reset-btn:hover {
+                border-color: #00ff00;
+            }
+        }
+
+        .pager button {
+            padding: 7px 16px;
+            background: #12301a;
+            border: 1px dashed #3f8f4f;
+            border-radius: 4px;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s, opacity 0.2s;
+        }
+
+        #prev,
+        #next {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        #prev::before,
+        #next::after {
+            content: "";
+            width: 11px;
+            height: 11px;
+            flex: none;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+
+        #prev::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M7.75 2L3.75 6l4 4' fill='none' stroke='%23ffffff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        }
+
+        #next::after {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4.25 2l4 4-4 4' fill='none' stroke='%23ffffff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        }
+
+        @media (hover: hover) {
+            .pager button:hover:not(:disabled) {
+                border-color: #00ff00;
+            }
+        }
+
+        .pager button:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .page-indicator {
+            color: #9fc0a5;
+            font-size: 11px;
+            letter-spacing: 1px;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        main, .panel, .grid {
+            min-width: 0;
+        }
+
+        /* Filters stay on one swipeable line so they never eat the panel's height. */
+        .filter-row {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .filter-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chip {
+            flex: none;
+        }
+
+        /* On desktop there is room, so let the chips wrap instead of clipping the last one. */
+        @media (min-width: 769px) {
+            .filter-row {
+                flex-wrap: wrap;
+                overflow: visible;
+            }
+        }
+
+        .pager button {
+            flex: 0 1 auto;
+            min-width: 0;
+            padding-left: clamp(8px, 2.5vw, 16px);
+            padding-right: clamp(8px, 2.5vw, 16px);
+        }
+
+        .page-indicator {
+            min-width: 0;
+            white-space: nowrap;
+        }
+
+        .card {
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .panel {
+            overflow: hidden;
+        }
+
+        .panel > * {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .pager {
+            min-width: 0;
+            overflow: visible;
+        }
+
+        .pager button,
+        .page-indicator {
+            font-size: clamp(10px, 3vw, 12px);
+        }
+
+        /* Very narrow phones: no room for an icon next to a centered label. */
+        @media (max-width: 360px) {
+            .tab-icon {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .tab {
+                padding: 11px 2px;
+                font-size: 8px;
+                letter-spacing: 0;
+            }
+
+            .tab-icon {
+                right: 2px;
+                height: 11px;
+                max-width: 13px;
+            }
+
+            .page-title {
+                --title-size: 30px;
+            }
+
+            main {
+                width: calc(100% - 24px);
+            }
+
+            .panel {
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .filter-label {
+                margin-bottom: 4px;
+            }
+
+            .type-filter-header {
+                margin-bottom: 4px;
+            }
+
+            .asset-search {
+                font-size: 11px;
+            }
+
+            .gallery-toolbar {
+                width: min(180px, 55%);
+            }
+
+            .grid {
+                --card-min: 84px;
+            }
+
+            /* One row: page controls centered, Reset in the far-right corner, sized to fit narrow screens. */
+            .pager {
+                display: grid;
+                grid-template-columns: 1fr auto 1fr;
+            }
+
+            .pager-nav {
+                grid-column: 2;
+                gap: 3px;
+            }
+
+            .pager button {
+                padding: 7px 6px;
+                font-size: 11px;
+            }
+
+            .pager .page-indicator {
+                font-size: 11px;
+                white-space: nowrap;
+            }
+
+            .pager .reset-btn {
+                grid-column: 3;
+                grid-row: 1;
+                justify-self: end;
+                position: static;
+                padding: 7px 7px;
+                font-size: 10px;
+            }
+
+            /* Very narrow phones can't spare the side room: controls shift left so nothing overlaps. */
+            @media (max-width: 359px) {
+                .pager {
+                    display: flex;
+                    justify-content: space-between;
+                }
+
+                .pager .reset-btn {
+                    order: 10;
+                }
+            }
+
+            .page-indicator {
+                min-width: 0;
+                font-size: 10px;
+                letter-spacing: 0;
+                white-space: nowrap;
+            }
+        }
+
+        /* Fade in on entering the page and fade out when leaving it for the menu (same feel as the other pages). */
+        .page-transition-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000000;
+            opacity: 1;
+            pointer-events: none;
+            z-index: 2147483647;
+            transition: opacity 420ms ease;
+        }
+
+        html.page-entered .page-transition-overlay {
+            opacity: 0;
+        }
+
+        body > :not(.page-transition-overlay):not(script) {
+            opacity: 0;
+            transition: opacity 420ms ease;
+        }
+
+        html.page-entered body > :not(.page-transition-overlay):not(script) {
+            opacity: 1;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .page-transition-overlay,
+            body > :not(.page-transition-overlay):not(script) {
+                transition: none;
+            }
+        }
+
+        /* page background image: the picture, darkened evenly so the white text and dark panels stay readable */
+        html {
+            background-color: #6e6e6e;
+            background-image: url('assetsbackground.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-blend-mode: multiply;
+        }
+
+        body {
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-transition-overlay" aria-hidden="true"></div>
+    <div id="home-menu-button">
+        <a class="home-menu-link" href="/" aria-label="Open the KDAssist menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path class="home-icon-body" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </a>
+    </div>
+
+    <div class="page-title">
+        <div class="page-title-main title-row">
+            <span class="title-text">KDASSIST
+                <img class="title-icon" src="shieldicon.png" alt="">
+            </span>
+        </div>
+        <div class="page-subtitle">Assets</div>
+    </div>
+
+    <main>
+        <section class="panel">
+            <div class="panel-header">
+                <div class="tabs" id="tabs" role="tablist">
+                        <button class="tab active" type="button" role="tab" aria-selected="true" data-tab="shields">Shields<img class="tab-icon" src="shieldicon.png" alt=""></button>
+                        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="hats">Hat<span class="tab-sub">Museum</span><img class="tab-icon" src="haticon.png" alt=""></button>
+                        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="accessories">Accessory<span class="tab-sub">Museum</span><img class="tab-icon" src="accessoryicon.png" alt=""></button>
+                        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="mounts">Mounts<span class="tab-sub">Museum</span><img class="tab-icon" src="mounticon.png" alt=""></button>
+                </div>
+                <div class="panel-subrow">
+                <div class="panel-count" id="count"></div>
+                <div class="info-wrap">
+                    <button class="info-btn" type="button" id="infoBtn" aria-label="Info" aria-expanded="false" aria-controls="infoPopup">!</button>
+                    <div class="info-popup" id="infoPopup" role="dialog" aria-label="Info">
+                        Shields will be updated from time to time in big batches, bear with me as I still need to collect them!
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <div class="tab-view" id="shieldsView">
+            <div class="type-filter-block">
+                <div class="type-filter-header">
+                    <div class="filter-label">Filter by file type</div>
+                    <div class="shield-hold-hint" id="shieldHoldHint"><strong>Hold to view shields</strong></div>
+                </div>
+                <div class="filter-row" id="typeFilters"></div>
+            </div>
+
+            <div id="colorBlock">
+                <div class="filter-label">Filter by majority color</div>
+                <div class="filter-row" id="filters"></div>
+            </div>
+
+            <div id="themeBlock" hidden>
+                <div class="filter-label">Filter by theme</div>
+                <div class="filter-row" id="themeFilters"></div>
+            </div>
+
+            <div id="yearBlock" hidden>
+                <div class="filter-label">Filter by year</div>
+                <div class="filter-row" id="yearFilters"></div>
+            </div>
+
+            <div class="preview-controls" id="previewControls">
+                <div class="preview-control-group">
+                    <div class="switch-row" id="previewRow">
+                        <span class="switch-label" id="previewLabel">Character Preview</span>
+                        <button class="switch" type="button" id="previewSwitch" role="switch" aria-checked="true" aria-labelledby="previewLabel"></button>
+                    </div>
+                    <div class="switch-note" id="previewNote">Only supporting 152x80</div>
+                </div>
+                <div class="switch-row" id="setshieldRow">
+                    <span class="switch-label" id="setshieldLabel">Setshield</span>
+                    <button class="switch" type="button" id="setshieldSwitch" role="switch" aria-checked="true" aria-labelledby="setshieldLabel"></button>
+                </div>
+            </div>
+
+            <div class="gallery-toolbar">
+                <input class="asset-search" id="assetSearch" type="search" placeholder="Search" aria-label="Search assets" autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="grid" id="grid"></div>
+
+            <div class="pager">
+                <button type="button" class="reset-btn" id="resetBtn" title="Reset all filters">Reset</button>
+                <div class="pager-nav">
+                    <button type="button" id="first" title="First page">1</button>
+                    <button type="button" id="prev">Prev</button>
+                    <span class="page-indicator" id="pageIndicator"></span>
+                    <button type="button" id="next">Next</button>
+                    <div class="page-jump" id="pageJump">
+                        <button type="button" id="last" title="Choose page" aria-haspopup="listbox" aria-expanded="false"></button>
+                        <div class="page-jump-menu" id="pageJumpMenu" role="listbox" aria-label="Choose page" hidden></div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+        </section>
+    </main>
+
+    <div class="viewer" id="viewer" hidden>
+        <div class="viewer-backdrop" data-close></div>
+        <div class="viewer-card" role="dialog" aria-modal="true" aria-label="Image viewer">
+            <div class="viewer-head">
+                <div class="viewer-title" id="viewerTitle"></div>
+                <div class="viewer-zoom">
+                    <button type="button" id="zoomOut" aria-label="Zoom out">&minus;</button>
+                    <button type="button" id="zoomReset" aria-label="Reset zoom">100%</button>
+                    <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+                </div>
+                <button class="viewer-close" type="button" data-close aria-label="Close">&#10005;</button>
+            </div>
+            <div class="viewer-stage" id="viewerStage"></div>
+            <div class="viewer-actions">
+                <button type="button" id="viewerPrev">&larr; Prev</button>
+                <span class="viewer-count" id="viewerCount"></span>
+                <button type="button" id="viewerNext">Next &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="deltool" id="deltool" hidden>
+        <div class="deltool-box">
+            <div class="deltool-title">DELETE LIST</div>
+            <div class="deltool-note">While this box is open, clicking an image adds it to (or removes it from) the list, in any tab. Copy the list and paste it to me.</div>
+            <div class="deltool-list" id="deltoolList"></div>
+            <div class="deltool-actions">
+                <button type="button" id="deltoolClear">Clear</button>
+                <button type="button" id="deltoolCopy">Copy list</button>
+            </div>
+        </div>
+        <button class="deltool-toggle" type="button" id="deltoolToggle">Delete list (0)</button>
+    </div>
+
+    <script>
+        // Each category's file names live in its folder (Shields/shields.json, Hats/hats.json, ...), e.g.
+        // ["a.png", "b.gif"]. A static site can't list a folder, so assets/tools/build-shield-colors.js
+        // regenerates those files whenever something is added or removed.
+        const CATEGORIES = {
+            shields:     { dir: 'Shields/',     list: 'shields.json',     one: 'shield',    many: 'shields',     label: 'Shields',     aspect: 0.53, colors: true, preview: true, setCmd: 'setshield', template: { src: '../icons/shieldtemplate.png', overSrc: '../icons/shieldtemplate1.png', w: 152, h: 80 } },
+            hats:        { dir: 'Hats/',        list: 'hats.json',        one: 'hat',       many: 'hats',        label: 'Hats',        aspect: 0.75, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/hattemplate.png', w: 192, h: 144 } },
+            accessories: { dir: 'Accessories/', list: 'accessories.json', one: 'accessory', many: 'accessories', label: 'Accessories', aspect: 0.6, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/accessoriestemplate.png', overSrc: '../icons/accessoriestemplate1.png', w: 240, h: 144 } },
+            mounts:      { dir: 'Mounts/',      list: 'mounts.json',      one: 'mount',     many: 'mounts',      label: 'Mounts',      aspect: 1.5,  colors: false, preview: false, setCmd: null }
+        };
+        let currentCat = 'shields';
+        let SHIELD_DIR = CATEGORIES.shields.dir; // folder of the tab being shown
+        const catState = {}; // remembered list / filters / page for each tab
+        const GRID_GAP = 10;
+        const CARD_EXTRA_H = 36; // card padding + name line + gap, on top of the square image
+        let pageSize = 24;
+        let setshieldOn = true;
+        let isLoading = true;
+
+        // Delete list: "Folder/file" entries, kept across tabs and reloads.
+        const DELETE_KEY = 'kdassist-delete-list';
+        const deleteList = new Set();
+        try {
+            (JSON.parse(localStorage.getItem(DELETE_KEY) || '[]') || []).forEach((entry) => deleteList.add(String(entry)));
+        } catch (e) { /* storage unavailable */ }
+        let markMode = false; // true while the delete-list box is open
+
+        const COLORS = [
+            { key: 'red',    label: 'Red',    hex: '#e53935' },
+            { key: 'orange', label: 'Orange', hex: '#fb8c00' },
+            { key: 'yellow', label: 'Yellow', hex: '#fdd835' },
+            { key: 'green',  label: 'Green',  hex: '#43a047' },
+            { key: 'cyan',   label: 'Cyan',   hex: '#00acc1' },
+            { key: 'blue',   label: 'Blue',   hex: '#1e6bff' },
+            { key: 'purple', label: 'Purple', hex: '#8e24aa' },
+            { key: 'pink',   label: 'Pink',   hex: '#ec407a' },
+            { key: 'brown',  label: 'Brown',  hex: '#6d4c41' },
+            { key: 'black',  label: 'Black',  hex: '#111111' },
+            { key: 'gray',   label: 'Gray',   hex: '#888888' },
+            { key: 'white',  label: 'White',  hex: '#f5f5f5' },
+            { key: 'mixed',  label: 'Mixed',  hex: '#666666' }
+        ];
+
+        const gridEl = document.getElementById('grid');
+        const filtersEl = document.getElementById('filters');
+        const typeFiltersEl = document.getElementById('typeFilters');
+        const yearFiltersEl = document.getElementById('yearFilters');
+        const themeFiltersEl = document.getElementById('themeFilters');
+        const themeBlock = document.getElementById('themeBlock');
+        const yearBlock = document.getElementById('yearBlock');
+        const countEl = document.getElementById('count');
+        const searchInput = document.getElementById('assetSearch');
+        const searchToolbar = searchInput.closest('.gallery-toolbar');
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            activeType = 'all';
+            activeColor = 'all';
+            activeTheme = 'all';
+            activeYear = 'all';
+            activeSearch = '';
+            searchInput.value = '';
+            page = 0;
+            renderTypeFilters();
+            renderFilters();
+            renderGrid();
+        });
+
+        const firstBtn = document.getElementById('first');
+        const lastBtn = document.getElementById('last');
+        const prevBtn = document.getElementById('prev');
+        const nextBtn = document.getElementById('next');
+        const pageJump = document.getElementById('pageJump');
+        const pageJumpMenu = document.getElementById('pageJumpMenu');
+        const pageIndicator = document.getElementById('pageIndicator');
+
+        let shields = []; // { name, color }
+        let activeColor = 'all';
+        let activeYear = 'all';
+        let activeTheme = 'all';
+        let activeType = 'all';
+        let activeSearch = '';
+        let page = 0;
+
+        searchInput.addEventListener('input', () => {
+            activeSearch = searchInput.value.trim().toLowerCase();
+            page = 0;
+            renderGrid();
+        });
+
+        const TYPES = [
+            { key: 'all', label: 'All' },
+            { key: 'png', label: 'Static' },
+            { key: 'gif', label: 'GIF' }
+        ];
+
+        // GIF is its own type; everything else (png, jpg, webp, ...) counts as Static.
+        function typeOf(name) {
+            return /\.gif$/i.test(name) ? 'gif' : 'png';
+        }
+
+        function copyText(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            return new Promise((resolve, reject) => {
+                const area = document.createElement('textarea');
+                area.value = text;
+                area.style.position = 'fixed';
+                area.style.left = '-9999px';
+                document.body.appendChild(area);
+                area.select();
+                try {
+                    document.execCommand('copy') ? resolve() : reject(new Error('Copy failed'));
+                } catch (e) {
+                    reject(e);
+                } finally {
+                    area.remove();
+                }
+            });
+        }
+
+        function classifyPixel(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const l = (max + min) / 2;
+            const d = max - min;
+            const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+            // Dark, light and washed-out pixels (shading, outlines, anti-aliasing) never count as a hue.
+            if (l < 0.18) return 'black';
+            if (l > 0.85) return 'white';
+            if (s < 0.2) return 'gray';
+            let h;
+            if (max === r) h = ((g - b) / d) % 6;
+            else if (max === g) h = (b - r) / d + 2;
+            else h = (r - g) / d + 4;
+            h = (h * 60 + 360) % 360;
+            if (h < 15 || h >= 345) return l < 0.3 ? 'brown' : 'red';
+            if (h < 45) return l < 0.4 ? 'brown' : 'orange';
+            if (h < 70) return 'yellow';
+            if (h < 165) return 'green';
+            if (h < 200) return 'cyan';
+            if (h < 260) return 'blue';
+            if (h < 300) return 'purple';
+            return 'pink';
+        }
+
+        function dominantColor(img) {
+            const size = 48;
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = size;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(img, 0, 0, size, size);
+            const data = ctx.getImageData(0, 0, size, size).data;
+            const NEUTRAL = ['black', 'white', 'gray'];
+            // Colored pixels decide the shield. Black/white/gray (outlines, shading) only decide it when the
+            // shield has almost no color. "Mixed" is only for shields whose colors are genuinely split.
+            const CHROMA_MIN = 0.12;   // share of pixels that must be colored for hues to decide
+            const HUE_MAJORITY = 0.45; // top hue's share of the colored pixels
+            const NEUTRAL_MAJORITY = 0.4;
+            function pickColor(votes) {
+                const keys = Object.keys(votes);
+                if (!keys.length) return null;
+                let total = 0, chroma = 0;
+                keys.forEach((k) => { total += votes[k]; if (!NEUTRAL.includes(k)) chroma += votes[k]; });
+                const top = (list) => list.reduce((a, k) => (votes[k] > votes[a] ? k : a));
+                const hues = keys.filter((k) => !NEUTRAL.includes(k));
+                if (hues.length && chroma / total >= CHROMA_MIN) {
+                    const best = top(hues);
+                    return votes[best] / chroma >= HUE_MAJORITY ? best : 'mixed';
+                }
+                const best = top(keys);
+                return votes[best] / total >= NEUTRAL_MAJORITY ? best : 'mixed';
+            }
+            const votes = {};
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i + 3] < 128) continue;
+                const key = classifyPixel(data[i], data[i + 1], data[i + 2]);
+                votes[key] = (votes[key] || 0) + 1;
+            }
+            const color = pickColor(votes);
+            return color ? [color] : [];
+        }
+
+        function analyze(name, dir = SHIELD_DIR) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    try { resolve({ name, colors: dominantColor(img) }); }
+                    catch (e) { resolve({ name, colors: [] }); } // canvas blocked (e.g. opened as file://)
+                };
+                img.onerror = () => resolve(null);
+                img.src = dir + encodeURIComponent(name);
+            });
+        }
+
+        // Hats / accessories: filter tags worked out from the file names (year, "1k", and shared name prefixes).
+        const TAG_ALIASES = {
+            christmascontest: 'christmas', eastercomp: 'easter', halloweencontest: 'halloween', halloweenghost: 'halloween',
+            vday: 'valentines', vdaybox: 'valentines', valentine: 'valentines', valentinesday: 'valentines',
+            nexusj: 'nexus', nexusww: 'nexus', clubcrypt: 'crypt', rebel: 'rebels', summerfest: 'summer', eventsub: 'event'
+        };
+        const TAG_LABELS = { '1k': '1K', valentines: 'Valentines', newyear: 'New Year', lny: 'LNY', aprilfools: 'April Fools',
+            graalonline: 'Graal Online', earthday: 'Earth Day', stpat: 'St. Patrick', sparcoin: 'Sparcoin', sparviewer: 'Sparviewer' };
+        const TAG_SKIP = new Set(['hat', 'accessory', 'acc']);
+        // Only these name groups get a filter chip.
+        const TAG_KEEP = new Set(['1k', 'christmas', 'candy', 'nexus', 'gst', 'event', 'bazaar', 'hsub', 'easter',
+            'halloween', 'valentines', 'crypt', 'guild', 'rebels']);
+        const TAG_MIN = 10;
+        const isYearTag = (k) => /^y[0-9]{4}$/.test(k);
+
+        function tagsFor(name) {
+            const base = name.replace(/[.][^.]+$/, '').toLowerCase().replace(/^(hat|accessory|acc)_/, '');
+            const tags = new Set();
+            const lead = base.match(/^[a-z]+/);
+            if (lead && !TAG_SKIP.has(lead[0])) tags.add(TAG_ALIASES[lead[0]] || lead[0]);
+            ['christmas', 'halloween', 'easter', 'valentine', 'vday', 'gst'].forEach((w) => {
+                if (base.includes(w)) tags.add(TAG_ALIASES[w] || w);
+            });
+            if (base.includes('1k')) tags.add('1k');
+            // Year: only an explicit one. A four-digit year (2011, 2025) standing on its own, or a standalone
+            // two-digit year 14-29 at the start of the name (25remake) or between _ / - (_15-), or a word directly
+            // followed by a two-digit year and a _ / - (christmas12_). Date codes
+            // such as 080515 or 0118 are not years.
+            let y = null;
+            let m;
+            if ((m = base.match(/(?:^|[_-])(20[12][0-9])(?![0-9])/))) y = +m[1];
+            else if ((m = base.match(/^(1[4-9]|2[0-9])(?![0-9])/))) y = 2000 + +m[1];
+            else if ((m = base.match(/[_-](1[4-9]|2[0-9])(?=[_-])/))) y = 2000 + +m[1];
+            // A name with the year stuck on the end of a word: christmas12_, candy18_, nexus21_, gst_fall12_.
+            else if ((m = base.match(/[a-z](1[1-9]|2[0-9])(?=[_-])/))) y = 2000 + +m[1];
+            if (y && y >= 2011 && y <= 2029) tags.add('y' + y);
+            return [...tags];
+        }
+
+        function tagLabel(key) {
+            if (isYearTag(key)) return key.slice(1);
+            return TAG_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1);
+        }
+
+        function matchesSearch(item) {
+            if (!activeSearch) return true;
+            const searchableName = String(item.name || '').toLowerCase().replace(/[_-]+/g, ' ');
+            const terms = activeSearch.replace(/[_-]+/g, ' ').split(/\s+/).filter(Boolean);
+            return terms.every((term) => searchableName.includes(term));
+        }
+
+        function typeFiltered() {
+            return activeType === 'all' ? shields : shields.filter((s) => typeOf(s.name) === activeType);
+        }
+
+        // The list narrowed by every active filter except `skip`, so each row's counts follow the other rows.
+        function filteredExcept(skip) {
+            const cat = CATEGORIES[currentCat];
+            return typeFiltered().filter((s) => (skip === 'color' || activeColor === 'all' || s.colors.includes(activeColor))
+                && (skip === 'theme' || activeTheme === 'all' || s.tags.includes(activeTheme))
+                && (skip === 'year' || !cat.years || activeYear === 'all' || s.tags.includes(activeYear)));
+        }
+
+        function visibleShields() {
+            const filtered = filteredExcept(null);
+            return activeSearch ? filtered.filter(matchesSearch) : filtered;
+        }
+
+        function renderTypeFilters() {
+            typeFiltersEl.innerHTML = '';
+            TYPES.forEach((t) => {
+                const n = t.key === 'all' ? shields.length : shields.filter((s) => typeOf(s.name) === t.key).length;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'chip' + (t.key === activeType ? ' active' : '');
+                btn.appendChild(document.createTextNode(t.label));
+                const num = document.createElement('span');
+                num.className = 'chip-num';
+                num.textContent = n;
+                btn.appendChild(num);
+                btn.addEventListener('click', () => {
+                    activeType = t.key;
+                    page = 0;
+                    renderTypeFilters();
+                    renderFilters();
+                    renderGrid();
+                });
+                typeFiltersEl.appendChild(btn);
+            });
+        }
+
+        // One row of filter chips. `chips` is [{key, label, hex?, n}] (first one is "All").
+        function fillChipRow(el, chips, active, onPick) {
+            el.innerHTML = '';
+            chips.forEach((c) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'chip' + (c.key === active ? ' active' : '');
+                if (c.hex) {
+                    const dot = document.createElement('span');
+                    dot.className = 'chip-dot';
+                    dot.style.background = c.hex;
+                    btn.appendChild(dot);
+                }
+                btn.appendChild(document.createTextNode(c.label));
+                const num = document.createElement('span');
+                num.className = 'chip-num';
+                num.textContent = c.n;
+                btn.appendChild(num);
+                btn.addEventListener('click', () => {
+                    onPick(c.key);
+                    page = 0;
+                    renderFilters();
+                    renderGrid();
+                });
+                el.appendChild(btn);
+            });
+        }
+
+        function renderFilters() {
+            const cat = CATEGORIES[currentCat];
+            colorBlock.hidden = !cat.colors;
+            themeBlock.hidden = !cat.tags;
+            yearBlock.hidden = !cat.years;
+            if (!cat.colors) { activeColor = 'all'; filtersEl.innerHTML = ''; }
+            if (!cat.tags) { activeTheme = 'all'; themeFiltersEl.innerHTML = ''; }
+            if (!cat.years) { activeYear = 'all'; yearFiltersEl.innerHTML = ''; }
+
+            const tally = (base, pick) => {
+                const counts = {};
+                base.forEach((s) => pick(s).forEach((k) => { counts[k] = (counts[k] || 0) + 1; }));
+                return counts;
+            };
+            if (cat.colors) {
+                const base = filteredExcept('color');
+                const counts = tally(base, (s) => s.colors);
+                if (activeColor !== 'all' && !counts[activeColor]) activeColor = 'all';
+                fillChipRow(filtersEl, [{ key: 'all', label: 'All', n: base.length }]
+                    .concat(COLORS.filter((c) => counts[c.key]).map((c) => ({ ...c, n: counts[c.key] }))),
+                    activeColor, (k) => { activeColor = k; });
+            }
+            if (cat.tags) {
+                const base = filteredExcept('theme');
+                const counts = tally(base, (s) => s.tags.filter((k) => !isYearTag(k)));
+                if (activeTheme !== 'all' && !counts[activeTheme]) activeTheme = 'all';
+                const keys = Object.keys(counts).filter((k) => TAG_KEEP.has(k) && counts[k] >= (activeYear === 'all' && activeColor === 'all' ? TAG_MIN : 1))
+                    .sort((x, y) => (x === '1k' ? -1 : y === '1k' ? 1 : 0) || counts[y] - counts[x] || x.localeCompare(y));
+                fillChipRow(themeFiltersEl, [{ key: 'all', label: 'All', n: base.length }]
+                    .concat(keys.map((k) => ({ key: k, label: tagLabel(k), n: counts[k] }))),
+                    activeTheme, (k) => { activeTheme = k; });
+            }
+            if (cat.years) {
+                const base = filteredExcept('year');
+                const counts = tally(base, (s) => s.tags.filter(isYearTag));
+                if (activeYear !== 'all' && !counts[activeYear]) activeYear = 'all';
+                fillChipRow(yearFiltersEl, [{ key: 'all', label: 'All', n: base.length }]
+                    .concat(Object.keys(counts).sort((x, y) => y.localeCompare(x)).map((k) => ({ key: k, label: tagLabel(k), n: counts[k] }))),
+                    activeYear, (k) => { activeYear = k; });
+            }
+        }
+
+        // Work out how many full rows fit the space left in the panel, then stretch them to fill it exactly.
+        function layoutGrid() {
+            gridEl.style.gridTemplateRows = '';
+            gridEl.style.gridTemplateColumns = '';
+            const aspect = CATEGORIES[currentCat].aspect;
+            const cols = Math.max(1, getComputedStyle(gridEl).gridTemplateColumns.split(' ').length);
+            const cardW = (gridEl.clientWidth - GRID_GAP * (cols - 1)) / cols;
+            const avail = gridEl.clientHeight;
+            if (aspect !== 1) {
+                // Wide (hats, accessories) or tall (mounts) images: pick the row count that keeps the boxes closest
+                // to the size they'd naturally be, then shape each box to the image's proportions so nothing is
+                // left empty, and let as many columns as fit.
+                const rows = Math.max(1, Math.round((avail + GRID_GAP) / (cardW * aspect + CARD_EXTRA_H + GRID_GAP)));
+                const boxH = (avail - GRID_GAP * (rows - 1)) / rows;
+                const boxW = Math.max(40, (boxH - CARD_EXTRA_H) / aspect);
+                const fitCols = Math.max(1, Math.floor((gridEl.clientWidth + GRID_GAP) / (boxW + GRID_GAP)));
+                gridEl.style.gridTemplateColumns = `repeat(${fitCols}, minmax(0, 1fr))`;
+                gridEl.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
+                return fitCols * rows;
+            }
+            const cardH = cardW + CARD_EXTRA_H;
+            // Always at least one row; rows never overflow because the grid's height is whatever the
+            // panel has left, and cards shrink to their row.
+            const rows = Math.max(1, Math.floor((avail + GRID_GAP) / (cardH + GRID_GAP)));
+            gridEl.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
+            return cols * rows;
+        }
+
+        function positionSearchToolbar() {
+            const toolbarHeight = searchToolbar.offsetHeight;
+            let top = gridEl.offsetTop - toolbarHeight - 8;
+            const mobileSearchLayout = window.matchMedia('(max-width: 600px)').matches;
+            const alignmentTarget = mobileSearchLayout
+                ? typeFiltersEl
+                : currentCat === 'shields'
+                    ? document.getElementById('setshieldRow')
+                    : (currentCat === 'hats' || currentCat === 'accessories')
+                        ? document.getElementById('previewRow')
+                        : currentCat === 'mounts'
+                            ? typeFiltersEl
+                            : null;
+            if (alignmentTarget) {
+                const viewRect = document.getElementById('shieldsView').getBoundingClientRect();
+                const targetRect = alignmentTarget.getBoundingClientRect();
+                top = targetRect.top - viewRect.top + ((targetRect.height - toolbarHeight) / 2);
+            }
+            searchToolbar.style.top = `${Math.max(0, top)}px`;
+            searchToolbar.style.visibility = 'visible';
+        }
+
+        function renderGrid() {
+            if (!gridEl.clientHeight) return; // its tab is hidden; it re-renders when shown again
+            pageJumpMenu.hidden = true;
+            lastBtn.setAttribute('aria-expanded', 'false');
+            positionSearchToolbar();
+            const firstIndex = page * pageSize;
+            pageSize = layoutGrid();
+            page = Math.floor(firstIndex / pageSize);
+            if (isLoading) {
+                gridEl.innerHTML = '<div class="empty">Loading...</div>';
+                countEl.textContent = 'Loading...';
+                pageIndicator.textContent = '';
+                lastBtn.textContent = '';
+                pageJumpMenu.innerHTML = '';
+                firstBtn.disabled = prevBtn.disabled = nextBtn.disabled = lastBtn.disabled = true;
+                return;
+            }
+            const list = visibleShields();
+            const pages = Math.max(1, Math.ceil(list.length / pageSize));
+            page = Math.min(page, pages - 1);
+            const slice = list.slice(page * pageSize, (page + 1) * pageSize);
+
+            gridEl.innerHTML = '';
+            if (!slice.length) {
+                const empty = document.createElement('div');
+                empty.className = 'empty';
+                const cat = CATEGORIES[currentCat];
+                empty.textContent = shields.length
+                    ? `No ${cat.many} match your search and filters.`
+                    : `No ${cat.many} found.`;
+                gridEl.appendChild(empty);
+            }
+            slice.forEach((s) => {
+                const cardCategory = currentCat;
+                const category = CATEGORIES[cardCategory];
+                const templateConfig = category.template || null;
+                const card = document.createElement('div');
+                card.className = 'card' + (viewerItem && viewerItem.name === s.name ? ' viewing' : '');
+                const art = document.createElement('div');
+                art.className = 'card-art no-template';
+                const usesPreview = category.preview && !!templateConfig;
+                const template = document.createElement('img');
+                template.className = 'template-img';
+                template.src = templateConfig ? templateConfig.src : '';
+                template.alt = '';
+                const img = document.createElement('img');
+                img.className = 'shield-img';
+                img.src = category.dir + encodeURIComponent(s.name);
+                img.alt = s.name;
+                img.loading = 'lazy';
+                // An asset whose file is gone drops out of the gallery instead of showing a broken image.
+                img.addEventListener('error', () => {
+                    if (currentCat !== cardCategory) return;
+                    shields = shields.filter((x) => x.name !== s.name);
+                    renderTypeFilters();
+                    renderFilters();
+                    renderGrid();
+                });
+                const name = document.createElement('div');
+                name.className = 'card-name';
+                name.textContent = s.name.replace(/\.[^.]+$/, '');
+                name.title = s.name;
+                // Shields require the full 152x80 sheet; hats and accessories use their native template sheets.
+                const checkTemplateFit = () => {
+                    const supportsTemplate = cardCategory !== 'shields'
+                        || (img.naturalWidth === 152 && img.naturalHeight === 80);
+                    art.classList.toggle('no-template', !supportsTemplate);
+                };
+                img.addEventListener('load', checkTemplateFit);
+                if (img.complete && img.naturalWidth) checkTemplateFit();
+                if (usesPreview) {
+                    const sheet = document.createElement('div');
+                    sheet.className = 'sheet';
+                    sheet.style.setProperty('--sheet-w', templateConfig.w);
+                    sheet.style.setProperty('--sheet-h', templateConfig.h);
+                    sheet.append(template, img);
+                    if (templateConfig.overSrc) {
+                        const overlay = document.createElement('img');
+                        overlay.className = 'template-over';
+                        overlay.src = templateConfig.overSrc;
+                        overlay.alt = '';
+                        sheet.appendChild(overlay);
+                    }
+                    art.append(sheet);
+                } else {
+                    art.append(img);
+                }
+                const setCmd = category.setCmd;
+                const copyValue = () => (setCmd && setshieldOn ? `${setCmd} ${s.name}` : s.name);
+                card.append(art, name);
+                card.title = setCmd ? `Click to copy: ${copyValue()} · Hold to view` : 'Click to view';
+                const deleteKey = category.dir + s.name;
+                card.classList.toggle('marked', deleteList.has(deleteKey));
+                let holdTimer = 0;
+                let holdStartX = 0;
+                let holdStartY = 0;
+                let holdOpened = false;
+                const cancelShieldHold = () => {
+                    if (holdTimer) window.clearTimeout(holdTimer);
+                    holdTimer = 0;
+                    card.classList.remove('hold-pending');
+                };
+                if (setCmd) {
+                    card.addEventListener('pointerdown', (event) => {
+                        if (event.button !== 0) {
+                            cancelShieldHold();
+                            holdOpened = false;
+                            return;
+                        }
+                        if (markMode) return;
+                        cancelShieldHold();
+                        holdOpened = false;
+                        holdStartX = event.clientX;
+                        holdStartY = event.clientY;
+                        card.classList.add('hold-pending');
+                        holdTimer = window.setTimeout(() => {
+                            holdTimer = 0;
+                            card.classList.remove('hold-pending');
+                            if (!card.isConnected || markMode || currentCat !== 'shields') return;
+                            holdOpened = true;
+                            openViewer(s);
+                        }, 250);
+                    });
+                    card.addEventListener('pointermove', (event) => {
+                        if (!holdTimer) return;
+                        if (Math.hypot(event.clientX - holdStartX, event.clientY - holdStartY) > 10) {
+                            cancelShieldHold();
+                        }
+                    });
+                    card.addEventListener('pointerup', cancelShieldHold);
+                    card.addEventListener('pointercancel', cancelShieldHold);
+                    card.addEventListener('pointerleave', cancelShieldHold);
+                    card.addEventListener('contextmenu', (event) => {
+                        if (holdOpened) event.preventDefault();
+                    });
+                    card.addEventListener('dragstart', (event) => event.preventDefault());
+                }
+                card.addEventListener('click', (event) => {
+                    if (holdOpened) {
+                        holdOpened = false;
+                        event.preventDefault();
+                        event.stopPropagation();
+                        return;
+                    }
+                    if (markMode) {
+                        if (deleteList.has(deleteKey)) deleteList.delete(deleteKey); else deleteList.add(deleteKey);
+                        card.classList.toggle('marked', deleteList.has(deleteKey));
+                        renderDeleteList();
+                        return;
+                    }
+                    if (!setCmd) {
+                        openViewer(s);
+                        return;
+                    }
+                    const done = () => {
+                        card.classList.remove('fading');
+                        card.classList.add('copied');
+                        name.textContent = 'Copied!';
+                        window.setTimeout(() => {
+                            name.textContent = s.name.replace(/\.[^.]+$/, '');
+                            card.classList.remove('copied');
+                            card.classList.add('fading');
+                            window.setTimeout(() => card.classList.remove('fading'), 400);
+                        }, 900);
+                    };
+                    copyText(copyValue()).then(done, done);
+                });
+                gridEl.appendChild(card);
+            });
+
+            countEl.textContent = `${pageSize} per page · ${list.length} ${list.length === 1 ? CATEGORIES[currentCat].one : CATEGORIES[currentCat].many}`;
+            pageIndicator.textContent = `Page ${page + 1} / ${pages}`;
+            lastBtn.textContent = 'PG';
+            lastBtn.title = `Choose page (${pages} total)`;
+            lastBtn.setAttribute('aria-label', `Choose page. ${pages} pages total`);
+            pageJumpMenu.innerHTML = '';
+            for (let index = 0; index < pages; index++) {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'page-jump-option' + (index === page ? ' active' : '');
+                option.textContent = index + 1;
+                option.dataset.page = index;
+                option.setAttribute('role', 'option');
+                option.setAttribute('aria-selected', String(index === page));
+                pageJumpMenu.appendChild(option);
+            }
+            firstBtn.disabled = prevBtn.disabled = page === 0;
+            nextBtn.disabled = page >= pages - 1;
+            lastBtn.disabled = pages <= 1;
+        }
+
+        function setPageJumpOpen(open) {
+            const shouldOpen = !!open && !lastBtn.disabled;
+            pageJumpMenu.hidden = !shouldOpen;
+            lastBtn.setAttribute('aria-expanded', String(shouldOpen));
+            if (shouldOpen) {
+                requestAnimationFrame(() => {
+                    pageJumpMenu.querySelector('.page-jump-option.active')?.scrollIntoView({ block: 'nearest' });
+                });
+            }
+        }
+
+        firstBtn.addEventListener('click', () => { setPageJumpOpen(false); page = 0; renderGrid(); });
+        prevBtn.addEventListener('click', () => { setPageJumpOpen(false); page--; renderGrid(); });
+        nextBtn.addEventListener('click', () => { setPageJumpOpen(false); page++; renderGrid(); });
+        lastBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            setPageJumpOpen(pageJumpMenu.hidden);
+        });
+        pageJumpMenu.addEventListener('click', (event) => {
+            const option = event.target.closest('.page-jump-option');
+            if (!option) return;
+            event.stopPropagation();
+            page = Number(option.dataset.page) || 0;
+            setPageJumpOpen(false);
+            renderGrid();
+        });
+        document.addEventListener('click', (event) => {
+            if (!pageJump.contains(event.target)) setPageJumpOpen(false);
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') setPageJumpOpen(false);
+        });
+
+        // Re-fit whenever the grid's own size changes (rotation, browser toolbars, keyboard, resizing).
+        // The grid's height comes from the panel, not its content, so this can't loop.
+        let fitFrame = 0;
+        new ResizeObserver(() => {
+            cancelAnimationFrame(fitFrame);
+            fitFrame = requestAnimationFrame(renderGrid);
+        }).observe(gridEl);
+
+        let listSignature = null;
+
+        async function loadShields(firstLoad) {
+            const catKey = currentCat;
+            const cat = CATEGORIES[catKey];
+            const dir = cat.dir;
+            if (firstLoad) isLoading = true;
+            if (firstLoad) gridEl.innerHTML = '<div class="empty">Loading…</div>';
+            let names = [];
+            try {
+                // The query string defeats caches so added/removed files show up right away.
+                const res = await fetch(`${dir}${cat.list}?t=${Date.now()}`, { cache: 'no-store' });
+                names = await res.json();
+            } catch (e) {
+                if (!firstLoad) return; // keep what's showing if a refresh fails
+            }
+            const signature = JSON.stringify(names);
+            if (signature === listSignature && catKey === currentCat) return;
+            let results;
+            if (cat.colors) {
+                // Colors precomputed from every GIF frame (assets/tools/build-shield-colors.js).
+                let precomputed = {};
+                try {
+                    const res = await fetch(`${dir}colors.json?t=${Date.now()}`, { cache: 'no-store' });
+                    precomputed = await res.json();
+                } catch (e) { /* fall back to reading the images in the browser */ }
+                results = await Promise.all(names.map((name) => (
+                    precomputed[name] ? { name, colors: [precomputed[name]] } : analyze(name, dir)
+                )));
+            } else {
+                results = names.map((name) => ({ name, colors: [] }));
+            }
+            results = results.filter(Boolean);
+            results.forEach((r) => { r.tags = cat.tags ? tagsFor(r.name) : []; });
+            if (catKey !== currentCat) {
+                // The user switched tabs while this was loading: keep the result for that tab.
+                const saved = catState[catKey] || (catState[catKey] = { page: 0, activeType: 'all', activeColor: 'all' });
+                saved.shields = results;
+                saved.listSignature = signature;
+                return;
+            }
+            listSignature = signature;
+            shields = results;
+            isLoading = false;
+            renderTypeFilters();
+            renderFilters();
+            renderGrid();
+        }
+
+        // Setshield: on (default) copies "setshield <file>"; off copies just the file name.
+        const setshieldSwitch = document.getElementById("setshieldSwitch");
+        const setshieldLabel = document.getElementById("setshieldLabel");
+        function toggleSetshield() {
+            setshieldOn = !setshieldOn;
+            setshieldSwitch.setAttribute("aria-checked", String(setshieldOn));
+            renderGrid();
+        }
+        setshieldSwitch.addEventListener("click", toggleSetshield);
+        setshieldLabel.addEventListener("click", toggleSetshield);
+
+        // Character Preview: shows the character template underneath every shield.
+        const previewSwitch = document.getElementById('previewSwitch');
+        const previewLabel = document.getElementById('previewLabel');
+        function togglePreview() {
+            const on = previewSwitch.getAttribute('aria-checked') !== 'true';
+            previewSwitch.setAttribute('aria-checked', String(on));
+            gridEl.classList.toggle('preview-on', on);
+            if (viewerItem && !viewer.hidden) openViewer(viewerItem);
+        }
+        gridEl.classList.add('preview-on'); // on by default
+        previewSwitch.addEventListener('click', togglePreview);
+        previewLabel.addEventListener('click', togglePreview);
+
+        // Popup viewer for every asset category (shield cards open it on hold).
+        const viewer = document.getElementById('viewer');
+        const viewerStage = document.getElementById('viewerStage');
+        const viewerCount = document.getElementById('viewerCount');
+        const viewerPrev = document.getElementById('viewerPrev');
+        const viewerNext = document.getElementById('viewerNext');
+        let viewerItem = null;
+        let viewerZoom = 1;
+        let viewerRelayout = null;
+        let viewerLoadToken = 0;
+        const zoomResetBtn = document.getElementById('zoomReset');
+
+        function captureViewerFocus() {
+            const sheet = viewerStage.querySelector('.viewer-sheet');
+            if (!sheet) return { x: 0.5, y: 0.5 };
+            const stageRect = viewerStage.getBoundingClientRect();
+            const sheetRect = sheet.getBoundingClientRect();
+            const centerX = stageRect.left + (stageRect.width / 2);
+            const centerY = stageRect.top + (stageRect.height / 2);
+            return {
+                x: Math.min(1, Math.max(0, (centerX - sheetRect.left) / (sheetRect.width || 1))),
+                y: Math.min(1, Math.max(0, (centerY - sheetRect.top) / (sheetRect.height || 1)))
+            };
+        }
+
+        function restoreViewerFocus(sheet, focus) {
+            const stageRect = viewerStage.getBoundingClientRect();
+            const sheetRect = sheet.getBoundingClientRect();
+            const centerX = stageRect.left + (stageRect.width / 2);
+            const centerY = stageRect.top + (stageRect.height / 2);
+            viewerStage.scrollLeft += sheetRect.left + (sheetRect.width * focus.x) - centerX;
+            viewerStage.scrollTop += sheetRect.top + (sheetRect.height * focus.y) - centerY;
+        }
+
+        // Zoom keeps the point under the pointer (or the middle of the stage) where it is.
+        function setViewerZoom(z, cx, cy) {
+            if (!viewerRelayout) return;
+            const next = Math.min(12, Math.max(1, z));
+            if (next === viewerZoom) return;
+            const r = viewerStage.getBoundingClientRect();
+            const px = (cx === undefined ? r.left + r.width / 2 : cx) - r.left;
+            const py = (cy === undefined ? r.top + r.height / 2 : cy) - r.top;
+            // Remember which spot of the image is under the anchor point, then put it back under it.
+            const sheetEl = viewerStage.querySelector('.viewer-sheet');
+            const before = sheetEl.getBoundingClientRect();
+            const u = (r.left + px - before.left) / (before.width || 1);
+            const v = (r.top + py - before.top) / (before.height || 1);
+            viewerZoom = next;
+            viewerRelayout();
+            const after = sheetEl.getBoundingClientRect();
+            viewerStage.scrollLeft += after.left + u * after.width - (r.left + px);
+            viewerStage.scrollTop += after.top + v * after.height - (r.top + py);
+        }
+
+        // Character templates for the popup preview. Item sheets share the template's pixel scale and are
+        // drawn top-left over it (a hat goes over the head). Mounts have no template.
+        const POPUP_TEMPLATES = {
+            shields:     { src: '../icons/shieldtemplate.png',      overSrc: '../icons/shieldtemplate1.png',      w: 152, h: 80 },
+            hats:        { src: '../icons/hattemplate.png',         w: 192, h: 144 },
+            // 'overSrc' is a second template drawn on top of the item.
+            accessories: { src: '../icons/accessoriestemplate.png', overSrc: '../icons/accessoriestemplate1.png', w: 240, h: 144 }
+        };
+        function popupTemplateFor(catKey) {
+            return POPUP_TEMPLATES[catKey] || null;
+        }
+
+        function previewIsOn() {
+            return previewSwitch.getAttribute('aria-checked') === 'true';
+        }
+
+        function markViewing() {
+            const cards = gridEl.querySelectorAll('.card');
+            const names = [...cards].map((c) => c.querySelector('.card-name'));
+            cards.forEach((c, i) => c.classList.toggle('viewing', !!viewerItem && !!names[i] && names[i].title === viewerItem.name));
+        }
+
+        function openViewer(item) {
+            const preserveZoom = !viewer.hidden;
+            const preservedFocus = preserveZoom ? captureViewerFocus() : { x: 0.5, y: 0.5 };
+            const loadToken = ++viewerLoadToken;
+            const viewerCategory = currentCat;
+            viewerItem = item;
+            if (!preserveZoom) viewerZoom = 1;
+            const viewerTitle = document.getElementById('viewerTitle');
+            viewerTitle.textContent = item.name;
+            viewerTitle.title = item.name;
+            const cat = CATEGORIES[viewerCategory];
+            const url = cat.dir + encodeURIComponent(item.name);
+            const list = visibleShields();
+            const at = list.findIndex((x) => x.name === item.name);
+            viewerCount.textContent = `${at + 1} / ${list.length}`;
+            viewerPrev.disabled = at <= 0;
+            viewerNext.disabled = at < 0 || at >= list.length - 1;
+            // Keep the gallery behind the popup on the page that holds this image.
+            const wantPage = at < 0 ? page : Math.floor(at / pageSize);
+            if (wantPage !== page) {
+                page = wantPage;
+                renderGrid();
+            }
+            markViewing();
+
+            viewerRelayout = null;
+            viewerStage.innerHTML = '';
+            viewerStage.scrollLeft = 0;
+            viewerStage.scrollTop = 0;
+            const img = new Image();
+            img.alt = item.name;
+            img.onload = () => {
+                if (loadToken !== viewerLoadToken || viewerItem !== item) return;
+                const w = img.naturalWidth;
+                const h = img.naturalHeight;
+                const supportsShieldPreview = viewerCategory !== 'shields' || (w === 152 && h === 80);
+                const tpl = previewIsOn() && supportsShieldPreview ? popupTemplateFor(viewerCategory) : null;
+                const withCharacter = !!tpl;
+                let itemLeft = 0;
+                let itemTop = 0;
+                let itemWidth = w;
+                let itemHeight = h;
+                // The character template and the item are drawn at the same pixel scale, top-left aligned.
+                const baseW = withCharacter ? Math.max(tpl.w, itemLeft + itemWidth) : itemWidth;
+                const baseH = withCharacter ? Math.max(tpl.h, itemTop + itemHeight) : itemHeight;
+                const stageW = Math.max(120, Math.min(viewerStage.clientWidth || 560, 560) - 28);
+                const stageH = Math.max(120, Math.min(window.innerHeight * 0.5, 420) - 28);
+                let fitK = Math.min(stageW / baseW, stageH / baseH, 8);
+                if (fitK >= 1) fitK = Math.floor(fitK);
+                const sheet = document.createElement('div');
+                sheet.className = 'viewer-sheet';
+                let t = null;
+                if (withCharacter) {
+                    t = document.createElement('img');
+                    t.className = 'viewer-template';
+                    t.src = tpl.src;
+                    t.alt = '';
+                    sheet.appendChild(t);
+                }
+                sheet.appendChild(img);
+                let tOver = null;
+                if (withCharacter && tpl.overSrc) {
+                    tOver = document.createElement('img');
+                    tOver.className = 'viewer-template';
+                    tOver.src = tpl.overSrc;
+                    tOver.alt = '';
+                    sheet.appendChild(tOver);
+                }
+                // Everything is sized from one pixel scale, so zooming just re-runs this.
+                viewerRelayout = () => {
+                    const k = fitK * viewerZoom;
+                    sheet.style.width = `${baseW * k}px`;
+                    sheet.style.height = `${baseH * k}px`;
+                    if (t) {
+                        t.style.width = `${tpl.w * k}px`;
+                        t.style.height = `${tpl.h * k}px`;
+                    }
+                    if (tOver) {
+                        tOver.style.width = `${tpl.w * k}px`;
+                        tOver.style.height = `${tpl.h * k}px`;
+                    }
+                    img.style.left = `${itemLeft * k}px`;
+                    img.style.top = `${itemTop * k}px`;
+                    img.style.width = `${itemWidth * k}px`;
+                    img.style.height = `${itemHeight * k}px`;
+                    // Zoomed in, leave slack around the image so it can be dragged in every direction
+                    // (a tall mount would otherwise only move up and down).
+                    sheet.style.margin = viewerZoom > 1
+                        ? `${viewerStage.clientHeight * 0.4}px ${viewerStage.clientWidth * 0.4}px`
+                        : 'auto';
+                    zoomResetBtn.textContent = `${Math.round(viewerZoom * 100)}%`;
+                };
+                viewerRelayout();
+                viewerStage.innerHTML = '';
+                viewerStage.appendChild(sheet);
+                requestAnimationFrame(() => {
+                    if (loadToken !== viewerLoadToken || viewerItem !== item) return;
+                    restoreViewerFocus(sheet, preservedFocus);
+                });
+            };
+            img.onerror = () => {
+                if (loadToken !== viewerLoadToken || viewerItem !== item) return;
+                viewerStage.textContent = 'Could not load this image.';
+            };
+            img.src = url;
+            viewer.hidden = false;
+            document.body.classList.add('viewer-open');
+        }
+
+        function closeViewer() {
+            viewerLoadToken += 1;
+            viewer.hidden = true;
+            document.body.classList.remove('viewer-open');
+            gridEl.querySelectorAll('.card.viewing').forEach((c) => c.classList.remove('viewing'));
+            viewerStage.innerHTML = '';
+            viewerItem = null;
+            viewerZoom = 1;
+            viewerRelayout = null;
+        }
+
+        function stepViewer(delta) {
+            if (!viewerItem) return;
+            const list = visibleShields();
+            const i = list.findIndex((x) => x.name === viewerItem.name);
+            const next = list[i + delta];
+            if (next) openViewer(next);
+        }
+
+        viewer.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeViewer(); });
+        document.getElementById('zoomIn').addEventListener('click', () => setViewerZoom(viewerZoom * 1.25));
+        document.getElementById('zoomOut').addEventListener('click', () => setViewerZoom(viewerZoom / 1.25));
+        zoomResetBtn.addEventListener('click', () => setViewerZoom(1));
+        viewerStage.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            setViewerZoom(viewerZoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
+        }, { passive: false });
+        // Drag to pan while zoomed in; two fingers pinch to zoom.
+        const pointers = new Map();
+        let pinchStart = null;
+        let dragFrom = null;
+        viewerStage.addEventListener('dragstart', (e) => e.preventDefault());
+        viewerStage.addEventListener('pointerdown', (e) => {
+            if (e.button > 0) return;
+            pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            viewerStage.setPointerCapture(e.pointerId);
+            if (pointers.size === 2) {
+                const [a, b] = [...pointers.values()];
+                pinchStart = { d: Math.hypot(a.x - b.x, a.y - b.y), z: viewerZoom };
+                dragFrom = null;
+            } else {
+                viewerStage.classList.add('dragging');
+                dragFrom = { x: e.clientX, y: e.clientY, l: viewerStage.scrollLeft, t: viewerStage.scrollTop };
+            }
+        });
+        viewerStage.addEventListener('pointermove', (e) => {
+            if (!pointers.has(e.pointerId)) return;
+            pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            if (pointers.size === 2 && pinchStart) {
+                const [a, b] = [...pointers.values()];
+                setViewerZoom(pinchStart.z * Math.hypot(a.x - b.x, a.y - b.y) / (pinchStart.d || 1), (a.x + b.x) / 2, (a.y + b.y) / 2);
+            } else if (dragFrom) {
+                viewerStage.scrollLeft = dragFrom.l - (e.clientX - dragFrom.x);
+                viewerStage.scrollTop = dragFrom.t - (e.clientY - dragFrom.y);
+            }
+        });
+        const endPointer = (e) => {
+            pointers.delete(e.pointerId);
+            if (pointers.size < 2) pinchStart = null;
+            if (!pointers.size) {
+                dragFrom = null;
+                viewerStage.classList.remove('dragging');
+            }
+        };
+        viewerStage.addEventListener('pointerup', endPointer);
+        viewerStage.addEventListener('pointercancel', endPointer);
+        document.getElementById('viewerPrev').addEventListener('click', () => stepViewer(-1));
+        document.getElementById('viewerNext').addEventListener('click', () => stepViewer(1));
+        document.addEventListener('keydown', (e) => {
+            if (viewer.hidden) return;
+            if (e.key === 'Escape') closeViewer();
+            else if (e.key === '+' || e.key === '=') setViewerZoom(viewerZoom * 1.25);
+            else if (e.key === '-') setViewerZoom(viewerZoom / 1.25);
+            else if (e.key === '0') setViewerZoom(1);
+            else if (e.key === 'ArrowLeft') stepViewer(-1);
+            else if (e.key === 'ArrowRight') stepViewer(1);
+        });
+
+        // Delete-list toolbox
+        const deltool = document.getElementById('deltool');
+        const deltoolList = document.getElementById('deltoolList');
+        const deltoolToggle = document.getElementById('deltoolToggle');
+        const deltoolCopy = document.getElementById('deltoolCopy');
+
+        function renderDeleteList() {
+            try { localStorage.setItem(DELETE_KEY, JSON.stringify([...deleteList])); } catch (e) { /* ignore */ }
+            deltoolToggle.textContent = `Delete list (${deleteList.size})`;
+            deltoolList.innerHTML = '';
+            if (!deleteList.size) {
+                const empty = document.createElement('div');
+                empty.className = 'deltool-empty';
+                empty.textContent = 'Nothing marked yet.';
+                deltoolList.appendChild(empty);
+                return;
+            }
+            [...deleteList].forEach((entry) => {
+                const row = document.createElement('div');
+                row.className = 'deltool-item';
+                const label = document.createElement('span');
+                label.textContent = entry;
+                label.title = entry;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.textContent = '\u2715';
+                remove.title = 'Remove from list';
+                remove.addEventListener('click', () => {
+                    deleteList.delete(entry);
+                    renderDeleteList();
+                    renderGrid();
+                });
+                row.append(label, remove);
+                deltoolList.appendChild(row);
+            });
+        }
+
+        deltoolToggle.addEventListener('click', () => {
+            deltool.classList.toggle('open');
+            markMode = deltool.classList.contains('open');
+        });
+        document.getElementById('deltoolClear').addEventListener('click', () => {
+            deleteList.clear();
+            renderDeleteList();
+            renderGrid();
+        });
+        deltoolCopy.addEventListener('click', () => {
+            const done = () => {
+                deltoolCopy.textContent = 'Copied!';
+                setTimeout(() => { deltoolCopy.textContent = 'Copy list'; }, 1200);
+            };
+            copyText([...deleteList].join('\n')).then(done, done);
+        });
+        renderDeleteList();
+        // The toolbox is hidden. Open the page with ?tools on the end (assets/?tools) to bring it back.
+        if (new URLSearchParams(location.search).has('tools')) deltool.hidden = false;
+
+        // Category tabs: each keeps its own list, filters and page while you look at another one.
+        const previewControls = document.getElementById('previewControls');
+        const previewRow = document.getElementById('previewRow');
+        const setshieldRow = document.getElementById('setshieldRow');
+        const shieldHoldHint = document.getElementById('shieldHoldHint');
+        const colorBlock = document.getElementById('colorBlock');
+        const infoPopupEl = document.getElementById('infoPopup');
+
+        function applyCategoryUI() {
+            const cat = CATEGORIES[currentCat];
+            SHIELD_DIR = cat.dir;
+            colorBlock.hidden = !cat.colors;
+            previewControls.hidden = currentCat === 'mounts';
+            previewRow.hidden = currentCat === 'mounts';
+            document.getElementById('previewNote').hidden = currentCat !== 'shields';
+            previewLabel.textContent = 'Character Preview';
+            setshieldRow.hidden = !cat.setCmd;
+            shieldHoldHint.hidden = currentCat !== 'shields';
+            gridEl.classList.toggle('pixelated', currentCat !== 'shields');
+            gridEl.dataset.cat = currentCat;
+            infoPopupEl.textContent = `${cat.label} will be updated from time to time in big batches, bear with me as I still need to collect them!`;
+            infoPopupEl.classList.remove('open');
+            document.getElementById('infoBtn').setAttribute('aria-expanded', 'false');
+        }
+
+        function selectTab(key) {
+            if (key === currentCat || !CATEGORIES[key]) return;
+            // Leaving a tab resets it (page and filters back to the start); only its loaded list is kept.
+            catState[currentCat] = { shields, page: 0, activeType: 'all', activeColor: 'all', activeYear: 'all', activeTheme: 'all', listSignature };
+            currentCat = key;
+            document.querySelectorAll('#tabs .tab').forEach((tab) => {
+                const on = tab.dataset.tab === key;
+                tab.classList.toggle('active', on);
+                tab.setAttribute('aria-selected', String(on));
+            });
+            const saved = catState[key];
+            shields = (saved && saved.shields) || [];
+            isLoading = !(saved && saved.shields);
+            page = saved ? saved.page : 0;
+            activeType = saved ? saved.activeType : 'all';
+            activeColor = saved ? saved.activeColor : 'all';
+            activeYear = saved && saved.activeYear ? saved.activeYear : 'all';
+            activeTheme = saved && saved.activeTheme ? saved.activeTheme : 'all';
+            activeSearch = '';
+            searchInput.value = '';
+            listSignature = saved && saved.shields ? saved.listSignature : null;
+            applyCategoryUI();
+            if (saved && saved.shields) {
+                renderTypeFilters();
+                renderFilters();
+                renderGrid();
+            } else {
+                typeFiltersEl.innerHTML = '';
+                filtersEl.innerHTML = '';
+                themeFiltersEl.innerHTML = '';
+                yearFiltersEl.innerHTML = '';
+                loadShields(true);
+            }
+        }
+
+        document.getElementById('tabs').addEventListener('click', (e) => {
+            const tab = e.target.closest('.tab');
+            if (tab) selectTab(tab.dataset.tab);
+        });
+
+        // Info popup: toggles on click, closes on outside click or Escape.
+        const infoBtn = document.getElementById('infoBtn');
+        const infoPopup = document.getElementById('infoPopup');
+        function setInfoOpen(open) {
+            infoPopup.classList.toggle('open', open);
+            infoBtn.setAttribute('aria-expanded', String(open));
+        }
+        infoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setInfoOpen(!infoPopup.classList.contains('open'));
+        });
+        document.addEventListener('click', (e) => {
+            if (!infoPopup.contains(e.target)) setInfoOpen(false);
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') setInfoOpen(false);
+        });
+
+        loadShields(true);
+
+        // Keep the gallery in step with the folder: re-check when you return to the tab, and every 30s.
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) loadShields(false);
+        });
+        window.addEventListener('focus', () => loadShields(false));
+        setInterval(() => { if (!document.hidden) loadShields(false); }, 30000);
+    </script>
+    <script>
+        (() => {
+            const root = document.documentElement;
+            const overlay = document.querySelector(".page-transition-overlay");
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            let leaving = false;
+
+            function enter() {
+                leaving = false;
+                overlay.style.display = "block";
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    root.classList.add("page-entered");
+                    setTimeout(() => { if (!leaving) overlay.style.display = "none"; }, 500);
+                }));
+            }
+
+            enter();
+            // Coming back with the browser back button restores the page from cache, so fade in again.
+            window.addEventListener("pageshow", (event) => { if (event.persisted) enter(); });
+
+            document.querySelectorAll(".home-menu-link").forEach((link) => {
+                link.addEventListener("click", (event) => {
+                    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                    event.preventDefault();
+                    leaving = true;
+                    overlay.style.display = "block";
+                    void overlay.offsetWidth;
+                    root.classList.remove("page-entered");
+                    setTimeout(() => { window.location.href = link.href; }, reducedMotion ? 0 : 420);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

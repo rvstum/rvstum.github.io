@@ -23,6 +23,7 @@ const viewModeDeps = {
     syncAuthenticatedBackNavigationGuard: null,
     applyMountConfigVisual: null,
     syncPlatformLabelColor: null,
+    syncConfigDropdownActiveStates: null,
     renderSeasonalTrophyList: null,
     openImageViewer: null,
     showConfirmModal: null,
@@ -381,6 +382,7 @@ function applyViewModeConfigAndTheme(data, configToUse) {
     const statText = getCachedElementById("statText");
     const syncPlatformLabelColor = requireDep("syncPlatformLabelColor");
     const applyMountConfigVisual = requireDep("applyMountConfigVisual");
+    const syncConfigDropdownActiveStates = requireDep("syncConfigDropdownActiveStates");
     const resolvedConfig = {
         platform: configToUse && configToUse.platform ? configToUse.platform : "Mobile",
         time: configToUse && configToUse.time ? configToUse.time : "5 Min",
@@ -396,6 +398,7 @@ function applyViewModeConfigAndTheme(data, configToUse) {
     if (timeText && resolvedConfig.time) timeText.textContent = resolvedConfig.time;
     if (statText && resolvedConfig.stat) statText.textContent = resolvedConfig.stat;
     applyMountConfigVisual(resolvedConfig.mount);
+    syncConfigDropdownActiveStates(resolvedConfig);
 
     const themeFallback = (data.settings && data.settings.theme) || "default";
     const keyCandidates = getConfigLookupKeys(resolvedConfig);
