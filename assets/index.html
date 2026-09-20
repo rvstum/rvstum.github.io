@@ -277,6 +277,9 @@
 
         .tab {
             position: relative;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
             flex: 1 1 0;
             min-width: 0;
             padding: 12px 8px;
@@ -306,11 +309,13 @@
         }
 
         /* Each tab has its icon pinned to the far right, sized by height so different image shapes all fit. */
+        .tab-label {
+            grid-column: 2;
+        }
+
         .tab-icon {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
+            grid-column: 3;
+            justify-self: center;
             height: 26px;
             width: auto;
             max-width: 44px;
@@ -1245,6 +1250,15 @@
             scrollbar-width: none;
         }
 
+        .filter-row {
+            flex-shrink: 0;
+            padding-bottom: 2px;
+        }
+
+        .type-filter-block, #colorBlock {
+            flex-shrink: 0;
+        }
+
         .filter-row::-webkit-scrollbar {
             display: none;
         }
@@ -1312,7 +1326,6 @@
             }
 
             .tab-icon {
-                right: 2px;
                 height: 11px;
                 max-width: 13px;
             }
@@ -1470,10 +1483,10 @@
         <section class="panel">
             <div class="panel-header">
                 <div class="tabs" id="tabs" role="tablist">
-                        <button class="tab active" type="button" role="tab" aria-selected="true" data-tab="shields">Shields<img class="tab-icon" src="shieldicon.png" alt=""></button>
-                        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="hats">Hat<span class="tab-sub">Museum</span><img class="tab-icon" src="haticon.png" alt=""></button>
-                        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="accessories">Accessory<span class="tab-sub">Museum</span><img class="tab-icon" src="accessoryicon.png" alt=""></button>
-                        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="mounts">Mounts<span class="tab-sub">Museum</span><img class="tab-icon" src="mounticon.png" alt=""></button>
+                        <button class="tab active" type="button" role="tab" aria-selected="true" data-tab="shields"><span class="tab-label">Shields</span><img class="tab-icon" src="shieldicon.png" alt=""></button>
+                        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="hats"><span class="tab-label">Hat<span class="tab-sub">Museum</span></span><img class="tab-icon" src="haticon.png" alt=""></button>
+                        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="accessories"><span class="tab-label">Accessory<span class="tab-sub">Museum</span></span><img class="tab-icon" src="accessoryicon.png" alt=""></button>
+                        <button class="tab" type="button" role="tab" aria-selected="false" data-tab="mounts"><span class="tab-label">Mounts<span class="tab-sub">Museum</span></span><img class="tab-icon" src="mounticon.png" alt=""></button>
                 </div>
                 <div class="panel-subrow">
                 <div class="panel-count" id="count"></div>
@@ -1997,7 +2010,7 @@
             pageSize = layoutGrid();
             page = Math.floor(firstIndex / pageSize);
             if (isLoading) {
-                gridEl.innerHTML = '<div class="empty">Loading...</div>';
+                gridEl.innerHTML = `<div class="empty">Loading ${CATEGORIES[currentCat].many}...</div>`;
                 countEl.textContent = 'Loading...';
                 pageIndicator.textContent = '';
                 lastBtn.textContent = '';
@@ -2227,7 +2240,7 @@
             const cat = CATEGORIES[catKey];
             const dir = cat.dir;
             if (firstLoad) isLoading = true;
-            if (firstLoad) gridEl.innerHTML = '<div class="empty">Loading…</div>';
+            if (firstLoad) gridEl.innerHTML = `<div class="empty">Loading ${cat.many}...</div>`;
             let names = [];
             try {
                 // The query string defeats caches so added/removed files show up right away.
@@ -2641,7 +2654,9 @@
         function selectTab(key) {
             if (key === currentCat || !CATEGORIES[key]) return;
             // Leaving a tab resets it (page and filters back to the start); only its loaded list is kept.
-            catState[currentCat] = { shields, page: 0, activeType: 'all', activeColor: 'all', activeYear: 'all', activeTheme: 'all', listSignature };
+            const keep = isLoading ? (catState[currentCat] && catState[currentCat].shields) : shields;
+            const keepSig = isLoading ? (catState[currentCat] && catState[currentCat].listSignature) : listSignature;
+            catState[currentCat] = { shields: keep, listSignature: keepSig, page: 0, activeType: 'all', activeColor: 'all', activeYear: 'all', activeTheme: 'all' };
             currentCat = key;
             document.querySelectorAll('#tabs .tab').forEach((tab) => {
                 const on = tab.dataset.tab === key;
