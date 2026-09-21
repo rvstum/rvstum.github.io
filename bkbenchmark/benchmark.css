@@ -1031,12 +1031,14 @@ body.view-mode .cave-play-edit {
 }
 
 .radar-tab {
-    border: none;
+    /* Transparent border on every state (the active one only changes its color), and padding reduced by the same 1px,
+       so selecting a tab never changes the button's size or moves its text. */
+    border: 1px solid transparent;
     background: transparent;
     color: #bbb;
     font-size: 11px;
     font-weight: 600;
-    padding: 6px 14px;
+    padding: 5px 13px;
     border-radius: 999px;
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
@@ -1045,7 +1047,6 @@ body.view-mode .cave-play-edit {
 
 .radar-tab:hover {
     color: #fff;
-    transform: translateY(-1px);
 }
 
 .radar-tab.active {
@@ -8744,7 +8745,7 @@ body.mobile-layout-active .rounded-inner-box {
 }
 
 body.mobile-layout-active .info-icon {
-    top: calc(var(--mobile-header-top) + (var(--mobile-header-height) / 2) - (25px * var(--mobile-scale))) !important;
+    top: calc(var(--mobile-header-top) + (var(--mobile-header-height) / 2) - (20px * var(--mobile-scale))) !important;
     transform: translateY(-50%) !important;
 }
 
@@ -9477,7 +9478,7 @@ html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open
 
     #friendsModal .friends-tabs-shell .radar-tab {
         min-width: 0;
-        padding: 7px 4px;
+        padding: 6px 3px;
         font-size: clamp(10px, 2.8vw, 12px);
         line-height: 1.15;
         white-space: normal;
@@ -10201,14 +10202,21 @@ body:not(.mobile-layout-active) .score-input-wrapper {
 /* Honeycomb patch behind the rank name, glow-sized, tinted by the current rank color and fading out radially */
 .rank-up-name-row .rank-up-text-base {
     position: relative;
+    --hc-w: 380px;
+    --hc-h: 112px;
+}
+/* Mobile: bigger honeycomb both ways */
+body.mobile-layout-active .rank-up-name-row .rank-up-text-base {
+    --hc-w: 350px;
+    --hc-h: 140px;
 }
 .rank-up-name-row .rank-up-text-base::before {
     content: "";
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 380px;
-    height: 95px;
+    width: var(--hc-w);
+    height: var(--hc-h);
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: -1;
@@ -10226,6 +10234,52 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     mask-repeat: repeat, no-repeat;
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
+}
+
+/* Honeycomb shine: a soft band of light travels across the honeycomb (no glow, no blur). It is drawn through the same hex + radial
+   mask as the honeycomb itself, so it only lights up the hex lines. The gradient tile is twice the patch width and fades to
+   transparent at both tile edges, and the animation moves it by exactly one whole tile, so the loop has no visible jump or reset. */
+.rank-up-name-row .rank-up-text-base::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--hc-w);
+    height: var(--hc-h);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: -1;
+    background-image: linear-gradient(
+        100deg,
+        transparent 0%,
+        transparent 30%,
+        color-mix(in srgb, var(--rank-up-color, #ffffff) 35%, #ffffff) 50%,
+        transparent 70%,
+        transparent 100%
+    );
+    background-size: calc(var(--hc-w) * 2) 100%;
+    background-repeat: repeat-x;
+    opacity: 1;
+    -webkit-mask-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 34.64' width='60' height='34.64'%3E%3Cpath d='M10 17.32 20 0h20l10 17.32L40 34.64H20zM0 17.32h10M50 17.32h10' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse at center, #000 0%, #000 8%, transparent 58%);
+    mask-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 34.64' width='60' height='34.64'%3E%3Cpath d='M10 17.32 20 0h20l10 17.32L40 34.64H20zM0 17.32h10M50 17.32h10' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E"),
+        radial-gradient(ellipse at center, #000 0%, #000 8%, transparent 58%);
+    -webkit-mask-size: 60px 34.64px, 100% 100%;
+    mask-size: 60px 34.64px, 100% 100%;
+    -webkit-mask-repeat: repeat, no-repeat;
+    mask-repeat: repeat, no-repeat;
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+    animation: honeycombShine 4.5s linear infinite;
+}
+@keyframes honeycombShine {
+    from { background-position: 0 0; }
+    to { background-position: calc(var(--hc-w) * 2) 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rank-up-name-row .rank-up-text-base::after { animation: none; opacity: 0; }
 }
 
 /* Long labels (e.g. "Aeternus Complete") must never wrap or shrink the block, which would push the tier track around */
@@ -11242,6 +11296,46 @@ body.mobile-layout-active .progress-bar {
     .bk-title {
         font-size: clamp(26px, 7.8vw, 35px);
     }
+}
+
+/* Cave Graph big box: visible outline (the default panel border is only 5% white) */
+.radar-box {
+    border: 3px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Other big boxes: same visible outline as the Cave Graph box */
+.top-box,
+.middle-box,
+.container {
+    border: 3px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Mobile layout: middle box and grid live inside one shell, so the shell carries their outline */
+body.mobile-layout-active .benchmark-panels-shell {
+    border: 3px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Mobile: Cave header (icon + text) starts at the left edge of the cave box. The icon hangs 18px off the text's left side
+   (13px icon + 5px gap), so the text is padded in by that much to put the icon exactly on the box edge. */
+body.mobile-layout-active .cave-text {
+    left: var(--mobile-cave-start, var(--mobile-cave-header-left)) !important;
+    width: var(--mobile-cave-label-width, var(--mobile-cave-header-width)) !important;
+    box-sizing: border-box !important;
+    padding-left: 18px !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+}
+
+/* Mobile: keep room on the right of the rank card's content so the divider has space to sit centered on every screen width */
+body.mobile-layout-active .rounded-inner-box {
+    padding-right: calc(28px * var(--mobile-scale, 1)) !important;
+}
+
+/* Mobile: the divider is centered between the card's content and the rank columns / panel edge (rankingUI.js measures it with the
+   table scroll factored out). Falls back to a fixed spot inside the card until it has been measured. */
+body.mobile-layout-active .rounded-inner-box::after {
+    left: var(--rank-divider-mobile-x, calc(100% + var(--mobile-rank-box-left, 18px) - (14px * var(--mobile-scale, 1)))) !important;
+    right: auto !important;
 }
 
 /* Swords / Bombs boxes: fill color #0a0a0a */

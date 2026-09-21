@@ -12,6 +12,7 @@ const SCREENSHOT_PLAY_ICON_PATH = "M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.
 
 const CAPTURE_SCALE = 1;
 const SHARE_SCREENSHOT_OUTER_PADDING_PX = 28;
+const RADAR_CROP_BOTTOM_MARGIN_PX = 24;
 const DESKTOP_CAPTURE_ATTEMPTS = [
     { width: DESKTOP_SCREENSHOT_WIDTH_PX, quality: 0.84, timeoutMs: 12000 },
     { width: 1440, quality: 0.8, timeoutMs: 9000 },
@@ -234,14 +235,12 @@ function getCropMetricsForDocument(doc, captureTarget) {
 
     const elementRect = captureTarget.getBoundingClientRect();
     const captureSourceWidthPx = Math.max(1, elementRect.width || 0);
-    const radarBottom = radarBoxEl ? radarBoxEl.getBoundingClientRect().bottom : null;
-    const cropAnchorY = [
-        Number.isFinite(radarBottom) ? radarBottom : null
-    ].reduce((max, value) => (value !== null && value > max ? value : max), 0);
-    const rawHeight = cropAnchorY > 0 ? (cropAnchorY - elementRect.top) : 0;
-    const cropToRadarPx = Number.isFinite(rawHeight) && rawHeight > 0 ? Math.ceil(rawHeight) : null;
+    // The screenshot stops just below the Cave Graph box; everything under it (footer etc.) is cropped away.
+    const radarBottom = radarBoxEl ? radarBoxEl.getBoundingClientRect().bottom : 0;
+    const rawHeight = Number.isFinite(radarBottom) && radarBottom > 0 ? radarBottom - elementRect.top : 0;
+    const cropToRadarPx = rawHeight > 0 ? Math.ceil(rawHeight) : null;
     const captureSourceHeightPx = cropToRadarPx
-        ? Math.max(1, cropToRadarPx + 24)
+        ? cropToRadarPx + RADAR_CROP_BOTTOM_MARGIN_PX
         : Math.max(1, Math.ceil(elementRect.height || 0));
     return { captureSourceWidthPx, captureSourceHeightPx, cropToRadarPx };
 }
@@ -352,15 +351,23 @@ async function waitForImages(doc) {
             return;
         }
         const finish = () => resolve();
+        // Never wait forever on an image that neither loads nor fails
+        setTimeout(finish, 2000);
         if (typeof img.decode === "function") {
             img.decode().then(finish).catch(finish);
             return;
         }
         img.addEventListener("load", finish, { once: true });
         img.addEventListener("error", finish, { once: true });
-        setTimeout(finish, 2000);
     })));
 }
+
+// Animated top-rank gradients can't be captured, so those ranks get a flat color (and the matching trophy tint) in the screenshot.
+const FLAT_RANK_SCREENSHOT_STYLES = [
+    { name: "Stellar", color: "#FF6F00", trophyFilter: STELLAR_TROPHY_FILTER },
+    { name: "Celestium", color: "#D8007F", trophyFilter: "sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9)" },
+    { name: "Aeternus", color: "#e5d9b6", trophyFilter: "sepia(1) hue-rotate(2deg) saturate(0.74) brightness(1.16)" }
+];
 
 function applyTemporaryMainRankScreenshotOverrides() {
     const mainRankBox = getCachedQuery("roundedInnerBox", () => document.querySelector(".rounded-inner-box"));
@@ -370,50 +377,23 @@ function applyTemporaryMainRankScreenshotOverrides() {
 
     const previousImgFilter = mainRankImg ? mainRankImg.style.filter : null;
     const previousSpanStyle = mainRankSpan ? mainRankSpan.style.cssText : null;
+    const flatStyle = FLAT_RANK_SCREENSHOT_STYLES.find((entry) => mainText.includes(entry.name));
 
-    if (mainRankImg) {
-        if (mainText.includes("Stellar")) {
-            mainRankImg.style.filter = STELLAR_TROPHY_FILTER;
-        } else if (mainText.includes("Celestium")) {
-            mainRankImg.style.filter = "sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9)";
-        } else if (mainText.includes("Aeternus")) {
-            mainRankImg.style.filter = "sepia(1) hue-rotate(2deg) saturate(0.74) brightness(1.16)";
-        }
-    }
-
-    if (mainRankSpan) {
-        const baseStyle = previousSpanStyle || "";
-        if (mainText.includes("Stellar")) {
-            mainRankSpan.style.cssText = baseStyle
+    if (flatStyle) {
+        if (mainRankImg) mainRankImg.style.filter = flatStyle.trophyFilter;
+        if (mainRankSpan) {
+            mainRankSpan.style.cssText = (previousSpanStyle || "")
                 .replace(/background[^;]*;/g, "")
                 .replace(/-webkit-background-clip[^;]*;/g, "")
                 .replace(/background-clip[^;]*;/g, "")
-                .replace(/color: transparent[^;]*/g, "color: #FF6F00")
-                + " color: #FF6F00 !important; -webkit-text-fill-color: #FF6F00 !important; background: none !important; animation: none !important;";
-        } else if (mainText.includes("Celestium")) {
-            mainRankSpan.style.cssText = baseStyle
-                .replace(/background[^;]*;/g, "")
-                .replace(/-webkit-background-clip[^;]*;/g, "")
-                .replace(/background-clip[^;]*;/g, "")
-                .replace(/color: transparent[^;]*/g, "color: #D8007F")
-                + " color: #D8007F !important; -webkit-text-fill-color: #D8007F !important; background: none !important; animation: none !important;";
-        } else if (mainText.includes("Aeternus")) {
-            mainRankSpan.style.cssText = baseStyle
-                .replace(/background[^;]*;/g, "")
-                .replace(/-webkit-background-clip[^;]*;/g, "")
-                .replace(/background-clip[^;]*;/g, "")
-                .replace(/color: transparent[^;]*/g, "color: #e5d9b6")
-                + " color: #e5d9b6 !important; -webkit-text-fill-color: #e5d9b6 !important; background: none !important; animation: none !important;";
+                .replace(/color: transparent[^;]*/g, `color: ${flatStyle.color}`)
+                + ` color: ${flatStyle.color} !important; -webkit-text-fill-color: ${flatStyle.color} !important; background: none !important; animation: none !important;`;
         }
     }
 
     return () => {
-        if (mainRankImg && previousImgFilter !== null) {
-            mainRankImg.style.filter = previousImgFilter;
-        }
-        if (mainRankSpan && previousSpanStyle !== null) {
-            mainRankSpan.style.cssText = previousSpanStyle;
-        }
+        if (mainRankImg && previousImgFilter !== null) mainRankImg.style.filter = previousImgFilter;
+        if (mainRankSpan && previousSpanStyle !== null) mainRankSpan.style.cssText = previousSpanStyle;
     };
 }
 
@@ -772,12 +752,14 @@ export async function buildShareServiceDesktopMarkup() {
     }
 }
 
+// Rejects if the capture takes too long. The timer is always cleared, so a finished capture leaves nothing running.
 function withTimeout(promise, timeoutMs) {
     if (!timeoutMs || timeoutMs <= 0) return promise;
+    let timer = 0;
     const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(t("share_preview_timeout"))), timeoutMs);
+        timer = setTimeout(() => reject(new Error(t("share_preview_timeout"))), timeoutMs);
     });
-    return Promise.race([promise, timeoutPromise]);
+    return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
 }
 
 function getScreenshotEngine() {
@@ -817,9 +799,22 @@ async function runHtml2CanvasCapture(target, options = {}) {
     return canvas.toDataURL("image/jpeg", options.quality || 0.82);
 }
 
-async function runDirectCaptureAttempt(context, attempt) {
-    const screenshotEngine = getScreenshotEngine();
-    const capturePromise = screenshotEngine.domToJpeg(context.captureTarget, {
+// --- Capture strategies ------------------------------------------------------------------------------------------
+// Each strategy takes (context, attempt) and resolves to { dataUrl, captureSourceWidthPx, cropToRadarPx }.
+// "direct" captures the live page, "iframe" captures a cleaned copy in an off-screen frame (no on-screen flicker, no
+// mobile layout). "modern" uses modern-screenshot, "canvas" uses html2canvas as a fallback engine.
+
+function toCaptureResult(dataUrl, context) {
+    return {
+        dataUrl,
+        captureSourceWidthPx: context.captureSourceWidthPx,
+        cropToRadarPx: context.cropToRadarPx
+    };
+}
+
+function captureWithModernScreenshot(context, attempt, extraOptions = {}) {
+    const heightPx = context.captureSourceHeightPx ? `${context.captureSourceHeightPx}px` : "auto";
+    return withTimeout(getScreenshotEngine().domToJpeg(context.captureTarget, {
         scale: CAPTURE_SCALE,
         width: attempt.width,
         height: context.captureSourceHeightPx || undefined,
@@ -832,136 +827,74 @@ async function runDirectCaptureAttempt(context, attempt) {
             backgroundColor: context.screenshotBgColor,
             width: `${attempt.width}px`,
             minWidth: `${attempt.width}px`,
-            height: context.captureSourceHeightPx ? `${context.captureSourceHeightPx}px` : "auto",
-            minHeight: context.captureSourceHeightPx ? `${context.captureSourceHeightPx}px` : "auto",
+            height: heightPx,
+            minHeight: heightPx,
             transform: "none"
         },
         filter: shouldCaptureNode,
-        onClone: (doc) => {
-            normalizeCloneForScreenshot(doc, context, attempt.width);
-        }
-    });
-
-    return withTimeout(capturePromise, attempt.timeoutMs);
+        ...extraOptions
+    }), attempt.timeoutMs);
 }
 
-async function runDirectHtml2CanvasAttempt(context, attempt) {
-    return {
-        dataUrl: await withTimeout(runHtml2CanvasCapture(context.captureTarget, {
-            backgroundColor: context.screenshotBgColor,
-            width: attempt.width,
-            height: context.captureSourceHeightPx || undefined,
-            quality: attempt.quality
-        }), attempt.timeoutMs),
-        captureSourceWidthPx: context.captureSourceWidthPx,
-        cropToRadarPx: context.cropToRadarPx
-    };
+function captureWithHtml2Canvas(context, attempt) {
+    return withTimeout(runHtml2CanvasCapture(context.captureTarget, {
+        backgroundColor: context.screenshotBgColor,
+        width: attempt.width,
+        height: context.captureSourceHeightPx || undefined,
+        quality: attempt.quality
+    }), attempt.timeoutMs);
 }
 
-async function runIframeCaptureAttempt(context, attempt) {
-    const screenshotEngine = getScreenshotEngine();
+// Runs a capture against the off-screen copy of the page and always removes that copy afterwards.
+async function withOffscreenContext(context, attempt, capture) {
     const iframeContext = await buildOffscreenDesktopCaptureContext(context, attempt.width);
     try {
-        const capturePromise = screenshotEngine.domToJpeg(iframeContext.captureTarget, {
-            scale: CAPTURE_SCALE,
-            width: attempt.width,
-            height: iframeContext.captureSourceHeightPx || undefined,
-            quality: attempt.quality,
-            pixelRatio: 1,
-            fontEmbedCSS: "",
-            style: {
-                margin: "0",
-                padding: "0",
-                backgroundColor: iframeContext.screenshotBgColor,
-                width: `${attempt.width}px`,
-                minWidth: `${attempt.width}px`,
-                height: iframeContext.captureSourceHeightPx ? `${iframeContext.captureSourceHeightPx}px` : "auto",
-                minHeight: iframeContext.captureSourceHeightPx ? `${iframeContext.captureSourceHeightPx}px` : "auto",
-                transform: "none"
-            },
-            filter: shouldCaptureNode
-        });
-
-        return {
-            dataUrl: await withTimeout(capturePromise, attempt.timeoutMs),
-            captureSourceWidthPx: iframeContext.captureSourceWidthPx,
-            cropToRadarPx: iframeContext.cropToRadarPx
-        };
+        return toCaptureResult(await capture(iframeContext, attempt), iframeContext);
     } finally {
         iframeContext.cleanup();
     }
 }
 
-async function runIframeHtml2CanvasAttempt(context, attempt) {
-    const iframeContext = await buildOffscreenDesktopCaptureContext(context, attempt.width);
-    try {
-        return {
-            dataUrl: await withTimeout(runHtml2CanvasCapture(iframeContext.captureTarget, {
-                backgroundColor: iframeContext.screenshotBgColor,
-                width: attempt.width,
-                height: iframeContext.captureSourceHeightPx || undefined,
-                quality: attempt.quality
-            }), attempt.timeoutMs),
-            captureSourceWidthPx: iframeContext.captureSourceWidthPx,
-            cropToRadarPx: iframeContext.cropToRadarPx
-        };
-    } finally {
-        iframeContext.cleanup();
+const CAPTURE_STRATEGIES = {
+    directModern: async (context, attempt) => toCaptureResult(
+        await captureWithModernScreenshot(context, attempt, {
+            onClone: (doc) => normalizeCloneForScreenshot(doc, context, attempt.width)
+        }),
+        context
+    ),
+    directCanvas: async (context, attempt) => toCaptureResult(await captureWithHtml2Canvas(context, attempt), context),
+    iframeModern: (context, attempt) => withOffscreenContext(context, attempt, captureWithModernScreenshot),
+    iframeCanvas: (context, attempt) => withOffscreenContext(context, attempt, captureWithHtml2Canvas)
+};
+
+// Order in which strategies are tried for one attempt (width / quality / timeout step).
+function getStrategyOrder({ mobile, forceOffscreenDesktop, allowLiveDesktopFallback }) {
+    const { directModern, directCanvas, iframeModern, iframeCanvas } = CAPTURE_STRATEGIES;
+    if (mobile) return [iframeModern, iframeCanvas, directModern, directCanvas];
+    if (forceOffscreenDesktop) {
+        return allowLiveDesktopFallback ? [iframeModern, iframeCanvas, directModern] : [iframeModern, iframeCanvas];
     }
+    return [directModern];
 }
 
 async function captureDataUrl(context, options = {}) {
-    const forceOffscreenDesktop = !!options.forceOffscreenDesktop;
-    const allowLiveDesktopFallback = options.allowLiveDesktopFallback !== false;
+    const mobile = isMobileViewport();
+    const strategies = getStrategyOrder({
+        mobile,
+        forceOffscreenDesktop: !!options.forceOffscreenDesktop,
+        allowLiveDesktopFallback: options.allowLiveDesktopFallback !== false
+    });
+    const attempts = mobile ? MOBILE_CAPTURE_ATTEMPTS : DESKTOP_CAPTURE_ATTEMPTS;
     let lastError = null;
-    const attempts = isMobileViewport() ? MOBILE_CAPTURE_ATTEMPTS : DESKTOP_CAPTURE_ATTEMPTS;
 
+    // Best quality first; if every strategy fails at a size, retry everything at the next smaller / lighter one.
     for (const attempt of attempts) {
-        try {
-            if (isMobileViewport()) {
-                try {
-                    return await runIframeCaptureAttempt(context, attempt);
-                } catch (iframeError) {
-                    lastError = iframeError;
-                    try {
-                        return await runIframeHtml2CanvasAttempt(context, attempt);
-                    } catch (iframeCanvasError) {
-                        lastError = iframeCanvasError;
-                        try {
-                            return {
-                                dataUrl: await runDirectCaptureAttempt(context, attempt),
-                                captureSourceWidthPx: context.captureSourceWidthPx,
-                                cropToRadarPx: context.cropToRadarPx
-                            };
-                        } catch (directModernError) {
-                            lastError = directModernError;
-                            return await runDirectHtml2CanvasAttempt(context, attempt);
-                        }
-                    }
-                }
+        for (const strategy of strategies) {
+            try {
+                return await strategy(context, attempt);
+            } catch (error) {
+                lastError = error;
             }
-            if (forceOffscreenDesktop) {
-                try {
-                    return await runIframeCaptureAttempt(context, attempt);
-                } catch (iframeError) {
-                    lastError = iframeError;
-                    try {
-                        return await runIframeHtml2CanvasAttempt(context, attempt);
-                    } catch (iframeCanvasError) {
-                        lastError = iframeCanvasError;
-                        if (!allowLiveDesktopFallback) {
-                            continue;
-                        }
-                    }
-                }
-            }
-            return {
-                dataUrl: await runDirectCaptureAttempt(context, attempt),
-                captureSourceWidthPx: context.captureSourceWidthPx,
-                cropToRadarPx: context.cropToRadarPx
-            };
-        } catch (error) {
-            lastError = error;
         }
     }
 
@@ -973,11 +906,8 @@ async function cropCapturedImage(dataUrl, captureSourceWidthPx, cropToRadarPx, s
     const cropScale = captureSourceWidthPx && captureSourceWidthPx > 0
         ? (img.width / captureSourceWidthPx)
         : 1;
-    const scaledCropToRadarPx = cropToRadarPx
-        ? Math.max(1, Math.ceil(cropToRadarPx * cropScale))
-        : null;
     const croppedHeight = cropToRadarPx
-        ? Math.max(1, Math.min(img.height, scaledCropToRadarPx))
+        ? Math.max(1, Math.min(img.height, Math.ceil(cropToRadarPx * cropScale)))
         : img.height;
 
     const canvas = document.createElement("canvas");
@@ -989,26 +919,21 @@ async function cropCapturedImage(dataUrl, captureSourceWidthPx, cropToRadarPx, s
 
     ctx.fillStyle = screenshotBgColor || "#050505";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.drawImage(
         img,
-        0,
-        0,
-        img.width,
-        croppedHeight,
-        SHARE_SCREENSHOT_OUTER_PADDING_PX,
-        SHARE_SCREENSHOT_OUTER_PADDING_PX,
-        img.width,
-        croppedHeight
+        0, 0, img.width, croppedHeight,
+        SHARE_SCREENSHOT_OUTER_PADDING_PX, SHARE_SCREENSHOT_OUTER_PADDING_PX, img.width, croppedHeight
     );
 
     return canvas;
 }
 
 export async function generateShareScreenshotCanvas(options = {}) {
+    const mobile = isMobileViewport();
     const offscreenOnly = !!options.offscreenOnly;
     const context = buildCaptureContext();
-    const shouldUseLiveDocumentOverrides = !(offscreenOnly && !isMobileViewport());
+    // A desktop capture that only uses the off-screen copy never touches the live page, so it needs no live overrides.
+    const shouldUseLiveDocumentOverrides = !(offscreenOnly && !mobile);
     const overrideStyle = shouldUseLiveDocumentOverrides ? createScreenshotOverrideStyle() : null;
     const restoreMainRankStyles = shouldUseLiveDocumentOverrides
         ? applyTemporaryMainRankScreenshotOverrides()
@@ -1020,7 +945,7 @@ export async function generateShareScreenshotCanvas(options = {}) {
 
     try {
         const captureResult = await captureDataUrl(context, {
-            forceOffscreenDesktop: offscreenOnly && !isMobileViewport(),
+            forceOffscreenDesktop: offscreenOnly && !mobile,
             allowLiveDesktopFallback: !offscreenOnly
         });
         return await cropCapturedImage(
@@ -1030,7 +955,8 @@ export async function generateShareScreenshotCanvas(options = {}) {
             context.screenshotBgColor
         );
     } finally {
-        if (overrideStyle.isConnected) overrideStyle.remove();
+        // overrideStyle is null for off-screen-only desktop captures (this used to throw here and discard the finished image).
+        if (overrideStyle) overrideStyle.remove();
         restoreMainRankStyles();
     }
 }

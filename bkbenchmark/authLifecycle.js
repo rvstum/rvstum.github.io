@@ -8,7 +8,7 @@ import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as AuthManager from "./authManager.js?v=20260921-bk-title-color-2";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
-import * as ViewModeManager from "./viewModeManager.js?v=20260921-bk-title-color-2";
+import * as ViewModeManager from "./viewModeManager.js?v=20260921-exit-text-white-1";
 import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.js";
 import { tf, currentLanguage } from "./i18n.js";
 import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";

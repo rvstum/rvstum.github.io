@@ -2,7 +2,7 @@ import { auth } from "./client.js";
 import { state } from "./appState.js";
 import { t } from "./i18n.js";
 import { SCORE_STORAGE_KEY, SUB_INPUT_MODE_STORAGE_KEY, readJson, writeString } from "./storage.js?v=20260310-sub-score-input-3";
-import * as RankingUI from "./rankingUI.js?v=20260920-rank-card-6";
+import * as RankingUI from "./rankingUI.js?v=20260921-rank-divider-7";
 import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
 
 function getSubInputTooltipText() {

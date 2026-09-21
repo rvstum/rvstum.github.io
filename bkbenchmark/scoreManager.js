@@ -20,7 +20,7 @@ import {
     buildConfigKey
 } from "./configManager.js";
 import { CONFIG_OPTIONS, DEFAULT_MOUNT_CONFIG, getScoreBaseForConfigKey } from "./constants.js";
-import * as RankingUI from "./rankingUI.js?v=20260920-rank-card-6";
+import * as RankingUI from "./rankingUI.js?v=20260921-rank-divider-7";
 import { createSyncedStore } from "./persistence.js";
 
 const scoreManagerCallbacks = {

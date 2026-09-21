@@ -1,9 +1,9 @@
 import { isMobileViewport } from "./utils.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 import { state, getCurrentConfigState } from "./appState.js";
-import * as RankingUI from "./rankingUI.js?v=20260920-rank-card-6";
+import * as RankingUI from "./rankingUI.js?v=20260921-rank-divider-7";
 import { t } from "./i18n.js";
-import { generateShareScreenshotCanvas } from "./shareScreenshot.js";
+import { generateShareScreenshotCanvas } from "./shareScreenshot.js?v=20260921-capture-refactor-1";
 import {
     requestShareServicePreviewUrl,
     hasShareServiceConfigured

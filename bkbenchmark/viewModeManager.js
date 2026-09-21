@@ -9,7 +9,7 @@ import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as FriendsService from "./friendsService.js?v=20260920-friend-graph";
 import * as RadarUI from "./radarUI.js";
-import * as RankingUI from "./rankingUI.js?v=20260920-rank-card-6";
+import * as RankingUI from "./rankingUI.js?v=20260921-rank-divider-7";
 import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import { renderGuildHeader } from "./profileUI.js";
@@ -149,20 +149,9 @@ function resolveViewModeRankIndex(data = {}) {
 }
 
 function syncViewModeExitButtonTheme(rankIndex = 0) {
-    const isGuestViewer = !(auth.currentUser && auth.currentUser.uid);
-    if (isGuestViewer) {
-        document.body.style.setProperty("--exit-view-btn-text", "#ffffff");
-        return;
-    }
-    if (rankIndex === FINAL_RANK_INDEX) {
-        document.body.style.setProperty("--exit-view-btn-text", "#050505");
-        return;
-    }
-    if (rankIndex > 0) {
-        document.body.style.setProperty("--exit-view-btn-text", "#ffffff");
-        return;
-    }
-    document.body.style.removeProperty("--exit-view-btn-text");
+    // The Exit View Mode text is always white while viewing someone else. (The top rank used to set it to near-black, and
+    // rank 0 fell back to the theme's own text color, both of which could be unreadable on the dark button.)
+    document.body.style.setProperty("--exit-view-btn-text", "#ffffff");
 }
 
 async function resolveViewerGuilds(viewerUid) {
@@ -274,7 +263,7 @@ export function clearViewModeChrome() {
     state.viewModeRestoreSnapshot = null;
     document.body.classList.remove("view-mode");
     document.dispatchEvent(new CustomEvent("benchmark:collapse-sub-inputs"));
-    syncViewModeExitButtonTheme(0);
+    document.body.style.removeProperty("--exit-view-btn-text");
     const userMenuBox = getCachedElementById("userMenuBox");
     const settingsBtn = getCachedElementById("settingsBtn");
     setHidden(userMenuBox, false);

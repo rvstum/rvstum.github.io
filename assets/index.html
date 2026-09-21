@@ -542,6 +542,15 @@
             animation: viewer-in 0.18s ease;
         }
 
+        .shake-text { display: inline-block; animation: text-shake 0.35s linear infinite; }
+        @keyframes text-shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-1px, 1px) rotate(-0.6deg); }
+            40% { transform: translate(1px, -1px) rotate(0.6deg); }
+            60% { transform: translate(-1px, -1px) rotate(-0.4deg); }
+            80% { transform: translate(1px, 1px) rotate(0.4deg); }
+        }
+        @media (prefers-reduced-motion: reduce) { .shake-text { animation: none; } }
         @keyframes viewer-in {
             from { opacity: 0; transform: translateY(8px) scale(0.98); }
             to { opacity: 1; transform: none; }
@@ -1560,7 +1569,7 @@
                 <div class="info-wrap">
                     <button class="info-btn" type="button" id="infoBtn" aria-label="Info" aria-expanded="false" aria-controls="infoPopup">!</button>
                     <div class="info-popup" id="infoPopup" role="dialog" aria-label="Info">
-                        Shields will be updated from time to time in big batches, bear with me as I still need to collect them!
+                        Credits to every single gfx artist, <span class="shake-text" style="color: red;">literally</span>.
                     </div>
                 </div>
                 </div>

@@ -161,6 +161,21 @@
         }
     }
 
+    // The guard classes lock html/body to overflow:hidden and make #responsive-wrapper exactly one screen tall. They used
+    // to be added once at load and never removed, so switching from a mobile to a desktop width kept the page locked
+    // (cut-off Cave Graph box, no scrolling, a stray line under the filter buttons) until a refresh. Keep them in sync.
+    function syncGuardClasses() {
+        var mobile = isMobileViewport();
+        document.documentElement.classList.toggle("mobile-viewport-guard", mobile);
+        if (document.body) document.body.classList.toggle("mobile-viewport-guard", mobile);
+        if (!mobile) {
+            document.documentElement.classList.remove("mobile-keyboard-open");
+            if (document.body) document.body.classList.remove("mobile-keyboard-open", "benchmark-keyboard-open");
+        }
+    }
+    window.addEventListener("resize", syncGuardClasses, { passive: true });
+    window.addEventListener("orientationchange", syncGuardClasses, { passive: true });
+
     if (!isMobileViewport()) return;
 
     applyViewportMeta();

@@ -63,6 +63,34 @@ function updateRankTierTrack(rankBox, rankIndex, progressInRank, isComplete) {
     });
 }
 
+// Re-measure the divider after anything that can move the card or the table: scrolling, the keyboard opening/closing
+// (focus + visual viewport changes), rotation. A short burst of frames also catches transitions that finish afterwards.
+function bindRankDividerLiveUpdates() {
+    let frames = 0;
+    let running = false;
+    const burst = (count) => {
+        frames = Math.max(frames, count);
+        if (running) return;
+        running = true;
+        const tick = () => {
+            positionRankDivider();
+            frames -= 1;
+            if (frames > 0) requestAnimationFrame(tick);
+            else running = false;
+        };
+        requestAnimationFrame(tick);
+    };
+    document.addEventListener('scroll', () => burst(2), { capture: true, passive: true });
+    document.addEventListener('focusin', () => burst(45), true);
+    document.addEventListener('focusout', () => { burst(45); window.setTimeout(() => burst(20), 350); }, true);
+    window.addEventListener('orientationchange', () => burst(60), { passive: true });
+    window.addEventListener('pageshow', () => burst(30), { passive: true });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => burst(30), { passive: true });
+        window.visualViewport.addEventListener('scroll', () => burst(2), { passive: true });
+    }
+}
+
 function positionRankDivider() {
     const rankBox = document.querySelector('.rounded-inner-box');
     const steps = rankBox ? rankBox.querySelectorAll('.rank-tier-step') : [];
@@ -72,7 +100,7 @@ function positionRankDivider() {
     const boxRect = rankBox.getBoundingClientRect();
     const stepRect = lastStep.getBoundingClientRect();
     const rightRect = firstRank.getBoundingClientRect();
-    if (!stepRect.width || !rightRect.width) return;
+    if (!rightRect.width) return;
     // Right end of the last roman numeral (centered in its step) to the left edge of the rank columns
     // The track line extends 7% of the track width past the last circle; the numeral is centered on the circle
     const trackRect = lastStep.parentElement.getBoundingClientRect();
@@ -80,12 +108,25 @@ function positionRankDivider() {
     const numeralRight = stepRect.left + stepRect.width / 2 + 8;
     const contentRight = Math.max(lineRight, numeralRight);
     const x = (contentRight + rightRect.left) / 2 - boxRect.left;
+    if (document.body.classList.contains('mobile-layout-active')) {
+        // Mobile: measured live, so the line is always centered between what is actually on screen right now: the end of
+        // the roman numeral line and the progress bar (or the panel edge when the bar is still scrolled out of view).
+        // It is measured again on every scroll / keyboard / resize event (see bindRankDividerLiveUpdates), so nothing
+        // that shifts the card or the table can leave it stale.
+        const progressEl = document.querySelector('.progress-bar');
+        const progressRect = progressEl ? progressEl.getBoundingClientRect() : null;
+        const shell = document.querySelector('.benchmark-panels-shell');
+        let farSide = progressRect && progressRect.width ? progressRect.left : rightRect.left;
+        if (shell) farSide = Math.min(farSide, shell.getBoundingClientRect().right - 3);
+        rankBox.style.setProperty('--rank-divider-mobile-x', (((contentRight + farSide) / 2) - boxRect.left) + 'px');
+    }
     rankBox.style.setProperty('--rank-divider-x', x + 'px');
 }
 
 if (typeof window !== 'undefined' && !window.__rankDividerBound) {
     window.__rankDividerBound = true;
     window.addEventListener('resize', () => requestAnimationFrame(positionRankDivider));
+    bindRankDividerLiveUpdates();
 }
 
 function getAeternusCompleteLabel() {
@@ -558,7 +599,22 @@ if (typeof document !== "undefined") {
         if (progressBar instanceof HTMLElement) {
             syncMobileRomanNumerals(progressBar);
         }
+        // Other devices settle their layout a little later, so measure again after it has finished moving
+        requestAnimationFrame(() => requestAnimationFrame(positionRankDivider));
+        window.setTimeout(positionRankDivider, 250);
+        window.setTimeout(positionRankDivider, 800);
     });
+    window.addEventListener('load', () => window.setTimeout(positionRankDivider, 300), { passive: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(positionRankDivider));
+    if (typeof ResizeObserver === 'function') {
+        const watch = () => {
+            const shell = document.querySelector('.benchmark-panels-shell');
+            if (!shell) return false;
+            new ResizeObserver(() => requestAnimationFrame(positionRankDivider)).observe(shell);
+            return true;
+        };
+        if (!watch()) document.addEventListener('DOMContentLoaded', watch, { once: true });
+    }
 }
 
 function recomputeIndividualRatings(scoreInputs) {
