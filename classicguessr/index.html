@@ -361,6 +361,14 @@
         </div>
       </section>
 
+      <div class="lobby-name-modal hidden" id="lobbyNameModal" role="dialog" aria-modal="true" aria-labelledby="lobbyNameTitle">
+        <form class="lobby-name-dialog" id="lobbyNameForm">
+          <h2 id="lobbyNameTitle">Input your name</h2>
+          <input id="lobbyNameInput" type="text" maxlength="24" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="lobby-display-name" placeholder="Enter name...">
+          <button id="lobbyNameButton" type="submit">Change</button>
+        </form>
+      </div>
+
       <div class="lobby-remove-modal hidden" id="lobbyRemoveModal" role="dialog" aria-modal="true" aria-labelledby="lobbyRemoveTitle">
         <div class="lobby-remove-dialog">
           <span class="lobby-remove-icon" aria-hidden="true">!</span>

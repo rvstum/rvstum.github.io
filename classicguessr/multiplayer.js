@@ -4,6 +4,7 @@ const LOBBY_COLLECTION = "classicGuessrLobbies";
 // lobbies, players and results stay in Firestore.
 const REALTIME_DATABASE_URL = "https://benchmark-5a89f-default-rtdb.firebaseio.com";
 const SPECTATE_PATH = "classicGuessrSpectate";
+const PRESENCE_PATH = "classicGuessrPresence";
 const LOBBY_CODE_LENGTH = 6;
 const LOBBY_LIFETIME_MS = 6 * 60 * 60 * 1000;
 // Lobbies that were never cleaned up by leaving (closed tab, crash, failed delete) are removed by
@@ -173,6 +174,9 @@ const dom = {
   guestLeaveButton: document.getElementById("guestLobbyLeaveButton"),
   standings: document.getElementById("multiplayerStandings"),
   removeModal: document.getElementById("lobbyRemoveModal"),
+  nameModal: document.getElementById("lobbyNameModal"),
+  nameForm: document.getElementById("lobbyNameForm"),
+  nameInput: document.getElementById("lobbyNameInput"),
   removePlayerName: document.getElementById("lobbyRemovePlayerName"),
   removeCancelButton: document.getElementById("lobbyRemoveCancelButton"),
   removeConfirmButton: document.getElementById("lobbyRemoveConfirmButton"),
@@ -369,6 +373,19 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dom.removeModal?.classList.contains("hidden")) closeRemovePlayerPrompt();
   });
+  dom.nameForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const name = dom.nameInput.value.trim();
+    if (!name) {
+      dom.nameForm.classList.remove("is-invalid");
+      void dom.nameForm.offsetWidth;
+      dom.nameForm.classList.add("is-invalid");
+      dom.nameInput.focus();
+      return;
+    }
+    await commitUsername(name, false);
+    dom.nameModal.classList.add("hidden");
+  });
   const storedPlayerName = sessionStorage.getItem(PLAYER_NAME_STORAGE_KEY) || "";
   const savedPlayerName = /^Player (?:[1-4]|[A-Z0-9]{4})$/.test(storedPlayerName) ? "" : storedPlayerName;
   dom.usernameInputs.forEach((input) => {
@@ -486,6 +503,7 @@ async function createLobby() {
     renderLobbyPlayers();
     subscribeToLobby();
     getMenuApi()?.showHostLobbyView();
+    openNamePrompt();
   } catch (error) {
     console.error(error);
     getMenuApi()?.showHostLobbyView();
@@ -608,6 +626,7 @@ async function joinLobby(rawCode) {
     syncUsernameInputs();
     subscribeToLobby();
     setStatus(dom.joinStatus);
+    openNamePrompt();
   } catch (error) {
     console.error(error);
     setStatus(dom.joinStatus, friendlyError(error), true);
@@ -645,6 +664,14 @@ function getPlayerName(user, playerNumber = 1) {
     sessionStorage.setItem(PLAYER_NAME_STORAGE_KEY, name);
   }
   return name;
+}
+
+function openNamePrompt() {
+  if (!dom.nameModal) return;
+  dom.nameInput.value = "";
+  dom.nameForm.classList.remove("is-invalid");
+  dom.nameModal.classList.remove("hidden");
+  window.setTimeout(() => dom.nameInput.focus(), 50);
 }
 
 async function commitUsername(rawName, restoreIfEmpty) {
@@ -810,6 +837,7 @@ function subscribeToLobby() {
       }, (error) => {
         console.error("Could not sync spectator views", error);
       });
+      startRealtimePresence(backend, code);
     } catch (error) {
       console.error("Could not sync spectator views", error);
     }
@@ -817,6 +845,48 @@ function subscribeToLobby() {
 
   session.lastServerSnapshotMs = Date.now();
   startPresence();
+}
+
+// The Realtime Database notices a closed tab the moment its socket drops and runs onDisconnect on
+// the server, so each player's presence node vanishes within about a second even when the page
+// never got to run any cleanup. The host then frees the Firestore slot of anyone who vanishes.
+function startRealtimePresence(backend, code) {
+  const uid = backend.auth.currentUser?.uid;
+  if (!uid) return;
+  const presenceRef = backend.rt.ref(backend.rtdb, `${PRESENCE_PATH}/${code}/${uid}`);
+  session.presenceRef = presenceRef;
+  session.presenceSeen = new Set();
+  const connectedRef = backend.rt.ref(backend.rtdb, ".info/connected");
+  const stopConnected = backend.rt.onValue(connectedRef, (snapshot) => {
+    if (snapshot.val() !== true) return;
+    // Re-armed on every (re)connect, since the server forgets onDisconnect handlers when the socket drops.
+    backend.rt.onDisconnect(presenceRef).remove()
+      .then(() => backend.rt.set(presenceRef, true))
+      .catch((error) => console.error("Could not publish realtime presence", error));
+  });
+  const stopRoom = backend.rt.onValue(backend.rt.ref(backend.rtdb, `${PRESENCE_PATH}/${code}`), (snapshot) => {
+    const online = snapshot.val() || {};
+    Object.keys(online).forEach((id) => session.presenceSeen.add(id));
+    if (session.role !== "host") return;
+    session.presenceSeen.forEach((id) => {
+      if (id === uid || online[id] || session.departedPlayerIds.has(id)) return;
+      if (!session.players.some((player) => player.id === id)) return;
+      session.departedPlayerIds.add(id);
+      window.setTimeout(async () => {
+        try {
+          // Debounce a brief reconnect: only remove if they are still absent and in the lobby.
+          const latest = await backend.rt.get(backend.rt.ref(backend.rtdb, `${PRESENCE_PATH}/${code}/${id}`));
+          if (session.lobbyCode === code && !latest.val()) {
+            session.presenceSeen.delete(id);
+            await pruneStalePlayer(id);
+          }
+        } finally {
+          session.departedPlayerIds.delete(id);
+        }
+      }, 2000);
+    });
+  }, (error) => console.error("Could not sync realtime presence", error));
+  session.stopRealtimePresence = () => { stopConnected(); stopRoom(); };
 }
 
 function updateServerClockOffset(serverTimestamp) {
@@ -2362,6 +2432,7 @@ async function leaveLobby(options = {}) {
     const removals = [];
     if (backend.auth.currentUser) {
       removals.push(backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}/${backend.auth.currentUser.uid}`)));
+      removals.push(backend.rt.remove(backend.rt.ref(backend.rtdb, `${PRESENCE_PATH}/${code}/${backend.auth.currentUser.uid}`)));
       // Only our own entry can be removed here: the database rules allow writes per player (/<code>/<uid>), so
       // removing the whole /<code> node as host was always denied. Every other player clears their own entry when
       // they leave, and their onDisconnect handler covers a crash or closed tab.
@@ -2376,6 +2447,8 @@ async function leaveLobby(options = {}) {
     });
   }
   session.viewDisconnectSet = false;
+  session.stopRealtimePresence?.();
+  session.stopRealtimePresence = null;
   stopSubscriptions();
   session.lobbyCode = "";
   session.role = "";
