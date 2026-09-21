@@ -149,6 +149,11 @@ function resolveViewModeRankIndex(data = {}) {
 }
 
 function syncViewModeExitButtonTheme(rankIndex = 0) {
+    const isGuestViewer = !(auth.currentUser && auth.currentUser.uid);
+    if (isGuestViewer) {
+        document.body.style.setProperty("--exit-view-btn-text", "#ffffff");
+        return;
+    }
     if (rankIndex === FINAL_RANK_INDEX) {
         document.body.style.setProperty("--exit-view-btn-text", "#050505");
         return;
