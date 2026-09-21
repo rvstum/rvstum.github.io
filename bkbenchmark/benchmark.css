@@ -11129,6 +11129,22 @@ body.mobile-layout-active .header-label-cave::before {
     filter: drop-shadow(0 0 0.15em color-mix(in srgb, var(--bk-title-color, #a6a6a6) 70%, transparent));
 }
 
+/* Center the title text itself on the page; the icon sits in the left column beside it instead of shifting the text over */
+.bk-title {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    column-gap: 0.3em;
+}
+.bk-title .bk-title-icon {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+}
+.bk-title .bk-title-text {
+    grid-column: 2;
+    grid-row: 1;
+}
+
 /* No glow on the title icon */
 .bk-title .bk-title-icon {
     filter: none;
@@ -11212,6 +11228,26 @@ body.mobile-layout-active .progress-bar {
 .vertical-box.vbox-2 {
     background-color: rgb(0, 0, 0);
     box-shadow: inset 0 0 0 1px rgba(62, 15, 15, 0.55);
+}
+
+/* Desktop: smaller sword icon beside the vertical Swords box */
+@media (min-width: 901px) {
+    .vertical-box-icon-swords {
+        height: 15px;
+    }
+}
+
+/* Mobile: slightly smaller BK Benchmark title (the baddy icon is 1.25em, so it scales with it) */
+@media (max-width: 900px), (max-device-width: 900px) {
+    .bk-title {
+        font-size: clamp(26px, 7.8vw, 35px);
+    }
+}
+
+/* Swords / Bombs boxes: fill color #0a0a0a */
+.vertical-box.vbox-1,
+.vertical-box.vbox-2 {
+    background-color: rgb(10, 10, 10);
 }
 
 /* Strongest / Weakest caves: center each name vertically between the bars above and below it.

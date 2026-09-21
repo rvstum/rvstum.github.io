@@ -3306,30 +3306,6 @@ button:disabled {
   animation: perfectScorePop 2.6s cubic-bezier(0.18, 0.9, 0.24, 1) both;
 }
 
-.perfect-score-burst::before,
-.perfect-score-burst::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.perfect-score-burst::before {
-  inset: -6rem;
-  background: repeating-conic-gradient(from 8deg, rgba(108, 235, 116, 0.95) 0 4deg, transparent 4deg 17deg);
-  mask: radial-gradient(circle, transparent 0 36%, #000 37% 63%, transparent 64%);
-  -webkit-mask: radial-gradient(circle, transparent 0 36%, #000 37% 63%, transparent 64%);
-  animation: perfectBurstSpin 2.6s ease-out both;
-}
-
-.perfect-score-burst::after {
-  inset: -1.4rem;
-  border: 0.35rem solid rgba(184, 240, 143, 0.82);
-  box-shadow: 0 0 2.5rem rgba(76, 220, 101, 0.72), inset 0 0 2.5rem rgba(76, 220, 101, 0.45);
-  animation: perfectRingPulse 2.6s ease-out both;
-}
-
 .perfect-score-label {
   display: block;
   justify-self: center;

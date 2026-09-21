@@ -2223,7 +2223,16 @@
                     card.addEventListener('pointercancel', cancelShieldHold);
                     card.addEventListener('pointerleave', cancelShieldHold);
                     card.addEventListener('contextmenu', (event) => {
-                        if (holdOpened) event.preventDefault();
+                        event.preventDefault();
+                    });
+                    card.style.webkitTouchCallout = 'none';
+                    card.style.webkitUserSelect = 'none';
+                    card.style.userSelect = 'none';
+                    card.querySelectorAll('img').forEach((el) => {
+                        el.draggable = false;
+                        el.style.webkitTouchCallout = 'none';
+                        el.style.webkitUserSelect = 'none';
+                        el.style.userSelect = 'none';
                     });
                     card.addEventListener('dragstart', (event) => event.preventDefault());
                 }
