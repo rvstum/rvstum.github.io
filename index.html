@@ -232,6 +232,32 @@
             transition: color 160ms ease, transform 160ms ease, text-shadow 160ms ease;
         }
 
+        .new-badge {
+            margin-left: 0.9em;
+            font-size: 0.85em;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            background: linear-gradient(100deg, #b8860b 0%, #ffd700 30%, #fff6b0 50%, #ffd700 70%, #b8860b 100%);
+            background-size: 200% 100%;
+            background-repeat: repeat-x;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: #ffd700;
+            filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.55));
+            animation: newShine 2s linear infinite, newPulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes newShine {
+            from { background-position: 0 0; }
+            to { background-position: 200% 0; }
+        }
+
+        @keyframes newPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+        }
+
         .menu-link-secondary {
             font-size: clamp(0.56rem, 1.02vw, 0.74rem);
             letter-spacing: 0.14em;
@@ -454,6 +480,44 @@
             transform: scale(1.05);
             text-shadow: 0 0 18px rgba(255, 255, 255, 0.16);
             outline: none;
+        }
+
+        .menu-label {
+            display: inline-block;
+            transform-origin: center;
+            transition: transform 160ms ease, text-shadow 160ms ease;
+        }
+
+        .menu-link:has(.new-badge):hover,
+        .menu-link:has(.new-badge):focus-visible,
+        .menu-block .menu-link:has(.new-badge):hover,
+        .menu-block .menu-link:has(.new-badge):focus-visible {
+            transform: none;
+            text-shadow: none;
+        }
+
+        .menu-link:hover .menu-label,
+        .menu-link:focus-visible .menu-label {
+            transform: scale(1.05);
+            text-shadow: 0 0 18px rgba(255, 255, 255, 0.16);
+        }
+
+        @media (max-width: 820px) {
+            .menu-wrap {
+                position: relative;
+                display: inline-block;
+            }
+
+            .menu-wrap .new-badge {
+                position: absolute;
+                left: 100%;
+                top: 0;
+                bottom: 0;
+                display: flex;
+                align-items: center;
+                margin-left: 0.6em;
+                white-space: nowrap;
+            }
         }
 
         @media (max-width: 820px) {
@@ -705,10 +769,10 @@
 
             <ul class="menu-list">
                 <li><a class="menu-link" href="/treasuremaps/">Treasure Maps</a></li>
-                <li><a class="menu-link" href="/classicguessr/">ClassicGuessr</a></li>
-                <li><a class="menu-link" href="/bkbenchmark/">BK Benchmark</a></li>
-                <li><a class="menu-link" href="/backgroundcolorpicker/">BG Color Picker</a></li>
-                <li><a class="menu-link" href="/assets/">Assets</a></li>
+                <li><a class="menu-link" href="/classicguessr/"><span class="menu-wrap"><span class="menu-label">ClassicGuessr</span> <span class="new-badge">NEW</span></span></a></li>
+                <li><a class="menu-link" href="/bkbenchmark/"><span class="menu-wrap"><span class="menu-label">BK Benchmark</span> <span class="new-badge">NEW</span></span></a></li>
+                <li><a class="menu-link" href="/backgroundcolorpicker/"><span class="menu-wrap"><span class="menu-label">BG Color Picker</span> <span class="new-badge">NEW</span></span></a></li>
+                <li><a class="menu-link" href="/assets/"><span class="menu-wrap"><span class="menu-label">Assets</span> <span class="new-badge">NEW</span></span></a></li>
                 <li class="menu-item-secondary"><button class="menu-link menu-link-secondary menu-button" type="button" id="feedbackButton">Feedback</button></li>
                 <li class="menu-item-secondary"><button class="menu-link menu-link-secondary menu-button" type="button" id="aboutButton">About</button></li>
             </ul>
@@ -730,6 +794,7 @@
             <div class="about-body">
                 <p>KDAssist is a <strong>fan-made website</strong> and is <strong>not endorsed, maintained, sponsored, or affiliated with Toonslab</strong> in any way. To be completely clear, this project is <strong>entirely non-profit</strong>. It is all provided <strong>for free</strong>, because, well, I'm simply passionate about it.</p>
                 <p>The project was created purely <strong>for fun</strong>, to <strong>support the community</strong>, and to give players something useful and entertaining to enjoy.</p>
+                <p>Most if not <strong>ALL</strong> assets belongs to <strong>GraalOnline/Toonslab</strong>.</p>
             </div>
             <div class="about-credits">Website created by Rustum</div>
         </section>
