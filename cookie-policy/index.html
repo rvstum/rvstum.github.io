@@ -176,16 +176,16 @@
             const returnToRaw = params.get('returnTo') || '';
             const returnToMap = {
                 index: '../index.html',
-                benchmark: '../benchmark/benchmark.html',
-                login: '../benchmark/',
-                signup: '../benchmark/sign-up/',
-                'forgot-password': '../benchmark/forgot-password/',
-                'verification-sent': '../benchmark/verification-sent/'
+                benchmark: '../bkbenchmark/benchmark.html',
+                login: '../bkbenchmark/',
+                signup: '../bkbenchmark/sign-up/',
+                'forgot-password': '../bkbenchmark/forgot-password/',
+                'verification-sent': '../bkbenchmark/verification-sent/'
             };
             const returnTo = Object.prototype.hasOwnProperty.call(returnToMap, returnToRaw) ? returnToRaw : '';
             const backLink = document.querySelector('.back-link');
             if (backLink) {
-                const fallbackHref = source === 'benchmark' ? '../benchmark/benchmark.html' : '../index.html';
+                const fallbackHref = source === 'benchmark' ? '../bkbenchmark/benchmark.html' : '../index.html';
                 backLink.setAttribute('href', returnTo ? returnToMap[returnTo] : fallbackHref);
             }
             const policyPattern = /^(\.\.\/)(terms-and-condition|privacy-policy|cookie-policy|dmca-copyright-policy)(\/|\/index\.html)?/;

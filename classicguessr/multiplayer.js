@@ -773,8 +773,13 @@ function subscribeToLobby() {
         const opponentTeam = ownPlayer.team === "red" ? "blue" : "red";
         const opponentStillPresent = nextPlayers.some((player) => player.team === opponentTeam);
         const opponentWasPresent = previousPlayers.some((player) => player.team === opponentTeam);
-        if (opponentWasPresent && !opponentStillPresent) {
-          handleForcedLobbyExit(`${opponentTeam === "red" ? "Red" : "Blue"} team has left the game.`);
+        if (opponentWasPresent && !opponentStillPresent && !session.waitingForRematch) {
+          // The match is over, but the lobby is not: everyone still here goes back to it (whether
+          // they were mid-round or on the results screen) instead of being thrown out to the menu.
+          session.players = nextPlayers;
+          getMenuApi()?.returnToLobbyFromMatch?.();
+          renderLobbyPlayers();
+          showLobbyMessage(`${opponentTeam === "red" ? "Red" : "Blue"} team has left the game.`);
           return;
         }
         departedGuests.forEach((player) => publishDepartureNotice(player));
@@ -2357,7 +2362,9 @@ async function leaveLobby(options = {}) {
     const removals = [];
     if (backend.auth.currentUser) {
       removals.push(backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}/${backend.auth.currentUser.uid}`)));
-      if (role === "host") removals.push(backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}`)));
+      // Only our own entry can be removed here: the database rules allow writes per player (/<code>/<uid>), so
+      // removing the whole /<code> node as host was always denied. Every other player clears their own entry when
+      // they leave, and their onDisconnect handler covers a crash or closed tab.
     }
     // Once our data is cleared, close the Realtime Database connection so it stops counting against
     // the connection limit. Skipped if another lobby was opened in the meantime.

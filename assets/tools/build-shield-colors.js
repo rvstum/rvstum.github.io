@@ -8,6 +8,7 @@
 // Keep the classifier in sync with assets/index.html.
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const sharp = require('sharp');
 
 const DIR = path.join(__dirname, '..', 'Shields');
@@ -114,35 +115,47 @@ function updateLists() {
     }
 }
 
-// Writes <dir>/colors.json for the given files. Only new or modified images are re-read; removed ones drop out.
+// Writes <dir>/colors.json for the given files. A file is only re-read when its content changed: the
+// last colour is remembered per file by content hash in <dir>/colors.cache.json. (File timestamps are
+// no use for this - a fresh git checkout, as in the GitHub run, gives every file the same time, so a
+// replaced image kept its old colour.)
 async function buildColors(dir, names, label) {
     const colorsFile = path.join(dir, 'colors.json');
-    let old = {};
-    let lastBuild = 0;
-    try {
-        old = JSON.parse(fs.readFileSync(colorsFile, 'utf8'));
-        lastBuild = fs.statSync(colorsFile).mtimeMs;
-    } catch (e) { /* first run */ }
+    const cacheFile = path.join(dir, 'colors.cache.json');
+    let cache = {};
+    try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) { /* first run */ }
 
     const out = {};
-    let added = 0;
+    const nextCache = {};
+    let read = 0;
     for (const name of names) {
         const f = path.join(dir, name);
-        if (old[name] && fs.statSync(f).mtimeMs <= lastBuild) {
-            out[name] = old[name];
-            continue;
-        }
+        let hash;
         try {
-            const c = await colorOf(f);
-            if (c) out[name] = c;
-            added++;
+            hash = crypto.createHash('sha1').update(fs.readFileSync(f)).digest('hex');
         } catch (e) {
             console.warn('skipped', name, e.message);
+            continue;
         }
+        let color;
+        if (cache[name] && cache[name].h === hash) {
+            color = cache[name].c;
+        } else {
+            try {
+                color = await colorOf(f);
+                read++;
+            } catch (e) {
+                console.warn('skipped', name, e.message);
+                continue;
+            }
+        }
+        nextCache[name] = { h: hash, c: color };
+        if (color) out[name] = color;
     }
-    const removed = Object.keys(old).filter((n) => !names.includes(n)).length;
+    const removed = Object.keys(cache).filter((n) => !names.includes(n)).length;
     fs.writeFileSync(colorsFile, JSON.stringify(out));
-    console.log(new Date().toLocaleTimeString() + ' - ' + label + ' colors: ' + names.length + ' (' + added + ' read, ' + removed + ' removed)');
+    fs.writeFileSync(cacheFile, JSON.stringify(nextCache));
+    console.log(new Date().toLocaleTimeString() + ' - ' + label + ' colors: ' + names.length + ' (' + read + ' read, ' + removed + ' removed)');
 }
 
 async function update() {

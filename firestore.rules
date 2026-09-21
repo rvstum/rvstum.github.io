@@ -9,10 +9,6 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
-    function asList(value) {
-      return value is list ? value : [];
-    }
-
     function profileGuildsFromData(data) {
       return (data.profile is map && data.profile.guilds is list)
         ? data.profile.guilds
@@ -46,24 +42,9 @@ service cloud.firestore {
           signedIn()
           && visibilityFromData(resource.data) == "friends"
           && (
-            asList(resource.data.friends).hasAny([request.auth.uid])
-            || friendshipExistsForReaders(userId, request.auth.uid)
+            friendshipExistsForReaders(userId, request.auth.uid)
             || sameGuild(resource.data)
           )
-        );
-    }
-
-    function selfArrayMutation(oldList, newList) {
-      return newList == oldList
-        || (
-          newList.hasAll(oldList) &&
-          newList.size() <= oldList.size() + 1 &&
-          newList.hasAny([request.auth.uid])
-        )
-        || (
-          oldList.hasAll(newList) &&
-          oldList.size() <= newList.size() + 1 &&
-          !newList.hasAny([request.auth.uid])
         );
     }
 
@@ -130,47 +111,6 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/friendRequests/$(fromUid + "__" + toUid));
     }
 
-    function validRemoteRequestMirrorUpdate(userId) {
-      return signedIn()
-        && !isOwner(userId)
-        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-          'friendRequests',
-          'sentFriendRequests'
-        ])
-        && selfArrayMutation(
-          asList(resource.data.friendRequests),
-          asList(request.resource.data.friendRequests)
-        )
-        && selfArrayMutation(
-          asList(resource.data.sentFriendRequests),
-          asList(request.resource.data.sentFriendRequests)
-        )
-        && incomingFriendRequestExists(request.auth.uid, userId)
-          == asList(request.resource.data.friendRequests).hasAny([request.auth.uid])
-        && incomingFriendRequestExists(userId, request.auth.uid)
-          == asList(request.resource.data.sentFriendRequests).hasAny([request.auth.uid]);
-    }
-
-    function validRemoteFriendMirrorUpdate(userId) {
-      return signedIn()
-        && !isOwner(userId)
-        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-          'friends',
-          'sentFriendRequests'
-        ])
-        && selfArrayMutation(
-          asList(resource.data.friends),
-          asList(request.resource.data.friends)
-        )
-        && selfArrayMutation(
-          asList(resource.data.sentFriendRequests),
-          asList(request.resource.data.sentFriendRequests)
-        )
-        && !asList(request.resource.data.sentFriendRequests).hasAny([request.auth.uid])
-        && friendshipDocExists(userId, request.auth.uid)
-          == asList(request.resource.data.friends).hasAny([request.auth.uid]);
-    }
-
     match /users/{userId} {
       allow read: if canReadUserDoc(userId);
       allow create: if isOwner(userId)
@@ -178,8 +118,6 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
 
       allow update: if isOwner(userId)
-        || validRemoteRequestMirrorUpdate(userId)
-        || validRemoteFriendMirrorUpdate(userId)
         || validProfileViewCountUpdate(userId);
 
       match /{document=**} {
@@ -208,11 +146,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Friend requests and friendships are the only source of truth for the friend graph. Nothing
+    // ever writes to the other person's user document: an accept is one batch that creates the
+    // friendship and deletes the request, so both people see the same thing at the same time.
     match /friendRequests/{requestId} {
       allow read: if signedIn()
         && (
-          (resource.data.fromUid is string && resource.data.fromUid == request.auth.uid)
-          || (resource.data.toUid is string && resource.data.toUid == request.auth.uid)
+          resource.data.fromUid == request.auth.uid
+          || resource.data.toUid == request.auth.uid
         );
 
       allow create: if signedIn()
@@ -237,8 +178,23 @@ service cloud.firestore {
     }
 
     match /friendships/{friendshipId} {
+      // The other member of a two-person friendship, from the point of view of the signed-in user.
+      function friendshipPartner(users) {
+        return users[0] == request.auth.uid ? users[1] : users[0];
+      }
+
+      // Friendships made before this design exist only as `friends` arrays on both user documents.
+      // The signed-in user may rebuild the friendship document only if the OTHER person's own
+      // list names them, so nobody can make themselves a friend by editing their own document.
+      function legacyMirroredFriends(users) {
+        return exists(/databases/$(database)/documents/users/$(friendshipPartner(users)))
+&& get(/databases/$(database)/documents/users/$(friendshipPartner(users))).data.get('friends', []).hasAny([request.auth.uid]);
+      }
+
+      // Queries must be provably safe from the query alone. `where("users", "array-contains", uid)`
+      // proves the membership test, but not an `is list` type check, which would make the whole
+      // friends query fail with permission-denied even though every document matches.
       allow read: if signedIn()
-        && resource.data.users is list
         && resource.data.users.hasAny([request.auth.uid]);
 
       allow create: if signedIn()
@@ -253,14 +209,11 @@ service cloud.firestore {
         )
         && request.resource.data.users.hasAny([request.auth.uid])
         && (
-          (
-            request.resource.data.users[0] == request.auth.uid
-            && incomingFriendRequestExists(request.resource.data.users[1], request.auth.uid)
+          incomingFriendRequestExists(
+            friendshipPartner(request.resource.data.users),
+            request.auth.uid
           )
-          || (
-            request.resource.data.users[1] == request.auth.uid
-            && incomingFriendRequestExists(request.resource.data.users[0], request.auth.uid)
-          )
+          || legacyMirroredFriends(request.resource.data.users)
         );
 
       allow update: if signedIn()

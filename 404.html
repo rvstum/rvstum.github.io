@@ -11,28 +11,34 @@
       var search = window.location.search || '';
       var hash = window.location.hash || '';
       var lower = path.toLowerCase();
-      var isBenchmarkRoute = lower.indexOf('/benchmark/') >= 0 || lower === '/benchmark';
+
+      // Old address: /benchmark and everything under it now lives at /bkbenchmark.
+      if (lower === '/benchmark' || lower.indexOf('/benchmark/') === 0) {
+        window.location.replace('/bkbenchmark' + path.slice('/benchmark'.length) + search + hash);
+        return;
+      }
+      var isBenchmarkRoute = lower.indexOf('/bkbenchmark/') >= 0 || lower === '/bkbenchmark';
       var isKnownBenchmarkPath =
-        lower === '/benchmark' ||
-        lower === '/benchmark/' ||
-        lower === '/benchmark/sign-up' ||
-        lower === '/benchmark/sign-up/' ||
-        lower === '/benchmark/forgot-password' ||
-        lower === '/benchmark/forgot-password/' ||
-        lower === '/benchmark/verification-sent' ||
-        lower === '/benchmark/verification-sent/' ||
-        lower === '/benchmark/benchmark.html' ||
-        lower === '/benchmark/index.html';
+        lower === '/bkbenchmark' ||
+        lower === '/bkbenchmark/' ||
+        lower === '/bkbenchmark/sign-up' ||
+        lower === '/bkbenchmark/sign-up/' ||
+        lower === '/bkbenchmark/forgot-password' ||
+        lower === '/bkbenchmark/forgot-password/' ||
+        lower === '/bkbenchmark/verification-sent' ||
+        lower === '/bkbenchmark/verification-sent/' ||
+        lower === '/bkbenchmark/benchmark.html' ||
+        lower === '/bkbenchmark/index.html';
 
       var hasFileExtension = /\.[a-z0-9]+$/i.test(path);
 
       if (isBenchmarkRoute && !isKnownBenchmarkPath && !hasFileExtension) {
         var restoreTarget = path + search + hash;
-        window.location.replace('/benchmark/benchmark.html?__restore=' + encodeURIComponent(restoreTarget));
+        window.location.replace('/bkbenchmark/benchmark.html?__restore=' + encodeURIComponent(restoreTarget));
         return;
       }
 
-      window.location.replace('/benchmark/');
+      window.location.replace('/bkbenchmark/');
     })();
   </script>
 </head>

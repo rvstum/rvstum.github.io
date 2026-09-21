@@ -533,6 +533,7 @@ window.ClassicGuessrMenu = Object.freeze({
   showJoinLobbyView,
   showGuestLobbyView,
   exitMultiplayerMatch,
+  returnToLobbyFromMatch: handleResultsReturn,
 });
 
 init();
@@ -3533,7 +3534,9 @@ function lockMultiplayerGuess(reason) {
   const roundScore = guess ? scoreForDistance(distance) : 0;
   state.multiplayerLockReason = reason;
   state.roundInputLocked = true;
-  clearTimer();
+  // The shared round clock keeps counting after we lock in; stopping it froze the timer at the
+  // moment of the guess while the others were still playing.
+  if (!(state.multiplayerSession.competitive || state.multiplayerRoundStartedAtMs > 0)) clearTimer();
   dom.guessButton.disabled = true;
   dom.guessButton.textContent = "Locked in";
   dom.statusLine.textContent = "Guess locked. Waiting for the other players.";

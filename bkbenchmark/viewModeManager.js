@@ -1,0 +1,600 @@
+import { auth } from "./client.js";
+import { state, setCurrentConfigState, getCurrentConfigState } from "./appState.js";
+import { readJson, readString, GUILDS_STORAGE_KEY, SCORE_UPDATED_AT_STORAGE_KEY } from "./storage.js";
+import { t } from "./i18n.js";
+import { getFlagUrl } from "./utils.js";
+import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
+import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
+import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
+import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
+import * as FriendsService from "./friendsService.js?v=20260920-friend-graph";
+import * as RadarUI from "./radarUI.js";
+import * as RankingUI from "./rankingUI.js?v=20260920-rank-card-6";
+import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
+import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
+import { renderGuildHeader } from "./profileUI.js";
+import { calculateRankFromData, calculateTotalRatingForScores } from "./scoring.js";
+import { getScoreBaseForConfigKey, CONFIG_OPTIONS, DEFAULT_MOUNT_CONFIG, FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
+import { normalizeMountConfig, getConfigLookupKeys } from "./configManager.js";
+
+const viewModeDeps = {
+    showPrivateProfileOverlay: null,
+    hidePrivateProfileOverlay: null,
+    syncAuthenticatedBackNavigationGuard: null,
+    applyMountConfigVisual: null,
+    syncPlatformLabelColor: null,
+    syncConfigDropdownActiveStates: null,
+    renderSeasonalTrophyList: null,
+    openImageViewer: null,
+    showConfirmModal: null,
+    updateViewProfileUrl: null,
+    cancelPendingRankSync: null
+};
+
+function requireDep(name) {
+    const fn = viewModeDeps[name];
+    if (typeof fn !== "function") {
+        throw new Error(`viewModeManager missing dependency: ${name}`);
+    }
+    return fn;
+}
+
+function normalizeRecord(value) {
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function cloneSerializableData(value) {
+    if (Array.isArray(value)) {
+        return value.map((entry) => cloneSerializableData(entry));
+    }
+    if (!value || typeof value !== "object") {
+        return value;
+    }
+    const clone = {};
+    Object.entries(value).forEach(([key, entry]) => {
+        clone[key] = cloneSerializableData(entry);
+    });
+    return clone;
+}
+
+function captureViewModeRestoreSnapshot() {
+    return {
+        savedScores: ScoreManager.getSavedScoresSnapshot(),
+        savedCaveLinks: cloneSerializableData(state.savedCaveLinks),
+        savedConfigThemes: cloneSerializableData(state.savedConfigThemes),
+        currentConfig: getCurrentConfigState(),
+        scoresDirty: state.scoresDirty === true,
+        scoresUpdatedAt: Number(readString(SCORE_UPDATED_AT_STORAGE_KEY, "0") || 0)
+    };
+}
+
+function normalizeViewModeData(data = {}) {
+    const safeData = data && typeof data === "object" ? data : {};
+    return {
+        ...safeData,
+        scores: ScoreManager.normalizeSavedScoresRecord(safeData.scores),
+        caveLinks: normalizeRecord(safeData.caveLinks),
+        configThemes: normalizeRecord(safeData.configThemes),
+        achievements: (safeData.achievements && typeof safeData.achievements === "object" && !Array.isArray(safeData.achievements))
+            ? safeData.achievements
+            : {}
+    };
+}
+
+function normalizeGuildList(list) {
+    if (!Array.isArray(list)) return [];
+    return [...new Set(
+        list
+            .map((value) => (typeof value === "string" ? value.trim() : ""))
+            .filter((value) => value !== "")
+    )];
+}
+
+function resolveGuildListFromData(data = {}) {
+    const profile = data && typeof data.profile === "object" && data.profile ? data.profile : {};
+    const fromProfile = normalizeGuildList(profile.guilds);
+    if (fromProfile.length) return fromProfile;
+    return normalizeGuildList(data && typeof data === "object" ? data.guilds : []);
+}
+
+function resolveViewCountFromData(data = {}) {
+    const profile = data && typeof data.profile === "object" && data.profile ? data.profile : {};
+    const profileViews = Number(profile.views);
+    if (Number.isFinite(profileViews)) return profileViews;
+    const rootViews = Number(data && typeof data === "object" ? data.views : NaN);
+    return Number.isFinite(rootViews) ? rootViews : 0;
+}
+
+function clampRankIndex(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return 0;
+    return Math.max(0, Math.min(FINAL_RANK_INDEX, Math.floor(parsed)));
+}
+
+function parseRankIndexFromTheme(themeName) {
+    const value = typeof themeName === "string" ? themeName.trim().toLowerCase() : "";
+    if (!value.startsWith("rank-")) return 0;
+    return clampRankIndex(value.slice(5));
+}
+
+function resolveViewModeRankIndex(data = {}) {
+    const settings = data && typeof data.settings === "object" && data.settings ? data.settings : {};
+    const profile = data && typeof data.profile === "object" && data.profile ? data.profile : {};
+    const aeternusLabel = String(RANK_NAMES[FINAL_RANK_INDEX] || "").trim().toLowerCase();
+
+    let best = clampRankIndex(calculateRankFromData(data));
+    [
+        data.maxRankIndex,
+        data.rankIndex,
+        settings.rankThemeUnlock,
+        profile.maxRankIndex,
+        profile.rankIndex
+    ].forEach((value) => {
+        const rankIndex = clampRankIndex(value);
+        if (rankIndex > best) best = rankIndex;
+    });
+
+    const themedRankIndex = parseRankIndexFromTheme(settings.theme);
+    if (themedRankIndex > best) best = themedRankIndex;
+
+    if (aeternusLabel) {
+        const hasAeternusName = [
+            data.currentRank,
+            profile.currentRank
+        ].some((value) => String(value || "").trim().toLowerCase().includes(aeternusLabel));
+        if (hasAeternusName) return FINAL_RANK_INDEX;
+    }
+
+    return best;
+}
+
+function syncViewModeExitButtonTheme(rankIndex = 0) {
+    if (rankIndex === FINAL_RANK_INDEX) {
+        document.body.style.setProperty("--exit-view-btn-text", "#050505");
+        return;
+    }
+    if (rankIndex > 0) {
+        document.body.style.setProperty("--exit-view-btn-text", "#ffffff");
+        return;
+    }
+    document.body.style.removeProperty("--exit-view-btn-text");
+}
+
+async function resolveViewerGuilds(viewerUid) {
+    const storedGuilds = normalizeGuildList(readJson(GUILDS_STORAGE_KEY, null));
+    if (storedGuilds.length > 0) return storedGuilds;
+    try {
+        const viewerDoc = await UserService.getUserDocument(viewerUid);
+        if (!viewerDoc.exists()) return [];
+        const viewerData = viewerDoc.data() || {};
+        return normalizeGuildList((viewerData.profile && viewerData.profile.guilds) || []);
+    } catch (e) {
+        console.error("Failed to resolve viewer guilds:", e);
+        return null;
+    }
+}
+
+export function configure(deps = {}) {
+    if (!deps || typeof deps !== "object") return;
+    Object.keys(viewModeDeps).forEach((key) => {
+        if (!Object.prototype.hasOwnProperty.call(deps, key)) return;
+        viewModeDeps[key] = typeof deps[key] === "function" ? deps[key] : null;
+    });
+}
+
+export async function canViewProfile(profileUid, profileData, viewerUser) {
+    const data = profileData && typeof profileData === "object" ? profileData : {};
+    const settings = data.settings && typeof data.settings === "object" ? data.settings : {};
+    const visibility = settings.visibility || "everyone";
+    const targetUid = typeof profileUid === "string" ? profileUid.trim() : "";
+    if (visibility !== "friends") return true;
+    if (!viewerUser) return false;
+    if (targetUid && viewerUser.uid === targetUid) return true;
+
+    try {
+        if (targetUid && await FriendsService.areFriends(viewerUser.uid, targetUid)) return true;
+    } catch (e) {
+        console.error("Failed to resolve friendship visibility:", e);
+    }
+
+    const targetGuilds = normalizeGuildList((data.profile && data.profile.guilds) || []);
+    if (!targetGuilds.length) return false;
+
+    const viewerGuilds = await resolveViewerGuilds(viewerUser.uid);
+    if (!Array.isArray(viewerGuilds) || !viewerGuilds.length) return false;
+    return viewerGuilds.some((guild) => targetGuilds.includes(guild));
+}
+
+function applyViewModeChrome() {
+    state.isViewMode = true;
+    document.body.classList.add("view-mode");
+    document.dispatchEvent(new CustomEvent("benchmark:collapse-sub-inputs"));
+    const viewedRankIndex = state.activeViewProfileContext && Number.isFinite(state.activeViewProfileContext.rankIndex)
+        ? state.activeViewProfileContext.rankIndex
+        : 0;
+    syncViewModeExitButtonTheme(viewedRankIndex);
+
+    const userMenuBox = getCachedElementById("userMenuBox");
+    const settingsBtn = getCachedElementById("settingsBtn");
+    setHidden(userMenuBox, true);
+    setHidden(settingsBtn, true);
+    const viewedUid = state.activeViewProfileContext && state.activeViewProfileContext.uid
+        ? state.activeViewProfileContext.uid
+        : "";
+    const currentUid = auth.currentUser && auth.currentUser.uid ? auth.currentUser.uid : "";
+    const viewingOwnProfile = !!(viewedUid && currentUid && viewedUid === currentUid);
+
+    const exitViewModeContainer = getCachedElementById("exitViewModeContainer");
+    if (exitViewModeContainer) {
+        if (viewingOwnProfile) {
+            setFlexVisible(exitViewModeContainer, false);
+            exitViewModeContainer.classList.add("initially-hidden");
+        } else {
+            exitViewModeContainer.classList.remove("initially-hidden");
+            setFlexVisible(exitViewModeContainer, true);
+        }
+    }
+
+    let mobileExitBtn = getCachedElementById("mobileExitViewBtn");
+    if (!mobileExitBtn) {
+        mobileExitBtn = document.createElement("button");
+        mobileExitBtn.id = "mobileExitViewBtn";
+        mobileExitBtn.className = "mobile-exit-view-btn";
+        mobileExitBtn.textContent = t("exit_view_mode");
+        document.body.appendChild(mobileExitBtn);
+        mobileExitBtn.addEventListener("click", () => {
+            const exitViewModeBtn = getCachedElementById("exitViewModeBtn");
+            if (exitViewModeBtn) exitViewModeBtn.click();
+        });
+    }
+    if (viewingOwnProfile) {
+        mobileExitBtn.classList.remove("mobile-exit-view-btn--visible");
+    } else {
+        mobileExitBtn.classList.add("mobile-exit-view-btn--visible");
+    }
+
+    document.dispatchEvent(new CustomEvent("benchmark:view-mode-state-changed", {
+        detail: {
+            active: true,
+            viewingOwnProfile
+        }
+    }));
+}
+
+export function clearViewModeChrome() {
+    state.isViewMode = false;
+    state.activeViewProfileContext = null;
+    state.compareViewEnabled = false;
+    state.viewerCompareScores = {};
+    state.viewModeRestoreSnapshot = null;
+    document.body.classList.remove("view-mode");
+    document.dispatchEvent(new CustomEvent("benchmark:collapse-sub-inputs"));
+    syncViewModeExitButtonTheme(0);
+    const userMenuBox = getCachedElementById("userMenuBox");
+    const settingsBtn = getCachedElementById("settingsBtn");
+    setHidden(userMenuBox, false);
+    setHidden(settingsBtn, false);
+    const exitViewModeContainer = getCachedElementById("exitViewModeContainer");
+    if (exitViewModeContainer) {
+        setFlexVisible(exitViewModeContainer, false);
+        exitViewModeContainer.classList.add("initially-hidden");
+    }
+    const mobileExitBtn = getCachedElementById("mobileExitViewBtn");
+    if (mobileExitBtn) mobileExitBtn.classList.remove("mobile-exit-view-btn--visible");
+
+    document.dispatchEvent(new CustomEvent("benchmark:view-mode-state-changed", {
+        detail: {
+            active: false,
+            viewingOwnProfile: false
+        }
+    }));
+}
+
+function applyViewModeDataSnapshot(data) {
+    state.savedScores = ScoreManager.normalizeSavedScoresRecord(data.scores);
+    state.savedCaveLinks = normalizeRecord(data.caveLinks);
+    state.savedConfigThemes = normalizeRecord(data.configThemes);
+
+    const settings = data.settings || {};
+    if (settings.rankThemeUnlock) {
+        ThemeUI.setMaxUnlockedRankIndex(Number(settings.rankThemeUnlock) || 0);
+    }
+    if (settings.autoRankTheme) {
+        ThemeUI.setAutoRankThemeEnabled(settings.autoRankTheme === "true");
+    } else {
+        ThemeUI.setAutoRankThemeEnabled(false);
+    }
+    if (settings.customTheme && settings.customTheme.hex) {
+        ThemeUI.setCustomThemeHex(settings.customTheme.hex);
+    }
+    if (settings.pacmanMode) {
+        state.pacmanModeEnabled = settings.pacmanMode === "true";
+    }
+
+}
+
+function resolveBestViewModeConfig(data) {
+    let bestConfig = null;
+    if (data.scores) {
+        let maxTotalRating = -1;
+        Object.entries(data.scores).forEach(([key, scores]) => {
+            if (!Array.isArray(scores)) return;
+            const baseScores = getScoreBaseForConfigKey(key);
+            const totalRating = calculateTotalRatingForScores(scores, baseScores);
+            if (totalRating <= maxTotalRating) return;
+            maxTotalRating = totalRating;
+            const parts = key.split("|");
+            if (parts.length < 3) return;
+            bestConfig = {
+                platform: parts[0],
+                time: parts[1],
+                stat: parts[2],
+                mount: normalizeMountConfig(parts[3] || DEFAULT_MOUNT_CONFIG)
+            };
+        });
+    }
+    return bestConfig || (data.settings && data.settings.defaultConfig) || {
+        platform: "Mobile",
+        time: "5 Min",
+        stat: "Baddy Kills",
+        mount: DEFAULT_MOUNT_CONFIG
+    };
+}
+
+function normalizeViewModeConfigOverride(config = null) {
+    const safeConfig = config && typeof config === "object" ? config : null;
+    if (!safeConfig) return null;
+
+    const platform = typeof safeConfig.platform === "string" && CONFIG_OPTIONS.platform.includes(safeConfig.platform)
+        ? safeConfig.platform
+        : "";
+    const time = typeof safeConfig.time === "string" && CONFIG_OPTIONS.time.includes(safeConfig.time)
+        ? safeConfig.time
+        : "";
+    const stat = typeof safeConfig.stat === "string" && CONFIG_OPTIONS.stat.includes(safeConfig.stat)
+        ? safeConfig.stat
+        : "";
+
+    if (!platform || !time || !stat) return null;
+    return {
+        platform,
+        time,
+        stat,
+        mount: normalizeMountConfig(safeConfig.mount || DEFAULT_MOUNT_CONFIG)
+    };
+}
+
+function applyViewModeConfigAndTheme(data, configToUse) {
+    const platformText = getCachedElementById("platformText");
+    const timeText = getCachedElementById("timeText");
+    const statText = getCachedElementById("statText");
+    const syncPlatformLabelColor = requireDep("syncPlatformLabelColor");
+    const applyMountConfigVisual = requireDep("applyMountConfigVisual");
+    const syncConfigDropdownActiveStates = requireDep("syncConfigDropdownActiveStates");
+    const resolvedConfig = {
+        platform: configToUse && configToUse.platform ? configToUse.platform : "Mobile",
+        time: configToUse && configToUse.time ? configToUse.time : "5 Min",
+        stat: configToUse && configToUse.stat ? configToUse.stat : "Baddy Kills",
+        mount: normalizeMountConfig((configToUse && configToUse.mount) || DEFAULT_MOUNT_CONFIG)
+    };
+    setCurrentConfigState(resolvedConfig);
+
+    if (platformText && resolvedConfig.platform) {
+        platformText.textContent = resolvedConfig.platform;
+        syncPlatformLabelColor(resolvedConfig.platform);
+    }
+    if (timeText && resolvedConfig.time) timeText.textContent = resolvedConfig.time;
+    if (statText && resolvedConfig.stat) statText.textContent = resolvedConfig.stat;
+    applyMountConfigVisual(resolvedConfig.mount);
+    syncConfigDropdownActiveStates(resolvedConfig);
+
+    const themeFallback = (data.settings && data.settings.theme) || "default";
+    const keyCandidates = getConfigLookupKeys(resolvedConfig);
+    let themeToApply = themeFallback;
+    for (const key of keyCandidates) {
+        if (!state.savedConfigThemes[key]) continue;
+        themeToApply = state.savedConfigThemes[key];
+        break;
+    }
+    ThemeUI.applyTheme(themeToApply, false);
+}
+
+function applyViewModeProfileHeader(data) {
+    const profile = data.profile || {};
+    const profileNameEl = getCachedQuery("viewModeProfileName", () => document.querySelector(".profile-name"));
+    if (profileNameEl) {
+        profileNameEl.textContent = data.username || profile.username || "Unknown";
+    }
+
+    const circle = getCachedQuery("viewModeProfileCircle", () => document.querySelector(".profile-circle"));
+    const flagEl = getCachedQuery("viewModeFlagEl", () => document.querySelector(".nationality-flag"));
+    if (circle) {
+        if (profile.pic) {
+            circle.style.backgroundImage = `url(${profile.pic})`;
+            circle.style.backgroundSize = "cover";
+            circle.style.backgroundColor = "transparent";
+            setHidden(circle, false);
+            circle.classList.remove("no-pic-has-flag");
+        } else {
+            circle.style.backgroundImage = "";
+            circle.style.backgroundColor = "transparent";
+            if (profile.flag) {
+                circle.classList.add("no-pic-has-flag");
+                setHidden(circle, false);
+            } else {
+                setHidden(circle, true);
+            }
+        }
+    }
+
+    if (flagEl) {
+        if (profile.flag) {
+            flagEl.textContent = "";
+            flagEl.style.backgroundImage = `url(${getFlagUrl(profile.flag)})`;
+            setFlexVisible(flagEl, true);
+        } else {
+            flagEl.textContent = "";
+            flagEl.style.backgroundImage = "";
+            setFlexVisible(flagEl, false);
+        }
+    }
+
+    const guildNameEl = getCachedQuery("viewModeGuildName", () => document.querySelector(".guild-name"));
+    if (!guildNameEl) return;
+    const resolvedGuilds = resolveGuildListFromData(data);
+    if (resolvedGuilds.length > 0) {
+        renderGuildHeader(guildNameEl, resolvedGuilds);
+    } else {
+        setHidden(guildNameEl, true);
+    }
+}
+
+function applyViewModeTrophiesAchievementsAndViews(data, uid) {
+    const renderSeasonalTrophyList = requireDep("renderSeasonalTrophyList");
+    const openImageViewer = requireDep("openImageViewer");
+    const showConfirmModal = requireDep("showConfirmModal");
+    const profile = data.profile || {};
+    const trophyList = getCachedElementById("trophyList");
+    const trophyPlaceholder = getCachedElementById("trophyPlaceholder");
+    setHidden(trophyPlaceholder, true);
+    if (trophyList) {
+        renderSeasonalTrophyList(trophyList, profile.trophies || {});
+        setFlexVisible(trophyList, true);
+    }
+
+    state.userAchievements = (data.achievements && typeof data.achievements === "object" && !Array.isArray(data.achievements))
+        ? data.achievements
+        : {};
+    AchievementsUI.renderAchievements(openImageViewer, showConfirmModal);
+
+    const viewCountEl = getCachedElementById("viewCount");
+    const currentViews = resolveViewCountFromData(data);
+    if (viewCountEl) {
+        viewCountEl.textContent = currentViews.toLocaleString();
+    }
+    if (uid) {
+        const resolvedAccountId = typeof data.accountId === "string" && data.accountId.trim()
+            ? data.accountId.trim()
+            : (state.activeViewProfileContext && typeof state.activeViewProfileContext.accountId === "string"
+                ? state.activeViewProfileContext.accountId.trim()
+                : "");
+        const resolvedVisibility = data && typeof data.settings === "object" && typeof data.settings.visibility === "string"
+            ? data.settings.visibility.trim()
+            : "";
+        FriendsService.incrementViewCount(uid, {
+            accountId: resolvedAccountId,
+            visibility: resolvedVisibility
+        }).then((nextViews) => {
+            if (!Number.isFinite(nextViews)) return;
+            if (data && typeof data === "object") {
+                if (!data.profile || typeof data.profile !== "object") data.profile = {};
+                data.profile.views = nextViews;
+            }
+            if (viewCountEl) {
+                viewCountEl.textContent = Number(nextViews).toLocaleString();
+            }
+        }).catch((error) => {
+            console.warn("Failed to update benchmark view count UI:", error);
+        });
+    }
+}
+
+function lockViewModeInteractiveInputs() {
+    document.querySelectorAll(".score-input, .sub-score-input").forEach((input) => {
+        input.disabled = true;
+        input.classList.add("score-input--view-locked");
+    });
+}
+
+function resetViewModeHorizontalScroll() {
+    const panelsScroll = getCachedElementById("benchmarkPanelsScroll")
+        || getCachedQuery("viewModeBenchmarkPanelsScroll", () => document.querySelector(".benchmark-panels-scroll"));
+    const ranksBarsContainer = getCachedElementById("ranksBarsContainer")
+        || getCachedQuery("viewModeRanksBarsContainerFallback", () => document.querySelector(".ranks-bars-stack"));
+    const ranksWrapper = getCachedQuery("viewModeRanksWrapper", () => document.querySelector(".ranks-wrapper"));
+    const ranksScroll = getCachedQuery("viewModeRanksScroll", () => document.querySelector(".ranks-scroll"));
+    const applyReset = () => {
+        if (panelsScroll) panelsScroll.scrollLeft = 0;
+        if (ranksBarsContainer) ranksBarsContainer.scrollLeft = 0;
+        if (ranksWrapper) ranksWrapper.scrollLeft = 0;
+        if (ranksScroll) ranksScroll.scrollLeft = 0;
+    };
+
+    applyReset();
+    requestAnimationFrame(() => {
+        applyReset();
+        requestAnimationFrame(applyReset);
+    });
+}
+
+export async function enterViewMode(data, uid, options = {}) {
+    const showPrivateProfileOverlay = requireDep("showPrivateProfileOverlay");
+    const hidePrivateProfileOverlay = requireDep("hidePrivateProfileOverlay");
+    const syncAuthenticatedBackNavigationGuard = requireDep("syncAuthenticatedBackNavigationGuard");
+    const updateViewProfileUrl = requireDep("updateViewProfileUrl");
+    const user = auth.currentUser;
+
+    if (user && uid && user.uid === uid) {
+        hidePrivateProfileOverlay();
+        clearViewModeChrome();
+        return;
+    }
+
+    const allowed = await canViewProfile(uid, data, user);
+    if (!allowed) {
+        showPrivateProfileOverlay();
+        return;
+    }
+
+    const normalizedData = normalizeViewModeData(data);
+
+    hidePrivateProfileOverlay();
+    if (!state.isViewMode || !state.viewModeRestoreSnapshot) {
+        ScoreManager.saveCurrentScores();
+        state.viewModeRestoreSnapshot = captureViewModeRestoreSnapshot();
+    }
+    ScoreManager.cancelPendingScoreSave();
+    if (typeof viewModeDeps.cancelPendingRankSync === "function") {
+        viewModeDeps.cancelPendingRankSync();
+    }
+    updateViewProfileUrl(normalizedData, uid);
+    if (user) {
+        syncAuthenticatedBackNavigationGuard({ enabled: true });
+    }
+
+    const profile = (normalizedData && typeof normalizedData.profile === "object" && normalizedData.profile) ? normalizedData.profile : {};
+    const resolvedUsername = Slugs.resolveProfileUsername(normalizedData, profile.username || "player");
+    const resolvedAccountId = Slugs.resolveProfileAccountId(normalizedData, "");
+    const resolvedPublicSlug = Slugs.resolveProfileSlug(normalizedData || {}, {
+        usernameFallback: resolvedUsername,
+        accountIdFallback: resolvedAccountId,
+        uid: uid || ""
+    });
+    state.activeViewProfileContext = {
+        uid: uid || "",
+        username: resolvedUsername,
+        accountId: resolvedAccountId,
+        publicSlug: resolvedPublicSlug,
+        rankIndex: resolveViewModeRankIndex(normalizedData)
+    };
+    state.viewerCompareScores = state.viewModeRestoreSnapshot && state.viewModeRestoreSnapshot.savedScores
+        ? ScoreManager.normalizeSavedScoresRecord(state.viewModeRestoreSnapshot.savedScores)
+        : ScoreManager.getSavedScoresSnapshot();
+    state.compareViewEnabled = false;
+
+    applyViewModeChrome();
+    applyViewModeDataSnapshot(normalizedData);
+    const configOverride = normalizeViewModeConfigOverride(options && options.configOverride);
+    const configToUse = configOverride || resolveBestViewModeConfig(normalizedData);
+    applyViewModeConfigAndTheme(normalizedData, configToUse);
+    applyViewModeProfileHeader(normalizedData);
+    applyViewModeTrophiesAchievementsAndViews(normalizedData, uid);
+
+    RadarUI.setRadarMode("combined", false);
+    RadarUI.updateRadar();
+    RankingUI.updateScoreRequirements(ScoreManager.getBaseScoresForConfig());
+    ScoreManager.loadScores();
+    ScoreManager.loadCaveLinks();
+    lockViewModeInteractiveInputs();
+    resetViewModeHorizontalScroll();
+}

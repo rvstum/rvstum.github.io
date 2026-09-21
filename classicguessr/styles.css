@@ -9908,3 +9908,14 @@ button:disabled {
 .spectator-answer-marker {
   transition: none;
 }
+
+/* Notification pill: center its text both horizontally and vertically inside the box */
+.multiplayer-guess-notice:not(.hidden) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0.55rem 0.9rem;
+  line-height: 1;
+  text-align: center;
+}

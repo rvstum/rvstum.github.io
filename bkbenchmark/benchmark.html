@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <script src="/pageZoomGuard.js?v=20260920-mobile-page-zoom"></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>BK Benchmark</title>
+    <link rel="icon" type="image/png" href="../icons/baddy.png">
+    <link rel="preload" href="../icons/trophy.png" as="image" fetchpriority="high">
+    <script src="mobileViewportGuard.js?v=20260310-mobile-cropper-fix-1"></script>
+    <script>
+        window.__BENCHMARK_SHARE_SERVICE_URL__ = "http://localhost:3000";
+    </script>
+    <script type="module" src="modernScreenshotLoader.js?v=20260312-mobile-cache-refresh-1"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&display=swap">
+    <link rel="stylesheet" href="benchmark.css?v=20260921-startup-note-68">
+    <style>
+        .page-transition-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000000;
+            opacity: 1;
+            pointer-events: none;
+            z-index: 2147483647;
+            transition: opacity 420ms ease;
+            will-change: opacity;
+        }
+
+        html.page-entered .page-transition-overlay {
+            opacity: 0;
+        }
+
+        
+        @media (prefers-reduced-motion: reduce) {
+            .page-transition-overlay {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body class="benchmark-boot-loading">
+    <div class="page-transition-overlay" aria-hidden="true"></div>
+    <div id="pageLoader" class="page-loader">
+        <div class="page-loader-spinner"></div>
+        <div class="page-loader-text">Loading...</div>
+    </div>
+    <a class="benchmark-home-link benchmark-home-link--desktop" href="/" aria-label="Open the KDAssist menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path class="benchmark-home-icon-body" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+    </a>
+    <script>
+        (function applyLoginHandoffBootHold() {
+            try {
+                var raw = sessionStorage.getItem("__benchmark_login_handoff__");
+                if (!raw) return;
+                var parsed = JSON.parse(raw);
+                var expiresAt = Number(parsed && parsed.expiresAt);
+                if (!expiresAt || Date.now() > expiresAt) {
+                    sessionStorage.removeItem("__benchmark_login_handoff__");
+                    return;
+                }
+                window.__BENCHMARK_FORCE_BOOT_HOLD__ = true;
+            } catch (e) {}
+        })();
+    </script>
+    <script>
+        (function suppressDuplicateLoginBootLoader() {
+            try {
+                if (window.__BENCHMARK_FORCE_BOOT_HOLD__) return;
+                var key = "__benchmark_login_boot_window__";
+                var raw = sessionStorage.getItem(key);
+                if (!raw) return;
+                var parsed = JSON.parse(raw);
+                var expiresAt = Number(parsed && parsed.expiresAt);
+                if (!expiresAt || Date.now() > expiresAt) {
+                    sessionStorage.removeItem(key);
+                    return;
+                }
+                var count = Number(parsed && parsed.count);
+                if (!isFinite(count) || count < 0) count = 0;
+                count += 1;
+                parsed.count = count;
+                sessionStorage.setItem(key, JSON.stringify(parsed));
+                if (count <= 1) return;
+                window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__ = expiresAt;
+                var loader = document.getElementById("pageLoader");
+                if (!loader) return;
+                loader.classList.add("is-hidden");
+                loader.classList.remove("is-flex");
+                loader.style.setProperty("display", "none", "important");
+                loader.style.setProperty("opacity", "0", "important");
+            } catch (e) {}
+        })();
+    </script>
+    <script>
+        (function suppressRepeatedMobileRestoreLoader() {
+            try {
+                if (window.__BENCHMARK_FORCE_BOOT_HOLD__) return;
+                var key = "__benchmark_mobile_restore_suppress_next_loader__";
+                var raw = sessionStorage.getItem(key);
+                if (!raw) return;
+                var parsed = JSON.parse(raw);
+                var expiresAt = Number(parsed && parsed.expiresAt);
+                if (!expiresAt || Date.now() > expiresAt) {
+                    sessionStorage.removeItem(key);
+                    return;
+                }
+                window.__BENCHMARK_SUPPRESS_BOOT_LOADER_UNTIL__ = expiresAt;
+                sessionStorage.removeItem(key);
+                var loader = document.getElementById("pageLoader");
+                if (!loader) return;
+                loader.classList.add("is-hidden");
+                loader.classList.remove("is-flex");
+                loader.style.setProperty("display", "none", "important");
+                loader.style.setProperty("opacity", "0", "important");
+            } catch (e) {}
+        })();
+    </script>
+    <script>
+        (function applyInitialLoaderLanguage() {
+            try {
+                var lang = localStorage.getItem("benchmark_language") || "en";
+                var loaderText = document.querySelector("#pageLoader .page-loader-text");
+                if (!loaderText) return;
+                if (lang === "es") {
+                    loaderText.textContent = "Cargando...";
+                    return;
+                }
+                if (lang === "pt-BR") {
+                    loaderText.textContent = "Carregando...";
+                    return;
+                }
+                loaderText.textContent = "Loading...";
+            } catch (e) {}
+        })();
+    </script>
+    <script src="loaderFailsafe.js?v=20260312-mobile-cache-refresh-1"></script>
+    <div id="responsive-wrapper">
+    <!-- SVG Mask Definition for Trophy Shimmer -->
+    <svg width="0" height="0" class="trophy-mask-defs">
+        <defs>
+            <mask id="trophy-mask" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+                <image href="../icons/trophy.png" x="0" y="0" width="1" height="1" preserveAspectRatio="none" />
+            </mask>
+        </defs>
+    </svg>
+<div id="benchmark-content">
+    <div class="bk-title"><img class="legal-baddy-icon bk-title-icon" src="../icons/baddy.png" alt=""><span class="bk-title-text">BK Benchmark</span></div>
+    <div class="controls-container">
+        <a class="benchmark-home-link benchmark-home-link--mobile" href="/" aria-label="Open the KDAssist menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path class="benchmark-home-icon-body" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </a>
+        <div class="small-inner-box" id="platformBox">
+            <span class="box-float-label" data-i18n="settings_platform">Platform</span>
+            <span id="platformText" class="platform-label platform-label--mobile">Mobile</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            <div class="dropdown-menu">
+                <div class="dropdown-item" data-value="Mobile">Mobile</div>
+                <div class="dropdown-item" data-value="PC">PC</div>
+            </div>
+        </div>
+        <div class="small-inner-box" id="timeBox">
+            <span class="box-float-label" data-i18n="settings_time">Time</span>
+            <span id="timeText">5 Min</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            <div class="dropdown-menu">
+                <div class="dropdown-item" data-value="5 Min">5 Min</div>
+                <div class="dropdown-item" data-value="10 Min">10 Min</div>
+                <div class="dropdown-item" data-value="60 Min">60 Min</div>
+            </div>
+        </div>
+        <div class="small-inner-box" id="statBox">
+            <span class="box-float-label" data-i18n="filter_label_statistic">Statistic</span>
+            <span id="statText">Baddy Kills</span>
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            <div class="dropdown-menu">
+                <div class="dropdown-item" data-value="Baddy Kills">Baddy Kills</div>
+                <div class="dropdown-item" data-value="Baddy Points">Baddy Points</div>
+            </div>
+        </div>
+        <div class="small-inner-box" id="mountBox" data-value="mountspeed1">
+            <span class="box-float-label" data-i18n="settings_mount">Mount</span>
+            <img id="mountConfigImage" class="mount-config-image" src="../icons/mountspeed1.png" alt="Mount 1">
+            <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            <div class="dropdown-menu">
+                <div class="dropdown-item dropdown-item-image active" data-value="mountspeed1">
+                    <img class="mount-option-image" src="../icons/mountspeed1.png" alt="Mount 1">
+                </div>
+                <div class="dropdown-item dropdown-item-image" data-value="mountspeed2">
+                    <img class="mount-option-image" src="../icons/mountspeed2.png" alt="Mount 2">
+                </div>
+            </div>
+        </div>
+        <div class="compare-control-shell initially-hidden" id="compareViewDesktopShell">
+            <div class="compare-control-prompt" id="compareViewDesktopPrompt" aria-hidden="true"></div>
+            <button class="small-inner-box compare-control-btn" id="compareViewBtn" type="button"><span data-i18n="compare">Compare</span></button>
+        </div>
+        <div class="user-menu-wrapper">
+            <div class="mobile-top-links">
+                <span class="mobile-link" id="mobileCopyLinkBtn" aria-label="Copy Benchmark Link" title="Copy Benchmark Link">
+                    <svg class="nav-icon mobile-link-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    <span data-i18n="copy_link">Copy Benchmark Link</span>
+                </span>
+                <div class="compare-control-shell initially-hidden" id="mobileCompareShell">
+                    <div class="compare-control-prompt" id="mobileComparePrompt" aria-hidden="true"></div>
+                    <button class="small-inner-box compare-control-btn compare-control-btn--mobile" id="mobileCompareBtn" type="button"><span data-i18n="compare">Compare</span></button>
+                </div>
+                <span class="mobile-link" id="mobileOptionsLink" aria-label="Options" title="Options">
+                    <svg class="nav-icon mobile-link-icon" viewBox="0 0 24 24" width="14" height="14"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L4.04 9.81c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.22.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    <span data-i18n="settings_title">Options</span>
+                </span>
+            </div>
+            <div class="small-inner-box" id="userMenuBox">
+                <div class="user-menu-avatar-placeholder"></div>
+                <span id="userMenuUsername">Player</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24" width="20" height="20" fill="#666"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                <div class="notification-dot is-hidden" id="userMenuNotification"></div>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item" id="userProfileBtn" data-i18n="menu_profile">Profile</div>
+                    <div class="dropdown-item" id="friendsMenuBtn">
+                        <span class="friends-menu-label" data-i18n="menu_friends">Friends</span>
+                        <div class="notification-dot is-hidden" id="friendsBtnNotification"></div>
+                    </div>
+                    <div class="dropdown-item" id="leaderboardMenuBtn" data-i18n="menu_leaderboard">Leaderboard</div>
+                    <div class="dropdown-item" id="signOutBtn" data-i18n="menu_logout">Log Out</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="top-box">
+        <div class="profile-circle">
+            <div class="nationality-flag"></div>
+        </div>
+        <div class="profile-details">
+            <div class="profile-views">
+                <svg class="views-icon" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.61 11 7.61s9.27-3.22 11-7.61C21.27 7.61 17 4.5 12 4.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                <span id="viewCount">0</span>&nbsp;<span data-i18n="views_label">Views</span>
+            </div>
+            <div class="profile-identity">
+                <div class="profile-text-block">
+                    <div class="profile-name">Player</div>
+                    <div class="guild-name">(Guild)</div>
+                </div>
+                <div class="trophies-section" id="trophiesSection">
+                    <div class="trophy-placeholder" id="trophyPlaceholder">
+                        <span data-i18n="seasonal_add_placements">+ Add Seasonal Placements</span>
+                    </div>
+                    <div class="trophy-list initially-hidden" id="trophyList"></div>
+                </div>
+            </div>
+        </div>
+        <div class="achievements-section">
+            <div class="achievements-title" data-i18n="achievements_title">Achievements</div>
+            <div class="achievements-bar">
+                <div class="achievements-fill achievements-fill--zero"></div>
+            </div>
+            <div class="achievements-text">You've unlocked 0/0 <span class="achievements-percent">(0%)</span></div>
+        </div>
+        <div class="top-right">
+            <div class="nav-item" id="shareBtn">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+                <span data-i18n="share">Share</span>
+            </div>
+            <div class="nav-divider"></div>
+            <div class="nav-item" id="settingsBtn">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L4.04 9.81c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.22.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                <span data-i18n="settings">Settings</span>
+            </div>
+            <div class="nav-item initially-hidden" id="exitViewModeContainer">
+                <button class="exit-view-mode-btn" id="exitViewModeBtn" data-i18n="exit_view_mode">Exit View Mode</button>
+            </div>
+        </div>
+    </div>
+    <div class="benchmark-panels-shell">
+        <div class="benchmark-panels-scroll" id="benchmarkPanelsScroll">
+            <div class="middle-box">
+                <div class="rounded-inner-box">Unranked</div>
+                <div class="ranks-wrapper">
+                    <div class="ranks-scroll">
+                        <div class="ranks-labels">
+                <div class="rank-item">
+                    <span class="rank-number">1350</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Iron</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">2700</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Bronze</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">4050</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Silver</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">5400</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Gold</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">6750</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Platinum</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">8100</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Diamond</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">9450</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Master</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">10800</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Grandmaster</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">12150</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Champion</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">13500</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                    </div>
+                    <span class="rank-name">Paragon</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">14850</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                        <div class="eternal-layer"></div>
+                    </div>
+                    <span class="rank-name">Stellar</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">16200</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                        <div class="eternal-layer"></div>
+                    </div>
+                    <span class="rank-name">Celestium</span>
+                </div>
+                <div class="rank-item">
+                    <span class="rank-number">17550</span>
+                    <div class="trophy-container">
+                        <img src="../icons/trophy.png" class="trophy-base" alt="Trophy">
+                        <img src="../icons/trophy.png" class="trophy-layer" alt="Trophy">
+                        <div class="eternal-layer"></div>
+                    </div>
+                    <span class="rank-name">Aeternus</span>
+                </div>
+            </div>
+                        <div class="progress-stack">
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                                <span class="progress-value-label">0/0</span>
+                                <div class="rank-line rank-line-1"></div>
+                                <div class="rank-line rank-line-2"></div>
+                                <div class="rank-line rank-line-3"></div>
+                                <div class="rank-line rank-line-4"></div>
+                            </div>
+                            <div class="roman-numerals-container">
+                                <span class="roman-pos-0">V</span><span class="roman-pos-1">IV</span><span class="roman-pos-2">III</span><span class="roman-pos-3">II</span><span class="roman-pos-4">I</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-icon" id="rulesBtn">!</div>
+            </div>
+            <div class="container" id="benchmarkGridContainer"></div>
+        </div>
+    </div>
+    <div class="radar-box">
+        <img id="radarSwordIcon" class="radar-preload-asset" src="../icons/benchmarksword.jpg" alt="">
+        <img id="radarBombIcon" class="radar-preload-asset" src="../icons/benchmarkbomb.jpg" alt="">
+        <div class="radar-header">
+            <div>
+                <div class="radar-title" data-i18n="radar_title">Cave Graph</div>
+            </div>
+            <div class="radar-tabs" id="radarTabs">
+                <button class="radar-tab active" data-mode="combined" data-i18n="radar_tab_combined" type="button">Combined</button>
+                <button class="radar-tab" data-mode="swords" data-i18n="radar_tab_swords" type="button">Swords</button>
+                <button class="radar-tab" data-mode="bombs" data-i18n="radar_tab_bombs" type="button">Bombs</button>
+            </div>
+        </div>
+        <div class="radar-content">
+            <div class="radar-canvas-wrap">
+                <div class="radar-chart-grid">
+                    <div class="radar-chart-panel">
+                        <canvas id="radarCanvas"></canvas>
+                    </div>
+                    <div class="radar-donut-wrap">
+                        <canvas id="radarDonut"></canvas>
+                    </div>
+                    <div class="radar-bar-wrap">
+                        <canvas id="radarBar"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="radar-side">
+                <div class="radar-stat">
+                    <div class="radar-stat-title" data-i18n="radar_strongest">Strongest Caves</div>
+                    <div class="radar-stat-list" id="radarStrongList"></div>
+                </div>
+                <div class="radar-stat">
+                    <div class="radar-stat-title" data-i18n="radar_weakest">Weakest Caves</div>
+                    <div class="radar-stat-list" id="radarWeakList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="legal-footer benchmark-footer">
+        <div class="benchmark-footer-top">
+            <div class="benchmark-footer-inner">
+                <div class="legal-footer-icon-wrap">
+                    <img class="legal-baddy-icon" src="../icons/baddy.png" alt="Baddy icon">
+                </div>
+                <div class="legal-footer-text"><span data-i18n="footer_site_made_by">Site made by</span> <span class="legal-author">Rustum</span>.</div>
+                <div class="legal-footer-disclaimer" data-i18n="footer_disclaimer">This site is not affiliated, maintained, endorsed or sponsored by GraalOnline. All assets &copy; 2026 GraalOnline</div>
+            </div>
+        </div>
+        <div class="benchmark-footer-bottom">
+            <div class="benchmark-footer-inner">
+                <div class="legal-footer-links">
+                    <a href="../terms-and-condition/index.html?from=benchmark" data-i18n="footer_terms">Terms &amp; Conditions</a>
+                    <span class="legal-divider">|</span>
+                    <a href="../privacy-policy/index.html?from=benchmark" data-i18n="footer_privacy">Privacy Policy</a>
+                    <span class="legal-divider">|</span>
+                    <a href="../cookie-policy/index.html?from=benchmark" data-i18n="footer_cookie">Cookie Policy</a>
+                    <span class="legal-divider">|</span>
+                    <a href="../dmca-copyright-policy/index.html?from=benchmark" data-i18n="footer_dmca">DMCA Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    </div>
+
+    </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="share-modal-overlay" id="shareModal">
+        <div class="share-modal-content share-modal-content--share">
+            <span class="share-modal-close" id="closeShareModal">&times;</span>
+            <div class="share-modal-header">
+                <div class="share-modal-title" data-i18n="share_preview_title">Screenshot Preview</div>
+            </div>
+            <div class="share-preview-shell">
+                <div class="share-preview-status" id="shareScreenshotStatus"></div>
+                <div class="screenshot-preview-container" id="screenshotContainer">
+                    <!-- Screenshot will be injected here -->
+                </div>
+            </div>
+            <div class="share-actions share-actions--screenshot">
+                <button class="share-btn btn-download" id="downloadImageBtn" type="button" data-i18n="download_image">Download Image</button>
+                <button class="share-btn btn-copy" id="copyLinkBtn" type="button" data-i18n="copy_link">Copy Benchmark Link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div class="share-modal-overlay" id="rulesModal">
+        <div class="rules-content-box">
+            <span class="share-modal-close share-modal-close-muted" id="closeRulesModal">&times;</span>
+            
+            <div class="guidelines-header">
+                <div class="guidelines-title" data-i18n="guidelines_title">Guidelines</div>
+                <div class="guidelines-subtitle" data-i18n="guidelines_subtitle">for accurate scoring</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">01</div>
+                <div class="rule-text" data-i18n="rule_1">The benchmark is intended exclusively for <span class="rules-emphasis">personal use</span>.</div>
+            </div>
+            
+            <div class="rule-row">
+                <div class="rule-idx">02</div>
+                <div class="rule-text" data-i18n="rule_2">All baddies in the cave must be <span class="rules-emphasis">reset to full health</span> before starting.</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">03</div>
+                <div class="rule-text" data-i18n="rule_2b">Timer starts after entering the cave.</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">04</div>
+                <div class="rule-text" data-i18n="rule_3">No <span class="rules-emphasis">speed boosts</span> from bushes are allowed.</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">05</div>
+                <div class="rule-text" data-i18n="rule_4">Scoring thresholds must be achieved <span class="rules-emphasis">without any assistance</span> from other players or accidental damage caused by other players.</div>
+            </div>
+
+            <div class="rule-row">
+                <div class="rule-idx">06</div>
+                <div class="rule-text" data-i18n="rule_5">The <span class="rules-emphasis">Swords</span> category allows the use of swords only, while the <span class="rules-emphasis">Bombs</span> category permits the use of both bombs and swords.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="share-modal-overlay" id="settingsModal">
+        <div class="settings-content-box">
+            <span class="share-modal-close share-modal-close-muted" id="closeSettingsModal">&times;</span>
+
+            <div class="settings-header">
+                <div class="settings-title settings-title-inline-icon">
+                    <img src="../icons/settingsicon.png" class="settings-title-icon" alt="">
+                    <span data-i18n="settings_title">Options</span>
+                </div>
+            </div>
+
+            <div class="settings-grid">
+                <div class="settings-card settings-card--lang">
+                    <div class="settings-card-title">
+                        <span data-i18n="settings_language">Language</span>
+                        <div class="settings-startup-note" data-i18n="settings_language_subtext">Choose a preferred language</div>
+                    </div>
+                    <div class="settings-field settings-field--lang">
+                        <select id="languageSelect" class="settings-select">
+                            <option value="en">English</option>
+                            <option value="ar">العربية (Arabic)</option>
+                            <option value="bn">বাংলা (Bangla)</option>
+                            <option value="da">Dansk (Danish)</option>
+                            <option value="de">Deutsch (German)</option>
+                            <option value="es">Español (Spanish)</option>
+                            <option value="fil">Filipino (Tagalog)</option>
+                            <option value="fr">Français (French)</option>
+                            <option value="hmn">Hmoob (Hmong)</option>
+                            <option value="id">Indonesia (Indonesian)</option>
+                            <option value="it">Italiano (Italian)</option>
+                            <option value="hu">Magyar (Hungarian)</option>
+                            <option value="ms">Melayu (Malay)</option>
+                            <option value="nl">Nederlands (Dutch)</option>
+                            <option value="no">Norsk (Norwegian)</option>
+                            <option value="pl">Polski (Polish)</option>
+                            <option value="pt-BR">Português</option>
+                            <option value="pt-PT">Português (Portugal)</option>
+                            <option value="fi">Suomi (Finnish)</option>
+                            <option value="sv">Svenska (Swedish)</option>
+                            <option value="vi">Tiếng Việt (Vietnamese)</option>
+                            <option value="tr">Türkçe (Turkish)</option>
+                            <option value="zh">中文 (Chinese)</option>
+                            <option value="ja">日本語 (Japanese)</option>
+                            <option value="ko">한국어 (Korean)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-card settings-card--startup">
+                <div class="settings-card-title">
+                    <span data-i18n="settings_default_config_startup">Configuration Start up</span>
+                    <div class="settings-startup-note" data-i18n="settings_default_config_startup_note">Automatically applies configurations after login</div>
+                </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="defaultPlatform" data-i18n="settings_platform">Platform</label>
+                        <select id="defaultPlatform" class="settings-select">
+                            <option value="Mobile">Mobile</option>
+                            <option value="PC">PC</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="defaultTime" data-i18n="settings_time">Time</label>
+                        <select id="defaultTime" class="settings-select">
+                            <option value="5 Min">5 Min</option>
+                            <option value="10 Min">10 Min</option>
+                            <option value="60 Min">60 Min</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="defaultStat" data-i18n="settings_stat">Stat</label>
+                        <select id="defaultStat" class="settings-select">
+                            <option value="Baddy Kills">Baddy Kills</option>
+                            <option value="Baddy Points">Baddy Points</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="defaultMount" data-i18n="settings_mount">Mount</label>
+                        <select id="defaultMount" class="settings-select">
+                            <option value="mountspeed1" data-i18n="mount_speed_1">Mount 1</option>
+                            <option value="mountspeed2" data-i18n="mount_speed_2">Mount 2</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-card settings-card--reset">
+                    <div class="settings-card-title" data-i18n="settings_reset_scores">Reset Score Values</div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="resetPlatform" data-i18n="settings_platform">Platform</label>
+                        <select id="resetPlatform" class="settings-select">
+                            <option value="Mobile">Mobile</option>
+                            <option value="PC">PC</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="resetTime" data-i18n="settings_time">Time</label>
+                        <select id="resetTime" class="settings-select">
+                            <option value="5 Min">5 Min</option>
+                            <option value="10 Min">10 Min</option>
+                            <option value="60 Min">60 Min</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="resetStat" data-i18n="settings_stat">Stat</label>
+                        <select id="resetStat" class="settings-select">
+                            <option value="Baddy Kills">Baddy Kills</option>
+                            <option value="Baddy Points">Baddy Points</option>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label" for="resetMount" data-i18n="settings_mount">Mount</label>
+                        <select id="resetMount" class="settings-select">
+                            <option value="mountspeed1" data-i18n="mount_speed_1">Mount 1</option>
+                            <option value="mountspeed2" data-i18n="mount_speed_2">Mount 2</option>
+                        </select>
+                    </div>
+                    <div class="settings-actions settings-actions--reset">
+                        <button class="settings-btn danger" type="button" id="resetSelectedScoresBtn" data-i18n="settings_reset_selected">Reset Selected</button>
+                        <button class="settings-btn danger-strong" type="button" id="resetAllScoresBtn" data-i18n="settings_reset_all">Reset All Configurations</button>
+                    </div>
+                </div>
+
+                <div class="settings-row theme-preview-row">
+                    <div class="settings-card">
+                        <div class="settings-card-title" data-i18n="settings_theme">Themes</div>
+                        <div class="settings-field">
+                            <label class="settings-label settings-label--muted" for="autoRankThemeSelect" data-i18n="settings_theme_auto">Auto-apply your current rank theme when you rank up</label>
+                            <select id="autoRankThemeSelect" class="settings-switch-native" data-settings-switch>
+                                <option value="off" data-i18n="settings_toggle_off">Off</option>
+                                <option value="on" data-i18n="settings_toggle_on">On</option>
+                            </select>
+                        </div>
+                        <div class="theme-options">
+                            <button class="theme-option" type="button" data-theme="default">Default</button>
+                            <button class="theme-option" type="button" data-theme="rank-1">Iron</button>
+                            <button class="theme-option" type="button" data-theme="rank-2">Bronze</button>
+                            <button class="theme-option" type="button" data-theme="rank-3">Silver</button>
+                            <button class="theme-option" type="button" data-theme="rank-4">Gold</button>
+                            <button class="theme-option" type="button" data-theme="rank-5">Platinum</button>
+                            <button class="theme-option" type="button" data-theme="rank-6">Diamond</button>
+                            <button class="theme-option" type="button" data-theme="rank-7">Master</button>
+                            <button class="theme-option" type="button" data-theme="rank-8">Grandmaster</button>
+                            <button class="theme-option" type="button" data-theme="rank-9">Champion</button>
+                            <button class="theme-option" type="button" data-theme="rank-10">Paragon</button>
+                            <button class="theme-option" type="button" data-theme="rank-11">Stellar</button>
+                            <button class="theme-option" type="button" data-theme="rank-12">Celestium</button>
+                            <button class="theme-option" type="button" data-theme="rank-13">Aeternus</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-title">
+                            <span data-i18n="settings_visibility_title">Visibility</span>
+                            <div class="settings-startup-note" data-i18n="settings_visibility_note">Choose who can view your benchmark.</div>
+                        </div>
+                        <div class="settings-field">
+                            <label class="settings-label" for="visibilitySelect" data-i18n="settings_visibility_label">Visibility</label>
+                            <select id="visibilitySelect" class="settings-select">
+                                <option value="everyone" data-i18n="settings_visibility_everyone">Everyone</option>
+                                <option value="friends" data-i18n="settings_visibility_friends">Friends/Guild Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-title">
+                            <span data-i18n="settings_display_title">Rank Threshold Visualization</span>
+                            <div class="settings-startup-note" data-i18n="settings_threshold_viz_note">Shows a small rank icon below the threshold cells.</div>
+                        </div>
+                        <div class="settings-field">
+                            <select id="rankThresholdVizSelect" hidden aria-hidden="true" tabindex="-1">
+                                <option value="off">off</option>
+                                <option value="on">on</option>
+                            </select>
+                            <button type="button" id="rankThresholdVizToggle" class="settings-toggle-wide" data-state="off" aria-pressed="false" aria-label="Rank Threshold Visualization">
+                                <span class="settings-toggle-wide-on" data-i18n="settings_toggle_enabled">Enabled</span>
+                                <span class="settings-toggle-wide-off" data-i18n="settings_toggle_disabled">Disabled</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Modal -->
+    <div class="share-modal-overlay" id="onboardingModal">
+        <a class="onboarding-home-link" href="/" aria-label="Return to the KDAssist menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path class="onboarding-home-icon-body" d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </a>
+        <div class="modal-lang-shell modal-lang-shell-500">
+            <select class="auth-lang-select">
+                <option value="en">English</option>
+                <option value="ar">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© (Arabic)</option>
+                <option value="bn">à¦¬à¦¾à¦‚à¦²à¦¾ (Bangla)</option>
+                <option value="da">Dansk (Danish)</option>
+                <option value="de">Deutsch (German)</option>
+                <option value="es">EspaÃ±ol (Spanish)</option>
+                <option value="fil">Filipino (Tagalog)</option>
+                <option value="fr">FranÃ§ais (French)</option>
+                <option value="hmn">Hmoob (Hmong)</option>
+                <option value="id">Indonesia (Indonesian)</option>
+                <option value="it">Italiano (Italian)</option>
+                <option value="hu">Magyar (Hungarian)</option>
+                <option value="ms">Melayu (Malay)</option>
+                <option value="nl">Nederlands (Dutch)</option>
+                <option value="no">Norsk (Norwegian)</option>
+                <option value="pl">Polski (Polish)</option>
+                <option value="pt-BR">PortuguÃªs</option>
+                <option value="pt-PT">PortuguÃªs (Portugal)</option>
+                <option value="fi">Suomi (Finnish)</option>
+                <option value="sv">Svenska (Swedish)</option>
+                <option value="vi">Tiáº¿ng Viá»‡t (Vietnamese)</option>
+                <option value="tr">TÃ¼rkÃ§e (Turkish)</option>
+                <option value="zh">ä¸­æ–‡ (Chinese)</option>
+                <option value="ja">æ—¥æœ¬èªž (Japanese)</option>
+                <option value="ko">í•œêµ­ì–´ (Korean)</option>
+            </select>
+            <div class="settings-content-box modal-box-500">
+            <div class="bk-title"><img class="legal-baddy-icon bk-title-icon" src="../icons/baddy.png" alt=""><span class="bk-title-text">BK Benchmark</span></div>
+                <div class="settings-header">
+                    <div class="settings-title" data-i18n="onboarding_welcome_title">Welcome to the Benchmarks!</div>
+                    <div class="settings-subtitle onboarding-subtitle" data-i18n="onboarding_welcome_subtitle">
+                        Please complete your profile setup. A username is required to proceed, while other details are optional and can be updated later in your settings.
+                    </div>
+                </div>
+                
+                <div class="settings-field settings-field--mt20">
+                    <label class="settings-label" data-i18n="profile_picture">Profile Picture</label>
+                    <div class="profile-pic-section">
+                        <div class="profile-pic-preview-container">
+                            <div class="profile-circle-preview" id="onboardingProfilePreviewCircle"></div>
+                            <div class="profile-box-preview" id="onboardingProfilePreviewBox"></div>
+                        </div>
+                        <div class="profile-pic-actions row-gap-8">
+                            <button class="settings-btn" id="onboardingUploadProfilePicBtn" data-i18n="upload_image">Upload Image</button>
+                            <button class="settings-btn is-hidden" id="onboardingEditProfilePicBtn" data-i18n="edit_image">Edit Image</button>
+                            <button class="settings-btn danger is-hidden" id="onboardingRemoveProfilePicBtn" data-i18n="remove_image">Remove Image</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-field">
+                    <label class="settings-label" data-i18n="username_label">Username (Required)</label>
+                    <input type="text" class="settings-select" id="onboardingUsernameInput" maxlength="20" placeholder="Player" data-i18n-placeholder="username_placeholder" autocomplete="off" spellcheck="false">
+                </div>
+
+                <div class="settings-field onboarding-field-spaced">
+                    <label class="settings-label settings-label--tight" data-i18n="guilds_max">Guilds (Max 6)</label>
+                    <div id="onboardingGuildListContainer" class="guild-list-stack is-hidden"></div>
+                    <div class="row-gap-8" id="onboardingAddGuildRow">
+                        <input type="text" id="onboardingNewGuildInput" class="settings-select flex-1" maxlength="20" placeholder="Guild Name" data-i18n-placeholder="guild_name_placeholder" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                        <button class="settings-btn primary" id="onboardingAddGuildBtn" data-i18n="add">Add</button>
+                    </div>
+                </div>
+
+                <div class="settings-field onboarding-field-spaced">
+                    <label class="settings-label" data-i18n="country_flag">Country Flag</label>
+                    <div class="flag-selector-box" id="onboardingFlagSelectorBox"></div>
+                </div>
+
+                <div class="settings-actions settings-actions--top25 settings-actions--end">
+                    <button class="settings-btn primary btn-full" id="saveOnboardingBtn" data-i18n="onboarding_save_continue">Save & Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="share-modal-overlay" id="profileModal">
+        <div class="settings-content-box profile-modal-box">
+            <span class="share-modal-close modal-close-muted" id="closeProfileModal">&times;</span>
+            
+            <div class="profile-content">
+                        <div class="settings-header">
+                            <div class="settings-title settings-title-inline-icon">
+                                <img src="../icons/profilesettingsicon.png" class="settings-title-icon" alt="">
+                                <span data-i18n="profile_settings_title">Profile Settings</span>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-field settings-field--mt20">
+                            <label class="settings-label" data-i18n="profile_picture">Profile Picture</label>
+                            <div class="profile-pic-section">
+                                <div class="profile-pic-preview-container">
+                                    <div class="profile-circle-preview" id="profilePreviewCircle"></div>
+                                    <div class="profile-box-preview" id="profilePreviewBox"></div>
+                                </div>
+                                <div class="profile-pic-actions row-gap-8">
+                                    <button class="settings-btn" id="uploadProfilePicBtn" data-i18n="upload_image">Upload Image</button>
+                                    <button class="settings-btn is-hidden" id="editProfilePicBtn" data-i18n="edit_image">Edit Image</button>
+                                    <button class="settings-btn danger is-hidden" id="removeProfilePicBtn" data-i18n="remove_image">Remove Image</button>
+                                </div>
+                            </div>
+                            <div id="profilePicMessage" class="hidden-default message-error"></div>
+                        </div>
+
+                        <div class="settings-field">
+                            <label class="settings-label" data-i18n="username_label">Username (1-20 characters)</label>
+                            <input type="text" class="settings-select" id="profileUsernameInput" maxlength="20" placeholder="Player" data-i18n-placeholder="username_placeholder" autocomplete="off" spellcheck="false">
+                        </div>
+
+                        <div class="settings-field">
+                            <label class="settings-label settings-label--tight" data-i18n="guilds_max">Guilds (Max 6)</label>
+                            <div id="guildListContainer" class="guild-list-stack is-hidden"></div>
+                            <div id="addGuildContainer">
+                                <button class="settings-btn btn-full" id="addGuildBtn" data-i18n="add_guild">Add Guild</button>
+                                <div id="newGuildInputBox" class="hidden-default row-gap-8 mt-8">
+                                    <input type="text" id="newGuildInput" class="settings-select flex-1" maxlength="20" placeholder="Guild Name" data-i18n-placeholder="guild_name_placeholder" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                                    <button class="settings-btn primary" id="confirmAddGuildBtn" data-i18n="add">Add</button>
+                                    <button class="settings-btn danger" id="cancelAddGuildBtn" data-i18n="cancel">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-field">
+                            <label class="settings-label" data-i18n="country_flag">Country Flag</label>
+                            <div class="row-center-gap-10">
+                                <div class="flag-selector-box" id="flagSelectorBox"></div>
+                                <button class="settings-btn danger remove-flag-btn is-hidden" id="removeFlagBtn" data-i18n="remove_flag">Remove Flag</button>
+                            </div>
+                        </div>
+
+                        <!-- Account Details Section -->
+                        <div class="section-divider"></div>
+                        
+                        <div class="settings-header settings-header--left settings-header--mb20">
+                            <div class="settings-title" data-i18n="account_details">Account Details</div>
+                        </div>
+
+                        <div class="settings-card settings-card--mt20">
+                            <div class="settings-card-title settings-card-title--mb0" data-i18n="account_id">Account ID</div>
+                            <div class="row-center-gap-10">
+                                <input type="text" value="**************" readonly class="settings-select flex-1 account-id-display" id="accountIdDisplay" autocomplete="off">
+                                <div id="copyAccountIdBtn" class="copy-icon-btn" title="Copy ID">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                </div>
+                                <button class="settings-btn toggle-btn-60" id="toggleAccountIdView" data-i18n="show">Show</button>
+                            </div>
+                        </div>
+
+                        <div class="settings-card settings-card--mt15">
+                            <div class="settings-card-title" data-i18n="email_address">Email Address</div>
+                            <div class="email-row row-center-gap-10">
+                                <input type="text" value="**************@gmail.com" readonly class="settings-select flex-1" id="accountEmailDisplay" autocomplete="off" spellcheck="false">
+                                <button class="settings-btn toggle-btn-60" id="toggleEmailView" data-i18n="show">Show</button>
+                            </div>
+                            <div id="emailChangeContainer" class="hidden-default mt-10">
+                                <input type="email" id="newEmailInput" class="settings-select input-full mb-8" placeholder="New email address" data-i18n-placeholder="new_email_placeholder">
+                                <div class="row-gap-8">
+                                    <button class="settings-btn primary flex-1" id="confirmEmailChangeBtn" data-i18n="verify_update">Verify & Update</button>
+                                    <button class="settings-btn danger" id="cancelEmailChangeBtn" data-i18n="cancel">Cancel</button>
+                                </div>
+                                <div id="emailChangeMessage" class="hidden-default message-note"></div>
+                            </div>
+                            <button class="settings-btn mt-10" id="changeEmailBtn" data-i18n="change_email_address">Change Email Address</button>
+                        </div>
+
+                        <div class="settings-card settings-card--mt15">
+                            <div class="settings-card-title" data-i18n="password">Password</div>
+                            <div class="password-row row-center-gap-10">
+                                <input type="text" value="**************" readonly class="settings-select flex-1" id="accountPasswordDisplay" autocomplete="off">
+                            </div>
+                            <button class="settings-btn mt-10" id="changePasswordBtn" data-i18n="change_password">Change Password</button>
+                            <div id="passwordChangeMessage" class="hidden-default message-note"></div>
+                        </div>
+
+                        <div class="settings-card settings-card--mt15 settings-card-danger">
+                            <div class="settings-card-title settings-title-danger settings-card-title--mb0" data-i18n="delete_personal_account">Delete Personal Account</div>
+                            <div class="settings-note settings-title-danger" data-i18n="cannot_undo">This cannot be undone.</div>
+                            <button class="settings-btn danger-strong mt-4" id="deleteAccountBtn" data-i18n="delete_account">Delete Account</button>
+                        </div>
+            </div>
+            
+            <div class="profile-footer">
+                <button class="settings-btn danger" id="discardProfileBtn" data-i18n="discard_changes">Discard Changes</button>
+                <button class="settings-btn primary" id="saveProfileBtn" data-i18n="save_changes">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Friends Modal -->
+    <div class="share-modal-overlay" id="friendsModal">
+        <div class="settings-content-box friends-modal-shell">
+            <span class="share-modal-close modal-close-muted" id="closeFriendsModal">&times;</span>
+            
+            <div class="settings-header">
+                <div class="settings-title settings-title-inline-icon">
+                    <img src="../icons/friends.png" class="settings-title-icon">
+                    <span data-i18n="friends_title">Friends</span>
+                </div>
+                <div class="settings-subtitle" data-i18n="friends_subtitle">Add and view your friends benchmarks</div>
+            </div>
+
+            <div class="account-id-block">
+                <div class="settings-card-title settings-card-title--mb5" data-i18n="your_account_id">Your Account ID</div>
+                <div class="row-center-gap-10">
+                    <input type="text" value="**************" readonly class="settings-select flex-1 account-id-display" id="friendPageAccountIdDisplay" autocomplete="off">
+                    <div id="friendPageCopyAccountIdBtn" class="copy-icon-btn" title="Copy ID">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </div>
+                    <button class="settings-btn toggle-account-btn" id="friendPageToggleAccountIdView" data-i18n="show">Show</button>
+                </div>
+            </div>
+
+            <div class="friends-add-block">
+                <div class="row-gap-8 friends-add-row">
+                    <input type="text" id="friendIdInput" class="settings-select flex-1 uppercase-input" placeholder="Enter Account ID" data-i18n-placeholder="enter_account_id_placeholder" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                    <button class="settings-btn primary" id="addFriendBtn" data-i18n="add_friend">Add Friend</button>
+                </div>
+                <div id="addFriendMessage" class="status-message is-hidden"></div>
+            </div>
+
+            <div class="radar-tabs friends-tabs-shell">
+                <button class="radar-tab active" id="tabFriendsList" data-i18n="friends_list_tab">Friends List</button>
+                <button class="radar-tab" id="tabFriendRequests">
+                    <span data-i18n="friend_requests_tab">Friend Requests</span>
+                    <div class="notification-dot is-hidden" id="requestsTabNotification"></div>
+                </button>
+                <button class="radar-tab" id="tabRemoveFriends" data-i18n="remove_friends_tab">Remove Friends</button>
+            </div>
+
+            <div id="friendsListContent" class="friends-section-content">
+                <div class="friend-list-container" id="friendList"></div>
+            </div>
+
+            <div id="friendRequestsContent" class="friends-pane is-hidden">
+                <div class="settings-card-title settings-card-title--my0" data-i18n="received_friend_requests">Received Friend Requests</div>
+                <div class="friend-list-container" id="friendRequestsList"></div>
+                <div class="settings-card-title settings-card-title--mt15mb0" data-i18n="sent_friend_requests">Friend Requests Sent</div>
+                <div class="friend-list-container" id="sentRequestsList"></div>
+            </div>
+
+            <div id="removeFriendsContent" class="friends-pane is-hidden">
+                <div class="settings-card-title settings-card-title--my0" data-i18n="select_friends_remove">Select friends to remove</div>
+                <div class="friend-list-container" id="removeFriendsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Friends Leaderboard Modal -->
+    <div class="share-modal-overlay" id="leaderboardModal">
+        <div class="settings-content-box leaderboard-modal-shell">
+            <span class="share-modal-close modal-close-muted" id="closeLeaderboardModal">&times;</span>
+
+            <div class="settings-header">
+                <div class="settings-title settings-title-inline-icon">
+                    <img class="leaderboard-title-icon" src="../icons/leaderboardicon.png" alt="" aria-hidden="true">
+                    <span data-i18n="leaderboard_title">Leaderboard</span>
+                </div>
+                <div class="settings-subtitle leaderboard-subtitle" data-i18n="leaderboard_subtitle">Friends Only</div>
+            </div>
+
+            <div class="leaderboard-toolbar">
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="leaderboard_filter_scope">Scope</span>
+                    <select id="leaderboardScopeFilter" class="settings-select">
+                        <option value="worldwide" data-i18n="leaderboard_scope_worldwide">Worldwide</option>
+                        <option value="country" data-i18n="leaderboard_scope_country">Country</option>
+                    </select>
+                </label>
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="settings_platform">Platform</span>
+                    <select id="leaderboardPlatformFilter" class="settings-select">
+                        <option value="all" data-i18n="leaderboard_platform_all">All</option>
+                        <option value="Mobile" data-i18n="leaderboard_platform_mobile">Mobile</option>
+                        <option value="PC" data-i18n="leaderboard_platform_pc">PC</option>
+                    </select>
+                </label>
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="leaderboard_filter_time">Time</span>
+                    <select id="leaderboardTimeFilter" class="settings-select">
+                        <option value="5 Min" data-i18n="leaderboard_time_5_min">5 Min</option>
+                        <option value="10 Min" data-i18n="leaderboard_time_10_min">10 Min</option>
+                        <option value="60 Min" data-i18n="leaderboard_time_60_min">60 Min</option>
+                    </select>
+                </label>
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="leaderboard_filter_stat">Stat</span>
+                    <select id="leaderboardStatFilter" class="settings-select">
+                        <option value="Baddy Kills" data-i18n="leaderboard_stat_kills">Baddy Kills</option>
+                        <option value="Baddy Points" data-i18n="leaderboard_stat_points">Baddy Points</option>
+                    </select>
+                </label>
+                <label class="leaderboard-filter">
+                    <span class="leaderboard-filter-label" data-i18n="leaderboard_filter_mount">Mount</span>
+                    <select id="leaderboardMountFilter" class="settings-select">
+                        <option value="mountspeed1" data-i18n="mount_speed_1">Mount 1</option>
+                        <option value="mountspeed2" data-i18n="mount_speed_2">Mount 2</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="leaderboard-table-shell">
+                <div class="leaderboard-table-scroll">
+                    <div class="leaderboard-table-track">
+                        <div class="leaderboard-table-head">
+                            <div data-i18n="leaderboard_rank">#</div>
+                            <div data-i18n="leaderboard_player">Player</div>
+                            <div data-i18n="leaderboard_rank_name">Rank</div>
+                        </div>
+                        <div class="leaderboard-list" id="leaderboardList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="leaderboard-pagination">
+                <button class="settings-btn" id="leaderboardPrevPageBtn" data-i18n="leaderboard_prev">Previous</button>
+                <div class="leaderboard-page-indicator" id="leaderboardPageIndicator">0</div>
+                <button class="settings-btn primary" id="leaderboardNextPageBtn" data-i18n="leaderboard_next">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trophy Editor Modal -->
+    <div class="share-modal-overlay" id="trophyModal">
+        <div class="settings-content-box trophy-modal-box">
+            <span class="share-modal-close modal-close-sm" id="closeTrophyModal">&times;</span>
+            <div class="settings-header trophy-modal-header">
+                <div class="settings-title" data-i18n="seasonal_modal_title">Seasonal Placements</div>
+                <div class="settings-subtitle" data-i18n="seasonal_modal_subtitle">Add your earned trophies</div>
+            </div>
+            <div class="trophy-modal-summary">
+                <div class="trophy-modal-summary-label" data-i18n="seasonal_current_total">Current Total Placements</div>
+                <div class="trophy-modal-summary-value"><span id="trophyModalTotal">0</span></div>
+            </div>
+            <div class="settings-grid trophy-editor-grid">
+                <div class="trophy-input-row trophy-tier-first">
+                    <div class="trophy-input-left">
+                        <span class="trophy-input-icon-wrap">
+                            <img src="../icons/1sttrophy.png" class="trophy-input-icon">
+                        </span>
+                        <div class="trophy-input-text">
+                            <span class="trophy-input-label" data-i18n="seasonal_place_1st">1st Place</span>
+                        </div>
+                    </div>
+                    <input type="number" id="trophyInput1st" class="settings-select trophy-input-field" min="0" max="50" value="0" placeholder="0">
+                </div>
+                <div class="trophy-input-row trophy-tier-second">
+                    <div class="trophy-input-left">
+                        <span class="trophy-input-icon-wrap">
+                            <img src="../icons/2ndtrophy.png" class="trophy-input-icon">
+                        </span>
+                        <div class="trophy-input-text">
+                            <span class="trophy-input-label" data-i18n="seasonal_place_2nd">2nd Place</span>
+                        </div>
+                    </div>
+                    <input type="number" id="trophyInput2nd" class="settings-select trophy-input-field" min="0" max="50" value="0" placeholder="0">
+                </div>
+                <div class="trophy-input-row trophy-tier-third">
+                    <div class="trophy-input-left">
+                        <span class="trophy-input-icon-wrap">
+                            <img src="../icons/3rdtrophy.png" class="trophy-input-icon">
+                        </span>
+                        <div class="trophy-input-text">
+                            <span class="trophy-input-label" data-i18n="seasonal_place_3rd">3rd Place</span>
+                        </div>
+                    </div>
+                    <input type="number" id="trophyInput3rd" class="settings-select trophy-input-field" min="0" max="50" value="0" placeholder="0">
+                </div>
+                <div class="trophy-input-row trophy-tier-plaque">
+                    <div class="trophy-input-left">
+                        <span class="trophy-input-icon-wrap">
+                            <img src="../icons/plaque.png" class="trophy-input-icon">
+                        </span>
+                        <div class="trophy-input-text">
+                            <span class="trophy-input-label" data-i18n="seasonal_place_plaque">Plaque</span>
+                        </div>
+                    </div>
+                    <input type="number" id="trophyInputPlaque" class="settings-select trophy-input-field" min="0" max="50" value="0" placeholder="0">
+                </div>
+            </div>
+            <div class="trophy-editor-actions">
+                <button class="settings-btn danger" id="resetTrophiesBtn" data-i18n="seasonal_reset_values">Reset Values</button>
+                <button class="settings-btn primary" id="saveTrophiesBtn" data-i18n="seasonal_save_placements">Save Placements</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="share-modal-overlay" id="imageViewerModal">
+            <span class="share-modal-close modal-close-muted image-viewer-close" id="closeImageViewerModal">&times;</span>
+        <div class="image-viewer-content">
+            <img id="imageViewerImg" class="image-viewer-img" src="">
+            <div id="imageViewerTitle" class="image-viewer-title"></div>
+        </div>
+    </div>
+
+    <!-- Flag Picker Modal -->
+    <div class="share-modal-overlay" id="flagModal">
+        <div class="settings-content-box modal-box-500">
+            <span class="share-modal-close modal-close-sm" id="closeFlagModal">&times;</span>
+            <div class="settings-header">
+                <div class="settings-title">Select Country Flag</div>
+            </div>
+            <div class="flag-grid" id="flagGrid">
+                <!-- Flags will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievements Modal -->
+    <div class="share-modal-overlay" id="achievementsModal">
+        <div class="settings-content-box achievements-content-box">
+            <span class="share-modal-close share-modal-close-muted" id="closeAchievementsModal">&times;</span>
+            <img src="../icons/achievementsicon.png" class="achievements-modal-title-icon" alt="" aria-hidden="true">
+            <div class="achievements-title achievements-title-modal" data-i18n="achievements_title">Achievements</div>
+            <div class="achievements-bar achievements-bar-modal">
+                <div class="achievements-fill achievements-fill--zero"></div>
+            </div>
+            <div class="achievements-text achievements-text-modal">You've unlocked 0/0 <span class="achievements-percent">(0%)</span></div>
+            <div class="achievement-list" id="achievementList"></div>
+        </div>
+    </div>
+
+    <!-- Re-auth Modal -->
+    <div class="share-modal-overlay" id="reauthModal">
+        <div class="settings-content-box modal-box-400">
+            <div class="bk-title"><img class="legal-baddy-icon bk-title-icon" src="../icons/baddy.png" alt=""><span class="bk-title-text">BK Benchmark</span></div>
+            <span class="share-modal-close modal-close-sm" id="closeReauthModal">&times;</span>
+            <div class="settings-header">
+                <div class="settings-title" data-i18n="reauth_title">Re-authentication Required</div>
+                <div class="settings-subtitle" data-i18n="reauth_subtitle">Please enter your password to continue.</div>
+            </div>
+            <div class="settings-field settings-field--mt20">
+                <label class="settings-label" for="reauthPasswordInput" data-i18n="reauth_current_password">Current Password</label>
+                <input type="password" id="reauthPasswordInput" class="settings-select">
+            </div>
+            <div id="reauthMessage" class="hidden-default message-error"></div>
+            <div class="settings-actions settings-actions--top20 settings-actions--end">
+                <button class="settings-btn" id="cancelReauthBtn" data-i18n="cancel">Cancel</button>
+                <button class="settings-btn primary" id="confirmReauthBtn" data-i18n="confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Relogin Modal -->
+    <div class="share-modal-overlay" id="emailReloginModal">
+        <div class="settings-content-box modal-box-430 modal-stack-centered">
+            <div class="bk-title"><img class="legal-baddy-icon bk-title-icon" src="../icons/baddy.png" alt=""><span class="bk-title-text">BK Benchmark</span></div>
+            <div class="settings-header settings-header--plain">
+                <div class="settings-title settings-title-accent" data-i18n="email_update_relogin_title">Email Update Requested</div>
+            </div>
+            <div id="emailReloginMessage" class="modal-message-secondary">
+                Verification email sent. Please check your inbox or spam folder.
+            </div>
+            <button class="settings-btn primary btn-full" id="emailReloginBtn" data-i18n="back_to_login_page">Back to Login page</button>
+        </div>
+    </div>
+
+    <!-- Verification Modal -->
+    <div class="share-modal-overlay" id="verificationModal">
+        <div class="settings-content-box modal-box-400 modal-stack-centered">
+            <div class="bk-title"><img class="legal-baddy-icon bk-title-icon" src="../icons/baddy.png" alt=""><span class="bk-title-text">BK Benchmark</span></div>
+            <select class="auth-lang-select">
+                <option value="en">English</option>
+                <option value="ar">العربية (Arabic)</option>
+                <option value="bn">বাংলা (Bangla)</option>
+                <option value="da">Dansk (Danish)</option>
+                <option value="de">Deutsch (German)</option>
+                <option value="es">Español (Spanish)</option>
+                <option value="fil">Filipino (Tagalog)</option>
+                <option value="fr">Français (French)</option>
+                <option value="hmn">Hmoob (Hmong)</option>
+                <option value="id">Indonesia (Indonesian)</option>
+                <option value="it">Italiano (Italian)</option>
+                <option value="hu">Magyar (Hungarian)</option>
+                <option value="ms">Melayu (Malay)</option>
+                <option value="nl">Nederlands (Dutch)</option>
+                <option value="no">Norsk (Norwegian)</option>
+                <option value="pl">Polski (Polish)</option>
+                <option value="pt-BR">Português</option>
+                <option value="pt-PT">Português (Portugal)</option>
+                <option value="fi">Suomi (Finnish)</option>
+                <option value="sv">Svenska (Swedish)</option>
+                <option value="vi">Tiếng Việt (Vietnamese)</option>
+                <option value="tr">Türkçe (Turkish)</option>
+                <option value="zh">中文 (Chinese)</option>
+                <option value="ja">日本語 (Japanese)</option>
+                <option value="ko">한국어 (Korean)</option>
+            </select>
+            <div class="settings-header settings-header--plain">
+                <div class="settings-title settings-title-accent" data-i18n="verification_modal_title">Email Verification Required</div>
+            </div>
+            <div class="modal-message-primary">
+                <span data-i18n="verification_modal_line_1">Please verify your email address to continue.</span><br>
+                <span data-i18n="verification_modal_line_2">Check your inbox for a verification link.</span>
+            </div>
+            <div id="verificationMessage" class="hidden-default message-success"></div>
+            <div class="settings-actions settings-actions--center settings-actions--full settings-actions--column settings-actions--gap10">
+                <button class="settings-btn primary btn-full" id="resendVerificationBtn" data-i18n="verification_modal_resend_btn">Resend Verification Email</button>
+                <button class="settings-btn btn-full" id="reloadPageBtn" data-i18n="verification_modal_verified_btn">I've Verified My Email</button>
+                <button class="settings-btn danger btn-full" id="verificationSignOutBtn" data-i18n="verification_modal_logout_btn">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="share-modal-overlay" id="confirmModal">
+        <div class="settings-content-box modal-box-400 modal-stack-centered">
+            <div class="settings-header settings-header--plain">
+                <div class="settings-title settings-title-accent" id="confirmTitle">Confirmation</div>
+            </div>
+            <div class="modal-message-primary" id="confirmMessage">Are you sure?</div>
+            <div class="settings-actions settings-actions--center settings-actions--full">
+                <button class="settings-btn btn-min-80" id="confirmCancelBtn" data-i18n="cancel">Cancel</button>
+                <button class="settings-btn danger btn-min-80" id="confirmOkBtn" data-i18n="confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="share-modal-overlay" id="removeFriendConfirmModal">
+        <div class="settings-content-box modal-box-400 modal-stack-centered">
+            <div class="settings-header settings-header--plain">
+                <div class="settings-title settings-title-accent" id="removeFriendConfirmTitle">Confirmation</div>
+            </div>
+            <div class="modal-message-primary" id="removeFriendConfirmMessage">Are you sure?</div>
+            <div class="settings-actions settings-actions--center settings-actions--full">
+                <button class="settings-btn btn-min-80" id="removeFriendConfirmCancelBtn" data-i18n="cancel">Cancel</button>
+                <button class="settings-btn danger btn-min-80" id="removeFriendConfirmOkBtn" data-i18n="confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Image Cropper & Input -->
+    <input type="file" id="profilePicInput" class="is-hidden" accept="image/*">
+    <div class="cropper-container initially-hidden" id="cropperContainer">
+        <div class="cropper-dialog">
+            <div class="cropper-area" id="cropperArea">
+                <img id="cropperImage" src="" alt="">
+                <div class="cropper-overlay">
+                    <div class="crop-guide-box"></div>
+                    <div class="crop-guide-circle"></div>
+                    <div class="crop-crosshair"></div>
+                </div>
+            </div>
+            <input type="range" id="cropperZoom" min="0.05" max="3" step="0.01" value="1" class="settings-select cropper-zoom-input">
+            <div class="cropper-action-row">
+                <button class="settings-btn cropper-center-btn" id="centerImageBtn" data-i18n="center">Center</button>
+                <div class="cropper-action-buttons">
+                    <button class="settings-btn danger" id="cancelImageBtn" data-i18n="cancel">Cancel</button>
+                    <button class="settings-btn primary" id="saveImageBtn" data-i18n="save">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Private Profile Overlay -->
+    <div id="privateProfilePage" class="initially-hidden">
+        <div class="private-profile-msg-main">User's benchmark visibility is private</div>
+        <button id="privateProfileHomeBtn" class="settings-btn primary private-profile-home-btn">Go Home</button>
+    </div>
+
+    <script type="module" src="footer-baddy.js?v=20260312-mobile-cache-refresh-1"></script>
+    <script type="module" src="layoutBuilder.js?v=20260921-cave-names-1"></script>
+    <script type="module" src="scrollSyncUI.js?v=20260921-exit-mobile-2"></script>
+    <script type="module" src="benchmark.js?v=20260921-bk-title-color-2"></script>
+    <script>
+        (() => {
+            const root = document.documentElement;
+            const overlay = document.querySelector(".page-transition-overlay");
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            let leaving = false;
+
+            function enterPage() {
+                leaving = false;
+                if (overlay) overlay.style.display = "block";
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        root.classList.add("page-entered");
+                        if (overlay) {
+                            setTimeout(() => {
+                                if (!leaving) overlay.style.display = "none";
+                            }, reducedMotion ? 0 : 500);
+                        }
+                    });
+                });
+            }
+
+            enterPage();
+            window.addEventListener("pageshow", (event) => {
+                if (event.persisted) enterPage();
+            });
+
+            document.querySelectorAll(".benchmark-home-link").forEach((link) => {
+                link.addEventListener("click", (event) => {
+                    if (
+                        leaving ||
+                        event.defaultPrevented ||
+                        event.button !== 0 ||
+                        event.metaKey ||
+                        event.ctrlKey ||
+                        event.shiftKey ||
+                        event.altKey
+                    ) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    leaving = true;
+                    if (overlay) {
+                        overlay.style.display = "block";
+                        void overlay.offsetWidth;
+                    }
+                    root.classList.remove("page-entered");
+                    setTimeout(() => {
+                        window.location.href = link.href;
+                    }, reducedMotion ? 0 : 420);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
