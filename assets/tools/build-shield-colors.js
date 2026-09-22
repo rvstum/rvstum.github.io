@@ -159,7 +159,7 @@ async function buildColors(dir, names, label) {
 }
 
 async function update() {
-    let names = fs.readdirSync(DIR).filter((n) => IMAGE_RE.test(n)).sort();
+    let names = fs.readdirSync(DIR).filter((n) => IMAGE_RE.test(n) && !n.includes('classic_personal_shield')).sort();
     for (const name of names.slice()) {
         if (KEEP_EVEN_IF_BLANK.includes(name)) continue;
         const f = path.join(DIR, name);
