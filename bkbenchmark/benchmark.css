@@ -656,6 +656,13 @@ html {
     --cave-header-width: 50px;
     --cave-box-width: 300px;
     --cave-box-offset: 124px;
+    /* Intrinsic width of a row's 14 non-cave cells (.ranks-bars, minus the absolutely-positioned cave cell)
+       - a fixed layout, not viewport-dependent, but not expressed by any single existing var either. Used
+       below to line the desktop "Cave" header column up with the actual cave box, which is positioned from
+       .ranks-bars' own right edge (right: calc(100% + var(--cave-box-offset))), not from the stack's left
+       edge the header row uses - the two were drifting out of alignment because they were computed from
+       opposite ends of a layout whose width isn't the same at every viewport size. */
+    --cave-row-width: 1016.4375px;
     --slanted-bar-base: rgba(0, 0, 0, 0.55);
     --cave-box-base: rgba(255, 255, 255, 0.02);
     --app-bg: #050505;
@@ -1005,6 +1012,19 @@ body.view-mode .cave-play-edit {
     margin-bottom: 16px;
 }
 
+.radar-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.radar-title-icon {
+    width: 16px;
+    height: 16px;
+    color: #9aa0aa;
+    flex: none;
+}
+
 .radar-title {
     font-size: 16px;
     font-weight: 700;
@@ -1068,26 +1088,64 @@ body.view-mode .cave-play-edit {
 }
 
 .radar-canvas-wrap {
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--panel-border);
-    border-radius: 18px;
-    padding: 12px;
-    height: 380px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    height: 300px;
 }
 
 .radar-chart-grid {
     display: grid;
     grid-template-columns: 1.35fr 0.8fr 1.35fr;
-    gap: 0px;
+    gap: 14px;
     width: 100%;
     height: 100%;
+    align-items: stretch;
+}
+
+.radar-panel-box {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--panel-border);
+    border-radius: 18px;
+    padding: 10px 12px 12px;
+    box-sizing: border-box;
+}
+
+.radar-panel-header {
+    display: flex;
     align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    flex: none;
+}
+
+.radar-panel-icon {
+    width: 13px;
+    height: 13px;
+    color: #7a8089;
+    flex: none;
+}
+
+.radar-panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #b7bcc4;
+    letter-spacing: 0.02em;
 }
 
 .radar-chart-panel {
     width: 100%;
-    height: 100%;
-    min-width: 0;
+    /* flex-basis must stay "auto" (not the flex:1 shorthand's 0%): a flex item's basis overrides an explicit
+       height for main-axis sizing, so with basis 0% the mobile clamp() heights below were silently ignored and
+       the canvases collapsed to 0px tall. */
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .radar-canvas-wrap canvas {
@@ -1099,7 +1157,8 @@ body.view-mode .cave-play-edit {
 .radar-donut-wrap {
     position: relative;
     width: 100%;
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1111,10 +1170,63 @@ body.view-mode .cave-play-edit {
     display: block;
 }
 
+.radar-legend {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 32px;
+    flex: none;
+    margin-top: 8px;
+}
+
+.radar-legend-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #cfd3da;
+}
+
+.radar-legend-item-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.radar-legend-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+}
+
+.radar-legend-dot--bombs {
+    background: #3b82f6;
+}
+
+.radar-legend-dot--swords {
+    background: #ef4444;
+}
+
+.radar-legend-percent {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.radar-legend-item[data-key="bombs"] .radar-legend-percent {
+    color: #3b82f6;
+}
+
+.radar-legend-item[data-key="swords"] .radar-legend-percent {
+    color: #ef4444;
+}
+
 .radar-bar-wrap {
     position: relative;
     width: 100%;
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1139,10 +1251,44 @@ body.view-mode .cave-play-edit {
 }
 
 .radar-stat-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: #888;
+}
+
+.radar-stat-icon {
+    width: 14px;
+    height: 14px;
+    flex: none;
+    display: block;
+    object-fit: contain;
+}
+
+.radar-stat-icon--up {
+    color: #22c55e;
+}
+
+.radar-stat-icon--down {
+    color: #ef4444;
+}
+
+.radar-arrow-icon {
+    width: 9px;
+    height: 9px;
+    flex: none;
+}
+
+.radar-arrow-icon--up {
+    color: #22c55e;
+}
+
+.radar-arrow-icon--down {
+    color: #ef4444;
+    transform: rotate(180deg);
 }
 
 .radar-stat-list {
@@ -1154,7 +1300,7 @@ body.view-mode .cave-play-edit {
 
 .radar-stat-item {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr auto;
     gap: 8px;
     font-size: 12px;
     color: #f2f2f2;
@@ -1207,6 +1353,42 @@ body.view-mode .cave-play-edit {
     padding: 0;
     position: relative;
     z-index: 203 !important;
+}
+
+/* Filter dropdowns (Platform/Time/Statistic/Mount). On desktop this is just a grouping row inside the shared
+   .controls-container box (see the min-width: 901px block below); its own background/border only apply on mobile,
+   where .controls-container isn't boxed. Padding is asymmetric (not centered) because each pill's floating label
+   (.box-float-label) renders above the pill via absolute position - flex centering can't account for that extra
+   height, so the top gap ends up smaller than the bottom gap unless it's given explicitly. */
+.filters-box {
+    display: flex;
+    align-items: flex-start;
+    height: auto;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 20px;
+    padding: 35px 10px 18px 10px;
+    margin-right: 16px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Inset darker panel behind the dropdowns, giving the box a layered "background within a background" look */
+.filters-box::before {
+    content: "";
+    position: absolute;
+    /* Same 8px gap as .middle-box's inset panel (the main rank box), so both "boxes within a box" read as one
+       consistent style. */
+    inset: 8px;
+    background-color: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.filters-box .small-inner-box:last-child {
+    margin-right: 0;
 }
 
 .top-box {
@@ -1844,10 +2026,95 @@ body.view-mode .cave-play-edit {
     transition: width 0.3s ease;
 }
 
-.top-right {
-    margin-left: 0;
+/* Leaderboard / Share / Settings nav row: sits beside the account dropdown button (controls-container), pushed
+   to the right the same way .user-menu-wrapper is (margin-left: auto absorbs the free space, so both sit flush
+   against the right edge together). */
+.top-box-actions {
+    margin-left: auto;
+    margin-right: 20px;
     display: flex;
     align-items: center;
+}
+
+/* Desktop: split the profile section and the achievements section into two separate boxes (top-box just becomes
+   a transparent flex row spacing them apart). Mobile keeps the original single .top-box look untouched - see the
+   "display: contents" rules further down, which let .profile-circle/.profile-details/.achievements-section keep
+   acting as direct grid children of .top-box the way the existing mobile grid-column/grid-row rules expect. */
+@media (min-width: 901px) {
+    /* Filters/Leaderboard-Share-Settings/account dropdown now live inside one shared box spanning the full row,
+       matching the other big boxes. .filters-box drops its own background/border here (only needed on mobile,
+       where .controls-container itself isn't boxed) and stretches to the container's full height so its internal
+       asymmetric padding (see the base rule) still lines up correctly. */
+    .controls-container {
+        background-color: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 20px;
+        padding: 0 16px;
+        box-sizing: border-box;
+    }
+
+    /* Inset darker panel spanning the whole shared box (filters + leaderboard/share/settings + account dropdown),
+       matching the other big boxes' layered look. Replaces .filters-box's own inset panel below, which only
+       covered the filter pills and stopped short of the rest of the row. */
+    .controls-container::before {
+        content: "";
+        position: absolute;
+        /* Same 8px gap as .middle-box's inset panel (the main rank box), so both "boxes within a box" read as
+           one consistent style. */
+        inset: 8px;
+        background-color: rgba(0, 0, 0, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .controls-container > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .filters-box {
+        background: none;
+        border: none;
+        align-self: stretch;
+    }
+
+    .filters-box::before {
+        content: none;
+    }
+
+    .top-box {
+        background: none;
+        border: none;
+        padding: 0;
+        gap: 3px;
+        overflow: visible;
+        isolation: auto;
+    }
+
+    .profile-box,
+    .achievements-box {
+        height: 72px;
+        flex: 0 1 auto;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        background-color: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 20px;
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
+
+    .achievements-box {
+        flex: 1 1 auto;
+    }
+
+    .achievements-box .achievements-section {
+        margin: 0;
+        width: 100%;
+    }
 }
 
 .nav-item {
@@ -1899,6 +2166,18 @@ body.view-mode .cave-play-edit {
     overflow: visible;
     position: relative;
     min-height: 150px;
+}
+
+/* Inset darker panel behind the content, giving the box a layered "background within a background" look */
+.middle-box::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    background-color: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 18px;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .rounded-inner-box {
@@ -2101,7 +2380,10 @@ body:not(.auth-gate-active) .rank-threshold-value {
 }
 
 .user-menu-wrapper {
-    margin-left: auto;
+    /* No auto margin here: .top-box-actions (Leaderboard/Share/Settings), the sibling right before this in the
+       controls row, carries the margin-left: auto instead, so both are pushed to the right edge together instead
+       of each competing for the same leftover space (which split them apart with a gap in between). */
+    margin-left: 0;
     position: relative;
     display: flex;
     align-items: center;
@@ -3351,16 +3633,24 @@ body.auth-gate-active .sub-score-popout {
 .cave-text {
     position: absolute;
     top: 0;
-    left: var(--cave-header-left);
-    right: auto;
-    width: var(--cave-header-width);
+    /* Desktop only (mobile overrides this further down with its own left+width, which wins over this "right"
+       automatically since left+width+right together are over-constrained). Positioned from the stack's right
+       edge using the same math as the actual cave box below it, so the two stay aligned - see --cave-row-width
+       above for why "left" alone can't do this. */
+    left: auto;
+    right: calc(20px + var(--cave-row-width) + var(--cave-box-offset) + 2px);
+    width: var(--cave-box-width);
     max-width: none;
     height: calc(20px + 13.5px);
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding-left: 0;
-    text-align: center;
+    /* Left-aligned with a gap, not centered: this box's left edge is where the new cave divider line sits, and
+       centered nowrap text straddled that line instead of starting clear of it. Padding must clear both the
+       label text AND its hanging icon (13px wide + 5px margin, via .header-label::before's right:100%), or the
+       icon pokes out past the left edge and overlaps the divider line. */
+    justify-content: flex-start;
+    padding-left: 24px;
+    text-align: left;
     box-sizing: border-box;
     font-size: 12px;
     font-weight: bold;
@@ -3385,6 +3675,57 @@ body.auth-gate-active .sub-score-popout {
     color: white;
     z-index: 2;
     pointer-events: none;
+}
+
+/* One connected header bar behind Cave / Score / Score Threshold / Rating: a single background strip with
+   divider lines at each column boundary, so the four labels above read as one table header. Positioned in the
+   same coordinate system as .cave-text/.score-text/.progression-text/.rating-text (siblings in .ranks-bars-stack),
+   sized to reach the Rating column, which sits outside the stack's own right edge. */
+.ranks-header-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: calc(-1 * var(--progression-right));
+    height: calc(20px + 13.5px);
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--panel-border);
+    /* Square, not rounded: both bottom edges sit flush against the table's straight edges, so rounded corners
+       just looked like stray notches instead of matching an actual box boundary. */
+    border-radius: 0;
+    box-sizing: border-box;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.ranks-header-divider {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: calc(20px + 13.5px);
+    background: var(--panel-border);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Aligns with the cave box's own left edge (same right-based math .cave-text now uses above it), not the old
+   fixed --cave-header-left, which drifted away from the actual cave box as the row layout's width changed. */
+.ranks-header-divider--cave {
+    left: auto;
+    right: calc(20px + var(--cave-row-width) + var(--cave-box-offset) + 2px + var(--cave-box-width));
+}
+
+.ranks-header-divider--score {
+    left: 360px;
+}
+
+/* Aligns with the real score input box's right edge (.score-input-wrapper: left: 360px, width: 100px), not with
+   the Score Threshold column's own left edge - those two boundaries aren't the same point. */
+.ranks-header-divider--progression {
+    left: 460px;
+}
+
+.ranks-header-divider--rating {
+    right: 20px;
 }
 
 @keyframes eternalShimmer {
@@ -5732,10 +6073,6 @@ input:-webkit-autofill:active {
     padding: 0;
 }
 
-#leaderboardMenuBtn {
-    justify-content: center;
-}
-
 #friendsMenuBtn .friends-menu-label {
     width: auto;
     text-align: center;
@@ -6997,6 +7334,15 @@ body.view-mode .achievement-proof-upload.has-image {
         position: relative;
     }
 
+    /* Desktop wraps .profile-circle/.profile-details in .profile-box and .achievements-section in .achievements-box
+       so each can carry its own background/border box. On mobile, "display: contents" makes those wrappers
+       transparent to layout so their children go back to being direct grid children of .top-box, exactly matching
+       the grid-column/grid-row placement rules below (unchanged from before the wrappers existed). */
+    .profile-box,
+    .achievements-box {
+        display: contents;
+    }
+
     .profile-circle {
         margin-bottom: 0;
         margin-right: 0;
@@ -7145,7 +7491,7 @@ body.view-mode .achievement-proof-upload.has-image {
         justify-content: center;
     }
 
-    .top-right {
+    .top-box-actions {
         display: none;
     }
 
@@ -7257,10 +7603,26 @@ body.view-mode .achievement-proof-upload.has-image {
         height: 22px;
     }
 
-    .controls-container > #platformBox,
-    .controls-container > #timeBox,
-    .controls-container > #statBox,
-    .controls-container > #mountBox {
+    /* The 4 filter dropdowns keep the exact same grid track sizing as the outer .controls-container grid used to
+       give them directly - .filters-box just spans that whole row (1 / -1) and repeats the template one level in,
+       so the group can carry its own background/border box without changing how the dropdowns themselves size. */
+    .filters-box {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) 88px;
+        gap: 5px;
+        align-items: center;
+        width: 100%;
+        height: auto;
+        padding: 6px;
+        margin-right: 0;
+        border-radius: 16px;
+    }
+
+    .filters-box > #platformBox,
+    .filters-box > #timeBox,
+    .filters-box > #statBox,
+    .filters-box > #mountBox {
         width: auto !important;
         min-width: 0;
         margin-right: 0 !important;
@@ -7859,6 +8221,39 @@ body.view-mode .achievement-proof-upload.has-image {
         font-size: 15px;
     }
 
+    .ranks-header-bar {
+        top: 5px;
+        left: calc(var(--mobile-cave-start) + 20px);
+        right: auto;
+        width: calc(1382px - 20px + 90px);
+        border-radius: 0;
+    }
+
+    .ranks-header-divider {
+        top: 5px;
+    }
+
+    .ranks-header-divider--cave {
+        left: calc(var(--mobile-cave-start) + 20px);
+        right: auto;
+    }
+
+    .ranks-header-divider--score {
+        left: calc(var(--mobile-cave-start) + 247.5px);
+        right: auto;
+    }
+
+    /* Aligns with .score-input-wrapper's right edge here (left: mobile-cave-start + 245px, width: 70px). */
+    .ranks-header-divider--progression {
+        left: calc(var(--mobile-cave-start) + 315px);
+        right: auto;
+    }
+
+    .ranks-header-divider--rating {
+        left: calc(var(--mobile-cave-start) + 1382px);
+        right: auto;
+    }
+
     .rating-value {
         display: flex;
         position: absolute;
@@ -7985,17 +8380,15 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 
     .radar-canvas-wrap {
-        height: 840px;
+        height: 900px;
     }
 
     .radar-chart-grid {
-        gap: 2px;
+        gap: 16px;
         justify-items: center;
     }
 
-    .radar-chart-panel,
-    .radar-donut-wrap,
-    .radar-bar-wrap {
+    .radar-panel-box {
         width: min(100%, 420px);
         margin-left: auto;
         margin-right: auto;
@@ -8797,6 +9190,41 @@ body.mobile-layout-active .rating-text {
     justify-content: center !important;
 }
 
+body.mobile-layout-active .ranks-header-bar {
+    top: var(--mobile-header-top) !important;
+    height: var(--mobile-header-height) !important;
+    left: 0 !important;
+    right: auto !important;
+    width: calc(var(--mobile-rating-left) + var(--mobile-rating-width)) !important;
+    border-radius: 0 !important;
+}
+
+body.mobile-layout-active .ranks-header-divider {
+    top: var(--mobile-header-top) !important;
+    height: var(--mobile-header-height) !important;
+}
+
+body.mobile-layout-active .ranks-header-divider--cave {
+    left: var(--mobile-cave-header-left) !important;
+    right: auto !important;
+}
+
+body.mobile-layout-active .ranks-header-divider--score {
+    left: var(--mobile-score-left) !important;
+    right: auto !important;
+}
+
+/* Aligns with the real score input box's right edge, not the Score Threshold track's own left edge. */
+body.mobile-layout-active .ranks-header-divider--progression {
+    left: calc(var(--mobile-score-left) + var(--mobile-score-width)) !important;
+    right: auto !important;
+}
+
+body.mobile-layout-active .ranks-header-divider--rating {
+    left: var(--mobile-rating-left) !important;
+    right: auto !important;
+}
+
 body.mobile-layout-active .ranks-bars > .rating-value {
     position: absolute !important;
     left: var(--mobile-rating-left) !important;
@@ -9021,7 +9449,7 @@ body.mobile-layout-active .radar-content {
 
 body.mobile-layout-active .radar-canvas-wrap {
     height: auto !important;
-    padding: 10px !important;
+    padding: 0 !important;
 }
 
 body.mobile-layout-active .radar-chart-grid {
@@ -9031,12 +9459,10 @@ body.mobile-layout-active .radar-chart-grid {
     height: auto !important;
     align-items: stretch !important;
     align-content: start !important;
-    gap: clamp(8px, calc(10px * var(--mobile-scale)), 12px) !important;
+    gap: clamp(12px, calc(14px * var(--mobile-scale)), 18px) !important;
 }
 
-body.mobile-layout-active .radar-chart-panel,
-body.mobile-layout-active .radar-donut-wrap,
-body.mobile-layout-active .radar-bar-wrap {
+body.mobile-layout-active .radar-panel-box {
     width: min(100%, 420px) !important;
     margin-left: auto !important;
     margin-right: auto !important;
@@ -9721,7 +10147,8 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     width: 7px;
     height: 7px;
     box-sizing: border-box;
-    background: var(--rank-marker);
+    /* Inner fill is a brightened tint of the rank color (closer to white); the outline ring below keeps the true rank color. */
+    background: color-mix(in srgb, var(--rank-marker) 30%, white);
     border: 1.5px solid #0b0d12;
     outline: 1px solid var(--rank-marker);
     transform: translateX(-50%) rotate(45deg);
@@ -9950,6 +10377,8 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     -webkit-mask: var(--hdr-icon) center / contain no-repeat;
     mask: var(--hdr-icon) center / contain no-repeat;
     opacity: 0.85;
+    /* Sit above .ranks-header-divider (z-index: 1), which otherwise draws its line over the icon */
+    z-index: 2;
 }
 .header-label-rating {
     --hdr-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z'/%3E%3C/svg%3E");
@@ -9997,10 +10426,6 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     max-width: 100%;
 }
 
-/* Swords (blue) and Bombs (red) boxes get the same outline as the grid */
-.vertical-box.vbox-1 { box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.6); }
-.vertical-box.vbox-2 { box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.6); }
-
 /* Bombs uses the exact same icon/text spacing as Swords */
 .vertical-box-icon-bombs {
     right: calc(100% + 3px);
@@ -10009,19 +10434,6 @@ body:not(.mobile-layout-active) .score-input-wrapper {
 .vertical-box-icon-bombs {
     right: calc(100% + 10px);
 }
-
-/* Dark blue (Swords) and dark red (Bombs) box backgrounds */
-.vertical-box.vbox-1 { background-color: rgba(20, 45, 95, 0.55); }
-.vertical-box.vbox-2 { background-color: rgba(95, 20, 25, 0.55); }
-
-.vertical-box.vbox-1 { background-color: rgba(8, 18, 42, 0.85); }
-.vertical-box.vbox-2 { background-color: rgba(42, 8, 12, 0.85); }
-
-.vertical-box.vbox-1 { background-color: rgba(3, 8, 20, 0.95); }
-.vertical-box.vbox-2 { background-color: rgba(22, 3, 5, 0.95); }
-
-.vertical-box.vbox-1 { background-color: rgb(1, 4, 11); }
-.vertical-box.vbox-2 { background-color: rgb(12, 1, 2); }
 
 /* Tier track line extends well past the first and last circles */
 .rank-tier-track::before {
@@ -11254,36 +11666,6 @@ body.mobile-layout-active .progress-bar {
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
 }
 
-/* Swords / Bombs boxes: darker fill and a darker outline */
-.vertical-box.vbox-1 {
-    background-color: rgb(0, 1, 4);
-    box-shadow: inset 0 0 0 1px rgba(40, 90, 175, 0.5);
-}
-.vertical-box.vbox-2 {
-    background-color: rgb(5, 0, 1);
-    box-shadow: inset 0 0 0 1px rgba(165, 40, 40, 0.5);
-}
-
-/* Swords / Bombs boxes: even darker */
-.vertical-box.vbox-1 {
-    background-color: rgb(0, 0, 1);
-    box-shadow: inset 0 0 0 1px rgba(25, 55, 110, 0.5);
-}
-.vertical-box.vbox-2 {
-    background-color: rgb(1, 0, 0);
-    box-shadow: inset 0 0 0 1px rgba(105, 25, 25, 0.5);
-}
-
-/* Swords / Bombs boxes: darkest outline (fill is already near-black) */
-.vertical-box.vbox-1 {
-    background-color: rgb(0, 0, 0);
-    box-shadow: inset 0 0 0 1px rgba(15, 32, 66, 0.55);
-}
-.vertical-box.vbox-2 {
-    background-color: rgb(0, 0, 0);
-    box-shadow: inset 0 0 0 1px rgba(62, 15, 15, 0.55);
-}
-
 /* Desktop: smaller sword icon beside the vertical Swords box */
 @media (min-width: 901px) {
     .vertical-box-icon-swords {
@@ -11306,8 +11688,29 @@ body.mobile-layout-active .progress-bar {
 /* Other big boxes: same visible outline as the Cave Graph box */
 .top-box,
 .middle-box,
-.container {
+.container,
+.filters-box,
+.profile-box,
+.achievements-box {
     border: 3px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Desktop: .top-box is now just a transparent flex spacer between .profile-box and .achievements-box (each of
+   which carries its own outline above), so it shouldn't draw one big outline around both plus the gap. Likewise
+   .filters-box no longer draws its own outline on desktop - .controls-container (the filters/nav-actions/account
+   dropdown row) carries it instead, spanning the full row like the other big boxes. */
+@media (min-width: 901px) {
+    .top-box {
+        border: none;
+    }
+
+    .filters-box {
+        border: none;
+    }
+
+    .controls-container {
+        border: 3px solid rgba(255, 255, 255, 0.07);
+    }
 }
 
 /* Mobile layout: middle box and grid live inside one shell, so the shell carries their outline */
@@ -11315,13 +11718,14 @@ body.mobile-layout-active .benchmark-panels-shell {
     border: 3px solid rgba(255, 255, 255, 0.07);
 }
 
-/* Mobile: Cave header (icon + text) starts at the left edge of the cave box. The icon hangs 18px off the text's left side
-   (13px icon + 5px gap), so the text is padded in by that much to put the icon exactly on the box edge. */
+/* Mobile: Cave header (icon + text) starts clear of the cave box's left edge, where the vertical divider line
+   sits. The icon hangs 18px off the text's left side (13px icon + 5px gap); padding it in by exactly that much
+   put the icon flush on the divider, so it visually overlapped the line. Add a few px of breathing room past it. */
 body.mobile-layout-active .cave-text {
     left: var(--mobile-cave-start, var(--mobile-cave-header-left)) !important;
     width: var(--mobile-cave-label-width, var(--mobile-cave-header-width)) !important;
     box-sizing: border-box !important;
-    padding-left: 18px !important;
+    padding-left: 24px !important;
     justify-content: flex-start !important;
     text-align: left !important;
 }
@@ -11338,10 +11742,16 @@ body.mobile-layout-active .rounded-inner-box::after {
     right: auto !important;
 }
 
-/* Swords / Bombs boxes: fill color #0a0a0a */
-.vertical-box.vbox-1,
+/* Swords / Bombs boxes: fill follows the selected theme. Rank themes use their respective rank color;
+   other themes use their primary accent. Outline keeps its fixed blue/red tint so the two boxes still
+   read apart from each other at a glance. */
+.vertical-box.vbox-1 {
+    background-color: var(--vbox-fill, rgb(10, 10, 10));
+    box-shadow: inset 0 0 0 1px rgba(15, 32, 66, 0.55);
+}
 .vertical-box.vbox-2 {
-    background-color: rgb(10, 10, 10);
+    background-color: var(--vbox-fill, rgb(10, 10, 10));
+    box-shadow: inset 0 0 0 1px rgba(62, 15, 15, 0.55);
 }
 
 /* Strongest / Weakest caves: center each name vertically between the bars above and below it.

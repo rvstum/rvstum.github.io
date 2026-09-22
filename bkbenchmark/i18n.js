@@ -16,7 +16,10 @@ export const I18N = {
         edit: 'Edit',
         swords: 'Swords',
         bombs: 'Bombs',
-        radar_title: 'Cave Graph',
+        radar_title: 'Cave Analytics',
+        radar_panel_distribution: 'Cave Distribution',
+        radar_panel_swordsbombs: 'Swords vs Bombs',
+        radar_panel_score: 'Baddy Comparison',
         radar_strongest: 'Strongest Caves',
         radar_weakest: 'Weakest Caves',
         radar_tab_combined: 'Combined',
@@ -108,7 +111,6 @@ export const I18N = {
         generating_screenshot: 'Generating screenshot...',
         reset_confirm: 'Reset all selected configuration scores?',
         reset_all_confirm: 'Reset all saved configurations scores?',
-        settings_pacman: 'Pacman',
         settings_mount: 'Mount',
         mount_speed_1: 'Mount 1',
         mount_speed_2: 'Mount 2',
@@ -337,7 +339,10 @@ export const I18N = {
         edit_hint: 'Clic derecho para editar',
         swords: 'Espadas',
         bombs: 'Bombas',
-        radar_title: 'Gráfico de Cueva',
+        radar_title: 'Análisis de Cueva',
+        radar_panel_distribution: 'Distribución de Cuevas',
+        radar_panel_swordsbombs: 'Espadas vs Bombas',
+        radar_panel_score: 'Comparación de Baddy',
         radar_strongest: 'Cuevas más fuertes',
         radar_weakest: 'Cuevas más débiles',
         radar_tab_combined: 'Combinado',
@@ -372,7 +377,6 @@ export const I18N = {
         settings_font_scale: 'Tamaño de fuente',
         settings_font_family: 'Fuente',
         settings_compact_mode: 'Modo compacto',
-        settings_pacman: 'Pacman',
         settings_font_small: 'Pequeño',
         settings_font_normal: 'Normal',
         settings_font_large: 'Grande',
@@ -626,7 +630,10 @@ export const I18N = {
         edit_hint: 'Clique com o botão direito para editar',
         swords: 'Espadas',
         bombs: 'Bombas',
-        radar_title: 'Gráfico da Caverna',
+        radar_title: 'Análise da Caverna',
+        radar_panel_distribution: 'Distribuição das Cavernas',
+        radar_panel_swordsbombs: 'Espadas vs Bombas',
+        radar_panel_score: 'Comparação de Baddy',
         radar_strongest: 'Cavernas Mais Fortes',
         radar_weakest: 'Cavernas Mais Fracas',
         radar_tab_combined: 'Combinado',
@@ -663,7 +670,6 @@ export const I18N = {
         settings_font_scale: 'Tamanho da Fonte',
         settings_font_family: 'Tipo de Letra',
         settings_compact_mode: 'Modo Compacto',
-        settings_pacman: 'Pacman',
         settings_font_small: 'Pequeno',
         settings_font_normal: 'Normal',
         settings_font_large: 'Grande',
@@ -935,6 +941,28 @@ Object.assign(I18N.es, {
     menu_logout: 'Cerrar sesion'
 });
 
+// Keys that were missing from I18N.es entirely, silently falling back to English at runtime.
+Object.assign(I18N.es, {
+    seasonal_add_placements: '+ Agregar Clasificaciones de Temporada',
+    confirm: 'Confirmar',
+    discard_changes: 'Descartar cambios',
+    save_changes: 'Guardar cambios',
+    delete: 'Eliminar',
+    achievement_input_restricted: 'Sesión incompleta',
+    achievement_partner_label: 'Amigo 1',
+    achievement_progress_prefix: '{name}:',
+    unknown_player: 'Jugador desconocido',
+    friends_error_loading: 'Error al cargar la lista de amigos.',
+    friend_requests_error_loading: 'Error al cargar las solicitudes de amistad.',
+    add_friend_user_not_found: 'Usuario no encontrado.',
+    add_friend_self: 'No puedes agregarte a ti mismo.',
+    add_friend_already_friends: 'Ya eres amigo de esta cuenta.',
+    add_friend_already_sent: 'Solicitud de amistad ya enviada.',
+    add_friend_check_requests: 'Este usuario ya te envió una solicitud. Revisa tus solicitudes de amistad.',
+    add_friend_sent: '¡Solicitud de amistad enviada!',
+    add_friend_error: 'Error al agregar amigo. Inténtalo de nuevo.'
+});
+
 Object.assign(I18N['pt-BR'], {
     settings_reset_note: 'Nao altera os padroes.',
     friends_title: 'Amigos',
@@ -947,6 +975,17 @@ Object.assign(I18N['pt-BR'], {
     menu_profile: 'Perfil',
     menu_friends: 'Amigos',
     menu_logout: 'Sair'
+});
+
+// Keys that were missing from I18N['pt-BR'] entirely, silently falling back to English at runtime.
+Object.assign(I18N['pt-BR'], {
+    seasonal_add_placements: '+ Adicionar Colocações da Temporada',
+    confirm: 'Confirmar',
+    achievement_input_restricted: 'Sessão incompleta',
+    achievement_partner_label: 'Amigo 1',
+    achievement_progress_prefix: '{name}:',
+    unknown_player: 'Jogador desconhecido',
+    verification_email_sent_to: 'E-mail de verificação enviado para {email}'
 });
 export const SUPPORTED_BENCHMARK_LANGUAGES = ['en', 'es', 'pt-BR'];
 

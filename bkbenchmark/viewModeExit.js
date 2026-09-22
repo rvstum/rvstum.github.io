@@ -11,7 +11,6 @@ import {
 } from "./storage.js";
 import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
 import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
-import * as PacmanUI from "./pacmanUI.js?v=20260921-pacman-toggle-1";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
@@ -130,7 +129,6 @@ export async function exitViewMode(options = {}) {
     ThemeUI.loadCustomThemeHex();
     ThemeUI.loadRankThemeUnlock();
     ThemeUI.loadAutoRankThemeSetting();
-    PacmanUI.loadPacmanSetting();
 
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;

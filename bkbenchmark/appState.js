@@ -15,7 +15,6 @@ export const state = {
     scoresHydrated: false,
     scoresDirty: false,
     ratingUpdateRafId: null,
-    pacmanModeEnabled: false,
     userAchievements: {},
     lastProgressInRank: 0,
     rowFillAnimationStates: [],

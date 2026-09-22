@@ -13,7 +13,6 @@ export const SCORE_STORAGE_KEY = 'benchmark_saved_scores';
 export const CAVE_LINKS_STORAGE_KEY = 'benchmark_saved_cave_links';
 export const SCORE_UPDATED_AT_STORAGE_KEY = 'benchmark_saved_scores_updated_at';
 export const VIEWED_REQUESTS_STORAGE_PREFIX = 'benchmark_viewed_requests_v2';
-export const PACMAN_STORAGE_KEY = 'benchmark_pacman_mode';
 export const SUB_INPUT_MODE_STORAGE_KEY = 'benchmark_sub_input_mode';
 export const ACCOUNT_ID_MAP_STORAGE_KEY = 'benchmark_account_ids_v1';
 export const ACHIEVEMENTS_STORAGE_KEY = 'benchmark_achievements';

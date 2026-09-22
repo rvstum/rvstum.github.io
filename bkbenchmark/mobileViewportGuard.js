@@ -234,6 +234,7 @@
     }, true);
 
     var lastTouchEndAt = 0;
+    var lastTouchEndTarget = null;
 
     document.addEventListener("touchmove", function (event) {
         if (isCropperTarget(event.target)) {
@@ -263,11 +264,17 @@
         var now = Date.now();
         if (isCropperTarget(event.target) || isScoreInputShellTarget(event.target)) {
             lastTouchEndAt = 0;
+            lastTouchEndTarget = null;
             return;
         }
-        if (now - lastTouchEndAt <= 300) {
+        // Only swallow the synthesized click when both taps land on the same element within the window - that's
+        // the actual double-tap-zoom gesture. Scoping this by time alone also caught two quick taps on different
+        // buttons (e.g. switching the Combined/Swords/Bombs radar tabs), which are legitimate sequential taps, and
+        // once the user's tapping rhythm stayed under 300ms every later tap kept getting its click cancelled.
+        if (now - lastTouchEndAt <= 300 && event.target === lastTouchEndTarget) {
             event.preventDefault();
         }
         lastTouchEndAt = now;
+        lastTouchEndTarget = event.target;
     }, { passive: false });
 })();

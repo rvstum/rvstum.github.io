@@ -80,13 +80,17 @@ function updateRadarLists(items, palette, mode, splitIndex = 0) {
         }
     }
 
-    const renderList = (list, data) => {
+    const renderList = (list, data, direction) => {
         list.innerHTML = "";
+        const arrowSvg = direction === "up"
+            ? '<svg class="radar-arrow-icon radar-arrow-icon--up" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M12 5L6 11M12 5l6 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+            : '<svg class="radar-arrow-icon radar-arrow-icon--down" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M12 5L6 11M12 5l6 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         data.forEach((item) => {
             const row = document.createElement("div");
             row.className = "radar-stat-item";
             row.style.setProperty("--radar-color", getItemColor(item.index));
             row.innerHTML = `
+                ${arrowSvg}
                 <span>${item.label}</span>
                 <span class="radar-stat-value">${item.percent}%</span>
                 <div class="radar-bar"><span style="width:${item.percent}%;"></span></div>
@@ -95,8 +99,8 @@ function updateRadarLists(items, palette, mode, splitIndex = 0) {
         });
     };
 
-    renderList(strongList, strongest);
-    renderList(weakList, weakest);
+    renderList(strongList, strongest, "up");
+    renderList(weakList, weakest, "down");
 }
 
 export function updateRadar() {
@@ -140,6 +144,15 @@ export function updateRadar() {
     const half = Math.floor(rawScores.length / 2);
     const swordsTotal = rawScores.slice(0, half).reduce((sum, val) => sum + val, 0);
     const bombsTotal = rawScores.slice(half).reduce((sum, val) => sum + val, 0);
+    const legendTotal = swordsTotal + bombsTotal;
+    const bombsPercentEl = document.getElementById("radarLegendBombsPercent");
+    const swordsPercentEl = document.getElementById("radarLegendSwordsPercent");
+    if (bombsPercentEl && swordsPercentEl) {
+        const bombsPercent = legendTotal > 0 ? Math.round((bombsTotal / legendTotal) * 100) : 0;
+        const swordsPercent = legendTotal > 0 ? Math.round((swordsTotal / legendTotal) * 100) : 0;
+        bombsPercentEl.textContent = `${bombsPercent}%`;
+        swordsPercentEl.textContent = `${swordsPercent}%`;
+    }
     const iconsReady = (!swordIcon || swordIcon.complete) && (!bombIcon || bombIcon.complete);
     if (iconsReady) {
         drawPieChart(donutCanvas, swordsTotal, bombsTotal);

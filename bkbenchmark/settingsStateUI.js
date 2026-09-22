@@ -13,7 +13,6 @@ import {
 export function createSettingsStateController(options = {}) {
     const {
         t,
-        getCurrentLanguage,
         defaultMountConfig,
         normalizeMountConfig,
         getCurrentConfig,
@@ -23,7 +22,6 @@ export function createSettingsStateController(options = {}) {
         readDefaultConfig,
         getStartupConfigDefaults,
         ThemeUI,
-        PacmanUI,
         ScoreManager,
         RankingUI,
         applyLanguage,
@@ -61,12 +59,6 @@ export function createSettingsStateController(options = {}) {
         syncResetConfigUI();
         ThemeUI.updateCustomSwatches(ThemeUI.applyTheme);
         ThemeUI.updateCustomThemeUI(ThemeUI.applyTheme);
-        PacmanUI.injectPacmanSettingUI({
-            onSave: saveSettings,
-            onRadarUpdate: refreshRadarVisuals,
-            reapplyLanguage: () => applyLanguage(getCurrentLanguage(), false)
-        });
-        PacmanUI.syncPacmanUI();
     }
 
     function persistConfigThemeReset(keys, options = {}) {
@@ -152,7 +144,6 @@ export function createSettingsStateController(options = {}) {
         ThemeUI.loadRankThemeUnlock();
         ThemeUI.loadSavedConfigThemes();
         ThemeUI.loadAutoRankThemeSetting();
-        PacmanUI.loadPacmanSetting();
         state.subInputModeEnabled = subInputModeEnabled;
         state.activeSubInputRowIndex = -1;
         document.dispatchEvent(new CustomEvent("benchmark:sub-input-mode-updated", {
@@ -180,11 +171,6 @@ export function createSettingsStateController(options = {}) {
         ThemeUI.validateRankUnlock();
 
         syncSettingsUI();
-        PacmanUI.injectPacmanSettingUI({
-            onSave: saveSettings,
-            onRadarUpdate: refreshRadarVisuals,
-            reapplyLanguage: () => applyLanguage(getCurrentLanguage(), false)
-        });
     }
 
     return {

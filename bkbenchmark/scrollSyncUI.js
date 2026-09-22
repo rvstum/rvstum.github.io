@@ -510,7 +510,9 @@ export function initScoreInputsScrollSync() {
     const ranksBars = Array.from(document.querySelectorAll(".ranks-bars"));
     const ranksBarsStack = document.getElementById("ranksBarsContainer")
         || document.querySelector(".ranks-bars-stack");
-    const stripeGroups = [[0, 1], [2, 3], [4, 5], [6], [7, 8], [9, 10], [11, 12], [13]];
+    // Selection groups: one row per group, so clicking a row outlines that row alone. (Used to pair rows
+    // together - e.g. [0, 1] - which outlined two rows at once for a single click.)
+    const stripeGroups = [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13]];
     let scoreInputFocused = false;
     let scoreBlurResetTimer = 0;
     let pendingBlurDismissSelection = false;

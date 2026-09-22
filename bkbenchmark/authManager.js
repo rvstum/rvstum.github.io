@@ -337,7 +337,6 @@ export async function loadUserProfile(user, hooks = {}) {
         applyLanguage = () => {},
         applyConfig = () => {},
         syncSettingsUI = () => {},
-        syncPacmanUI = () => {},
         applyActiveAccountId = () => {},
         rememberAccountIdForUid = () => {},
         getRememberedAccountIdForUid = () => null,
@@ -562,9 +561,6 @@ export async function loadUserProfile(user, hooks = {}) {
                 ThemeUI.updateCustomThemeUI(ThemeUI.applyTheme);
                 if (ThemeUI.getCurrentTheme() === "custom") await ThemeUI.applyTheme("custom", false);
             }
-
-            state.pacmanModeEnabled = data.settings.pacmanMode === "true";
-            syncPacmanUI();
 
             const storedSubInputMode = readString(SUB_INPUT_MODE_STORAGE_KEY, "false");
             const remoteSubInputMode = Object.prototype.hasOwnProperty.call(data.settings, "subInputMode")

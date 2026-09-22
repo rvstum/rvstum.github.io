@@ -194,6 +194,19 @@ export function buildBenchmarkLayout() {
     caveLabel.setAttribute("data-i18n", "cave");
     caveText.appendChild(caveLabel);
 
+    // One connected header bar behind Cave / Score / Score Threshold / Rating, with divider lines at each
+    // column boundary, so the four floating labels read as a single table header instead of separate text.
+    const headerBar = createElement("div", "ranks-header-bar");
+    const headerDividerCave = createElement("div", "ranks-header-divider ranks-header-divider--cave");
+    const headerDividerScore = createElement("div", "ranks-header-divider ranks-header-divider--score");
+    const headerDividerProgression = createElement("div", "ranks-header-divider ranks-header-divider--progression");
+    const headerDividerRating = createElement("div", "ranks-header-divider ranks-header-divider--rating");
+
+    stack.appendChild(headerBar);
+    stack.appendChild(headerDividerCave);
+    stack.appendChild(headerDividerScore);
+    stack.appendChild(headerDividerProgression);
+    stack.appendChild(headerDividerRating);
     stack.appendChild(ratingText);
     stack.appendChild(scoreText);
     stack.appendChild(progressionText);

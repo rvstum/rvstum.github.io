@@ -5,15 +5,17 @@ export const DESKTOP_SCREENSHOT_WIDTH_PX = 1600;
 export const DESKTOP_CAPTURE_OVERRIDE_CSS = `
     .container { padding: 0 !important; overflow: visible !important; border-radius: 24px !important; }
     .middle-box { padding: 20px !important; min-height: 150px !important; }
-    .top-box { display: flex !important; height: 72px !important; padding: 0 20px !important; gap: 0 !important; grid-template-columns: none !important; grid-template-rows: none !important; align-items: center !important; }
+    .top-box { display: flex !important; height: 72px !important; padding: 0 !important; gap: 16px !important; grid-template-columns: none !important; grid-template-rows: none !important; align-items: center !important; background: none !important; border: none !important; }
+    .profile-box, .achievements-box { display: flex !important; height: 72px !important; align-items: center !important; background-color: var(--panel-bg) !important; border: 3px solid rgba(255, 255, 255, 0.07) !important; border-radius: 20px !important; padding: 0 20px !important; box-sizing: border-box !important; }
+    .achievements-box { flex: 1 1 auto !important; }
     .profile-circle { width: 60px !important; height: 60px !important; margin-right: 15px !important; margin-bottom: 0 !important; grid-column: auto !important; grid-row: auto !important; display: block !important; }
     .profile-details { display: flex !important; gap: 0 !important; margin-top: 0 !important; }
     .profile-identity { display: flex !important; margin-top: 0 !important; }
     .profile-text-block { grid-column: auto !important; grid-row: auto !important; display: flex !important; flex-direction: row !important; align-items: baseline !important; gap: 8px !important; }
     .profile-views { position: absolute !important; top: 0 !important; grid-column: auto !important; grid-row: auto !important; margin-bottom: 0 !important; }
     .trophies-section { position: relative !important; width: auto !important; margin: 0 !important; left: 10px !important; grid-column: auto !important; grid-row: auto !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; }
-    .achievements-section { width: auto !important; margin: 0 30px !important; grid-column: auto !important; grid-row: auto !important; display: flex !important; justify-content: center !important; }
-    .top-right { display: flex !important; }
+    .achievements-section { width: 100% !important; margin: 0 !important; grid-column: auto !important; grid-row: auto !important; display: flex !important; justify-content: center !important; }
+    .top-box-actions { display: flex !important; }
     .controls-container { margin-top: 0 !important; }
     .ranks-wrapper { width: 540px !important; overflow: visible !important; padding: 0 !important; margin-right: 0 !important; }
     .ranks-labels { width: 1014px !important; margin-left: -474px !important; }

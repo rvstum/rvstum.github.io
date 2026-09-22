@@ -301,10 +301,6 @@ function applyViewModeDataSnapshot(data) {
     if (settings.customTheme && settings.customTheme.hex) {
         ThemeUI.setCustomThemeHex(settings.customTheme.hex);
     }
-    if (settings.pacmanMode) {
-        state.pacmanModeEnabled = settings.pacmanMode === "true";
-    }
-
 }
 
 function resolveBestViewModeConfig(data) {

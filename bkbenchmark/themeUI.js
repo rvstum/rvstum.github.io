@@ -311,6 +311,12 @@ export async function applyTheme(themeName, persist = true) {
     document.documentElement.style.setProperty('--active-outline-color', activeOutlineColor);
     document.documentElement.style.setProperty('--active-outline-shadow', activeOutlineShadow);
     const currentRankThemeIndex = getRankThemeIndex(themeState.currentTheme);
+    const verticalBoxFill = themeState.currentTheme === 'default'
+        ? 'rgb(10, 10, 10)'
+        : (currentRankThemeIndex !== null && currentRankThemeIndex > 0
+            ? hexToRgba(RANK_TEXT_COLORS[currentRankThemeIndex], 0.1)
+            : colorWithAlpha(finalTheme['--app-accent-1'] || panelBorder, 0.1));
+    document.documentElement.style.setProperty('--vbox-fill', verticalBoxFill);
     let legalBaddyColor = '#9a9a9a';
     if (currentRankThemeIndex !== null && currentRankThemeIndex > 0) {
         legalBaddyColor = RANK_TEXT_COLORS[currentRankThemeIndex] || legalBaddyColor;
@@ -811,5 +817,3 @@ export function setMaxUnlockedRankIndex(index) {
         ? Math.max(0, Math.min(FINAL_RANK_INDEX, Math.floor(value)))
         : 0;
 }
-
-

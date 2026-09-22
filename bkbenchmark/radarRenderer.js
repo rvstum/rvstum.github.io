@@ -1,4 +1,3 @@
-import { state } from "./appState.js";
 import { isMobileViewport } from "./utils.js";
 import { hexToRgba } from "./utils/colorUtils.js";
 import { RADAR_BAR_COLORS } from "./constants.js";
@@ -158,6 +157,8 @@ export function drawRadarChart(canvas, labels, datasets) {
     });
 }
 
+// Swords vs Bombs chart: a thick ring split into the two totals, with the percentages stacked in the center.
+// The Bombs/Swords legend with matching percentages lives in the DOM beneath the canvas.
 export function drawPieChart(canvas, swordsTotal, bombsTotal) {
     if (!canvas) return;
     const ctx = resizeRadarCanvas(canvas);
@@ -168,305 +169,60 @@ export function drawPieChart(canvas, swordsTotal, bombsTotal) {
     const centerX = width / 2;
     const centerY = height / 2;
     const total = swordsTotal + bombsTotal;
-
-    const isPacman = state.pacmanModeEnabled;
-    const shouldRenderPacman = isPacman
-        && total > 0
-        && swordsTotal !== bombsTotal
-        && swordsTotal > 0
-        && bombsTotal > 0;
-
     const isMobile = isMobileViewport();
     const isSmallMobile = window.innerWidth <= 400;
-    const baseRadius = Math.min(width, height) * (isMobile ? (isSmallMobile ? 0.30 : 0.36) : 0.44);
-
-    const slices = [
-        { label: "Swords", value: swordsTotal, color: "#ef4444" },
-        { label: "Bombs", value: bombsTotal, color: "#3b82f6" }
-    ].map((slice) => ({
-        ...slice,
-        angle: total > 0 ? (slice.value / total) * Math.PI * 2 : 0
-    }));
-
-    if (shouldRenderPacman) {
-        const sorted = [...slices].sort((a, b) => b.value - a.value);
-        const big = sorted[0];
-        const small = sorted[1];
-        if (big) big.color = "#FFEB3B";
-        if (small) small.color = "#ffffff";
-    }
+    const baseRadius = Math.min(width, height) * (isMobile ? (isSmallMobile ? 0.34 : 0.38) : 0.42);
+    const ringWidth = baseRadius * (isMobile ? 0.34 : 0.32);
+    const ringMidRadius = baseRadius - ringWidth / 2;
 
     if (total <= 0) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.lineWidth = ringWidth;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.arc(centerX, centerY, ringMidRadius, 0, Math.PI * 2);
+        ctx.stroke();
         return;
     }
 
-    const maxIndex = slices.reduce((maxIdx, slice, idx) => (
-        slice.value > slices[maxIdx].value ? idx : maxIdx
-    ), 0);
-
-    const minVisualAngle = 0.18;
-    const totalAngle = Math.PI * 2;
-    const displayAngles = slices.map((slice) => slice.angle);
-    if (slices[0].angle > 0 && slices[1].angle > 0) {
-        const smallIndex = slices[0].angle < slices[1].angle ? 0 : 1;
-        if (slices[smallIndex].angle < minVisualAngle) {
-            displayAngles[smallIndex] = minVisualAngle;
-            displayAngles[1 - smallIndex] = totalAngle - minVisualAngle;
-        }
-    }
-    slices.forEach((slice, idx) => {
-        slice.displayAngle = displayAngles[idx];
-    });
+    const slices = [
+        { value: swordsTotal, color: "#ef4444" },
+        { value: bombsTotal, color: "#3b82f6" }
+    ].map((slice) => ({ ...slice, angle: (slice.value / total) * Math.PI * 2 }));
 
     const hasTwoSlices = slices[0].value > 0 && slices[1].value > 0;
-    const explodedIndex = hasTwoSlices && slices[0].value !== slices[1].value
-        ? (slices[0].value < slices[1].value ? 0 : 1)
-        : -1;
-    const shouldExplode = explodedIndex !== -1;
-    const popOut = shouldExplode ? (isMobile ? 9 : 12) : 0;
-    const shrinkAmount = shouldExplode ? (isMobile ? 13 : 16) : 0;
-    const gapWidth = 6;
-    const fixedLabelGap = 32;
-    const edgePadding = isMobile ? 18 : 10;
-    const iconSize = isMobile ? 16 : 20;
-    const iconTextGap = isMobile ? 8 : 12;
-    const percentOffsetY = 12;
-    const textHalfHeight = 6;
+    const gapAngle = hasTwoSlices ? 0.05 : 0;
 
-    ctx.font = "10px Arial, sans-serif";
-    const getIconDrawSize = (img, targetArea = null) => {
-        if (!img || !img.naturalWidth || !img.naturalHeight) {
-            return { width: iconSize, height: iconSize };
-        }
-        let scale = iconSize / Math.max(img.naturalWidth, img.naturalHeight);
-        if (targetArea && targetArea > 0) {
-            const areaScale = Math.sqrt(targetArea / (img.naturalWidth * img.naturalHeight));
-            scale = Math.min(scale, areaScale);
-        }
-        return {
-            width: img.naturalWidth * scale,
-            height: img.naturalHeight * scale
-        };
-    };
-
-    const swordImgRef = document.getElementById("radarSwordIcon");
-    const swordDrawRef = getIconDrawSize(swordImgRef);
-    const swordAreaRef = swordDrawRef.width * swordDrawRef.height;
-
+    ctx.lineCap = "round";
     let start = -Math.PI / 2;
-    slices.forEach((slice, index) => {
-        if (slice.displayAngle <= 0) {
-            start += slice.displayAngle;
+    slices.forEach((slice) => {
+        if (slice.angle <= 0) {
+            start += slice.angle;
             return;
         }
-        const sliceStart = start;
-        const sliceEnd = sliceStart + slice.displayAngle;
-        const isExploded = index === explodedIndex && popOut > 0;
-        const radius = isExploded ? Math.max(baseRadius - shrinkAmount, baseRadius * 0.72) : baseRadius;
-        const mid = sliceStart + slice.displayAngle / 2;
-        const offsetX = isExploded ? Math.cos(mid) * popOut : 0;
-        const offsetY = isExploded ? Math.sin(mid) * popOut : 0;
-        const sliceCenterX = centerX + offsetX;
-        const sliceCenterY = centerY + offsetY;
-        slice.startAngle = sliceStart;
-        slice.endAngle = sliceEnd;
-        slice.midAngle = mid;
-        slice.renderCenterX = sliceCenterX;
-        slice.renderCenterY = sliceCenterY;
-        slice.renderRadius = radius;
-        slice.isExploded = isExploded;
-        ctx.save();
-        ctx.fillStyle = slice.color;
-        ctx.beginPath();
-        ctx.moveTo(sliceCenterX, sliceCenterY);
-        ctx.arc(sliceCenterX, sliceCenterY, radius, sliceStart, sliceEnd);
-        ctx.closePath();
-        ctx.fill();
-        if (shouldExplode) {
-            ctx.lineJoin = "round";
-            ctx.lineCap = "round";
-            ctx.lineWidth = 1.25;
+        const half = gapAngle / 2;
+        const sliceStart = start + half;
+        const sliceEnd = start + slice.angle - half;
+        if (sliceEnd > sliceStart) {
             ctx.strokeStyle = slice.color;
+            ctx.lineWidth = ringWidth;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, ringMidRadius, sliceStart, sliceEnd);
             ctx.stroke();
         }
-        ctx.restore();
-        start = sliceEnd;
-
-        if (shouldRenderPacman && index === maxIndex) {
-            const eyeAngle = index === 0
-                ? (start - slice.displayAngle) + (slice.displayAngle * 0.15)
-                : start - (slice.displayAngle * 0.15);
-            const eyeDist = radius * 0.70;
-            const eyeX = sliceCenterX + Math.cos(eyeAngle) * eyeDist;
-            const eyeY = sliceCenterY + Math.sin(eyeAngle) * eyeDist;
-            const eyeRadius = radius * 0.085;
-            ctx.fillStyle = "#000000";
-            ctx.beginPath();
-            ctx.arc(eyeX, eyeY, eyeRadius, 0, Math.PI * 2);
-            ctx.fill();
-        }
+        start += slice.angle;
     });
 
-    if (shouldExplode && explodedIndex >= 0) {
-        const explodedSlice = slices[explodedIndex];
-        const explodedCenterX = Number.isFinite(explodedSlice.renderCenterX) ? explodedSlice.renderCenterX : centerX;
-        const explodedCenterY = Number.isFinite(explodedSlice.renderCenterY) ? explodedSlice.renderCenterY : centerY;
-        const explodedRadius = Number.isFinite(explodedSlice.renderRadius) ? explodedSlice.renderRadius : baseRadius;
-        const explodedGapWidth = Math.max(3.5, gapWidth - 1.5);
-        const cutRadius = explodedRadius + 4;
-        ctx.save();
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.lineWidth = explodedGapWidth;
-        [explodedSlice.startAngle, explodedSlice.endAngle].forEach((angle) => {
-            if (!Number.isFinite(angle)) return;
-            ctx.beginPath();
-            ctx.moveTo(explodedCenterX, explodedCenterY);
-            ctx.lineTo(
-                explodedCenterX + Math.cos(angle) * cutRadius,
-                explodedCenterY + Math.sin(angle) * cutRadius
-            );
-            ctx.stroke();
-        });
-        ctx.restore();
-    } else if (hasTwoSlices && !shouldExplode) {
-        const dividerAngles = [
-            -Math.PI / 2,
-            -Math.PI / 2 + slices[0].displayAngle
-        ];
-        const cutRadius = baseRadius + 4;
-        ctx.save();
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.lineCap = "round";
-        dividerAngles.forEach((angle) => {
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineWidth = gapWidth;
-            ctx.lineTo(centerX + Math.cos(angle) * cutRadius, centerY + Math.sin(angle) * cutRadius);
-            ctx.stroke();
-        });
-        ctx.restore();
-    }
-
-    start = -Math.PI / 2;
+    const bombsPercent = Math.round((bombsTotal / total) * 100);
+    const swordsPercent = Math.round((swordsTotal / total) * 100);
+    const centerFontSize = isMobile ? (isSmallMobile ? 14 : 16) : 18;
+    const lineGap = centerFontSize * 0.95;
+    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    slices.forEach((slice, index) => {
-        if (slice.displayAngle <= 0) {
-            start += slice.displayAngle;
-            return;
-        }
-        const mid = Number.isFinite(slice.midAngle) ? slice.midAngle : (start + slice.displayAngle / 2);
-        const isExploded = !!slice.isExploded;
-        const sliceCenterX = Number.isFinite(slice.renderCenterX) ? slice.renderCenterX : centerX;
-        const sliceCenterY = Number.isFinite(slice.renderCenterY) ? slice.renderCenterY : centerY;
-        const sliceRadius = Number.isFinite(slice.renderRadius) ? slice.renderRadius : baseRadius;
-
-        ctx.fillStyle = slice.color;
-        const percent = Math.round((slice.value / total) * 100);
-        const label = slice.label;
-        const percentLabel = percent === 0 && slice.value > 0 ? "<1%" : `${percent}%`;
-        const labelWidth = ctx.measureText(label).width;
-        const percentWidth = ctx.measureText(percentLabel).width;
-        const iconIdForSize = label.toLowerCase() === "swords" ? "radarSwordIcon" : "radarBombIcon";
-        const iconImgForSize = document.getElementById(iconIdForSize);
-        const iconDraw = iconIdForSize === "radarBombIcon"
-            ? getIconDrawSize(iconImgForSize, swordAreaRef)
-            : getIconDrawSize(iconImgForSize);
-        const textWidth = Math.max(labelWidth, percentWidth, iconDraw.width);
-        const blockHalfWidth = textWidth / 2;
-        const labelRadius = sliceRadius + fixedLabelGap + (isExploded ? 2 : 0);
-        const topSpan = iconDraw.height + iconTextGap + 2;
-        const bottomSpan = percentOffsetY + textHalfHeight + 2;
-        const sideSpan = blockHalfWidth + 2;
-        const bounds = {
-            minX: edgePadding + sideSpan,
-            maxX: width - edgePadding - sideSpan,
-            minY: edgePadding + topSpan,
-            maxY: height - edgePadding - bottomSpan
-        };
-        const iconKey = label.toLowerCase() === "swords" ? "sword" : "bomb";
-        let centerLabelX;
-        let centerLabelY;
-        const cosMid = Math.cos(mid);
-        const sinMid = Math.sin(mid);
-        const outwardExtra = isMobile ? (isSmallMobile ? 4 : 8) : 8;
-        const desiredRadius = labelRadius + outwardExtra;
-        const minOutsideRadius = sliceRadius + 4;
-        const inBounds = (x, y) => (
-            x >= bounds.minX
-            && x <= bounds.maxX
-            && y >= bounds.minY
-            && y <= bounds.maxY
-        );
-        let chosen = null;
-        for (let r = desiredRadius; r >= minOutsideRadius; r -= 2) {
-            const maxDelta = Math.PI * 0.75;
-            const step = 0.04;
-            for (let delta = 0; delta <= maxDelta; delta += step) {
-                const candidates = delta === 0 ? [mid] : [mid + delta, mid - delta];
-                let found = false;
-                for (const ang of candidates) {
-                    const x = sliceCenterX + Math.cos(ang) * r;
-                    const y = sliceCenterY + Math.sin(ang) * r;
-                    if (inBounds(x, y)) {
-                        chosen = { x, y };
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) break;
-            }
-            if (chosen) break;
-        }
-        if (chosen) {
-            centerLabelX = chosen.x;
-            centerLabelY = chosen.y;
-        } else {
-            centerLabelX = Math.max(bounds.minX, Math.min(bounds.maxX, sliceCenterX + cosMid * desiredRadius));
-            centerLabelY = Math.max(bounds.minY, Math.min(bounds.maxY, sliceCenterY + sinMid * desiredRadius));
-        }
-        centerLabelX = Math.max(bounds.minX, Math.min(bounds.maxX, centerLabelX));
-        centerLabelY = Math.max(bounds.minY, Math.min(bounds.maxY, centerLabelY));
-
-        const labelY = Math.round(centerLabelY);
-        const percentY = Math.round(centerLabelY + percentOffsetY);
-        const iconCenterY = Math.round(centerLabelY - (iconDraw.height / 2 + iconTextGap));
-        const iconId = iconKey === "sword" ? "radarSwordIcon" : "radarBombIcon";
-        const iconImg = document.getElementById(iconId);
-        const labelCenterAlignedX = Math.round(centerLabelX);
-        if (iconImg && iconImg.complete) {
-            const rotation = -Math.PI * 1.5;
-            ctx.save();
-            ctx.translate(labelCenterAlignedX, iconCenterY);
-            ctx.rotate(rotation);
-            const drawSize = iconId === "radarBombIcon"
-                ? getIconDrawSize(iconImg, swordAreaRef)
-                : getIconDrawSize(iconImg);
-            ctx.drawImage(iconImg, -drawSize.width / 2, -drawSize.height / 2, drawSize.width, drawSize.height);
-            ctx.restore();
-        }
-        ctx.textAlign = "center";
-        ctx.globalAlpha = 0.95;
-        ctx.fillText(label, centerLabelX, labelY);
-        ctx.globalAlpha = 0.7;
-        ctx.fillText(percentLabel, centerLabelX, percentY);
-        ctx.textAlign = "center";
-        ctx.globalAlpha = 1;
-        start += slice.displayAngle;
-    });
-
-    if (!shouldExplode) {
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
-        ctx.stroke();
-    }
+    ctx.font = `700 ${centerFontSize}px Arial, sans-serif`;
+    ctx.fillStyle = "#3b82f6";
+    ctx.fillText(`${bombsPercent}%`, centerX, centerY - lineGap / 2);
+    ctx.fillStyle = "#ef4444";
+    ctx.fillText(`${swordsPercent}%`, centerX, centerY + lineGap / 2);
 }
 
 export function drawBarGraph(canvas, data) {
@@ -506,8 +262,8 @@ export function drawBarGraph(canvas, data) {
     const axisBottomY = height - padding.bottom;
 
     const count = data.length;
-    const barWidth = (chartWidth / count) * 0.4;
-    const spacing = (chartWidth / count) * 0.6;
+    const barWidth = (chartWidth / count) * 0.62;
+    const spacing = (chartWidth / count) * 0.38;
 
     let maxVal = 0;
     data.forEach((d) => {

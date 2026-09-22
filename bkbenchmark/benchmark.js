@@ -28,7 +28,6 @@ import {
     AUTO_RANK_THEME_STORAGE_KEY,
     DEFAULT_CONFIG_STORAGE_KEY,
     VISIBILITY_STORAGE_KEY,
-    PACMAN_STORAGE_KEY,
     THEME_UNLOCK_STORAGE_KEY,
     SUB_INPUT_MODE_STORAGE_KEY,
     LANGUAGE_STORAGE_KEY
@@ -92,7 +91,6 @@ import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
 import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as AuthManager from "./authManager.js?v=20260921-bk-title-color-2";
-import * as PacmanUI from "./pacmanUI.js?v=20260921-pacman-toggle-1";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260920-friend-graph";
 import { initFriendsLeaderboardModalController } from "./friendsLeaderboardModalUI.js?v=20260920-friend-graph";
 import { hydrateUserRecord } from "./friendsCoreUI.js?v=20260920-friend-graph";
@@ -107,7 +105,7 @@ import { initSettingsUI } from "./settingsUI.js?v=20260921-bk-title-color-2";
 import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260917-remove-sub-input-tooltip";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
 import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260318-leaderboard-language-sync-1";
-import { createSettingsStateController } from "./settingsStateUI.js?v=20260311-pacman-settings-desktop-1";
+import { createSettingsStateController } from "./settingsStateUI.js?v=20260922-remove-pacman-1";
 import { createTopNavController } from "./topNavUI.js";
 import { hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260403-loader-visible-idempotent-2";
 
@@ -352,7 +350,6 @@ function resetSessionScopedState() {
     state.radarMode = "combined";
     state.lastMainRankIndex = null;
     state.activeViewProfileContext = null;
-    state.pacmanModeEnabled = false;
     state.lastProgressInRank = 0;
     state.allRowThresholds = [];
     state.individualRatings = [];
@@ -404,7 +401,6 @@ function resetSessionScopedState() {
     removeItem(AUTO_RANK_THEME_STORAGE_KEY);
     removeItem(DEFAULT_CONFIG_STORAGE_KEY);
     removeItem(VISIBILITY_STORAGE_KEY);
-    removeItem(PACMAN_STORAGE_KEY);
     removeItem(SUB_INPUT_MODE_STORAGE_KEY);
     removeItem(THEME_UNLOCK_STORAGE_KEY);
     removeItem(LEGACY_ACCOUNT_ID_STORAGE_KEY);
@@ -442,9 +438,7 @@ function resetSessionScopedState() {
         settingsStateController.syncSettingsUI();
     }
 
-    if (typeof PacmanUI.syncPacmanUI === "function") {
-        PacmanUI.syncPacmanUI(refreshRadarVisuals);
-    }
+    refreshRadarVisuals();
     if (profileName) profileName.textContent = "Player";
     if (userMenuName) userMenuName.textContent = "Player";
     if (viewCountEl) viewCountEl.textContent = "0";
@@ -475,9 +469,7 @@ function resetSessionScopedState() {
         animateRowTransition: false
     });
     ThemeUI.applyTheme("default", false);
-    if (typeof PacmanUI?.syncPacmanUI === "function") {
-        PacmanUI.syncPacmanUI(refreshRadarVisuals);
-    }
+    refreshRadarVisuals();
     ScoreManager.loadSavedScores();
     ScoreManager.loadSavedCaveLinks();
     state.scoresHydrated = false;
@@ -1158,7 +1150,6 @@ async function saveSettings() {
             saved: ThemeUI.getSavedCustomThemes()
         },
         rankThemeUnlock: String(ThemeUI.getMaxUnlockedRankIndex()),
-        pacmanMode: state.pacmanModeEnabled ? 'true' : 'false',
         subInputMode: state.subInputModeEnabled ? 'true' : 'false'
     };
     await saveUserData({ settings });
@@ -1266,7 +1257,6 @@ function initModuleConfigurations() {
 
     settingsStateController = createSettingsStateController({
         t,
-        getCurrentLanguage: () => currentLanguage,
         defaultMountConfig: DEFAULT_MOUNT_CONFIG,
         normalizeMountConfig,
         getCurrentConfig,
@@ -1276,7 +1266,6 @@ function initModuleConfigurations() {
         readDefaultConfig,
         getStartupConfigDefaults,
         ThemeUI,
-        PacmanUI,
         ScoreManager,
         RankingUI,
         applyLanguage,
@@ -1674,7 +1663,6 @@ async function loadUserProfile(user) {
         applyLanguage,
         applyConfig,
         syncSettingsUI,
-        syncPacmanUI: () => PacmanUI.syncPacmanUI(refreshRadarVisuals),
         applyActiveAccountId,
         rememberAccountIdForUid,
         getRememberedAccountIdForUid,
