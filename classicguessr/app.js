@@ -5,7 +5,9 @@ const DEFAULT_SECONDS = 60;
 const ROUND_COUNTDOWN_SECONDS = 3;
 const ONE_SECOND_CHALLENGE_MS = 1000;
 const TENTH_SECOND_CHALLENGE_MS = 100;
-const MAX_SCORING_DISTANCE_PIXELS = 6500;
+// Score from the edge of the complete location image (the 19x11-level clue footprint). This is
+// larger than the original 6,500px radius without making moderately distant guesses too generous.
+const MAX_SCORING_DISTANCE_PIXELS = 9000;
 const MAX_ROUND_SCORE = 5000;
 const DEFAULT_TEAM_HEALTH = 5000;
 const MAX_MAP_ZOOM = 80;
@@ -4430,7 +4432,9 @@ function scoreForDistance(distance) {
   }
 
   const closeness = clamp(1 - distance / MAX_SCORING_DISTANCE_PIXELS, 0, 1);
-  return Math.round(closeness * 3200);
+  // A pin just outside the clue footprint should be almost perfect, not fall immediately from
+  // 5,000 to 3,200. Reserve 5,000 for the exact 19x11 answer area and decay smoothly beyond it.
+  return Math.min(MAX_ROUND_SCORE - 1, Math.round(closeness * MAX_ROUND_SCORE));
 }
 
 function distanceToTileBounds(point, tile) {

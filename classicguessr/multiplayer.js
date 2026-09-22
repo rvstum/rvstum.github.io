@@ -57,14 +57,7 @@ function setHostingFlag(isHosting) {
     else sessionStorage.removeItem(HOSTING_STORAGE_KEY);
   } catch { /* storage unavailable */ }
 }
-const PRESENCE_HEARTBEAT_MS = 12 * 1000;
-// The reaper polls faster than the heartbeat so a disconnect is noticed promptly once the
-// timeout lapses. The timeout only needs to tolerate a few missed beats now that false
-// "host has left" kicks are handled by the snapshot cache guard rather than a long timeout.
-const PRESENCE_REAPER_MS = 5 * 1000;
-const SERVER_VERIFY_AFTER_MS = 20 * 1000;
-const PRESENCE_TIMEOUT_MS = 45 * 1000;
-const PRESENCE_HOST_TIMEOUT_MS = 3 * 60 * 1000;
+const UNLOAD_TOKEN_REFRESH_MS = 10 * 60 * 1000;
 // Timers reach the game only when the lobby doc changes, so a single dropped dispatch used
 // to mean no countdown for the rest of the round. Re-publishing the authoritative state on a
 // tick makes every shared timer self-healing instead of depending on one lucky event.
@@ -79,9 +72,9 @@ function lobbyMaxHealth(lobby = session.lobby) {
 }
 
 // A hidden tab throttles setInterval to roughly once a second, then once a minute after a
-// few minutes. That stalls presence heartbeats and, on the host, the round resolution that
-// every other player is waiting on. Worker timers are exempt from that throttling, so the
-// game clock keeps its real cadence while the tab sits in the background.
+// few minutes. That can stall the host's round resolution that every other player is waiting
+// on. Worker timers are exempt from that throttling, so the game clock keeps its real cadence
+// while the tab sits in the background.
 const backgroundTimers = createBackgroundTimers();
 
 function createBackgroundTimers() {
@@ -218,8 +211,6 @@ const session = {
   forcedExitHandled: false,
   viewWriteHandle: 0,
   viewStates: {},
-  lastServerSnapshotMs: 0,
-  serverVerifyBusy: false,
   spectatedOpponent: null,
   spectateEligibleSinceMs: 0,
   spectateStartHandle: 0,
@@ -229,13 +220,11 @@ const session = {
   pendingViewState: null,
   lastViewSignature: "",
   serverClockOffsetMs: null,
-  presenceHeartbeatHandle: 0,
-  presenceReaperHandle: 0,
+  unloadTokenRefreshHandle: 0,
   matchReconcileHandle: 0,
   idToken: "",
   slotReleased: false,
   rematchReadyWriting: false,
-  presenceHostCheckBusy: false,
   departedPlayerIds: new Set(),
 };
 
@@ -730,7 +719,6 @@ function subscribeToLobby() {
       else leaveLobby({ preserveView: true, preserveRemote: true });
       return;
     }
-    if (!snapshot.metadata.fromCache) session.lastServerSnapshotMs = Date.now();
     const previousStatus = session.lobby?.status;
     const nextLobby = snapshot.data();
     updateServerClockOffset(nextLobby.updatedAt);
@@ -773,7 +761,6 @@ function subscribeToLobby() {
     // our own just-written doc), which would look exactly like everyone else disconnecting.
     // Never act on a departure until the server has confirmed it.
     const serverConfirmed = !snapshot.metadata.fromCache;
-    if (serverConfirmed) session.lastServerSnapshotMs = Date.now();
     const departedPlayers = serverConfirmed
       ? previousPlayers.filter((player) => !nextPlayers.some((nextPlayer) => nextPlayer.id === player.id))
       : [];
@@ -843,7 +830,6 @@ function subscribeToLobby() {
     }
   }
 
-  session.lastServerSnapshotMs = Date.now();
   startPresence();
 }
 
@@ -995,9 +981,8 @@ function stopSubscriptions() {
 function startPresence() {
   stopPresence();
   session.slotReleased = false;
-  sendPresenceHeartbeat();
-  session.presenceHeartbeatHandle = backgroundTimers.setInterval(sendPresenceHeartbeat, PRESENCE_HEARTBEAT_MS);
-  session.presenceReaperHandle = backgroundTimers.setInterval(runPresenceReaper, PRESENCE_REAPER_MS);
+  refreshUnloadToken();
+  session.unloadTokenRefreshHandle = backgroundTimers.setInterval(refreshUnloadToken, UNLOAD_TOKEN_REFRESH_MS);
   session.matchReconcileHandle = backgroundTimers.setInterval(reconcileMatchState, MATCH_RECONCILE_MS);
 }
 
@@ -1011,23 +996,21 @@ function reconcileMatchState() {
 }
 
 document.addEventListener("visibilitychange", () => {
-  if (session.lobbyCode) sendPresenceHeartbeat();
+  if (session.lobbyCode) refreshUnloadToken();
 });
 
 // Closing the tab gives no reliable async window, so this is a best-effort fast path that
-// usually frees the slot instantly. The heartbeat reaper stays the actual guarantee for
-// crashes, lost connections and anything this misses.
+// usually frees the slot instantly. Realtime Database onDisconnect remains the guarantee
+// for crashes, closed tabs and anything this misses.
 window.addEventListener("pagehide", (event) => {
   if (event.persisted) return;
   releaseOwnPlayerSlot();
 });
 
 function stopPresence() {
-  backgroundTimers.clearInterval(session.presenceHeartbeatHandle);
-  backgroundTimers.clearInterval(session.presenceReaperHandle);
+  backgroundTimers.clearInterval(session.unloadTokenRefreshHandle);
   backgroundTimers.clearInterval(session.matchReconcileHandle);
-  session.presenceHeartbeatHandle = 0;
-  session.presenceReaperHandle = 0;
+  session.unloadTokenRefreshHandle = 0;
   session.matchReconcileHandle = 0;
   session.departedPlayerIds.clear();
 }
@@ -1063,125 +1046,13 @@ function releaseOwnPlayerSlot() {
   } catch (error) {}
 }
 
-async function sendPresenceHeartbeat() {
+function refreshUnloadToken() {
   const backend = session.backend;
-  const code = session.lobbyCode;
   const user = backend?.auth.currentUser;
-  const uid = user?.uid;
-  if (!backend || !code || !uid) return;
+  if (!backend || !session.lobbyCode || !user?.uid) return;
   // Kept fresh here so the unload path always has a usable token on hand. getIdToken serves a
-  // cached value until it nears expiry, so this costs nothing on a normal beat.
+  // cached value until it nears expiry. This does not write activity timestamps or evict idle players.
   user.getIdToken().then((token) => { session.idToken = token; }).catch(() => {});
-  try {
-    await backend.fs.setDoc(
-      playerRef(backend, code, uid),
-      { updatedAtMs: Date.now() },
-      { merge: true },
-    );
-  } catch (error) {
-    console.error("Could not send multiplayer presence heartbeat", error);
-  }
-}
-
-// A listener stuck on the local cache (slow or degraded connection) shows a guest only themselves
-// and never hears that the host left. If no server-confirmed snapshot has arrived for a while, ask
-// the server directly: leave if the lobby or host is gone, otherwise adopt the real player list.
-async function verifyGuestViewAgainstServer() {
-  const backend = session.backend;
-  const code = session.lobbyCode;
-  if (!backend || !code || session.serverVerifyBusy || !session.lobby) return;
-  if (Date.now() - session.lastServerSnapshotMs < SERVER_VERIFY_AFTER_MS) return;
-  session.serverVerifyBusy = true;
-  try {
-    const lobbySnapshot = await backend.fs.getDocFromServer(backend.fs.doc(backend.db, LOBBY_COLLECTION, code));
-    if (session.lobbyCode !== code) return;
-    if (!lobbySnapshot.exists()) {
-      handleForcedLobbyExit("Host has left.");
-      return;
-    }
-    const playersSnapshot = await backend.fs.getDocsFromServer(backend.fs.collection(backend.db, LOBBY_COLLECTION, code, "players"));
-    if (session.lobbyCode !== code) return;
-    const serverPlayers = playersSnapshot.docs
-      .map((entry) => ({ id: entry.id, ...entry.data() }))
-      .sort((left, right) => Number(left.joinedAtMs || 0) - Number(right.joinedAtMs || 0));
-    const hostUid = lobbySnapshot.data().hostUid;
-    if (!serverPlayers.some((player) => player.id === hostUid)) {
-      handleForcedLobbyExit("Host has left.");
-      return;
-    }
-    session.lastServerSnapshotMs = Date.now();
-    session.lobby = lobbySnapshot.data();
-    const changed = serverPlayers.length !== session.players.length
-      || serverPlayers.some((player, index) => player.id !== session.players[index]?.id);
-    if (changed) {
-      session.players = serverPlayers;
-      renderLobbyPlayers();
-    }
-  } catch (error) {
-    // Offline or unreachable: nothing verifiable, try again on the next beat.
-  } finally {
-    session.serverVerifyBusy = false;
-  }
-}
-
-function runPresenceReaper() {
-  const backend = session.backend;
-  const code = session.lobbyCode;
-  const uid = backend?.auth.currentUser?.uid;
-  if (!backend || !code || !uid || !session.lobby) return;
-  const now = Date.now();
-  const staleFor = (player) => now - Number(player.updatedAtMs || player.joinedAtMs || 0);
-
-  // Deliberately asymmetric. Pruning a stale guest just frees a slot they can rejoin, so it
-  // should be prompt. Declaring the host gone ejects the entire lobby, so it stays
-  // conservative - a host who really closed their tab is caught instantly by the pagehide
-  // cleanup anyway, leaving this to cover only hard crashes and dropped connections.
-  if (session.role === "guest") verifyGuestViewAgainstServer();
-  if (session.role === "guest" && !session.presenceHostCheckBusy) {
-    const hostPlayer = session.players.find((player) => player.id === session.lobby.hostUid);
-    if (hostPlayer && staleFor(hostPlayer) > PRESENCE_HOST_TIMEOUT_MS) {
-      session.presenceHostCheckBusy = true;
-      confirmStalePlayer(session.lobby.hostUid, PRESENCE_HOST_TIMEOUT_MS)
-        .then((stillStale) => {
-          if (stillStale) handleForcedLobbyExit("Host has left.");
-        })
-        .finally(() => { session.presenceHostCheckBusy = false; });
-    }
-    return;
-  }
-
-  if (session.role !== "host") return;
-  session.players
-    .filter((player) => player.id !== uid && !session.departedPlayerIds.has(player.id) && staleFor(player) > PRESENCE_TIMEOUT_MS)
-    .forEach((player) => {
-      session.departedPlayerIds.add(player.id);
-      confirmStalePlayer(player.id)
-        .then((stillStale) => {
-          if (stillStale) return pruneStalePlayer(player.id);
-        })
-        .finally(() => { session.departedPlayerIds.delete(player.id); });
-    });
-}
-
-// Local snapshot data can lag or race with a fresh heartbeat write, so before taking the
-// destructive step of kicking a player (or ourselves) we re-check directly against Firestore.
-async function confirmStalePlayer(playerId, timeoutMs = PRESENCE_TIMEOUT_MS) {
-  const backend = session.backend;
-  const code = session.lobbyCode;
-  if (!backend || !code) return false;
-  try {
-    const freshDoc = await backend.fs.getDoc(playerRef(backend, code, playerId));
-    // If this read fell back to the local cache we could not actually verify anything,
-    // so treat it as "still present" rather than kicking someone on stale data.
-    if (freshDoc.metadata.fromCache) return false;
-    if (!freshDoc.exists()) return true;
-    const freshData = freshDoc.data();
-    const freshUpdatedAtMs = Number(freshData.updatedAtMs || freshData.joinedAtMs || 0);
-    return Date.now() - freshUpdatedAtMs > timeoutMs;
-  } catch (error) {
-    console.error("Could not verify multiplayer player presence", error);
-    return false;
-  }
 }
 
 async function pruneStalePlayer(playerId) {
