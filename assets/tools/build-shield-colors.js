@@ -92,6 +92,7 @@ async function colorOf(file) {
 }
 
 const IMAGE_RE = /\.(png|gif|jpe?g|webp)$/i;
+const SHIELD_EXCLUDE_RE = /classic_personal_shield|^dcicon_menu_shield0\.png$/i;
 const LIST_FILE = path.join(DIR, 'shields.json');
 const COLORS_FILE = path.join(DIR, 'colors.json');
 
@@ -160,7 +161,7 @@ async function buildColors(dir, names, label) {
 }
 
 async function update() {
-    let names = fs.readdirSync(DIR).filter((n) => IMAGE_RE.test(n) && !n.includes('classic_personal_shield')).sort();
+    let names = fs.readdirSync(DIR).filter((n) => IMAGE_RE.test(n) && !SHIELD_EXCLUDE_RE.test(n)).sort();
     for (const name of names.slice()) {
         if (KEEP_EVEN_IF_BLANK.includes(name)) continue;
         const f = path.join(DIR, name);

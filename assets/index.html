@@ -1678,7 +1678,7 @@
         // ["a.png", "b.gif"]. A static site can't list a folder, so assets/tools/build-shield-colors.js
         // regenerates those files whenever something is added or removed.
         const CATEGORIES = {
-            shields:     { dir: 'Shields/',     list: 'shields.json',     one: 'shield',    many: 'shields',     label: 'Shields',     aspect: 0.53, colors: true, preview: true, setCmd: 'setshield', template: { src: '../icons/shieldtemplate.png', overSrc: '../icons/shieldtemplate1.png', w: 152, h: 80 } },
+            shields:     { dir: 'Shields/',     list: 'shields.json',     one: 'shield',    many: 'shields',     label: 'Shields',     aspect: 0.53, colors: true, preview: true, setCmd: 'setshield', exclude: /^dcicon_menu_shield0\.png$/i, template: { src: '../icons/shieldtemplate.png', overSrc: '../icons/shieldtemplate1.png', w: 152, h: 80 } },
             hats:        { dir: 'Hats/',        list: 'hats.json',        one: 'hat',       many: 'hats',        label: 'Hats',        aspect: 0.75, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/hattemplate.png', w: 192, h: 144 } },
             accessories: { dir: 'Accessories/', list: 'accessories.json', one: 'accessory', many: 'accessories', label: 'Accessories', aspect: 0.6, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/accessoriestemplate.png', overSrc: '../icons/accessoriestemplate1.png', w: 240, h: 144 } },
             mounts:      { dir: 'Mounts/',      list: 'mounts.json',      one: 'mount',     many: 'mounts',      label: 'Mounts',      aspect: 1.5,  colors: false, preview: false, setCmd: null, exclude: /^(?:icon_|key_)|particle|^mount_shootingstar-shadow\.png$/i }
