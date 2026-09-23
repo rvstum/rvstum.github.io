@@ -15,7 +15,12 @@ export const state = {
     scoresHydrated: false,
     scoresDirty: false,
     ratingUpdateRafId: null,
-    userAchievements: {},
+    userStats: {
+        mostBkDay: 0,
+        mostPtDay: 0,
+        mostBkSeason: 0,
+        highestBkStreak: 0
+    },
     lastProgressInRank: 0,
     rowFillAnimationStates: [],
     focusedInputIndex: -1,

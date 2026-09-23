@@ -38,7 +38,6 @@ const HIDE_IDS = new Set([
     "friendsModal",
     "imageViewerModal",
     "flagModal",
-    "achievementsModal",
     "reauthModal",
     "emailReloginModal",
     "verificationModal",

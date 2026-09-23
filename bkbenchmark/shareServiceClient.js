@@ -252,8 +252,6 @@ export async function buildShareServiceSnapshot() {
             name: readText(".profile-name") || "Player",
             guild: readText(".guild-name"),
             views: readText("#viewCount"),
-            achievements: readText(".achievements-text"),
-            achievementsPercent: readText(".achievements-percent"),
             currentRank: readText(".rounded-inner-box"),
             progressLabel,
             flagUrl: getFlagImageUrl(),

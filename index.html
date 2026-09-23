@@ -143,7 +143,7 @@
         .install-tip {
             position: fixed;
             right: max(14px, env(safe-area-inset-right));
-            bottom: calc(max(14px, env(safe-area-inset-bottom)) + 100px);
+            bottom: calc(max(14px, env(safe-area-inset-bottom)) + 280px);
             z-index: 6;
             max-width: min(260px, calc(100vw - 28px));
             padding: 10px 12px;
@@ -228,6 +228,7 @@
         }
 
         .new-badge {
+            display: inline-block;
             margin-left: 0.9em;
             font-size: 0.85em;
             font-weight: 700;
@@ -241,6 +242,73 @@
             color: #ffd700;
             filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.55));
             animation: newShine 2s linear infinite, newPulse 1.6s ease-in-out infinite;
+        }
+
+        .site-shortcuts {
+            position: fixed;
+            right: max(14px, env(safe-area-inset-right));
+            bottom: calc(max(14px, env(safe-area-inset-bottom)) + 94px);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transition: opacity var(--page-transition-duration) ease;
+        }
+
+        .page.is-visible ~ .site-shortcuts {
+            opacity: 1;
+        }
+
+        .site-shortcut {
+            display: flex;
+            width: 92px;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: #d4d8e0;
+            font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            line-height: 1.1;
+            text-align: center;
+            text-decoration: none;
+            transition: color 160ms ease, transform 160ms ease, filter 160ms ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .site-shortcut img {
+            display: block;
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+
+        .site-shortcut-domain {
+            color: #777f8d;
+            font-size: 8px;
+            letter-spacing: 0.03em;
+            line-height: 1;
+            text-transform: lowercase;
+        }
+
+        .site-shortcut-domain--long {
+            font-size: 6px;
+            letter-spacing: 0;
+            white-space: nowrap;
+        }
+
+        .site-shortcut:hover,
+        .site-shortcut:focus-visible {
+            color: #ffffff;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
+            outline: none;
+            transform: scale(1.06);
+        }
+
+        body:has(.install-btn[hidden]) .site-shortcuts {
+            bottom: max(14px, env(safe-area-inset-bottom));
         }
 
         @keyframes newShine {
@@ -498,6 +566,14 @@
         }
 
         @media (max-width: 820px) {
+            .install-btn {
+                right: auto;
+                left: max(10px, env(safe-area-inset-left));
+                width: 92px;
+                padding-right: 0;
+                padding-left: 0;
+            }
+
             .menu-wrap {
                 position: relative;
                 display: inline-block;
@@ -512,6 +588,41 @@
                 align-items: center;
                 margin-left: 0.6em;
                 white-space: nowrap;
+            }
+
+            .site-shortcuts {
+                right: max(10px, env(safe-area-inset-right));
+                bottom: max(10px, env(safe-area-inset-bottom));
+                width: 92px;
+                gap: 7px;
+            }
+
+            .site-shortcut {
+                flex: 0 0 auto;
+                width: 92px;
+                gap: 2px;
+                font-size: 8px;
+                line-height: 1.15;
+            }
+
+            .site-shortcut img {
+                width: 30px;
+                height: 30px;
+            }
+
+            .site-shortcut-domain {
+                font-size: 6px;
+                line-height: 1.15;
+            }
+
+            .site-shortcut-domain--long {
+                font-size: 5.5px;
+            }
+
+            .install-tip {
+                right: auto;
+                left: max(10px, env(safe-area-inset-left));
+                bottom: calc(max(10px, env(safe-area-inset-bottom)) + 105px);
             }
         }
 
@@ -773,6 +884,29 @@
             </ul>
         </section>
     </main>
+
+    <nav class="site-shortcuts" aria-label="Other community websites">
+        <a class="site-shortcut" href="https://eggdex.vercel.app/" target="_blank" rel="noopener noreferrer">
+            <img src="https://eggdex.vercel.app/assets/img/serxe_easter_icon.png" alt="">
+            <span>Egg Tracker</span>
+            <span class="site-shortcut-domain">eggdex.vercel.app</span>
+        </a>
+        <a class="site-shortcut" href="https://www.graalbank.com/" target="_blank" rel="noopener noreferrer">
+            <img src="/assets/shieldicon.png" alt="">
+            <span>More Assets</span>
+            <span class="site-shortcut-domain">graalbank.com</span>
+        </a>
+        <a class="site-shortcut" href="https://classicupload.graalonline.com/" target="_blank" rel="noopener noreferrer">
+            <img src="/menu/uploadicon.png" alt="">
+            <span>Upload</span>
+            <span class="site-shortcut-domain site-shortcut-domain--long">classicupload.graalonline.com</span>
+        </a>
+        <a class="site-shortcut" href="https://dustyshouri.github.io/" target="_blank" rel="noopener noreferrer">
+            <img src="/menu/uploadpreviewericon.png" alt="">
+            <span>Upload Previewer</span>
+            <span class="site-shortcut-domain">dustyshouri.github.io</span>
+        </a>
+    </nav>
 
     <button class="install-btn" type="button" id="installButton" aria-label="Install App">
         <img src="/menu/kdassisticon.png" alt="">

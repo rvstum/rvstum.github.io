@@ -6,7 +6,7 @@ import { getFlagUrl } from "./utils.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
 import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
-import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
+import * as UserStatsManager from "./userStatsManager.js?v=20260923-stat-fit-2";
 import * as FriendsService from "./friendsService.js?v=20260920-friend-graph";
 import * as RadarUI from "./radarUI.js";
 import * as RankingUI from "./rankingUI.js?v=20260921-rank-divider-7";
@@ -75,8 +75,8 @@ function normalizeViewModeData(data = {}) {
         scores: ScoreManager.normalizeSavedScoresRecord(safeData.scores),
         caveLinks: normalizeRecord(safeData.caveLinks),
         configThemes: normalizeRecord(safeData.configThemes),
-        achievements: (safeData.achievements && typeof safeData.achievements === "object" && !Array.isArray(safeData.achievements))
-            ? safeData.achievements
+        userStats: (safeData.userStats && typeof safeData.userStats === "object" && !Array.isArray(safeData.userStats))
+            ? safeData.userStats
             : {}
     };
 }
@@ -439,10 +439,8 @@ function applyViewModeProfileHeader(data) {
     }
 }
 
-function applyViewModeTrophiesAchievementsAndViews(data, uid) {
+function applyViewModeTrophiesStatsAndViews(data, uid) {
     const renderSeasonalTrophyList = requireDep("renderSeasonalTrophyList");
-    const openImageViewer = requireDep("openImageViewer");
-    const showConfirmModal = requireDep("showConfirmModal");
     const profile = data.profile || {};
     const trophyList = getCachedElementById("trophyList");
     const trophyPlaceholder = getCachedElementById("trophyPlaceholder");
@@ -452,10 +450,7 @@ function applyViewModeTrophiesAchievementsAndViews(data, uid) {
         setFlexVisible(trophyList, true);
     }
 
-    state.userAchievements = (data.achievements && typeof data.achievements === "object" && !Array.isArray(data.achievements))
-        ? data.achievements
-        : {};
-    AchievementsUI.renderAchievements(openImageViewer, showConfirmModal);
+    UserStatsManager.applyUserStatsFromRemote(data.userStats);
 
     const viewCountEl = getCachedElementById("viewCount");
     const currentViews = resolveViewCountFromData(data);
@@ -493,6 +488,9 @@ function lockViewModeInteractiveInputs() {
     document.querySelectorAll(".score-input, .sub-score-input").forEach((input) => {
         input.disabled = true;
         input.classList.add("score-input--view-locked");
+    });
+    document.querySelectorAll(".stats-input").forEach((input) => {
+        input.disabled = true;
     });
 }
 
@@ -578,7 +576,7 @@ export async function enterViewMode(data, uid, options = {}) {
     const configToUse = configOverride || resolveBestViewModeConfig(normalizedData);
     applyViewModeConfigAndTheme(normalizedData, configToUse);
     applyViewModeProfileHeader(normalizedData);
-    applyViewModeTrophiesAchievementsAndViews(normalizedData, uid);
+    applyViewModeTrophiesStatsAndViews(normalizedData, uid);
 
     RadarUI.setRadarMode("combined", false);
     RadarUI.updateRadar();

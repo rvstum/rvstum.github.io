@@ -2,10 +2,8 @@ import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
 import {
     readString,
-    readJson,
     writeJson,
     CACHED_VIEWS_STORAGE_KEY,
-    ACHIEVEMENTS_STORAGE_KEY,
     CAVE_LINKS_STORAGE_KEY,
     CONFIG_THEMES_STORAGE_KEY
 } from "./storage.js";
@@ -14,7 +12,7 @@ import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
-import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
+import * as UserStatsManager from "./userStatsManager.js?v=20260923-stat-fit-2";
 import * as RankingUI from "./rankingUI.js?v=20260921-rank-divider-7";
 import * as RadarUI from "./radarUI.js";
 
@@ -86,7 +84,6 @@ export async function exitViewMode(options = {}) {
             viewingOwnProfile: false
         }
     }));
-    closeOverlayModal("achievementsModal");
     closeOverlayModal("imageViewerModal");
 
     const userMenuBox = getCachedElementById("userMenuBox");
@@ -108,6 +105,9 @@ export async function exitViewMode(options = {}) {
     document.querySelectorAll(".score-input, .sub-score-input").forEach((input) => {
         input.disabled = false;
         input.classList.remove("score-input--view-locked");
+    });
+    document.querySelectorAll(".stats-input").forEach((input) => {
+        input.disabled = false;
     });
 
     const url = new URL(window.location);
@@ -161,11 +161,7 @@ export async function exitViewMode(options = {}) {
 
     TrophyUI.renderTrophies();
 
-    const savedAchievements = readJson(ACHIEVEMENTS_STORAGE_KEY, null);
-    state.userAchievements = (savedAchievements && typeof savedAchievements === "object" && !Array.isArray(savedAchievements))
-        ? savedAchievements
-        : {};
-    AchievementsUI.updateAchievementsProgress();
+    UserStatsManager.loadUserStats();
 
     if (typeof loadUserProfile === "function") {
         await loadUserProfile(user);

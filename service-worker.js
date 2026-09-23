@@ -1,9 +1,14 @@
-const CACHE_NAME = 'kdassist-v1.13.2';
+const CACHE_NAME = 'kdassist-v1.13.19';
 const urlsToCache = [
   './',
   './index.html',
   './treasuremaps/',
   './menu/kdassisticon.png',
+  './menu/uploadicon.png',
+  './menu/uploadpreviewericon.png',
+  './assets/assetsicon.png',
+  './assets/assetsicon-tab.png',
+  './assets/shieldicon.png',
   './bkbenchmark/benchmark.html',
   './icons/map2a.png',
   './maps.csv',

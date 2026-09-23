@@ -362,10 +362,6 @@ html {
     font-size: 11px;
 }
 
-.achievements-fill--zero {
-    width: 0%;
-}
-
 .settings-card--mt20 {
     margin-top: 20px;
 }
@@ -1973,57 +1969,110 @@ body.view-mode .cave-play-edit {
     }
 }
 
-.achievements-section {
+.stats-section {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin: 0 30px;
+    margin: 0 20px;
     position: relative;
-    cursor: pointer;
     border-radius: 12px;
     min-width: 0;
 }
 
-.achievements-title {
-    font-size: 11px;
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px 14px;
+    width: 100%;
+}
+
+.stats-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    position: relative;
+}
+
+.stats-icon {
+    position: absolute;
+    left: calc(50% - 59px);
+    bottom: 4px;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+.stats-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    fill: currentColor;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.65));
+}
+
+.stats-icon--skull { color: #9ba0a8; }
+.stats-icon--points { color: #e3b83f; }
+.stats-icon--season { color: #65ae6f; }
+.stats-icon--streak { color: #ef6b35; }
+
+.stats-icon-cutout {
+    fill: #171717;
+}
+
+.stats-icon-vein {
+    fill: none;
+    stroke: #d0e7bd;
+    stroke-linecap: round;
+    stroke-width: 1.35;
+}
+
+.stats-label {
+    font-size: 9px;
     font-weight: bold;
-    color: #fff;
+    color: #bbb;
     text-align: center;
     margin-bottom: 5px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
 }
 
-.achievements-text {
-    font-size: 10px;
-    font-weight: 600;
-    color: #bbb;
-    text-align: center;
-    margin-top: 5px;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-}
-
-.achievements-percent {
-    color: #888;
-}
-
-.achievements-bar {
+.stats-input {
     width: 100%;
-    height: 17px;
-    background: rgba(255, 255, 255, 0.1);
+    max-width: 72px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
-    overflow: hidden;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 4px;
+    box-sizing: border-box;
+    -moz-appearance: textfield;
+    appearance: textfield;
 }
 
-.achievements-fill {
-    height: 100%;
-    background: #f5c645;
-    border-radius: 6px;
-    transition: width 0.3s ease;
+.stats-input::-webkit-outer-spin-button,
+.stats-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.stats-input:focus {
+    outline: none;
+    border-color: #f5c645;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.stats-input::placeholder {
+    color: #777;
 }
 
 /* Leaderboard / Share / Settings nav row: sits beside the account dropdown button (controls-container), pushed
@@ -2109,11 +2158,28 @@ body.view-mode .cave-play-edit {
 
     .achievements-box {
         flex: 1 1 auto;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
     }
 
-    .achievements-box .achievements-section {
+    /* Match the darker inset layer used by the controls and ranking panels. On mobile the
+       achievements panel already darkens by stacking over .top-box; desktop needs its own inset. */
+    .achievements-box::before {
+        content: "";
+        position: absolute;
+        inset: 6px 8px;
+        background-color: rgba(0, 0, 0, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .achievements-box .stats-section {
         margin: 0;
         width: 100%;
+        z-index: 1;
     }
 }
 
@@ -5258,7 +5324,6 @@ input:-webkit-autofill:active {
 #friendsModal.show .settings-content-box,
 #profileModal.show .settings-content-box,
 #trophyModal.show .settings-content-box,
-#achievementsModal.show .settings-content-box,
 #flagModal.show .settings-content-box {
     animation: modalPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
@@ -5267,8 +5332,7 @@ input:-webkit-autofill:active {
 #leaderboardModal.closing .settings-content-box,
 #friendsModal.closing .settings-content-box,
 #profileModal.closing .settings-content-box,
-#trophyModal.closing .settings-content-box,
-#achievementsModal.closing .settings-content-box {
+#trophyModal.closing .settings-content-box {
     animation: modalPopOut 0.2s ease-in forwards;
 }
 
@@ -5277,7 +5341,6 @@ input:-webkit-autofill:active {
 #friendsModal.closing,
 #profileModal.closing,
 #trophyModal.closing,
-#achievementsModal.closing,
 #flagModal.closing {
     opacity: 0;
     transition: opacity 0.2s ease;
@@ -6873,373 +6936,6 @@ input:-webkit-autofill:active {
     z-index: 25;
 }
 
-.achievements-content-box {
-    max-width: 760px;
-    padding: 22px 22px 18px;
-}
-
-.achievements-modal-title-icon {
-    display: block;
-    width: 72px;
-    height: 72px;
-    margin: 0 auto 10px;
-    object-fit: contain;
-}
-
-.achievements-bar-modal {
-    height: 25px;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 10px;
-}
-
-.achievements-bar-modal .achievements-fill {
-    border-radius: 999px;
-}
-
-.achievements-title-modal {
-    margin: 0 0 10px;
-}
-
-.achievements-text-modal {
-    margin: 0 0 12px;
-    text-align: center;
-    font-size: 12px;
-    color: #9c9c9c;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-}
-
-.achievement-list {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-top: 0;
-}
-
-@media (min-width: 760px) {
-    .achievement-list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-.achievement-item {
-    background: rgba(255, 255, 255, 0.045);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
-    cursor: pointer;
-    min-height: 126px;
-}
-
-.achievement-item:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.22);
-    background: rgba(255, 255, 255, 0.07);
-}
-
-.achievement-item.completed {
-    border-color: rgba(76, 175, 80, 0.45);
-    background: rgba(76, 175, 80, 0.14);
-}
-
-.achievement-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.achievement-index {
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(0, 0, 0, 0.35);
-    color: #8a8a8a;
-    font-size: 11px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.achievement-info {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
-}
-
-.achievement-meta-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 5px;
-}
-
-.achievement-category {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    border-radius: 999px;
-    padding: 2px 7px;
-    border: 1px solid transparent;
-}
-
-.achievement-category-total {
-    color: #9ec5ff;
-    background: rgba(66, 133, 244, 0.15);
-    border-color: rgba(66, 133, 244, 0.3);
-}
-
-.achievement-category-kills {
-    color: #ffadad;
-    background: rgba(244, 67, 54, 0.13);
-    border-color: rgba(244, 67, 54, 0.3);
-}
-
-.achievement-category-points {
-    color: #ffe9a6;
-    background: rgba(245, 198, 69, 0.13);
-    border-color: rgba(245, 198, 69, 0.3);
-}
-
-.achievement-category-streak {
-    color: #d0b2ff;
-    background: rgba(123, 63, 228, 0.16);
-    border-color: rgba(123, 63, 228, 0.3);
-}
-
-.achievement-category-duo {
-    color: #9ff2e6;
-    background: rgba(0, 168, 146, 0.16);
-    border-color: rgba(0, 168, 146, 0.3);
-}
-
-.achievement-category-trio {
-    color: #9fd9ff;
-    background: rgba(25, 118, 210, 0.15);
-    border-color: rgba(25, 118, 210, 0.3);
-}
-
-.achievement-category-quad {
-    color: #ffd39f;
-    background: rgba(255, 145, 0, 0.15);
-    border-color: rgba(255, 145, 0, 0.3);
-}
-
-.achievement-state {
-    margin-left: auto;
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 999px;
-    padding: 2px 7px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-
-.achievement-state.incomplete {
-    color: #9d9d9d;
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.achievement-state.done {
-    color: #8de49a;
-    background: rgba(76, 175, 80, 0.2);
-}
-
-.achievement-goal {
-    font-size: 13px;
-    font-weight: 600;
-    color: #fff;
-    line-height: 1.35;
-}
-
-.achievement-checkbox {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: #4caf50;
-    flex-shrink: 0;
-    margin-top: 3px;
-}
-
-.achievement-checkbox--view {
-    pointer-events: none;
-    cursor: default;
-}
-
-.achievement-note-wrap {
-    margin-top: auto;
-}
-
-.achievement-note-fields {
-    display: grid;
-    gap: 8px;
-    margin-top: auto;
-}
-
-.achievement-note-fields .achievement-note-wrap {
-    margin-top: 0;
-}
-
-.achievement-note-fields-multi {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.achievement-note-fields-triple .achievement-note-wrap:nth-child(3) {
-    grid-column: 1 / -1;
-    justify-self: center;
-    width: min(280px, calc((100% - 8px) / 2));
-}
-
-@media (max-width: 760px) {
-    .achievement-note-fields-multi {
-        grid-template-columns: 1fr;
-    }
-
-    .achievement-note-fields-triple .achievement-note-wrap:nth-child(3) {
-        grid-column: auto;
-        justify-self: stretch;
-        width: 100%;
-    }
-}
-
-.achievement-note-label {
-    font-size: 10px;
-    color: #8f8f8f;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 5px;
-}
-
-.achievement-input {
-    background: rgba(0, 0, 0, 0.38);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 8px;
-    color: #fff;
-    padding: 8px 10px;
-    font-size: 12px;
-    width: 100%;
-    outline: none;
-}
-
-.achievement-input:focus {
-    border-color: #f5c645;
-    box-shadow: none;
-}
-
-.achievement-input:disabled {
-    opacity: 0.5;
-}
-
-body.view-mode .achievement-input:disabled {
-    opacity: 1;
-    color: #fff;
-    -webkit-text-fill-color: #fff;
-}
-
-.achievement-proof-wrap {
-    margin-top: 2px;
-}
-
-.achievement-proof-upload {
-    margin-top: 4px;
-    height: 110px;
-    min-height: 110px;
-    border: 1px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.28);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
-    overflow: hidden;
-    position: relative;
-}
-
-.achievement-proof-upload:hover {
-    border-color: rgba(245, 198, 69, 0.45);
-    background: rgba(0, 0, 0, 0.38);
-}
-
-.achievement-proof-upload:focus-visible {
-    outline: none;
-    border-color: #f5c645;
-    box-shadow: none;
-}
-
-.achievement-proof-upload.has-image {
-    padding: 0;
-    border-style: solid;
-    background: rgba(0, 0, 0, 0.45);
-}
-
-.achievement-proof-upload:not([tabindex]) {
-    cursor: default;
-}
-
-body.view-mode .achievement-proof-upload.has-image {
-    cursor: zoom-in;
-}
-
-.achievement-proof-upload:not([tabindex]):hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(0, 0, 0, 0.28);
-}
-
-.achievement-proof-placeholder {
-    font-size: 11px;
-    color: #929292;
-    line-height: 1.35;
-}
-
-.achievement-proof-preview {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-}
-
-.achievement-proof-input {
-    display: none;
-}
-
-.achievement-proof-remove {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 22px;
-    height: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    font-size: 16px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    z-index: 2;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.achievement-proof-remove:hover {
-    border-color: #f5c645;
-    background: rgba(0, 0, 0, 0.86);
-}
 
 @media (max-width: 900px), (max-device-width: 900px) {
     html,
@@ -7334,13 +7030,44 @@ body.view-mode .achievement-proof-upload.has-image {
         position: relative;
     }
 
-    /* Desktop wraps .profile-circle/.profile-details in .profile-box and .achievements-section in .achievements-box
-       so each can carry its own background/border box. On mobile, "display: contents" makes those wrappers
-       transparent to layout so their children go back to being direct grid children of .top-box, exactly matching
-       the grid-column/grid-row placement rules below (unchanged from before the wrappers existed). */
-    .profile-box,
-    .achievements-box {
+    /* Desktop wraps .profile-circle/.profile-details in .profile-box so it can carry its own background/border box.
+       On mobile, "display: contents" makes that wrapper transparent to layout so its children go back to being
+       direct grid children of .top-box, exactly matching the grid-column/grid-row placement rules below (unchanged
+       from before the wrapper existed). .achievements-box (the stats box) instead stays a real element on mobile so
+       it renders as its own separate dark panel, matching the desktop side-by-side layout. */
+    .profile-box {
         display: contents;
+    }
+
+    .achievements-box {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        width: 100%;
+        margin: 15px 0 0 0;
+        display: block;
+        background-color: rgba(0, 0, 0, 0.35);
+        border-radius: 16px;
+        padding: 14px 12px;
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+    }
+
+    .achievements-box::before {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        background-color: rgba(0, 0, 0, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .achievements-box .stats-section {
+        position: relative;
+        z-index: 1;
     }
 
     .profile-circle {
@@ -7482,13 +7209,16 @@ body.view-mode .achievement-proof-upload.has-image {
         bottom: 0px;
     }
 
-    .achievements-section {
+    .stats-section {
         display: flex;
         width: 100%;
-        margin: 15px 0 0 0;
-        grid-column: 1 / -1;
-        grid-row: 3;
+        margin: 0;
         justify-content: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 12px;
     }
 
     .top-box-actions {
@@ -8398,7 +8128,6 @@ body.view-mode .achievement-proof-upload.has-image {
         width: 100%;
     }
 
-    .achievements-title-modal,
     .trophy-modal-header {
         text-align: center;
     }
@@ -8443,7 +8172,6 @@ body.view-mode .achievement-proof-upload.has-image {
     }
 
     #closeSettingsModal,
-    #closeAchievementsModal,
     #closeTrophyModal {
         background-color: rgba(0, 0, 0, 0.75);
         width: 32px;
@@ -8465,10 +8193,6 @@ body.view-mode .achievement-proof-upload.has-image {
         z-index: 10001;
         padding-bottom: 0;
         line-height: 1;
-    }
-
-    #achievementsModal #closeAchievementsModal {
-        margin-bottom: -32px;
     }
 
     #profileModal .profile-pic-section {
@@ -8764,7 +8488,7 @@ body.view-mode .achievement-proof-upload.has-image {
     textarea,
     .settings-select,
     .score-input,
-    .achievement-input,
+    .stats-input,
     #friendsModal #friendIdInput,
     #settingsModal .settings-custom-trigger,
     #settingsModal .settings-custom-item,
@@ -10152,7 +9876,10 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     border: 1.5px solid #0b0d12;
     outline: 1px solid var(--rank-marker);
     transform: translateX(-50%) rotate(45deg);
-    box-shadow: 0 0 6px var(--rank-marker);
+    box-shadow:
+        inset 0 0 3px rgba(255, 255, 255, 0.95),
+        inset 0 0 5px var(--rank-marker),
+        0 0 7px var(--rank-marker);
 }
 .ranks-labels .rank-item:nth-child(1) { --rank-marker: #8a8a8a; }
 .ranks-labels .rank-item:nth-child(2) { --rank-marker: #CD7F32; }
@@ -10444,28 +10171,6 @@ body:not(.mobile-layout-active) .score-input-wrapper {
 .rank-tier-track::before {
     left: -7%;
     right: -7%;
-}
-
-/* Achievements title: trophy icon hangs off the left without moving the text */
-.achievements-section > .achievements-title {
-    position: relative;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
-}
-.achievements-section > .achievements-title::before {
-    content: "";
-    position: absolute;
-    right: 100%;
-    top: 50%;
-    width: 12px;
-    height: 12px;
-    margin-right: 5px;
-    transform: translateY(-50%);
-    background-color: currentColor;
-    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3h10v2h3v3c0 2.4-1.7 4.4-4 4.9A5 5 0 0 1 13 16v3h3v2H8v-2h3v-3a5 5 0 0 1-3-3.1C5.7 12.4 4 10.4 4 8V5h3zM6 7v1c0 1 .6 1.9 1.4 2.4A5 5 0 0 1 7 8V7zm12 0h-1v1a5 5 0 0 1-.4 2.4C17.400 9.900 18 9 18 8z'/%3E%3C/svg%3E") center / contain no-repeat;
-    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3h10v2h3v3c0 2.4-1.7 4.4-4 4.9A5 5 0 0 1 13 16v3h3v2H8v-2h3v-3a5 5 0 0 1-3-3.1C5.7 12.4 4 10.4 4 8V5h3zM6 7v1c0 1 .6 1.9 1.4 2.4A5 5 0 0 1 7 8V7zm12 0h-1v1a5 5 0 0 1-.4 2.4C17.400 9.900 18 9 18 8z'/%3E%3C/svg%3E") center / contain no-repeat;
-    opacity: 0.85;
 }
 
 /* Tier track: first/last circles sit at the track ends so the line extends evenly past them;
@@ -11678,6 +11383,11 @@ body.mobile-layout-active .progress-bar {
     .bk-title {
         font-size: clamp(26px, 7.8vw, 35px);
     }
+
+    /* Mobile filter controls use one panel only; the inset layer is reserved for desktop. */
+    .filters-box::before {
+        content: none;
+    }
 }
 
 /* Cave Graph big box: visible outline (the default panel border is only 5% white) */
@@ -11752,6 +11462,223 @@ body.mobile-layout-active .rounded-inner-box::after {
 .vertical-box.vbox-2 {
     background-color: var(--vbox-fill, rgb(10, 10, 10));
     box-shadow: inset 0 0 0 1px rgba(62, 15, 15, 0.55);
+}
+
+/* Localization safety: translated copy may be substantially longer than English. Let it wrap inside
+   flexible controls, and reduce type in the compact fixed-width UI without letting it cross borders. */
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) [data-i18n] {
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) :is(
+    .settings-card-title,
+    .settings-label,
+    .settings-note,
+    .settings-btn,
+    .settings-toggle-wide,
+    .stats-label,
+    .trophy-placeholder,
+    .box-float-label,
+    .dropdown-item,
+    .nav-item
+) {
+    white-space: normal;
+    line-height: 1.15;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .stats-label {
+    font-size: 8px;
+    letter-spacing: 0.12px;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) body:not(.mobile-layout-active) :is(
+    .nav-item,
+    .small-inner-box,
+    .box-float-label,
+    #settingsModal .settings-label,
+    #settingsModal .settings-select,
+    #settingsModal .settings-custom-trigger,
+    #settingsModal .settings-custom-item
+) {
+    font-size: 11px;
+    letter-spacing: 0.25px;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .small-inner-box > span {
+    min-width: 0;
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.08;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) body:not(.mobile-layout-active) .box-float-label {
+    left: 50% !important;
+    right: auto !important;
+    width: max-content !important;
+    max-width: calc(100% - 8px);
+    padding: 1px 5px;
+    font-size: 9px;
+    line-height: 1.05;
+    text-align: center;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    transform: translate(-50%, -100%) !important;
+}
+
+/* Long localized Score headings share a narrow column with icons on both sides. Keep the label centered while
+   reserving space for both icons so none of them crosses a header divider. */
+.score-text-label {
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.header-label-score::before {
+    width: 11px;
+    height: 11px;
+    margin-right: 3px;
+}
+
+.score-link-toggle {
+    left: auto !important;
+    right: 3px;
+    width: 15px;
+    height: 15px;
+}
+
+.score-link-icon {
+    width: 13px;
+    height: 13px;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .score-text-label {
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .header-label-score::before {
+    width: 11px;
+    height: 11px;
+    margin-right: 3px;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .score-link-toggle {
+    left: auto !important;
+    right: 3px;
+    width: 15px;
+    height: 15px;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .score-link-icon {
+    width: 13px;
+    height: 13px;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .rating-text .header-label-rating {
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .header-label-rating::before {
+    width: 10px;
+    height: 10px;
+    margin-right: 3px;
+}
+
+@media (min-width: 901px) {
+    body:not(.mobile-layout-active) .score-link-toggle {
+        left: calc(50% + var(--score-link-inline-offset, 18px)) !important;
+        right: auto;
+    }
+}
+
+@media (max-width: 900px), (max-device-width: 900px) {
+    .score-text-label {
+        font-size: 9px !important;
+    }
+
+    .header-label-score::before {
+        width: 10px;
+        height: 10px;
+        margin-right: 2px;
+    }
+
+    .score-link-toggle {
+        right: 2px;
+        width: 13px;
+        height: 13px;
+    }
+
+    .score-link-icon {
+        width: 11px;
+        height: 11px;
+    }
+
+    html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .score-text-label {
+        font-size: 8px !important;
+    }
+
+    html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .header-label-score::before {
+        width: 9px;
+        height: 9px;
+        margin-right: 2px;
+    }
+
+    html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .score-link-toggle {
+        right: 2px;
+        width: 12px;
+        height: 12px;
+    }
+
+    html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .score-link-icon {
+        width: 11px;
+        height: 11px;
+    }
+
+    html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .rating-text .header-label-rating {
+        font-size: 8px !important;
+    }
+
+    html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) .header-label-rating::before {
+        width: 9px;
+        height: 9px;
+        margin-right: 2px;
+    }
+
+    html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) :is(
+        #settingsModal .settings-label,
+        #settingsModal .settings-custom-trigger,
+        #settingsModal .settings-custom-item,
+        .mobile-top-links .mobile-link > span,
+        #mobileCompareBtn > span
+    ) {
+        font-size: 9.5px !important;
+        letter-spacing: 0.15px;
+        line-height: 1.12;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) #settingsModal .settings-field {
+        grid-template-columns: minmax(0, 1fr) minmax(104px, 36%) !important;
+    }
+
+    html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) :is(
+        .radar-title,
+        .radar-stat-title,
+        .radar-stat-item > span:first-child,
+        .leaderboard-table-head,
+        .trophy-placeholder
+    ) {
+        font-size: clamp(8px, 2.7vw, 11px) !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+    }
 }
 
 /* Strongest / Weakest caves: center each name vertically between the bars above and below it.

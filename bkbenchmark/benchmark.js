@@ -15,7 +15,7 @@ import {
     PROFILE_PIC_STATE_STORAGE_KEY,
     COUNTRY_FLAG_STORAGE_KEY,
     GUILDS_STORAGE_KEY,
-    ACHIEVEMENTS_STORAGE_KEY,
+    USER_STATS_STORAGE_KEY,
     SEASONAL_TROPHIES_STORAGE_KEY,
     CONFIG_THEMES_STORAGE_KEY,
     LEGACY_ACCOUNT_ID_STORAGE_KEY,
@@ -67,8 +67,8 @@ import { persistUserData } from "./persistence.js";
 import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
 import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 import * as ViewModeManager from "./viewModeManager.js?v=20260921-exit-text-white-1";
-import * as ShareManager from "./shareManager.js?v=20260317-modal-touch-scroll-1";
-import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260317-modal-touch-scroll-1";
+import * as ShareManager from "./shareManager.js?v=20260923-stat-commas-1";
+import { bindModalOverlayQuickClose } from "./shareManager.js?v=20260923-stat-commas-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as LayoutRuntime from "./layoutRuntime.js";
 import {
@@ -88,7 +88,7 @@ import {
     BENCHMARK_LANGUAGE_LABELS
 } from "./i18n.js";
 import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
-import * as AchievementsUI from "./achievementsUI.js?v=20260309-achievements-view-fix-1";
+import * as UserStatsManager from "./userStatsManager.js?v=20260923-stat-fit-2";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as AuthManager from "./authManager.js?v=20260921-bk-title-color-2";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260920-friend-graph";
@@ -102,7 +102,7 @@ import { initProfileModalController } from "./profileModalUI.js?v=20260403-loade
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260311-profile-original-sync-1";
 import { initSettingsUI } from "./settingsUI.js?v=20260921-bk-title-color-2";
-import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260917-remove-sub-input-tooltip";
+import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260923-desktop-score-link-gap";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
 import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260318-leaderboard-language-sync-1";
 import { createSettingsStateController } from "./settingsStateUI.js?v=20260922-remove-pacman-1";
@@ -344,7 +344,7 @@ function resetSessionScopedState() {
     state.savedConfigThemes = {};
     state.currentFriendRequests = [];
     state.hasPendingRequests = false;
-    state.userAchievements = {};
+    state.userStats = { mostBkDay: 0, mostPtDay: 0, mostBkSeason: 0, highestBkStreak: 0 };
     state.viewerCompareScores = {};
     state.compareViewEnabled = false;
     state.radarMode = "combined";
@@ -419,7 +419,7 @@ function resetSessionScopedState() {
     removeItem(PROFILE_PIC_STATE_STORAGE_KEY);
     removeItem(COUNTRY_FLAG_STORAGE_KEY);
     removeItem(GUILDS_STORAGE_KEY);
-    removeItem(ACHIEVEMENTS_STORAGE_KEY);
+    removeItem(USER_STATS_STORAGE_KEY);
     removeItem(SEASONAL_TROPHIES_STORAGE_KEY);
 
     ThemeUI.setMaxUnlockedRankIndex(0);
@@ -460,8 +460,8 @@ function resetSessionScopedState() {
     if (typeof TrophyUI?.renderTrophies === "function") {
         TrophyUI.renderTrophies();
     }
-    if (typeof AchievementsUI?.updateAchievementsProgress === "function") {
-        AchievementsUI.updateAchievementsProgress();
+    if (typeof UserStatsManager?.renderUserStats === "function") {
+        UserStatsManager.renderUserStats();
     }
 
     applyConfig(getStartupConfigDefaults(), {
@@ -1217,13 +1217,6 @@ function initModuleConfigurations() {
             }
         },
         renderTrophies: TrophyUI.renderTrophies,
-        renderAchievementsIfOpen: () => {
-            const achievementsModalEl = getCachedElementById("achievementsModal");
-            if (achievementsModalEl && achievementsModalEl.classList.contains("show")) {
-                AchievementsUI.renderAchievements(openImageViewer, showConfirmModal);
-            }
-        },
-        refreshAchievementsProgress: () => AchievementsUI.updateAchievementsProgress(),
         refreshFriendsModalIfOpen: () => {
             const friendsModalEl = getCachedElementById("friendsModal");
             if (friendsModalEl && friendsModalEl.classList.contains("show")) {
@@ -1792,11 +1785,8 @@ function initOnboarding() {
 }
 
 function runPostDomReadySetup() {
-    const savedAchievements = readJson(ACHIEVEMENTS_STORAGE_KEY, null);
-    if (savedAchievements && typeof savedAchievements === 'object' && !Array.isArray(savedAchievements)) {
-        state.userAchievements = savedAchievements;
-    }
-    AchievementsUI.updateAchievementsProgress();
+    UserStatsManager.loadUserStats();
+    UserStatsManager.initUserStatsInputs();
     if (typeof ProfileUI.setupVerticalBoxClasses === 'function') {
         ProfileUI.setupVerticalBoxClasses();
     }

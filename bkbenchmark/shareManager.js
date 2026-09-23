@@ -162,11 +162,15 @@ function buildScreenshotCacheKey() {
         .map((wrapper) => wrapper.dataset.youtube || "")
         .join("|");
 
+    const statsSegment = Array.from(document.querySelectorAll(".stats-input"))
+        .map((input) => String(Number(String(input.value || "").replace(/,/g, "")) || 0))
+        .join(",");
+
     const profileSegment = [
         readTextContent(".profile-name"),
         readTextContent(".guild-name"),
         readTextContent("#viewCount"),
-        readTextContent(".achievements-text"),
+        statsSegment,
         readTextContent(".rounded-inner-box")
     ].join("|");
 

@@ -45,7 +45,7 @@
                 || (
                     target.closest
                     && target.closest(
-                        "#settingsModal, #profileModal, #friendsModal, #trophyModal, #achievementsModal, #onboardingModal, #reauthModal, #flagModal, #verificationModal"
+                        "#settingsModal, #profileModal, #friendsModal, #trophyModal, #onboardingModal, #reauthModal, #flagModal, #verificationModal"
                     )
                 )
             );

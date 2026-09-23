@@ -15,7 +15,7 @@ import {
     CAVE_LINKS_STORAGE_KEY,
     SCORE_UPDATED_AT_STORAGE_KEY,
     VIEWED_REQUESTS_STORAGE_PREFIX,
-    ACHIEVEMENTS_STORAGE_KEY,
+    USER_STATS_STORAGE_KEY,
     THEME_STORAGE_KEY,
     THEME_USER_SELECTED_STORAGE_KEY,
     DEFAULT_CONFIG_STORAGE_KEY,
@@ -37,7 +37,7 @@ import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
 import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
-import * as AchievementsUI from "./achievementsUI.js?v=20260304-achievements-6k";
+import * as UserStatsManager from "./userStatsManager.js?v=20260923-stat-fit-2";
 import { persistUserData } from "./persistence.js";
 
 const SCORE_RESET_PENDING_STORAGE_KEY = "benchmark_score_reset_pending";
@@ -460,14 +460,13 @@ export async function loadUserProfile(user, hooks = {}) {
             }
             TrophyUI.renderTrophies();
 
-            if (data.achievements) {
-                state.userAchievements = data.achievements;
-                writeJson(ACHIEVEMENTS_STORAGE_KEY, state.userAchievements);
+            if (data.userStats) {
+                UserStatsManager.applyUserStatsFromRemote(data.userStats);
+                writeJson(USER_STATS_STORAGE_KEY, state.userStats);
             } else {
-                state.userAchievements = {};
-                removeItem(ACHIEVEMENTS_STORAGE_KEY);
+                UserStatsManager.applyUserStatsFromRemote({});
+                removeItem(USER_STATS_STORAGE_KEY);
             }
-            AchievementsUI.updateAchievementsProgress();
         }
 
         const directoryPreviewData = {

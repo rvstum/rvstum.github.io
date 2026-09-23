@@ -193,8 +193,8 @@ export function setupScoreInputHandlers(options = {}) {
             labelWidth = Math.max(0, Math.ceil(scoreLabel.scrollWidth || scoreLabel.offsetWidth || 0));
         }
         const isMobile = window.innerWidth <= 900 || document.body.classList.contains("mobile-layout-active");
-        const extraGap = isMobile ? 8 : 7;
-        const fallbackOffset = isMobile ? 23 : 22;
+        const extraGap = isMobile ? 8 : 4;
+        const fallbackOffset = isMobile ? 23 : 18;
         const nextOffset = Math.max(fallbackOffset, Math.round((labelWidth / 2) + extraGap));
         scoreText.style.setProperty("--score-link-inline-offset", `${nextOffset}px`);
     };

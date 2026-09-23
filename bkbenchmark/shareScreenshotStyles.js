@@ -14,7 +14,7 @@ export const DESKTOP_CAPTURE_OVERRIDE_CSS = `
     .profile-text-block { grid-column: auto !important; grid-row: auto !important; display: flex !important; flex-direction: row !important; align-items: baseline !important; gap: 8px !important; }
     .profile-views { position: absolute !important; top: 0 !important; grid-column: auto !important; grid-row: auto !important; margin-bottom: 0 !important; }
     .trophies-section { position: relative !important; width: auto !important; margin: 0 !important; left: 10px !important; grid-column: auto !important; grid-row: auto !important; display: flex !important; flex-direction: column !important; align-items: stretch !important; }
-    .achievements-section { width: 100% !important; margin: 0 !important; grid-column: auto !important; grid-row: auto !important; display: flex !important; justify-content: center !important; }
+    .stats-section { width: 100% !important; margin: 0 !important; grid-column: auto !important; grid-row: auto !important; display: flex !important; justify-content: center !important; }
     .top-box-actions { display: flex !important; }
     .controls-container { margin-top: 0 !important; }
     .ranks-wrapper { width: 540px !important; overflow: visible !important; padding: 0 !important; margin-right: 0 !important; }

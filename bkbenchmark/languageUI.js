@@ -75,8 +75,6 @@ export function createLanguageController(options = {}) {
         setupMobileSettingsDropdowns,
         setupMobileLeaderboardDropdowns,
         renderTrophies,
-        renderAchievementsIfOpen,
-        refreshAchievementsProgress,
         refreshFriendsModalIfOpen,
         refreshLeaderboardIfOpen,
         renderGuildsList,
@@ -199,12 +197,6 @@ export function createLanguageController(options = {}) {
 
         try {
             if (typeof renderTrophies === "function") renderTrophies();
-        } catch (e) {}
-        try {
-            if (typeof renderAchievementsIfOpen === "function") renderAchievementsIfOpen();
-        } catch (e) {}
-        try {
-            if (typeof refreshAchievementsProgress === "function") refreshAchievementsProgress();
         } catch (e) {}
         try {
             if (typeof refreshFriendsModalIfOpen === "function") refreshFriendsModalIfOpen();
