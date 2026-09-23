@@ -1681,7 +1681,7 @@
             shields:     { dir: 'Shields/',     list: 'shields.json',     one: 'shield',    many: 'shields',     label: 'Shields',     aspect: 0.53, colors: true, preview: true, setCmd: 'setshield', template: { src: '../icons/shieldtemplate.png', overSrc: '../icons/shieldtemplate1.png', w: 152, h: 80 } },
             hats:        { dir: 'Hats/',        list: 'hats.json',        one: 'hat',       many: 'hats',        label: 'Hats',        aspect: 0.75, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/hattemplate.png', w: 192, h: 144 } },
             accessories: { dir: 'Accessories/', list: 'accessories.json', one: 'accessory', many: 'accessories', label: 'Accessories', aspect: 0.6, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/accessoriestemplate.png', overSrc: '../icons/accessoriestemplate1.png', w: 240, h: 144 } },
-            mounts:      { dir: 'Mounts/',      list: 'mounts.json',      one: 'mount',     many: 'mounts',      label: 'Mounts',      aspect: 1.5,  colors: false, preview: false, setCmd: null }
+            mounts:      { dir: 'Mounts/',      list: 'mounts.json',      one: 'mount',     many: 'mounts',      label: 'Mounts',      aspect: 1.5,  colors: false, preview: false, setCmd: null, exclude: /^(?:icon_|key_)|particle|^mount_shootingstar-shadow\.png$/i }
         };
         let currentCat = 'shields';
         let SHIELD_DIR = CATEGORIES.shields.dir; // folder of the tab being shown
@@ -2354,6 +2354,7 @@
                 // The query string defeats caches so added/removed files show up right away.
                 const res = await fetch(`${dir}${cat.list}?t=${Date.now()}`, { cache: 'no-store' });
                 names = await res.json();
+                if (cat.exclude) names = names.filter((name) => !cat.exclude.test(name));
             } catch (e) {
                 if (!firstLoad) return; // keep what's showing if a refresh fails
             }

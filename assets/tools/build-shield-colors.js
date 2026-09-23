@@ -99,7 +99,8 @@ const COLORS_FILE = path.join(DIR, 'colors.json');
 const OTHER_CATEGORIES = [
     { dir: 'Hats', list: 'hats.json', colors: true },
     { dir: 'Accessories', list: 'accessories.json', colors: true },
-    { dir: 'Mounts', list: 'mounts.json' }
+    // Inventory/key thumbnails, particle layers, and helper shadows are not complete mount sprites.
+    { dir: 'Mounts', list: 'mounts.json', exclude: /^(?:icon_|key_)|particle|^mount_shootingstar-shadow\.png$/i }
 ];
 const ASSETS = path.join(__dirname, '..');
 
@@ -108,7 +109,7 @@ function updateLists() {
         const dir = path.join(ASSETS, cat.dir);
         if (!fs.existsSync(dir)) continue;
         const names = fs.readdirSync(dir)
-            .filter((n) => IMAGE_RE.test(n))
+            .filter((n) => IMAGE_RE.test(n) && !(cat.exclude && cat.exclude.test(n)))
             .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
         fs.writeFileSync(path.join(dir, cat.list), JSON.stringify(names));
         console.log('  ' + cat.dir + ': ' + names.length + ' files');
