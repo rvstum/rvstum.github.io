@@ -405,7 +405,7 @@
 
     <section class="screen game-screen hidden" id="gameScreen">
       <header class="hud">
-        <button class="game-brand" id="gameHomeButton" type="button" aria-label="Return to the ClassicGuessr menu"><img class="classicguessr-title-image" src="./classicguessrtitle.png" alt="" draggable="false"></button>
+        <a class="game-brand" id="gameHomeButton" href="/" aria-label="Open the home menu"><img class="classicguessr-title-image" src="./classicguessrtitle.png" alt="" draggable="false"></a>
         <div class="hud-pill hud-pill--timer"><span>Time</span><strong id="timerLabel">1:00</strong></div>
         <div class="hud-stats">
           <div class="hud-pill hud-pill--round"><span>Round</span><strong id="roundLabel">1 / 5</strong></div>
@@ -483,7 +483,7 @@
     </section>
 
     <section class="screen results-screen hidden" id="resultsScreen">
-      <button class="game-brand results-brand" id="resultsHomeButton" type="button" aria-label="Return to the ClassicGuessr menu"><img class="classicguessr-title-image" src="./classicguessrtitle.png" alt="" draggable="false"></button>
+      <a class="game-brand results-brand" id="resultsHomeButton" href="/" aria-label="Open the home menu"><img class="classicguessr-title-image" src="./classicguessrtitle.png" alt="" draggable="false"></a>
       <div class="results-panel">
         <h1 id="resultsTitle">Final score: <span id="resultsScoreValue">0</span></h1>
         <div class="results-grid" id="resultsGrid"></div>
@@ -493,7 +493,7 @@
     </section>
   </main>
 
-  <script src="./app.js?v=20260922-expanded-scoring-area-1" defer></script>
-  <script src="./multiplayer.js?v=20260922-no-idle-eviction-1" type="module"></script>
+  <script src="./app.js?v=20260923-home-menu-links-1" defer></script>
+  <script src="./multiplayer.js?v=20260923-saved-player-name-1" type="module"></script>
 </body>
 </html>

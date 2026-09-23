@@ -47,6 +47,32 @@ const ROUND_DAMAGE_LEAD_MS = ROUND_REVEAL_LEAD_MS + ANSWER_FOCUS_MP_DURATION_MS 
 // Grace after the response countdown ends for the forced locks to land before the round resolves.
 const DEADLINE_RESOLVE_GRACE_MS = 250;
 const PLAYER_NAME_STORAGE_KEY = "classicguessr-player-name";
+const GENERATED_PLAYER_NAME_PATTERN = /^Player (?:[1-4]|[A-Z0-9]{4})$/;
+
+function readSavedPlayerName() {
+  let name = "";
+  try {
+    name = localStorage.getItem(PLAYER_NAME_STORAGE_KEY) || "";
+  } catch { /* storage unavailable */ }
+
+  // Carry over names saved by older builds, which only lasted for the browser session.
+  if (!name) {
+    try {
+      name = sessionStorage.getItem(PLAYER_NAME_STORAGE_KEY) || "";
+    } catch { /* storage unavailable */ }
+    if (name && !GENERATED_PLAYER_NAME_PATTERN.test(name)) savePlayerName(name);
+  }
+
+  name = name.trim().replace(/\s+/g, " ").slice(0, 24);
+  return GENERATED_PLAYER_NAME_PATTERN.test(name) ? "" : name;
+}
+
+function savePlayerName(rawName) {
+  const name = String(rawName || "").trim().replace(/\s+/g, " ").slice(0, 24);
+  if (!name || GENERATED_PLAYER_NAME_PATTERN.test(name)) return;
+  try { localStorage.setItem(PLAYER_NAME_STORAGE_KEY, name); } catch { /* storage unavailable */ }
+  try { sessionStorage.setItem(PLAYER_NAME_STORAGE_KEY, name); } catch { /* storage unavailable */ }
+}
 // Set while hosting a lobby. A refresh closes the lobby, so the reloaded page returns the host to
 // the multiplayer host/join page instead of the main menu.
 const HOSTING_STORAGE_KEY = "classicguessr-was-hosting";
@@ -375,8 +401,7 @@ function bindEvents() {
     await commitUsername(name, false);
     dom.nameModal.classList.add("hidden");
   });
-  const storedPlayerName = sessionStorage.getItem(PLAYER_NAME_STORAGE_KEY) || "";
-  const savedPlayerName = /^Player (?:[1-4]|[A-Z0-9]{4})$/.test(storedPlayerName) ? "" : storedPlayerName;
+  const savedPlayerName = readSavedPlayerName();
   dom.usernameInputs.forEach((input) => {
     input.value = savedPlayerName;
     input.addEventListener("keydown", (event) => {
@@ -647,16 +672,16 @@ function buildPlayerData(user, role, team, slot, joinedAtMs, playerNumber) {
 
 function getPlayerName(user, playerNumber = 1) {
   if (user.displayName?.trim()) return user.displayName.trim().slice(0, 24);
-  let name = sessionStorage.getItem(PLAYER_NAME_STORAGE_KEY);
-  if (!name || /^Player (?:[1-4]|[A-Z0-9]{4})$/.test(name)) {
-    name = `Player ${Math.max(1, Math.min(4, Number(playerNumber) || 1))}`;
-    sessionStorage.setItem(PLAYER_NAME_STORAGE_KEY, name);
-  }
-  return name;
+  return readSavedPlayerName() || `Player ${Math.max(1, Math.min(4, Number(playerNumber) || 1))}`;
 }
 
 function openNamePrompt() {
   if (!dom.nameModal) return;
+  const savedName = readSavedPlayerName();
+  if (savedName) {
+    dom.nameModal.classList.add("hidden");
+    return;
+  }
   dom.nameInput.value = "";
   dom.nameForm.classList.remove("is-invalid");
   dom.nameModal.classList.remove("hidden");
@@ -673,7 +698,7 @@ async function commitUsername(rawName, restoreIfEmpty) {
     if (restoreIfEmpty) dom.usernameInputs.forEach((input) => { input.value = name; });
     return;
   }
-  sessionStorage.setItem(PLAYER_NAME_STORAGE_KEY, name);
+  savePlayerName(name);
   dom.usernameInputs.forEach((input) => {
     if (input !== document.activeElement) input.value = name;
   });

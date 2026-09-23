@@ -1098,8 +1098,8 @@ function bindSoloEvents() {
     ].filter(Boolean).forEach((view) => mobileTitleLayoutObserver.observe(view));
   }
   dom.startButton.addEventListener("click", startGame);
-  dom.gameHomeButton.addEventListener("click", showMenu);
-  dom.resultsHomeButton.addEventListener("click", showMenu);
+  dom.gameHomeButton.addEventListener("click", navigateWithFade);
+  dom.resultsHomeButton.addEventListener("click", navigateWithFade);
 
   dom.playAgainButton.addEventListener("click", handleResultsReturn);
   dom.guessButton.addEventListener("click", submitGuess);
