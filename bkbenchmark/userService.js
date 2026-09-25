@@ -25,6 +25,25 @@ export async function updateUserData(uid, data) {
     }
 }
 
+// Unlike updateUserData (setDoc with merge:true), this replaces each given top-level field
+// wholesale instead of deep-merging into it. setDoc's merge never removes a nested key that's
+// missing from the new value, so deleting an entry from a nested map (e.g. a saved cave link)
+// and saving with updateUserData leaves the old entry sitting in Firestore, and it comes back
+// on the next load. Use this for fields whose value is meant to be the full, authoritative state.
+export async function replaceUserDataFields(uid, data) {
+    if (!uid) return;
+    try {
+        await updateDoc(doc(db, 'users', uid), data);
+    } catch (e) {
+        if (e && e.code === 'not-found') {
+            await setDoc(doc(db, 'users', uid), data, { merge: true });
+            return;
+        }
+        console.error('Error saving user data:', e);
+        throw e;
+    }
+}
+
 export async function deleteUserDocument(uid) {
     if (!uid) return;
     await deleteDoc(doc(db, 'users', uid));

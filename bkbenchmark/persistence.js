@@ -7,6 +7,7 @@ export async function persistUserAndLocal({
     remoteData = null,
     localWrite = null,
     skipInViewMode = true,
+    replace = false,
     label = "data"
 } = {}) {
     if (skipInViewMode && state.isViewMode) return false;
@@ -19,7 +20,11 @@ export async function persistUserAndLocal({
             !Array.isArray(remoteData) &&
             Object.keys(remoteData).length > 0
         ) {
-            await UserService.updateUserData(user.uid, remoteData);
+            if (replace) {
+                await UserService.replaceUserDataFields(user.uid, remoteData);
+            } else {
+                await UserService.updateUserData(user.uid, remoteData);
+            }
         }
         if (typeof localWrite === "function") {
             localWrite();

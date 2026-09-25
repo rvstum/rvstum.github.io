@@ -40,7 +40,7 @@ function getRomanSubRank(progressPercent) {
 const RANK_TIER_NUMERALS = ['V', 'IV', 'III', 'II', 'I'];
 
 function buildRankTierTrack() {
-    return `<div class="rank-tier-track">${RANK_TIER_NUMERALS.map((n) => `<div class="rank-tier-step" data-numeral="${n}"></div>`).join('')}</div>`;
+    return `<div class="rank-tier-track">${RANK_TIER_NUMERALS.map((n) => `<div class="rank-tier-step" data-numeral="${n}"></div>`).join('')}<span class="rank-tier-end-cap" aria-hidden="true"></span></div>`;
 }
 
 function updateRankTierTrack(rankBox, rankIndex, progressInRank, isComplete) {

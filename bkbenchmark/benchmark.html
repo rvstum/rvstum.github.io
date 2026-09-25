@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&display=swap">
-    <link rel="stylesheet" href="benchmark.css?v=20260923-localization-fit-8">
+    <link rel="stylesheet" href="benchmark.css?v=20260924-tier-endcap-simple-10">
     <style>
         .page-transition-overlay {
             position: fixed;
@@ -204,10 +204,6 @@
                 </div>
             </div>
         </div>
-        <div class="compare-control-shell initially-hidden" id="compareViewDesktopShell">
-            <div class="compare-control-prompt" id="compareViewDesktopPrompt" aria-hidden="true"></div>
-            <button class="small-inner-box compare-control-btn" id="compareViewBtn" type="button"><span data-i18n="compare">Compare</span></button>
-        </div>
         <div class="top-box-actions">
             <div class="nav-item" id="leaderboardMenuBtn">
                 <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zM6 19h3v-7H6v7zm5 0h3V6h-3v13zm5 0h3v-10h-3v10z"/></svg>
@@ -223,9 +219,13 @@
                 <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L4.04 9.81c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.22.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
                 <span data-i18n="settings">Settings</span>
             </div>
-            <div class="nav-item initially-hidden" id="exitViewModeContainer">
-                <button class="exit-view-mode-btn" id="exitViewModeBtn" data-i18n="exit_view_mode">Exit View Mode</button>
+            <div class="compare-control-shell initially-hidden" id="compareViewDesktopShell">
+                <div class="compare-control-prompt" id="compareViewDesktopPrompt" aria-hidden="true"></div>
+                <button class="small-inner-box compare-control-btn" id="compareViewBtn" type="button"><span data-i18n="compare">Compare</span></button>
             </div>
+        </div>
+        <div class="nav-item initially-hidden" id="exitViewModeContainer">
+            <button class="exit-view-mode-btn" id="exitViewModeBtn" data-i18n="exit_view_mode">Exit View Mode</button>
         </div>
         <div class="user-menu-wrapper">
             <div class="mobile-top-links">
@@ -287,23 +287,31 @@
                 <div class="stats-grid">
                     <div class="stats-field">
                         <label class="stats-label" for="statMostBkDay" data-i18n="stat_most_bk_day">Most BK's in a day</label>
-                        <span class="stats-icon stats-icon--skull" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 10a7 7 0 1 1 14 0c0 2.4-1.2 4.5-3 5.8V20h-2v-3h-1v3h-2v-3h-1v3H8v-4.2A7 7 0 0 1 5 10Z"/><circle class="stats-icon-cutout" cx="9" cy="10.5" r="1.5"/><circle class="stats-icon-cutout" cx="15" cy="10.5" r="1.5"/><path class="stats-icon-cutout" d="m12 12.5-1.2 2h2.4Z"/></svg></span>
-                        <input class="stats-input" type="text" inputmode="numeric" pattern="[0-9,]*" maxlength="19" autocomplete="off" id="statMostBkDay" placeholder="0">
+                        <div class="stats-value">
+                            <span class="stats-icon stats-icon--skull" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 10a7 7 0 1 1 14 0c0 2.4-1.2 4.5-3 5.8V20h-2v-3h-1v3h-2v-3h-1v3H8v-4.2A7 7 0 0 1 5 10Z"/><circle class="stats-icon-cutout" cx="9" cy="10.5" r="1.5"/><circle class="stats-icon-cutout" cx="15" cy="10.5" r="1.5"/><path class="stats-icon-cutout" d="m12 12.5-1.2 2h2.4Z"/></svg></span>
+                            <input class="stats-input" type="text" inputmode="numeric" pattern="[0-9,]*" maxlength="19" autocomplete="off" id="statMostBkDay" placeholder="0">
+                        </div>
                     </div>
                     <div class="stats-field">
                         <label class="stats-label" for="statMostPtDay" data-i18n="stat_most_pt_day">Most PT's in a day</label>
-                        <span class="stats-icon stats-icon--points" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path class="stats-icon-cutout" d="m12 5.8 1.8 3.7 4.1.6-3 2.9.7 4.1-3.6-1.9-3.6 1.9.7-4.1-3-2.9 4.1-.6Z"/></svg></span>
-                        <input class="stats-input" type="text" inputmode="numeric" pattern="[0-9,]*" maxlength="19" autocomplete="off" id="statMostPtDay" placeholder="0">
+                        <div class="stats-value">
+                            <span class="stats-icon stats-icon--points" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path class="stats-icon-cutout" d="m12 5.8 1.8 3.7 4.1.6-3 2.9.7 4.1-3.6-1.9-3.6 1.9.7-4.1-3-2.9 4.1-.6Z"/></svg></span>
+                            <input class="stats-input" type="text" inputmode="numeric" pattern="[0-9,]*" maxlength="19" autocomplete="off" id="statMostPtDay" placeholder="0">
+                        </div>
                     </div>
                     <div class="stats-field">
                         <label class="stats-label" for="statMostBkSeason" data-i18n="stat_most_bk_season">Most BK's in a season</label>
-                        <span class="stats-icon stats-icon--season" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.5 3.5C12 4 6.3 7.1 5.2 12.3c-.6 2.8 1.1 5.6 4 6.2 5.8 1.2 9.8-5.2 11.3-15Z"/><path class="stats-icon-vein" d="M4 21c2.7-5.1 6.5-8.7 12.2-11.6"/></svg></span>
-                        <input class="stats-input" type="text" inputmode="numeric" pattern="[0-9,]*" maxlength="19" autocomplete="off" id="statMostBkSeason" placeholder="0">
+                        <div class="stats-value">
+                            <span class="stats-icon stats-icon--season" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.5 3.5C12 4 6.3 7.1 5.2 12.3c-.6 2.8 1.1 5.6 4 6.2 5.8 1.2 9.8-5.2 11.3-15Z"/><path class="stats-icon-vein" d="M4 21c2.7-5.1 6.5-8.7 12.2-11.6"/></svg></span>
+                            <input class="stats-input" type="text" inputmode="numeric" pattern="[0-9,]*" maxlength="19" autocomplete="off" id="statMostBkSeason" placeholder="0">
+                        </div>
                     </div>
                     <div class="stats-field">
                         <label class="stats-label" for="statHighestBkStreak" data-i18n="stat_highest_bk_streak">Highest BK Streak</label>
-                        <span class="stats-icon stats-icon--streak" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.2 2.5c.7 4.2-2.8 5.2-2.2 8.4.3 1.5 1.3 2.2 2.2 2.7-.2-2.1 1.2-3.5 2.5-4.8 2.4 2 3.8 4.5 3.3 7.2-.6 3.5-3.4 5.5-7 5.5-4.2 0-7-2.8-7-6.7 0-4.7 4.1-7.2 8.2-12.3Z"/></svg></span>
-                        <input class="stats-input" type="text" inputmode="numeric" pattern="[0-9,]*" maxlength="19" autocomplete="off" id="statHighestBkStreak" placeholder="0">
+                        <div class="stats-value">
+                            <span class="stats-icon stats-icon--streak" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.2 2.5c.7 4.2-2.8 5.2-2.2 8.4.3 1.5 1.3 2.2 2.2 2.7-.2-2.1 1.2-3.5 2.5-4.8 2.4 2 3.8 4.5 3.3 7.2-.6 3.5-3.4 5.5-7 5.5-4.2 0-7-2.8-7-6.7 0-4.7 4.1-7.2 8.2-12.3Z"/></svg></span>
+                            <input class="stats-input" type="text" inputmode="numeric" pattern="[0-9,]*" maxlength="19" autocomplete="off" id="statHighestBkStreak" placeholder="0">
+                        </div>
                     </div>
                 </div>
             </div>

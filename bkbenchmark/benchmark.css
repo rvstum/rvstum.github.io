@@ -760,7 +760,7 @@ body.modal-open {
     overscroll-behavior: none;
 }
 
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     html.modal-open,
     body.modal-open {
         overflow-y: hidden !important;
@@ -1325,7 +1325,7 @@ body.view-mode .cave-play-edit {
     background: var(--radar-color);
 }
 
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     .radar-content {
         grid-template-columns: 1fr;
     }
@@ -1985,20 +1985,34 @@ body.view-mode .cave-play-edit {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px 14px;
     width: 100%;
+    height: 100%;
+    align-content: center;
+    justify-content: center;
 }
 
 .stats-field {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    min-width: 0;
+    position: relative;
+}
+
+.stats-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
     min-width: 0;
     position: relative;
 }
 
 .stats-icon {
     position: absolute;
-    left: calc(50% - 59px);
-    bottom: 4px;
+    left: calc(50% - 62px);
+    top: 50%;
+    transform: translateY(-50%);
     width: 18px;
     height: 18px;
     pointer-events: none;
@@ -2043,6 +2057,8 @@ body.view-mode .cave-play-edit {
 }
 
 .stats-input {
+    flex: 0 1 72px;
+    min-width: 0;
     width: 100%;
     max-width: 72px;
     height: 26px;
@@ -2177,9 +2193,34 @@ body.view-mode .cave-play-edit {
     }
 
     .achievements-box .stats-section {
-        margin: 0;
-        width: 100%;
+        position: relative;
+        margin: 0 -12px;
+        width: auto;
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         z-index: 1;
+    }
+
+    .achievements-box .stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+
+    /* Reserve the same label space in every field so wrapped labels cannot lower one input or icon. */
+    .stats-label {
+        height: 22px;
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .achievements-box .stats-value {
+        position: relative;
+        top: -4px;
     }
 }
 
@@ -2472,7 +2513,7 @@ body:not(.auth-gate-active) .rank-threshold-value {
 }
 
 #compareViewDesktopShell {
-    margin-left: auto;
+    margin-left: 0;
     margin-right: 5px;
 }
 
@@ -5498,7 +5539,7 @@ input:-webkit-autofill:active {
     gap: 10px;
 }
 
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     .cropper-action-row {
         flex-direction: column;
         align-items: stretch;
@@ -6937,7 +6978,7 @@ input:-webkit-autofill:active {
 }
 
 
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     html,
     body {
         min-height: 100dvh;
@@ -7223,6 +7264,11 @@ input:-webkit-autofill:active {
 
     .top-box-actions {
         display: none;
+    }
+
+    /* Mobile view mode uses its own floating Exit button. */
+    #exitViewModeContainer {
+        display: none !important;
     }
 
     .nav-item {
@@ -8278,7 +8324,7 @@ input:-webkit-autofill:active {
         font-size: 10px !important;
     }
 }
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     #settingsModal .settings-select-native-hidden,
     #leaderboardModal .settings-select-native-hidden {
         position: absolute !important;
@@ -8440,7 +8486,7 @@ input:-webkit-autofill:active {
 }
 
 /* Final mobile scroll/zoom guard for benchmark page only. */
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     html {
         min-height: 100% !important;
         overflow-x: hidden;
@@ -9294,7 +9340,7 @@ html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open
     max-height: min(86vh, calc(var(--mobile-safe-vh-base, var(--mobile-safe-vh, 100dvh)) - 24px)) !important;
 }
 
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     #friendsModal.show,
     #leaderboardModal.show,
     #profileModal.show {
@@ -10203,6 +10249,19 @@ body:not(.mobile-layout-active) .score-input-wrapper {
 }
 .rank-tier-track::after { top: 4px; }
 
+.rank-tier-end-cap {
+    position: absolute;
+    left: var(--tier-fill, 0%);
+    top: 0;
+    width: 1.5px;
+    height: 9px;
+    transform: translateX(-50%);
+    background: linear-gradient(to bottom, transparent, var(--tier-color) 25%, var(--tier-color) 75%, transparent);
+    box-shadow: 0 0 8px var(--tier-color);
+    transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+
 /* Track width is fixed so a longer rank name never stretches the line */
 .rank-tier-track {
     width: 300px;
@@ -10845,7 +10904,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
 }
 
 /* ===== Settings page on mobile: same layout as desktop, fixed proportions on every phone size ===== */
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     #settingsModal .settings-grid,
     #settingsModal .settings-row {
         gap: 12px !important;
@@ -10934,7 +10993,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
 }
 
 /* Mobile: smaller dropdown text */
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     #settingsModal .settings-custom-trigger {
         font-size: 9px;
         letter-spacing: 0.3px;
@@ -10946,7 +11005,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
 }
 
 /* Mobile: force the closed dropdown text (custom trigger or native select) to a small size */
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     #settingsModal .settings-custom-trigger,
     #settingsModal .settings-custom-trigger *,
     #settingsModal .settings-select,
@@ -10957,7 +11016,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
 }
 
 /* Mobile: opened dropdown list uses the same small text size as the closed box */
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     #settingsModal .settings-custom-menu,
     #settingsModal .settings-custom-item,
     #settingsModal .settings-custom-item * {
@@ -10968,7 +11027,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
 }
 
 /* Universal replacement for the removed per-device top-link sizes: one fluid size for every phone width */
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     .mobile-top-links .mobile-link > span,
     #mobileCopyLinkBtn > span,
     #mobileOptionsLink > span {
@@ -11062,7 +11121,7 @@ body.mobile-layout-active .header-label-cave::before {
     margin: 0 0 14px;
     font-size: 24px;
 }
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     .bk-title {
         font-size: 22px;
         letter-spacing: 3px;
@@ -11085,7 +11144,7 @@ body.mobile-layout-active .header-label-cave::before {
     letter-spacing: 5px;
     margin: 0 0 18px;
 }
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     .bk-title {
         font-size: clamp(30px, 9vw, 40px);
         letter-spacing: 3px;
@@ -11115,7 +11174,7 @@ body.mobile-layout-active .header-label-cave::before {
     paint-order: stroke fill;
     text-shadow: 0 0.06em 0 #14110a, 0 0.12em 0.18em rgba(0, 0, 0, 0.7);
 }
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     .bk-title {
         letter-spacing: 1px;
     }
@@ -11379,7 +11438,7 @@ body.mobile-layout-active .progress-bar {
 }
 
 /* Mobile: slightly smaller BK Benchmark title (the baddy icon is 1.25em, so it scales with it) */
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     .bk-title {
         font-size: clamp(26px, 7.8vw, 35px);
     }
@@ -11597,7 +11656,7 @@ html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchma
     }
 }
 
-@media (max-width: 900px), (max-device-width: 900px) {
+@media (max-width: 900px) {
     .score-text-label {
         font-size: 9px !important;
     }

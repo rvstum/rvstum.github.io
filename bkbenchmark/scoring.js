@@ -2,7 +2,7 @@ import { FINAL_RANK_INDEX, RANK_THRESHOLDS, getScoreBaseForConfigKey } from "./c
 
 const SCORE_PER_RANK = 100;
 const SCORE_BASE_DECREASE_STEP = 0.05;
-const SCORE_THRESHOLD_INCREASE = 1.05;
+const SCORE_THRESHOLD_PERCENT = 110;
 
 export function buildThresholdsFromBase(base) {
     const safeBase = Number.isFinite(Number(base)) ? Number(base) : 0;
@@ -11,7 +11,7 @@ export function buildThresholdsFromBase(base) {
         const stepsFromTop = (FINAL_RANK_INDEX - 1) - i;
         const decrease = stepsFromTop * SCORE_BASE_DECREASE_STEP;
         const originalThreshold = Math.max(0, Math.round(safeBase * (1 - decrease)));
-        thresholds[i] = Math.ceil(originalThreshold * SCORE_THRESHOLD_INCREASE);
+        thresholds[i] = Math.ceil(originalThreshold * SCORE_THRESHOLD_PERCENT / 100);
     }
     return thresholds;
 }

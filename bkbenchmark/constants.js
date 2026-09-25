@@ -50,17 +50,17 @@ export const CONFIG_OPTIONS = {
 
 const SCORE_BASES_BY_RUNTIME_CONFIG = {
     '5 Min|Baddy Kills|mountspeed1': [70, 53, 68, 39, 54, 53, 22, 74, 103, 85, 106, 118, 137, 85],
-    '5 Min|Baddy Points|mountspeed1': [53, 44, 53, 26, 39, 42, 26, 36, 50, 47, 49, 67, 80, 43],
+    '5 Min|Baddy Points|mountspeed1': [53, 44, 48, 28, 30, 30, 26, 36, 50, 47, 49, 67, 77, 41],
     '5 Min|Baddy Kills|mountspeed2': [75, 57, 72, 42, 57, 57, 24, 80, 103, 91, 113, 126, 147, 91],
-    '5 Min|Baddy Points|mountspeed2': [57, 48, 56, 28, 41, 46, 28, 37, 50, 51, 52, 72, 86, 46],
+    '5 Min|Baddy Points|mountspeed2': [57, 48, 51, 30, 32, 32, 28, 39, 50, 51, 52, 71, 84, 44],
     '10 Min|Baddy Kills|mountspeed1': [138, 104, 134, 77, 106, 104, 43, 146, 203, 167, 209, 232, 270, 167],
-    '10 Min|Baddy Points|mountspeed1': [104, 87, 104, 51, 77, 83, 51, 71, 99, 93, 97, 132, 158, 85],
+    '10 Min|Baddy Points|mountspeed1': [104, 87, 95, 54, 60, 60, 50, 71, 100, 93, 97, 132, 153, 81],
     '10 Min|Baddy Kills|mountspeed2': [148, 112, 142, 83, 112, 112, 47, 158, 203, 179, 223, 248, 290, 179],
-    '10 Min|Baddy Points|mountspeed2': [112, 95, 110, 55, 81, 91, 55, 73, 99, 100, 102, 142, 169, 91],
+    '10 Min|Baddy Points|mountspeed2': [112, 95, 100, 59, 64, 64, 54, 77, 100, 100, 102, 141, 165, 88],
     '60 Min|Baddy Kills|mountspeed1': [827, 626, 804, 461, 638, 626, 260, 875, 1217, 1005, 1253, 1395, 1619, 1005],
-    '60 Min|Baddy Points|mountspeed1': [626, 520, 626, 307, 461, 496, 307, 426, 591, 556, 579, 792, 946, 508],
+    '60 Min|Baddy Points|mountspeed1': [626, 520, 571, 328, 363, 357, 299, 429, 596, 556, 579, 795, 923, 492],
     '60 Min|Baddy Kills|mountspeed2': [887, 674, 851, 496, 674, 674, 284, 946, 1217, 1076, 1336, 1489, 1738, 1076],
-    '60 Min|Baddy Points|mountspeed2': [674, 567, 662, 331, 485, 544, 331, 437, 591, 603, 615, 851, 1017, 544]
+    '60 Min|Baddy Points|mountspeed2': [674, 567, 604, 352, 384, 384, 327, 463, 596, 603, 615, 849, 990, 527]
 };
 
 const SCORE_BASE_PLATFORMS = ['Mobile', 'PC'];

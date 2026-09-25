@@ -184,6 +184,7 @@ async function persistSavedCaveLinks() {
         localWrite: () => {
             writeJson(CAVE_LINKS_STORAGE_KEY, state.savedCaveLinks);
         },
+        replace: true,
         label: "cave links"
     });
 }
