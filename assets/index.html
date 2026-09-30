@@ -1570,7 +1570,7 @@
                 <div class="info-wrap">
                     <button class="info-btn" type="button" id="infoBtn" aria-label="Info" aria-expanded="false" aria-controls="infoPopup">!</button>
                     <div class="info-popup" id="infoPopup" role="dialog" aria-label="Info">
-                        Credits to every single gfx artist, <span class="shake-text" style="color: red;">literally</span>.
+                        Credits to every single gfx artist, <span class="shake-text" style="color: red;">literally</span>. DM me on Discord if you want any of your assets taken down.
                     </div>
                 </div>
                 </div>
@@ -1678,7 +1678,7 @@
         // ["a.png", "b.gif"]. A static site can't list a folder, so assets/tools/build-shield-colors.js
         // regenerates those files whenever something is added or removed.
         const CATEGORIES = {
-            shields:     { dir: 'Shields/',     list: 'shields.json',     one: 'shield',    many: 'shields',     label: 'Shields',     aspect: 0.53, colors: true, preview: true, setCmd: 'setshield', exclude: /^dcicon_menu_shield0\.png$/i, template: { src: '../icons/shieldtemplate.png', overSrc: '../icons/shieldtemplate1.png', w: 152, h: 80 } },
+            shields:     { dir: 'Shields/',     list: 'shields.json',     one: 'shield',    many: 'shields',     label: 'Shields',     aspect: 0.53, colors: true, preview: true, setCmd: 'setshield', exclude: /^(?:dcicon_menu_shield0\.png|aemjii-txt-manga-shield\.gif)$/i, template: { src: '../icons/shieldtemplate.png', overSrc: '../icons/shieldtemplate1.png', w: 152, h: 80 } },
             hats:        { dir: 'Hats/',        list: 'hats.json',        one: 'hat',       many: 'hats',        label: 'Hats',        aspect: 0.75, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/hattemplate.png', w: 192, h: 144 } },
             accessories: { dir: 'Accessories/', list: 'accessories.json', one: 'accessory', many: 'accessories', label: 'Accessories', aspect: 0.6, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/accessoriestemplate.png', overSrc: '../icons/accessoriestemplate1.png', w: 240, h: 144 } },
             mounts:      { dir: 'Mounts/',      list: 'mounts.json',      one: 'mount',     many: 'mounts',      label: 'Mounts',      aspect: 1.5,  colors: false, preview: false, setCmd: null, exclude: /^(?:icon_|key_)|particle|^mount_shootingstar-shadow\.png$/i }
@@ -1878,7 +1878,7 @@
             graalonline: 'Graal Online', earthday: 'Earth Day', stpat: 'St. Patrick', sparcoin: 'Sparcoin', sparviewer: 'Sparviewer' };
         const TAG_SKIP = new Set(['hat', 'accessory', 'acc']);
         // Only these name groups get a filter chip.
-        const TAG_KEEP = new Set(['1k', 'christmas', 'candy', 'nexus', 'gst', 'event', 'bazaar', 'hsub', 'easter',
+        const TAG_KEEP = new Set(['1k', 'christmas', 'candy', 'nexus', 'gst', 'event', 'bazaar', 'easter',
             'halloween', 'valentines', 'crypt', 'guild', 'rebels']);
         const TAG_MIN = 10;
         const isYearTag = (k) => /^y[0-9]{4}$/.test(k);
@@ -2756,7 +2756,6 @@
             document.getElementById('shieldHoldHintMobile').hidden = currentCat !== 'shields';
             gridEl.classList.toggle('pixelated', currentCat !== 'shields');
             gridEl.dataset.cat = currentCat;
-            infoPopupEl.textContent = `${cat.label} will be updated from time to time in big batches, bear with me as I still need to collect them!`;
             infoPopupEl.classList.remove('open');
             document.getElementById('infoBtn').setAttribute('aria-expanded', 'false');
         }
