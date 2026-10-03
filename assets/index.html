@@ -1681,7 +1681,7 @@
             shields:     { dir: 'Shields/',     list: 'shields.json',     one: 'shield',    many: 'shields',     label: 'Shields',     aspect: 0.53, colors: true, preview: true, setCmd: 'setshield', exclude: /^(?:dcicon_menu_shield0\.png|aemjii-txt-manga-shield\.gif)$/i, template: { src: '../icons/shieldtemplate.png', overSrc: '../icons/shieldtemplate1.png', w: 152, h: 80 } },
             hats:        { dir: 'Hats/',        list: 'hats.json',        one: 'hat',       many: 'hats',        label: 'Hats',        aspect: 0.75, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/hattemplate.png', w: 192, h: 144 } },
             accessories: { dir: 'Accessories/', list: 'accessories.json', one: 'accessory', many: 'accessories', label: 'Accessories', aspect: 0.6, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/accessoriestemplate.png', overSrc: '../icons/accessoriestemplate1.png', w: 240, h: 144 } },
-            mounts:      { dir: 'Mounts/',      list: 'mounts.json',      one: 'mount',     many: 'mounts',      label: 'Mounts',      aspect: 1.5,  colors: false, preview: false, setCmd: null, exclude: /^(?:icon_|key_)|particle|^mount_shootingstar-shadow\.png$/i }
+            mounts:      { dir: 'Mounts/',      list: 'mounts.json',      one: 'mount',     many: 'mounts',      label: 'Mounts',      aspect: 1.5,  colors: false, preview: false, setCmd: null, exclude: /^(?:icon_|key_)|particle|^mount_shootingstar-shadow\.png$|^emote_contest2018_mount-lostinthought\.gif$/i }
         };
         let currentCat = 'shields';
         let SHIELD_DIR = CATEGORIES.shields.dir; // folder of the tab being shown
@@ -1883,6 +1883,7 @@
         const TAG_KEEP = new Set(['1k', 'christmas', 'candy', 'nexus', 'gst', 'event', 'bazaar', 'easter',
             'halloween', 'valentines', 'crypt', 'guild', 'rebels']);
         const TAG_MIN = 10;
+        const HAT_1K_FILTER_EXCLUDE = /christmas|tent|bazaar|graalonline_social/i;
         const isYearTag = (k) => /^y[0-9]{4}$/.test(k);
 
         function tagsFor(name) {
@@ -1930,6 +1931,7 @@
         function filteredExcept(skip) {
             const cat = CATEGORIES[currentCat];
             return typeFiltered().filter((s) => (skip === 'color' || activeColor === 'all' || s.colors.includes(activeColor))
+                && !(currentCat === 'hats' && activeTheme === '1k' && skip !== 'theme' && HAT_1K_FILTER_EXCLUDE.test(s.name))
                 && (skip === 'theme' || activeTheme === 'all' || s.tags.includes(activeTheme))
                 && (skip === 'year' || !cat.years || activeYear === 'all' || s.tags.includes(activeYear)));
         }
@@ -2014,7 +2016,8 @@
             }
             if (cat.tags) {
                 const base = filteredExcept('theme');
-                const counts = tally(base, (s) => s.tags.filter((k) => !isYearTag(k)));
+                const counts = tally(base, (s) => s.tags.filter((k) => !isYearTag(k)
+                    && !(currentCat === 'hats' && k === '1k' && HAT_1K_FILTER_EXCLUDE.test(s.name))));
                 if (activeTheme !== 'all' && !counts[activeTheme]) activeTheme = 'all';
                 const keys = Object.keys(counts).filter((k) => TAG_KEEP.has(k) && counts[k] >= (activeYear === 'all' && activeColor === 'all' ? TAG_MIN : 1))
                     .sort((x, y) => (x === '1k' ? -1 : y === '1k' ? 1 : 0) || counts[y] - counts[x] || x.localeCompare(y));
