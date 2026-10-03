@@ -1758,6 +1758,8 @@
         searchInput.addEventListener('input', () => {
             activeSearch = searchInput.value.trim().toLowerCase();
             page = 0;
+            renderTypeFilters();
+            renderFilters();
             renderGrid();
         });
 
@@ -1920,7 +1922,8 @@
         }
 
         function typeFiltered() {
-            return activeType === 'all' ? shields : shields.filter((s) => typeOf(s.name) === activeType);
+            return shields.filter((s) => matchesSearch(s)
+                && (activeType === 'all' || typeOf(s.name) === activeType));
         }
 
         // The list narrowed by every active filter except `skip`, so each row's counts follow the other rows.
@@ -1932,14 +1935,14 @@
         }
 
         function visibleShields() {
-            const filtered = filteredExcept(null);
-            return activeSearch ? filtered.filter(matchesSearch) : filtered;
+            return filteredExcept(null);
         }
 
         function renderTypeFilters() {
             typeFiltersEl.innerHTML = '';
             TYPES.forEach((t) => {
-                const n = t.key === 'all' ? shields.length : shields.filter((s) => typeOf(s.name) === t.key).length;
+                const matching = shields.filter(matchesSearch);
+                const n = t.key === 'all' ? matching.length : matching.filter((s) => typeOf(s.name) === t.key).length;
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'chip' + (t.key === activeType ? ' active' : '');
