@@ -2382,6 +2382,22 @@
             }
             results = results.filter(Boolean);
             results.forEach((r) => { r.tags = cat.tags ? tagsFor(r.name) : []; });
+            // Put files discovered by a refresh ahead of the existing gallery order. Filtering
+            // happens after this, so newly added files still lead any matching filtered view.
+            const previous = catKey === currentCat
+                ? shields
+                : ((catState[catKey] && catState[catKey].shields) || []);
+            const currentNames = new Set(results.map((item) => item.name));
+            const previousNames = new Set(previous.map((item) => item.name));
+            const added = results.filter((item) => !previousNames.has(item.name));
+            if (added.length) {
+                const byName = new Map(results.map((item) => [item.name, item]));
+                results = added.concat(previous
+                    .filter((item) => currentNames.has(item.name))
+                    .map((item) => byName.get(item.name)));
+                if (catKey === currentCat) page = 0;
+                else if (catState[catKey]) catState[catKey].page = 0;
+            }
             if (catKey !== currentCat) {
                 // The user switched tabs while this was loading: keep the result for that tab.
                 const saved = catState[catKey] || (catState[catKey] = { page: 0, activeType: 'all', activeColor: 'all' });
