@@ -1948,8 +1948,12 @@
 
         function renderTypeFilters() {
             typeFiltersEl.innerHTML = '';
+            const matching = shields.filter((s) => matchesSearch(s)
+                && (activeColor === 'all' || s.colors.includes(activeColor))
+                && !(currentCat === 'hats' && activeTheme === '1k' && HAT_1K_FILTER_EXCLUDE.test(s.name))
+                && (activeTheme === 'all' || s.tags.includes(activeTheme))
+                && (!CATEGORIES[currentCat].years || activeYear === 'all' || s.tags.includes(activeYear)));
             TYPES.forEach((t) => {
-                const matching = shields.filter(matchesSearch);
                 const n = t.key === 'all' ? matching.length : matching.filter((s) => typeOf(s.name) === t.key).length;
                 const btn = document.createElement('button');
                 btn.type = 'button';
@@ -1992,6 +1996,7 @@
                     onPick(c.key);
                     page = 0;
                     renderFilters();
+                    renderTypeFilters();
                     renderGrid();
                 });
                 el.appendChild(btn);
@@ -2232,6 +2237,7 @@
                             card.classList.remove('hold-pending');
                             if (!card.isConnected || markMode || currentCat !== 'shields') return;
                             holdOpened = true;
+                            shieldHoldReleaseOnBackdrop = true;
                             openViewer(s);
                         }, 250);
                     });
@@ -2453,6 +2459,8 @@
         let viewerZoom = 1;
         let viewerRelayout = null;
         let viewerLoadToken = 0;
+        let shieldHoldReleaseOnBackdrop = false;
+        let ignoreHoldBackdropClick = false;
         const zoomResetBtn = document.getElementById('zoomReset');
 
         function captureViewerFocus() {
@@ -2647,7 +2655,25 @@
             if (next) openViewer(next);
         }
 
-        viewer.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeViewer(); });
+        document.addEventListener('pointerup', (e) => {
+            if (!shieldHoldReleaseOnBackdrop) return;
+            shieldHoldReleaseOnBackdrop = false;
+            const releaseTarget = document.elementFromPoint(e.clientX, e.clientY) || e.target;
+            if (releaseTarget.closest('.viewer-backdrop')) {
+                ignoreHoldBackdropClick = true;
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+            }
+        }, true);
+        viewer.addEventListener('click', (e) => {
+            if (ignoreHoldBackdropClick && e.target.closest('.viewer-backdrop')) {
+                ignoreHoldBackdropClick = false;
+                e.preventDefault();
+                return;
+            }
+            if (e.target.closest('[data-close]')) closeViewer();
+        });
         document.getElementById('zoomIn').addEventListener('click', () => setViewerZoom(viewerZoom * 1.25));
         document.getElementById('zoomOut').addEventListener('click', () => setViewerZoom(viewerZoom / 1.25));
         zoomResetBtn.addEventListener('click', () => setViewerZoom(1));
