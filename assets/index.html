@@ -1917,9 +1917,15 @@
 
         function matchesSearch(item) {
             if (!activeSearch) return true;
-            const searchableName = String(item.name || '').toLowerCase().replace(/[_-]+/g, ' ');
-            const terms = activeSearch.replace(/[_-]+/g, ' ').split(/\s+/).filter(Boolean);
-            return terms.every((term) => searchableName.includes(term));
+            const rawName = String(item.name || '').toLowerCase();
+            const searchableName = rawName.replace(/[_-]+/g, ' ');
+            const terms = activeSearch.split(/\s+/).filter(Boolean);
+            return terms.every((term) => {
+                // Preserve punctuation in a term so searches such as "hat_1.png" or "-blue" can
+                // match the filename literally. Plain word searches still treat _ and - as spaces.
+                if (/[^\p{L}\p{N}]/u.test(term)) return rawName.includes(term);
+                return rawName.includes(term) || searchableName.includes(term);
+            });
         }
 
         function typeFiltered() {

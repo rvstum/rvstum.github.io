@@ -105,14 +105,30 @@ const OTHER_CATEGORIES = [
 ];
 const ASSETS = path.join(__dirname, '..');
 
+// Keep the saved order for existing assets and put newly discovered files first. This records
+// upload recency in the static JSON manifest, where the browser can use it for the first pages.
+function newestFirst(names, listFile, dir) {
+    let previous = [];
+    try { previous = JSON.parse(fs.readFileSync(listFile, 'utf8')); } catch (e) { /* first run */ }
+    const available = new Set(names);
+    const existing = previous.filter((name) => available.has(name));
+    const known = new Set(existing);
+    const added = names.filter((name) => !known.has(name)).sort((a, b) => {
+        const timeA = fs.statSync(path.join(dir, a)).mtimeMs;
+        const timeB = fs.statSync(path.join(dir, b)).mtimeMs;
+        return timeB - timeA || a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+    });
+    return added.concat(existing);
+}
+
 function updateLists() {
     for (const cat of OTHER_CATEGORIES) {
         const dir = path.join(ASSETS, cat.dir);
         if (!fs.existsSync(dir)) continue;
         const names = fs.readdirSync(dir)
-            .filter((n) => IMAGE_RE.test(n) && !(cat.exclude && cat.exclude.test(n)))
-            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-        fs.writeFileSync(path.join(dir, cat.list), JSON.stringify(names));
+            .filter((n) => IMAGE_RE.test(n) && !(cat.exclude && cat.exclude.test(n)));
+        const listFile = path.join(dir, cat.list);
+        fs.writeFileSync(listFile, JSON.stringify(newestFirst(names, listFile, dir)));
         console.log('  ' + cat.dir + ': ' + names.length + ' files');
     }
 }
@@ -161,7 +177,7 @@ async function buildColors(dir, names, label) {
 }
 
 async function update() {
-    let names = fs.readdirSync(DIR).filter((n) => IMAGE_RE.test(n) && !SHIELD_EXCLUDE_RE.test(n)).sort();
+    let names = fs.readdirSync(DIR).filter((n) => IMAGE_RE.test(n) && !SHIELD_EXCLUDE_RE.test(n));
     for (const name of names.slice()) {
         if (KEEP_EVEN_IF_BLANK.includes(name)) continue;
         const f = path.join(DIR, name);
@@ -178,6 +194,7 @@ async function update() {
             }
         } catch (e) { /* unreadable image: leave it alone */ }
     }
+    names = newestFirst(names, LIST_FILE, DIR);
     fs.writeFileSync(LIST_FILE, JSON.stringify(names));
     await buildColors(DIR, names, 'Shields');
     updateLists();
