@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { auth, db } from "./client.js";
-import { getBenchmarkBasePath } from "./utils.js";
+import { getBenchmarkBasePath } from "./utils.js?v=20261005-utils-parse-fix-1";
 import { alignMobileTitleBetweenTopAndBox } from "./authLayout.js?v=20260310-auth-mobile-stability-1";
 import { initPasswordVisibilityToggles } from "./authPasswordToggle.js?v=20260322-password-toggle-1";
 import {
