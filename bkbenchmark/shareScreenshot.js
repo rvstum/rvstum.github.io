@@ -234,7 +234,7 @@ function getCropMetricsForDocument(doc, captureTarget) {
 
     const elementRect = captureTarget.getBoundingClientRect();
     const captureSourceWidthPx = Math.max(1, elementRect.width || 0);
-    // The screenshot stops just below the Cave Graph box; everything under it (footer etc.) is cropped away.
+
     const radarBottom = radarBoxEl ? radarBoxEl.getBoundingClientRect().bottom : 0;
     const rawHeight = Number.isFinite(radarBottom) && radarBottom > 0 ? radarBottom - elementRect.top : 0;
     const cropToRadarPx = rawHeight > 0 ? Math.ceil(rawHeight) : null;
@@ -350,7 +350,7 @@ async function waitForImages(doc) {
             return;
         }
         const finish = () => resolve();
-        // Never wait forever on an image that neither loads nor fails
+
         setTimeout(finish, 2000);
         if (typeof img.decode === "function") {
             img.decode().then(finish).catch(finish);
@@ -361,7 +361,7 @@ async function waitForImages(doc) {
     })));
 }
 
-// Animated top-rank gradients can't be captured, so those ranks get a flat color (and the matching trophy tint) in the screenshot.
+
 const FLAT_RANK_SCREENSHOT_STYLES = [
     { name: "Stellar", color: "#FF6F00", trophyFilter: STELLAR_TROPHY_FILTER },
     { name: "Celestium", color: "#D8007F", trophyFilter: "sepia(1) hue-rotate(290deg) saturate(3) brightness(0.9)" },
@@ -751,7 +751,7 @@ export async function buildShareServiceDesktopMarkup() {
     }
 }
 
-// Rejects if the capture takes too long. The timer is always cleared, so a finished capture leaves nothing running.
+
 function withTimeout(promise, timeoutMs) {
     if (!timeoutMs || timeoutMs <= 0) return promise;
     let timer = 0;
@@ -798,10 +798,10 @@ async function runHtml2CanvasCapture(target, options = {}) {
     return canvas.toDataURL("image/jpeg", options.quality || 0.82);
 }
 
-// --- Capture strategies ------------------------------------------------------------------------------------------
-// Each strategy takes (context, attempt) and resolves to { dataUrl, captureSourceWidthPx, cropToRadarPx }.
-// "direct" captures the live page, "iframe" captures a cleaned copy in an off-screen frame (no on-screen flicker, no
-// mobile layout). "modern" uses modern-screenshot, "canvas" uses html2canvas as a fallback engine.
+
+
+
+
 
 function toCaptureResult(dataUrl, context) {
     return {
@@ -844,7 +844,7 @@ function captureWithHtml2Canvas(context, attempt) {
     }), attempt.timeoutMs);
 }
 
-// Runs a capture against the off-screen copy of the page and always removes that copy afterwards.
+
 async function withOffscreenContext(context, attempt, capture) {
     const iframeContext = await buildOffscreenDesktopCaptureContext(context, attempt.width);
     try {
@@ -866,7 +866,7 @@ const CAPTURE_STRATEGIES = {
     iframeCanvas: (context, attempt) => withOffscreenContext(context, attempt, captureWithHtml2Canvas)
 };
 
-// Order in which strategies are tried for one attempt (width / quality / timeout step).
+
 function getStrategyOrder({ mobile, forceOffscreenDesktop, allowLiveDesktopFallback }) {
     const { directModern, directCanvas, iframeModern, iframeCanvas } = CAPTURE_STRATEGIES;
     if (mobile) return [iframeModern, iframeCanvas, directModern, directCanvas];
@@ -886,7 +886,7 @@ async function captureDataUrl(context, options = {}) {
     const attempts = mobile ? MOBILE_CAPTURE_ATTEMPTS : DESKTOP_CAPTURE_ATTEMPTS;
     let lastError = null;
 
-    // Best quality first; if every strategy fails at a size, retry everything at the next smaller / lighter one.
+
     for (const attempt of attempts) {
         for (const strategy of strategies) {
             try {
@@ -931,7 +931,7 @@ export async function generateShareScreenshotCanvas(options = {}) {
     const mobile = isMobileViewport();
     const offscreenOnly = !!options.offscreenOnly;
     const context = buildCaptureContext();
-    // A desktop capture that only uses the off-screen copy never touches the live page, so it needs no live overrides.
+
     const shouldUseLiveDocumentOverrides = !(offscreenOnly && !mobile);
     const overrideStyle = shouldUseLiveDocumentOverrides ? createScreenshotOverrideStyle() : null;
     const restoreMainRankStyles = shouldUseLiveDocumentOverrides
@@ -954,7 +954,7 @@ export async function generateShareScreenshotCanvas(options = {}) {
             context.screenshotBgColor
         );
     } finally {
-        // overrideStyle is null for off-screen-only desktop captures (this used to throw here and discard the finished image).
+
         if (overrideStyle) overrideStyle.remove();
         restoreMainRankStyles();
     }

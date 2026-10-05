@@ -161,9 +161,9 @@
         }
     }
 
-    // The guard classes lock html/body to overflow:hidden and make #responsive-wrapper exactly one screen tall. They used
-    // to be added once at load and never removed, so switching from a mobile to a desktop width kept the page locked
-    // (cut-off Cave Graph box, no scrolling, a stray line under the filter buttons) until a refresh. Keep them in sync.
+
+
+
     function syncGuardClasses() {
         var mobile = isMobileViewport();
         document.documentElement.classList.toggle("mobile-viewport-guard", mobile);
@@ -267,10 +267,10 @@
             lastTouchEndTarget = null;
             return;
         }
-        // Only swallow the synthesized click when both taps land on the same element within the window - that's
-        // the actual double-tap-zoom gesture. Scoping this by time alone also caught two quick taps on different
-        // buttons (e.g. switching the Combined/Swords/Bombs radar tabs), which are legitimate sequential taps, and
-        // once the user's tapping rhythm stayed under 300ms every later tap kept getting its click cancelled.
+
+
+
+
         if (now - lastTouchEndAt <= 300 && event.target === lastTouchEndTarget) {
             event.preventDefault();
         }

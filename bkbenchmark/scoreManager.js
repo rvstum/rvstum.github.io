@@ -509,9 +509,9 @@ export function loadSavedScores() {
     state.scoresDirty = false;
 }
 
-// A score save that cannot finish (profile still loading, a dropped connection, a refused write)
-// used to be given up on silently, leaving the scores only on that device: the player saw them,
-// everyone else saw nothing. Failed saves are now retried with a growing delay until they land.
+
+
+
 const SCORE_SAVE_RETRY_DELAYS_MS = [2000, 5000, 15000, 30000, 60000, 120000];
 let scoreSaveRetryTimer = null;
 let scoreSaveRetryCount = 0;
@@ -543,7 +543,7 @@ export async function flushDirtyScores() {
 }
 
 if (typeof document !== "undefined") {
-    // Leaving the tab is the last dependable moment to push unsaved scores.
+
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") flushDirtyScores().catch(console.error);
     });
@@ -562,7 +562,7 @@ export async function saveSavedScores(options = {}) {
     }
     const scoresUpdatedAt = Date.now();
     if (!canSaveSignedInScores(resetIntent)) {
-        // The profile has not finished loading yet: keep the change and try again shortly.
+
         state.scoresDirty = true;
         scheduleScoreSaveRetry();
         return false;

@@ -823,7 +823,7 @@ export function initProfileModalController(options = {}) {
         cropperArea.addEventListener("wheel", (event) => {
             if (!cropperImage || !cropperImage.getAttribute("src")) return;
             event.preventDefault();
-            // Smooth wheel zoom anchored to the center crosshair.
+
             const factor = Math.exp(-event.deltaY * 0.0015);
             setCropScale(cropState.scale * factor, true);
         }, { passive: false });

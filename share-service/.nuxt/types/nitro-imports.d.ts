@@ -154,18 +154,18 @@ declare global {
   const withSiteUrl: typeof import('../../node_modules/nuxt-site-config/dist/runtime/server/composables/utils').withSiteUrl
   const writeEarlyHints: typeof import('../../node_modules/h3').writeEarlyHints
 }
-// for type re-export
+
 declare global {
-  // @ts-ignore
+
   export type { EventHandler, EventHandlerRequest, EventHandlerResponse, EventHandlerObject, H3EventContext } from '../../node_modules/h3'
   import('../../node_modules/h3')
-  // @ts-ignore
+
   export type { BenchmarkShareAssets } from '../../server/utils/benchmarkShareAssets'
   import('../../server/utils/benchmarkShareAssets')
-  // @ts-ignore
+
   export type { ShareThemeColors } from '../../server/utils/benchmarkShareTheme'
   import('../../server/utils/benchmarkShareTheme')
-  // @ts-ignore
+
   export type { ShareRow, ShareTrophyItem, ShareSnapshot } from '../../server/utils/shareSnapshot'
   import('../../server/utils/shareSnapshot')
 }

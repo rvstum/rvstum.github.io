@@ -769,8 +769,8 @@ function syncMobileBenchmarkGeometry() {
         : [];
     if (!container || !firstRow || !caveLabel || !visibleTrackBars.length) return;
 
-    // Always measure from the base mobile rules so repeated resizes do not
-    // compound previously applied geometry overrides.
+
+
     clearMobileBenchmarkGeometryVars();
 
     const containerRect = container.getBoundingClientRect();
@@ -857,7 +857,7 @@ function syncMobileBenchmarkGeometry() {
         : (defaultRomanPositions[1] - defaultRomanPositions[0]);
     const romanPositions = defaultRomanPositions.slice();
     if (rankLineCenters.length >= 4) {
-        // Tick 1 maps to IV, then III, II, I. V sits one step before tick 1.
+
         romanPositions[0] = Math.max(0, Math.min(progressWidth, rankLineCenters[0] - romanStep));
         romanPositions[1] = Math.max(0, Math.min(progressWidth, rankLineCenters[0]));
         romanPositions[2] = Math.max(0, Math.min(progressWidth, rankLineCenters[1]));
@@ -880,10 +880,10 @@ function syncMobileBenchmarkGeometry() {
         ? Math.max(0, secondRowRect.top - rowRect.bottom)
         : (4 * mobileScale);
     const ranksTopGap = Math.max(0, rowRect.top - containerRect.top);
-    // Vertically center the current-rank card on the ranks column (numbers, trophies, names, progress bar)
-    // so the two stay aligned on every screen size.
+
+
     const rankBoxParent = rankBox && rankBox.offsetParent instanceof HTMLElement ? rankBox.offsetParent : null;
-    // Visible extent of the ranks column: from the top of the rank numbers to the bottom of the progress bar.
+
     const ranksLabelsEl = document.querySelector('.ranks-labels');
     const romanEl = document.querySelector('.roman-numerals-container');
     const extentEls = [ranksLabelsEl, progressBar, romanEl].filter((el) => el && el.getClientRects().length > 0);
@@ -956,9 +956,9 @@ function syncMobileBenchmarkGeometry() {
     });
 }
 
-// The mobile "Copy Benchmark Link / Compare / Options" row grows leftwards from the user menu and can
-// run into the home button. Instead of hand-tuned font sizes per device, shrink the labels until the
-// row fits the space actually available, whatever the screen width or language.
+
+
+
 function fitMobileTopLinks() {
     const links = document.querySelector('.mobile-top-links');
     const home = document.querySelector('.benchmark-home-link--mobile');
@@ -1017,7 +1017,7 @@ function syncMobileLayoutState() {
 }
 
 function initStartupSideEffects() {
-    // Remove legacy persistent account id so it no longer appears in browser local storage.
+
     removeItem(LEGACY_ACCOUNT_ID_STORAGE_KEY);
     Slugs.restorePathFromFallback();
     clearTransientBenchmarkBootParams();
@@ -1038,7 +1038,7 @@ function initStartupSideEffects() {
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', syncMobileLayoutState, { passive: true });
     }
-    // Labels change with the language and when the Compare button appears/disappears.
+
     const topLinks = document.querySelector('.mobile-top-links');
     if (topLinks && typeof MutationObserver === 'function') {
         new MutationObserver(() => requestAnimationFrame(fitMobileTopLinks))
@@ -1419,7 +1419,7 @@ function handleRatingsUpdated() {
         return;
     }
 
-    // Auto-sync rank to profile to ensure friends see the correct status
+
     if (auth.currentUser && Number.isFinite(state.lastMainRankIndex) && state.lastMainRankIndex >= 0) {
         clearPendingRankSync();
         rankSyncDebounceTimer = setTimeout(() => {
@@ -1466,7 +1466,7 @@ function initPrivateHomeBinding() {
     }
 }
 
-// Friends Logic
+
 const friendsMenuBtn = getCachedElementById('friendsMenuBtn');
 const friendsModal = getCachedElementById('friendsModal');
 const closeFriendsModal = getCachedElementById('closeFriendsModal');
@@ -1644,7 +1644,7 @@ function initAccountIdUIBindings() {
     initAccountId();
 }
 
-// Profile Modal Logic
+
 const profilePicInput = getCachedElementById('profilePicInput');
 const cropperContainer = getCachedElementById('cropperContainer');
 const cropperImage = getCachedElementById('cropperImage');
@@ -1663,7 +1663,7 @@ async function loadUserProfile(user) {
     });
 }
 
-// Confirmation Modal Logic
+
 
 function showConfirmModal(title, message, callback) {
     if (confirmModalController) {
@@ -1867,8 +1867,8 @@ function initBenchmarkApp() {
     ThemeUI.initCustomThemePicker(ThemeUI.applyTheme);
     AuthManager.waitForAuthInitialization()
         .then((resolvedUser) => {
-            // Avoid hydrating stale local state when an authenticated session exists;
-            // signed-in users are populated from profile loading.
+
+
             if (resolvedUser) return;
             const loginAuthBootstrapSource = AuthManager.getLoginAuthBootstrapSource();
             const shouldHoldLoaderThroughRememberedRestore = AuthManager.isLoginHandoffPending()

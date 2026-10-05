@@ -803,7 +803,7 @@ export const I18N = {
         remove_friend_title: 'Remover Amigo',
         remove_friend_confirm: 'Remover {name} da sua lista de amigos?',
         remove_friend_failed: 'Não foi possível remover o amigo.',
-        
+
         delete: 'Excluir',
         profile_email_valid_error: 'Digite um endere�o de e-mail v�lido.',
         profile_email_different_error: 'Digite um endereço de e-mail diferente.',
@@ -849,7 +849,7 @@ export const I18N = {
     }
 };
 
-// Locale key repairs for benchmark friends/user menu labels.
+
 Object.assign(I18N.es, {
     friends_title: 'Amigos',
     friends_subtitle: 'Agrega y ve los benchmarks de tus amigos',
@@ -863,7 +863,7 @@ Object.assign(I18N.es, {
     menu_logout: 'Cerrar sesion'
 });
 
-// Keys that were missing from I18N.es entirely, silently falling back to English at runtime.
+
 Object.assign(I18N.es, {
     seasonal_add_placements: '+ Agregar Clasificaciones de Temporada',
     confirm: 'Confirmar',
@@ -896,7 +896,7 @@ Object.assign(I18N['pt-BR'], {
     menu_logout: 'Sair'
 });
 
-// Keys that were missing from I18N['pt-BR'] entirely, silently falling back to English at runtime.
+
 Object.assign(I18N['pt-BR'], {
     seasonal_add_placements: '+ Adicionar Colocações da Temporada',
     confirm: 'Confirmar',
@@ -1279,7 +1279,7 @@ export function initAuthLanguage(pageKey) {
 
 
 
-// Locale key fixes for friends modal translations.
+
 Object.assign(I18N.es, {
     friends_subtitle: 'Agrega y ve los benchmarks de tus amigos',
     enter_account_id_placeholder: 'Introduce tu ID de cuenta',
@@ -1306,7 +1306,7 @@ Object.assign(I18N['pt-BR'], {
     add_friend: 'Adicionar amigo'
 });
 
-// Friend request empty/error states: force translations for both supported locales.
+
 Object.assign(I18N.es, {
     sent_requests_none: 'No hay solicitudes enviadas.',
     sent_requests_error_loading: 'Error al cargar las solicitudes enviadas.'

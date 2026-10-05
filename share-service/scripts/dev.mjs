@@ -42,7 +42,7 @@ async function acquireDevLock() {
     }
   } catch (error) {
     if (isErrorWithCode(error) && error.code === "ENOENT") {
-      // No existing lock.
+
     } else if (error instanceof Error) {
       throw error;
     }

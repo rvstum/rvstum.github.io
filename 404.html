@@ -13,7 +13,7 @@
       var hash = window.location.hash || '';
       var lower = path.toLowerCase();
 
-      // Old address: /benchmark and everything under it now lives at /bkbenchmark.
+
       if (lower === '/benchmark' || lower.indexOf('/benchmark/') === 0) {
         window.location.replace('/bkbenchmark' + path.slice('/benchmark'.length) + search + hash);
         return;

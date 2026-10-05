@@ -108,12 +108,12 @@
             }
 
             enterPage();
-            // Coming back with the browser back button restores the page from cache, so fade in again.
+
             window.addEventListener("pageshow", (event) => {
                 if (event.persisted) enterPage();
             });
 
-            // Leaving for the KDAssist menu: fade everything out to black first, then navigate.
+
             document.querySelectorAll(".auth-home-link").forEach((link) => {
                 link.addEventListener("click", (event) => {
                     if (

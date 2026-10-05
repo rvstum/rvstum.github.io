@@ -1,11 +1,11 @@
-// Keeps the file lists in assets/Shields, Hats, Accessories and Mounts (shields.json, hats.json, ...)
-// in sync with what is actually in those folders, and builds assets/Shields/colors.json (the majority
-// color of each shield, counted across ALL frames of animated GIFs).
-//
-// Usage (needs `sharp` installed):
-//   node assets/tools/build-shield-colors.js           update once
-//   node assets/tools/build-shield-colors.js --watch   keep running and update on every add/delete
-// Keep the classifier in sync with assets/index.html.
+
+
+
+
+
+
+
+
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -15,10 +15,10 @@ const DIR = path.join(__dirname, '..', 'Shields');
 const SIZE = 48;
 const NEUTRAL = ['black', 'white', 'gray'];
 
-// Colored pixels decide the shield. Black/white/gray (outlines, shading) only decide it when the
-// shield has almost no color. "Mixed" is only for shields whose colors are genuinely split.
-const CHROMA_MIN = 0.12;   // share of pixels that must be colored for hues to decide
-const HUE_MAJORITY = 0.45; // top hue's share of the colored pixels
+
+
+const CHROMA_MIN = 0.12;
+const HUE_MAJORITY = 0.45;
 const NEUTRAL_MAJORITY = 0.4;
 function pickColor(votes) {
     const keys = Object.keys(votes);
@@ -60,7 +60,7 @@ function classifyPixel(r, g, b) {
     return 'pink';
 }
 
-// A shield with no visible pixel in ANY frame (every frame of a GIF is checked) is deleted by update().
+
 const KEEP_EVEN_IF_BLANK = ['no-shield.png'];
 async function isInvisible(file) {
     const meta = await sharp(file, { pages: -1 }).metadata();
@@ -96,20 +96,20 @@ const SHIELD_EXCLUDE_RE = /classic_personal_shield|^dcicon_menu_shield0\.png$/i;
 const LIST_FILE = path.join(DIR, 'shields.json');
 const COLORS_FILE = path.join(DIR, 'colors.json');
 
-// Other categories only need a file list (no colors). Each folder is listed in <folder>.json.
+
 const OTHER_CATEGORIES = [
     { dir: 'Hats', list: 'hats.json', colors: true },
     { dir: 'Accessories', list: 'accessories.json', colors: true },
-    // Inventory/key thumbnails, particle layers, and helper shadows are not complete mount sprites.
+
     { dir: 'Mounts', list: 'mounts.json', exclude: /^(?:icon_|key_)|particle|^mount_shootingstar-shadow\.png$/i }
 ];
 const ASSETS = path.join(__dirname, '..');
 
-// Keep the saved order for existing assets and put newly discovered files first. This records
-// upload recency in the static JSON manifest, where the browser can use it for the first pages.
+
+
 function newestFirst(names, listFile, dir) {
     let previous = [];
-    try { previous = JSON.parse(fs.readFileSync(listFile, 'utf8')); } catch (e) { /* first run */ }
+    try { previous = JSON.parse(fs.readFileSync(listFile, 'utf8')); } catch (e) {   }
     const available = new Set(names);
     const existing = previous.filter((name) => available.has(name));
     const known = new Set(existing);
@@ -133,15 +133,15 @@ function updateLists() {
     }
 }
 
-// Writes <dir>/colors.json for the given files. A file is only re-read when its content changed: the
-// last colour is remembered per file by content hash in <dir>/colors.cache.json. (File timestamps are
-// no use for this - a fresh git checkout, as in the GitHub run, gives every file the same time, so a
-// replaced image kept its old colour.)
+
+
+
+
 async function buildColors(dir, names, label) {
     const colorsFile = path.join(dir, 'colors.json');
     const cacheFile = path.join(dir, 'colors.cache.json');
     let cache = {};
-    try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) { /* first run */ }
+    try { cache = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {   }
 
     const out = {};
     const nextCache = {};
@@ -183,7 +183,7 @@ async function update() {
         const f = path.join(DIR, name);
         try {
             if (await isInvisible(f)) {
-                // --no-delete (used by the automatic GitHub run) only hides it from the list.
+
                 if (!process.argv.includes('--no-delete')) {
                     fs.unlinkSync(f);
                     console.log('  removed invisible shield: ' + name);
@@ -192,7 +192,7 @@ async function update() {
                 }
                 names = names.filter((n) => n !== name);
             }
-        } catch (e) { /* unreadable image: leave it alone */ }
+        } catch (e) {   }
     }
     names = newestFirst(names, LIST_FILE, DIR);
     fs.writeFileSync(LIST_FILE, JSON.stringify(names));

@@ -1,9 +1,9 @@
 import * as FriendsService from "./friendsService.js?v=20260920-friend-graph";
 
-// One shared, live copy of the signed-in user's friend graph (friendships + incoming/sent
-// requests). Everything that shows friends or friend requests reads from here, so an accepted
-// request, a decline or a removal made by the other person shows up on this side straight away
-// instead of after the next manual reload.
+
+
+
+
 
 const listeners = new Set();
 let activeUid = "";
@@ -24,7 +24,7 @@ function notify() {
             detail: { uid: activeUid }
         }));
     } catch (_) {
-        // No DOM (should not happen in the browser).
+
     }
 }
 
@@ -86,8 +86,8 @@ async function safeList(loader) {
     }
 }
 
-// Resolves with the live graph when it is available. Right after sign-in the first snapshot may
-// still be on its way, so wait briefly for it and only then fall back to one-off queries.
+
+
 export async function readFriendGraph(uid) {
     const normalizedUid = typeof uid === "string" ? uid.trim() : "";
     if (!normalizedUid) return { uid: "", friendships: [], incoming: [], sent: [] };

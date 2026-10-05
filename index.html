@@ -98,7 +98,7 @@
             transform: translateY(0);
         }
 
-        /* Install App: bottom-right corner, icon above the text. Fades in with the page. */
+
         .install-btn {
             position: fixed;
             right: max(14px, env(safe-area-inset-right));
@@ -130,7 +130,7 @@
             color: #9a9a9a;
         }
 
-        /* Sized to sit with the text, keeping the icon's own 127x160 proportions. */
+
         .install-btn img {
             width: auto;
             height: 56px;
@@ -1078,7 +1078,7 @@
                 return;
             }
 
-            // Bubbly pop: a fast rising "bloop" with a smaller, higher bubble popping just after it.
+
             const now = context.currentTime;
 
             const bubble = (start, fromHz, toHz, rise, peak, decay) => {
@@ -1096,7 +1096,7 @@
             bubble(now + 0.022, 900, 2200, 0.04, 0.04, 0.045);
         }
 
-        // Every click in the menu (links, Feedback, About, Close) shares the same bubbly pop.
+
         function playPopSound() {
             return playClickSound();
         }
@@ -1271,7 +1271,7 @@
 
             const colors = ['#2a3514', '#4c5f21', '#7b9231', '#b4c148', '#d4af37'];
             const count = 45;
-            
+
             for (let i = 0; i < count; i++) {
                 const leaf = document.createElement('div');
                 leaf.className = 'leaf';
@@ -1284,7 +1284,7 @@
                 leaf.style.height = `${size * 0.7}px`;
                 leaf.style.left = `${Math.random() * 100}vw`;
                 leaf.style.color = colors[Math.floor(Math.random() * colors.length)];
-                
+
                 const duration = Math.random() * 15 + 10;
                 const delay = Math.random() * duration;
                 leaf.style.setProperty('--leaf-drift', `${(Math.random() - 0.5) * 500}px`);
@@ -1292,14 +1292,14 @@
                 leaf.style.animation = `leaf-float ${duration}s linear -${delay}s infinite`;
                 inner.style.animationDuration = `${Math.random() * 2 + 2}s`;
                 inner.style.animationDelay = `${Math.random() * -5}s`;
-                
+
                 document.body.appendChild(leaf);
             }
         }
         initLeaves();
     </script>
     <script>
-        // Install App: uses the browser's install prompt where there is one, otherwise explains how.
+
         (function () {
             const button = document.getElementById('installButton');
             const tip = document.getElementById('installTip');
@@ -1318,7 +1318,7 @@
             button.addEventListener('click', async () => {
                 if (deferred) {
                     deferred.prompt();
-                    try { await deferred.userChoice; } catch (e) { /* dismissed */ }
+                    try { await deferred.userChoice; } catch (e) {   }
                     deferred = null;
                     return;
                 }

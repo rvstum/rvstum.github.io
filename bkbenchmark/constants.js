@@ -65,7 +65,7 @@ const SCORE_BASES_BY_RUNTIME_CONFIG = {
 
 const SCORE_BASE_PLATFORMS = ['Mobile', 'PC'];
 const DEFAULT_SCORE_BASE_RUNTIME_KEY = '5 Min|Baddy Kills|mountspeed1';
-// DBCS_02 (layout row 12) uses reduced thresholds across every runtime config.
+
 const SCORE_BASE_ROW_MULTIPLIERS = {
     12: 0.92
 };
@@ -82,7 +82,7 @@ function toRuntimeScoreBaseKey(configKey) {
     }
     if (parts.length === 3) {
         if (SCORE_BASE_PLATFORMS.includes(parts[0])) {
-            // Legacy key format: platform|time|stat
+
             return `${parts[1]}|${parts[2]}|${DEFAULT_MOUNT_CONFIG}`;
         }
         return raw;

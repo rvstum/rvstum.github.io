@@ -27,7 +27,7 @@ export function setHidden(el, hidden) {
     const shouldHide = !!hidden;
     el.classList.toggle("is-hidden", shouldHide);
     if (!shouldHide) {
-        // Many elements start with static hidden classes in HTML. Remove them when explicitly shown.
+
         el.classList.remove("hidden-default");
         el.classList.remove("initially-hidden");
     }

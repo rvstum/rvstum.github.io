@@ -6,7 +6,7 @@ const inlineConfig = {
   "nuxt": {}
 }
 
-// Vite - webpack is handled directly in #app/config
+
 if (import.meta.hot) {
   import.meta.hot.accept((newModule) => {
     _replaceAppConfig(newModule.default)
@@ -15,4 +15,4 @@ if (import.meta.hot) {
 
 
 
-export default /*@__PURE__*/ defuFn(inlineConfig)
+export default   defuFn(inlineConfig)

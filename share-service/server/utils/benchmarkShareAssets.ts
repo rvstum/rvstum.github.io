@@ -19,24 +19,24 @@ function getMimeType(filePath: string) {
 }
 
 async function getAssetDataUri(relativePath: string) {
-  const normalized = relativePath.replace(/^\.?\/*/, "");
-  if (assetCache.has(normalized)) {
-    return assetCache.get(normalized) || "";
-  }
+  const normalized = relativePath.replace(/^\.?\
 
-  const filePath = resolve(process.cwd(), "..", normalized);
-  const buffer = await readFile(filePath);
-  const uri = `data:${getMimeType(filePath)};base64,${buffer.toString("base64")}`;
-  assetCache.set(normalized, uri);
-  return uri;
-}
 
-export async function getBenchmarkShareAssets(): Promise<BenchmarkShareAssets> {
-  const [trophy, sword, bomb] = await Promise.all([
-    getAssetDataUri("icons/trophy.png"),
-    getAssetDataUri("icons/benchmarksword.jpg"),
-    getAssetDataUri("icons/benchmarkbomb.jpg")
-  ]);
 
-  return { trophy, sword, bomb };
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

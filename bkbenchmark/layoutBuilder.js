@@ -97,7 +97,7 @@ function createRankRow(cave, index) {
             const content = createElement("span", "cave-cell-content");
             const img = createElement("img");
             img.src = cave.image;
-            // Display only: "Rats_01" is shown as "Rats1" (the underlying cave name/key is unchanged).
+
             const displayName = cave.name.replace(/_0(\d)/, "$1");
             img.alt = displayName;
             const name = createElement("span", "cave-cell-name", displayName);
@@ -108,8 +108,8 @@ function createRankRow(cave, index) {
         }
         row.appendChild(bar);
     }
-    // Background strip behind the whole row (a real element, so the mobile layout's own
-    // ::before/::after on rows stay free). Styled in benchmark.css.
+
+
     row.appendChild(createElement("div", "row-strip"));
     return row;
 }
@@ -194,8 +194,8 @@ export function buildBenchmarkLayout() {
     caveLabel.setAttribute("data-i18n", "cave");
     caveText.appendChild(caveLabel);
 
-    // One connected header bar behind Cave / Score / Score Threshold / Rating, with divider lines at each
-    // column boundary, so the four floating labels read as a single table header instead of separate text.
+
+
     const headerBar = createElement("div", "ranks-header-bar");
     const headerDividerCave = createElement("div", "ranks-header-divider ranks-header-divider--cave");
     const headerDividerScore = createElement("div", "ranks-header-divider ranks-header-divider--score");
@@ -252,8 +252,8 @@ export function buildBenchmarkLayout() {
         container.appendChild(wrapper);
     });
 
-    // One rating per row (desktop): the grouped rating-value cells span two rows, so each row gets
-    // its own, in the same column as its score box.
+
+
     SCORE_ROW_TOPS.forEach((top, index) => {
         const rowRating = createElement("div", "row-rating-value", "0");
         rowRating.dataset.rowIndex = String(index);

@@ -18,19 +18,19 @@
         <link rel="icon" href="/icons/map2a.png" type="image/png">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
-        
+
     :root {
                 --preview-scale: 1.25;
             }
-            
+
             html {
                 height: 100%;
                 width: 100%;
                 overflow: hidden;
                 position: fixed;
             }
-            
-            /* Hide visible scroll indicators while preserving scroll */
+
+
             ::-webkit-scrollbar {
                 width: 0;
                 height: 0;
@@ -58,8 +58,8 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-            
-            /* Lock all major sections in place */
+
+
             .top-section, .section-overworld, .section-cavern, 
             .section-advanced, .section-reset-wrapper {
                 position: relative !important;
@@ -132,7 +132,7 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
-            
+
             .footer-wrapper {
                 position: relative;
                 width: 100%;
@@ -264,7 +264,7 @@
         pointer-events: auto;
     }
 
-    /* Advanced slider: restore original size/padding (force overrides) */
+
     .advanced-section .slider-container {
         width: 360px;
         max-width: 80vw;
@@ -458,7 +458,7 @@
     }
 
     .slider-labels, .slider-ticks { z-index: 6; }
-    /* Strong overrides for advanced slider labels/ticks placed after general rules */
+
     .advanced-section .slider-labels {
         left: 0 !important;
         right: 0 !important;
@@ -471,7 +471,7 @@
     }
 
     .slider-tick {
-        /* original subtle tick style: thin vertical line */
+
         width: 2px;
         height: 8px;
         background: #FFD700;
@@ -1103,7 +1103,7 @@
         }
     }
 
-    /* Loading Spinner */
+
     .spinner {
         border: 3px solid rgba(255, 196, 61, 0.1);
         border-radius: 50%;
@@ -1126,7 +1126,7 @@
         100% { transform: rotate(360deg); }
     }
 
-    /* Download Button */
+
     .modal-image-wrapper {
         position: relative;
         display: inline-block;
@@ -1171,7 +1171,7 @@
         transition-delay: 0.1s;
     }
 
-    /* Install Modal Styles */
+
     .install-modal-content {
         background-color: #181818;
         width: 90%;
@@ -1295,7 +1295,7 @@
         border: 1px solid rgba(255, 196, 61, 0.3);
     }
 
-    /* Desktop Navigation Styles */
+
     @media (min-width: 1025px) {
         .gallery-desktop-container .nav-controls {
             position: static !important;
@@ -1343,11 +1343,11 @@
 
     .pc-reminder { display: none; }
 
-    /* ==================== MOBILE SUPPORT ==================== */
 
-    /* Tablet and Mobile - 1024px and smaller */
+
+
     @media (max-width: 1024px) {
-        /* Keep the scrollbar hidden on mobile as well */
+
         ::-webkit-scrollbar {
             width: 0px;
             background: transparent;
@@ -1369,7 +1369,7 @@
         overscroll-behavior-y: none;
     }
 
-        /* Force hardware acceleration and touch handling to prevent delays */
+
     button, .nav-arrow {
         touch-action: manipulation;
     }
@@ -1381,7 +1381,7 @@
             position: relative;
         }
 
-        /* Mobile animation speed (instant) */
+
     .icon-item {
         transition: none;
     }
@@ -1391,8 +1391,8 @@
     .icon-placeholder, .icon-label {
         transition: none;
     }
-    
-        /* Reorder sections for mobile */
+
+
         #mainContainer {
             display: flex;
             flex-direction: column;
@@ -1412,14 +1412,14 @@
         .section-advanced { order: 6; margin-top: -35px !important; margin-bottom: 0px !important; pointer-events: none; }
         .section-reset-wrapper { order: 7; }
 
-        /* Region section - 2x2 grid */
+
         .region-icons {
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             justify-items: center;
         }
 
-        /* Entity section - 4 columns in one row */
+
         .entity-icons {
             display: grid !important;
             grid-template-columns: repeat(4, 1fr) !important;
@@ -1427,28 +1427,28 @@
             justify-items: center;
         }
 
-        /* Addition section - centered */
+
         .addition-icons {
             display: flex;
             justify-content: center;
             margin: 0 auto;
         }
 
-        /* Overworld filters - 4 columns grid */
+
         #overworldFilters {
             grid-template-columns: repeat(4, 1fr) !important;
             gap: 15px !important;
             justify-items: center;
         }
 
-        /* Cavern filters - 4 columns grid */
+
         #cavernFilters {
             grid-template-columns: repeat(4, 1fr) !important;
             gap: 15px !important;
             justify-items: center;
         }
 
-        /* Section titles styling */
+
         .section-title {
             font-size: 24px;
             text-align: left;
@@ -1460,7 +1460,7 @@
             text-align: left;
         }
 
-        /* Icon items */
+
         .icon-item {
             display: flex;
             flex-direction: column;
@@ -1478,7 +1478,7 @@
             margin-top: 4px;
         }
 
-    /* Advanced section positioning - CENTERED */
+
     .section-advanced {
         grid-template-columns: 1fr !important;
         display: flex !important;
@@ -1494,7 +1494,7 @@
         width: 100% !important;
     }
 
-    /* Center and make advanced section full width */
+
     .advanced-section {
         width: 100vw !important;
         margin-left: calc(-50vw + 50%) !important;
@@ -1503,13 +1503,13 @@
         text-align: center;
     }
 
-    /* Force override inline styles */
+
     div[style*="margin-bottom: 0px; padding: 5px 0px"] {
         width: 100vw !important;
         margin-left: calc(-50vw + 50%) !important;
     }
 
-    /* SLIDER FULL WIDTH - EXTEND TO EDGES */
+
     .advanced-section .slider-container {
         width: 85% !important;
         max-width: none !important;
@@ -1518,7 +1518,7 @@
         box-sizing: border-box !important;
     }
 
-    /* Make slider track match the label/tick width */
+
     .advanced-section .slider-track,
     .advanced-section .slider-track-bg,
     .advanced-section .slider-fill,
@@ -1528,7 +1528,7 @@
         right: 0 !important;
     }
 
-    /* Medium thickness for mobile slider */
+
     .advanced-section .slider {
         height: 44px !important;
         border-radius: 0px !important;
@@ -1537,7 +1537,7 @@
         left: -16px !important;
     }
 
-    /* Fix for PWA Android rendering offset */
+
     @media (display-mode: standalone) {
         .advanced-section .slider {
             top: 18px !important;
@@ -1572,14 +1572,14 @@
         pointer-events: auto !important;
     }
 
-    /* Make entire slider area tappable on mobile */
+
     .advanced-section .slider {
         padding: 0px 0 !important;
         margin-top: 0px !important;
         pointer-events: none !important;
     }
 
-    /* Fix the slider fill to show properly */
+
     .advanced-section .slider-fill {
         position: absolute !important;
         height: 6px !important;
@@ -1608,7 +1608,7 @@
         z-index: 10 !important;
     }
 
-    /* Allow JS to position labels/ticks correctly on mobile */
+
     .advanced-section .slider-labels,
     .advanced-section .slider-ticks {
         display: block !important;
@@ -1630,7 +1630,7 @@
             margin-bottom: 2px !important;
     }
 
-        /* Show tree behind elements on small screens */
+
         .tree-behind-left,
         .tree-behind-right {
             display: block !important;
@@ -1639,7 +1639,7 @@
             top: 5px !important;
         }
 
-        /* Adjust tree graphic size */
+
         .tree-graphic {
             width: 130px;
             height: 120px;
@@ -1658,18 +1658,18 @@
             align-items: center;
         }
 
-        /* Hide preview box on mobile */
+
         div[style*="position: absolute; right: 0; top: -160px"] {
             display: none !important;
         }
 
-        /* Reset button - FIXED AT BOTTOM OF SCREEN */
+
         .section-reset-wrapper {
             position: static !important;
             height: auto !important;
         }
 
-        /* Reset button - FIXED AT BOTTOM OF SCREEN */
+
 .section-reset-wrapper {
     position: static !important;
     height: auto !important;
@@ -1677,7 +1677,7 @@
 
 .desktop-reset { display: none !important; }
 
-/* MAKE RESET BUTTON VERTICALLY BIGGER */
+
 .reset-button {
     padding: 20px 20px !important;
     width: 90% !important;
@@ -1723,7 +1723,7 @@
         margin-right: auto !important;
     }
 
-        /* MOVE GALLERY CLOSER TO SMALL LINE ABOVE */
+
     .gallery-wrapper {
         flex-direction: column;
         gap: 0;
@@ -1746,7 +1746,7 @@
             min-width: 60px !important;
         }
 
-        /* MAKE ARROWS BIGGER AND POSITION CLOSER TO GALLERY */
+
     .nav-arrow {
         width: 80px !important;
         height: 80px !important;
@@ -1763,7 +1763,7 @@
             right: auto !important;
         }
 
-        /* Add padding to bottom of page for fixed reset button */
+
     body {
         padding-bottom: 0px !important;
     }
@@ -1780,7 +1780,7 @@
         box-shadow: none !important;
     }
 
-        /* Make modal image larger on mobile */
+
         .modal-image-wrapper {
             max-width: 95% !important;
             max-height: 80vh;
@@ -1791,12 +1791,12 @@
             max-height: 80vh;
         }
 
-        /* Logo and credits */
+
         .logo-image {
             max-width: 300px;
         }
 
-        /* REMOVE MASSIVE EMPTY SPACE AT BOTTOM */
+
     .credits {
         font-size: 9px !important;
         padding: 0 10px;
@@ -1808,12 +1808,12 @@
         font-size: 8px !important;
     }
 
-        /* Bottom section spacing for reset button */
+
     .bottom-section {
         margin-bottom: 0px;
     }
 
-        /* Adjust actions wrapper for mobile */
+
         .actions-wrapper {
             left: auto !important;
             right: 2px !important;
@@ -1825,7 +1825,7 @@
         .feedback-container .feedback-text {
             font-size: 9px !important;
         }
-        
+
         .gallery-desktop-container {
             max-width: none !important;
             margin: 15px 0 0 !important;
@@ -1855,7 +1855,7 @@
             pointer-events: none !important;
         }
 
-        /* Custom Mobile Adjustments */
+
         .divider-line-short {
             width: 70% !important;
         }
@@ -1879,13 +1879,13 @@
             text-align: center !important;
         }
 
-        /* Close gap between slider and gallery lines */
+
         .gallery-divider {
             margin-top: 15px !important;
         }
     }
 
-    /* Tablet specific adjustments (768px - 1024px) */
+
     @media (min-width: 768px) and (max-width: 1024px) {
         .actions-wrapper {
             right: 40px !important;
@@ -1909,28 +1909,28 @@
         }
     }
 
-    /* Extra small phones - 480px and smaller */
+
     @media (max-width: 480px) {
-        /* Gallery - still 3 columns */
+
         .gallery-grid {
             --gallery-columns: 3;
             gap: var(--gallery-map-row-gap) !important;
             margin-bottom: 0px !important;
         }
 
-        /* Keep 2x2 for regions */
+
         .region-icons {
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
         }
 
-        /* Keep 4 columns for entities */
+
         .entity-icons {
             grid-template-columns: repeat(4, 1fr);
             gap: 12px;
         }
 
-        /* Overworld and Cavern - 4 columns on small phones */
+
         #overworldFilters {
             grid-template-columns: repeat(4, 1fr) !important;
             gap: 12px !important;
@@ -1941,7 +1941,7 @@
             gap: 12px !important;
         }
 
-        /* Icon sizes */
+
         .icon-placeholder {
             width: 75px;
             height: 75px;
@@ -1951,7 +1951,7 @@
             font-size: 14px;
         }
 
-        /* Navigation arrows */
+
         .nav-arrow {
         width: 80px !important;
         height: 80px !important;
@@ -1959,7 +1959,7 @@
         z-index: 50 !important;
     }
 
-        /* Reset button */
+
         .reset-button {
             padding: 25px 15px;
             font-size: 14px;
@@ -1967,7 +1967,7 @@
             margin: 0 auto;
         }
 
-        /* Smaller section titles */
+
         .section-title {
             font-size: 22px;
         }
@@ -1976,7 +1976,7 @@
             font-size: 13px;
         }
 
-        /* Tree graphic smaller */
+
         .tree-graphic {
             width: 120px;
             height: 110px;
@@ -1996,7 +1996,7 @@
         }
     }
 
-    /* Mobile 412px adjustments */
+
     @media (max-width: 430px) {
         .actions-wrapper {
             right: 5px !important;
@@ -2017,7 +2017,7 @@
         }
     }
 
-    /* Mobile 375px adjustments */
+
     @media (max-width: 400px) {
         .actions-wrapper {
             right: 5px !important;
@@ -2038,15 +2038,15 @@
         }
     }
 
-    /* Small mobile devices - 374px and smaller (e.g. 320px) */
+
     @media (max-width: 374px) {
-        /* Reduce icon size to prevent grid overflow */
+
         .icon-placeholder {
             width: 65px !important;
             height: 65px !important;
         }
 
-        /* Reduce gaps */
+
         #overworldFilters,
         #cavernFilters,
         .entity-icons,
@@ -2054,19 +2054,19 @@
             gap: 5px !important;
         }
 
-        /* Reduce container padding to maximize space */
+
         .container {
             padding: 0 5px !important;
         }
 
-        /* Adjust reset button to fit */
+
         .reset-button {
             font-size: 18px !important;
             padding: 15px 0 !important;
             width: 100% !important;
         }
 
-        /* Adjust actions wrapper for small screens */
+
         .actions-wrapper {
             right: 5px !important;
         }
@@ -2178,7 +2178,7 @@
                 color: #000;
                 box-shadow: 0 0 10px rgba(244, 236, 186, 0.3);
             }
-            
+
             .download-toggle.mobile-active {
                 animation: tapPulse 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             }
@@ -2275,7 +2275,7 @@
                 }
             }
 
-    /* ==================== END OF MOBILE SUPPORT ==================== */
+
 
         </style>
     <style>
@@ -2320,7 +2320,7 @@
             }
         }
 
-        /* Final gallery spacing overrides. */
+
         @media (min-width: 1025px) {
             .gallery-divider {
                 margin-top: 4px !important;
@@ -2382,7 +2382,7 @@
 
         <div class="container" id="mainContainer">
             <div class="debug-info" id="debugInfo"></div>
-            
+
     <div class="top-section">
         <div class="section-region">
             <div class="section-title">Region</div>
@@ -2579,7 +2579,7 @@
         <div style="position: absolute; left: 0; top: -65px;">
             <button class="reset-button desktop-reset" id="resetBtnDesktop">Reset</button>
         </div>
-        
+
         <div style="position: absolute; right: 0; top: -160px;">
             <div class="preview-box">
                 <div class="old-man-behind"><img src="/icons/deco25.gif" alt="Old Man"></div>
@@ -2704,12 +2704,12 @@
                             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="#a58f3e"/>
                         </svg>
                     </button>
-                    
+
                     <div class="install-header-wrapper">
                         <div class="install-title">App Installation</div>
                         <div class="install-divider-main"></div>
                     </div>
-                    
+
                     <div class="install-content-scroll">
                         <div class="install-section">
                             <div class="install-section-title">
@@ -2734,9 +2734,9 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="install-divider-sub"></div>
-                        
+
                         <div class="install-section">
                             <div class="install-section-title">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffc43d"><path d="M17.71 9.33c0-1.99 1.62-3.61 1.62-3.61s-1.42-1.6-3.75-1.6c-1.57 0-3.05.92-3.85.92-.81 0-2.03-.89-3.36-.89-1.73 0-3.33 1-4.23 2.56-1.81 3.13-.46 7.76 1.3 10.3 1.25 1.8 2.73 3.82 4.68 3.82 1.88 0 2.7-1.21 5.07-1.21 2.37 0 3.04 1.21 5.11 1.21 2.11 0 3.4-1.91 4.66-3.82.97-1.46 1.37-2.88 1.39-2.95-.03-.03-2.67-1.03-2.67-4.13zM15.53 2.61c.84-1.02 1.4-2.45 1.25-3.87-1.21.05-2.67.81-3.53 1.82-.77.89-1.44 2.32-1.26 3.69 1.35.11 2.71-.63 3.54-1.64z"/></svg>
@@ -2755,9 +2755,9 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="install-divider-sub"></div>
-                        
+
                         <div class="install-section">
                             <div class="install-section-title">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#ffc43d"><path d="M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h6l-2 2v1h8v-1l-2-2h6c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z"/></svg>
@@ -2802,7 +2802,7 @@
             let displaySequence = 0;
             let isDownloadMode = false;
             const imageCache = new Map();
-            
+
             const filters = {
                 regions: [],
                 entities: [],
@@ -2816,34 +2816,34 @@
         loadCSV();
         positionSliderMarks();
         setupMobileAnimations();
-        
-        // Prevent section dragging
+
+
         document.body.style.userSelect = 'none';
-        
-        // Prevent dragging globally
+
+
         window.addEventListener('dragstart', function(e) {
             e.preventDefault();
             return false;
         }, { passive: false, capture: true });
-        
+
         document.addEventListener('dragstart', function(e) {
             e.preventDefault();
             return false;
         }, { passive: false, capture: true });
-        
-        // Prevent drag on all elements
+
+
         document.querySelectorAll('*').forEach(el => {
             el.setAttribute('draggable', 'false');
             el.ondragstart = () => false;
         });
-        
-        // Additional drag prevention for images
+
+
         document.querySelectorAll('img').forEach(img => {
             img.setAttribute('draggable', 'false');
             img.ondragstart = () => false;
             img.ondrag = () => false;
         });
-        
+
         });
 
     if ('serviceWorker' in navigator) {
@@ -2903,10 +2903,10 @@
                 const overlay = document.getElementById('updateOverlay');
                 const img = document.getElementById('updateImage');
                 const pct = document.getElementById('updatePercent');
-                
-                // Only show if we have a controller (not first visit)
+
+
                 if (!overlay || !navigator.serviceWorker.controller) return;
-                
+
                 overlay.style.display = 'flex';
                 let progress = 0;
                 let isComplete = false;
@@ -2956,10 +2956,10 @@
                 }
             };
 
-            // Check if update is already in progress
+
             if (reg.waiting) showUpdate(reg.waiting);
             else if (reg.installing) showUpdate(reg.installing);
-            
+
             reg.addEventListener('updatefound', () => {
                 showUpdate(reg.installing);
             });
@@ -2971,7 +2971,7 @@
 
             window.addEventListener('resize', function() {
                 positionSliderMarks();
-                
+
                 const newPerPage = window.innerWidth <= 1024 ? 15 : 18;
                 if (newPerPage !== mapsPerPage) {
                     mapsPerPage = newPerPage;
@@ -2981,7 +2981,7 @@
 
             function setupModal() {
                 const modal = document.getElementById('modalOverlay');
-                
+
                 function closeModal() {
                     const content = modal.querySelector('.modal-content');
                     if (content.classList.contains('closing')) return;
@@ -3000,8 +3000,8 @@
                 });
 
                 const installModal = document.getElementById('installModalOverlay');
-                
-                // Capture the install prompt
+
+
                 let deferredPrompt;
                 window.addEventListener('beforeinstallprompt', (e) => {
                     e.preventDefault();
@@ -3034,7 +3034,7 @@
                 installModal.addEventListener('click', function() {
                     closeInstallModal();
                 });
-                
+
                 document.getElementById('installCloseBtn').addEventListener('click', function() {
                     closeInstallModal();
                 });
@@ -3048,9 +3048,9 @@ async function handleDownload(url, name) {
         imageUrl = downloadBtn.dataset.imageUrl;
         imageName = downloadBtn.dataset.imageName || 'graal-map.png';
     }
-    
+
     try {
-        // Load image into canvas to strip EXIF metadata (old creation date)
+
         const img = new Image();
         img.crossOrigin = 'anonymous';
         await new Promise((resolve, reject) => {
@@ -3058,17 +3058,17 @@ async function handleDownload(url, name) {
             img.onerror = reject;
             img.src = imageUrl;
         });
-        
+
         const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
-        
+
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         const file = new File([blob], imageName, { type: 'image/png' });
-        
-        // Use Share API on iOS (stays in PWA)
+
+
         if (navigator.share && navigator.canShare({ files: [file] })) {
             await navigator.share({
                 files: [file],
@@ -3076,7 +3076,7 @@ async function handleDownload(url, name) {
                 text: 'Treasure map location'
             });
         } else {
-            // Fallback for desktop
+
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -3089,17 +3089,17 @@ async function handleDownload(url, name) {
     }
 }
             function setupMobileAnimations() {
-        // Helper to add temporary class for animation
+
         const triggerAnimation = (element, className, duration) => {
             element.classList.remove(className);
-            void element.offsetWidth; // trigger reflow
+            void element.offsetWidth;
             element.classList.add(className);
             setTimeout(() => {
                 element.classList.remove(className);
             }, duration);
         };
 
-        // Reset Button
+
         const resetBtnMobile = document.getElementById('resetBtnMobile');
         if (resetBtnMobile) {
             resetBtnMobile.addEventListener('click', function() {
@@ -3108,7 +3108,7 @@ async function handleDownload(url, name) {
             });
         }
 
-        // Nav Arrows
+
         document.querySelectorAll('.nav-arrow').forEach(arrow => {
             arrow.addEventListener('click', function() {
                 if (window.innerWidth > 1024 || this.disabled) return;
@@ -3116,7 +3116,7 @@ async function handleDownload(url, name) {
             });
         });
 
-        // Filter Icons
+
         document.querySelectorAll('.icon-item').forEach(item => {
             item.addEventListener('click', function() {
                 if (window.innerWidth > 1024) return;
@@ -3139,7 +3139,7 @@ async function handleDownload(url, name) {
             void element.offsetWidth;
             element.classList.add('mobile-active');
             setTimeout(() => element.classList.remove('mobile-active'), 200);
-            
+
             if (isDownloadMode) {
                 setTimeout(() => {
                     const filename = mapUrl.split('/').pop();
@@ -3159,20 +3159,20 @@ async function handleDownload(url, name) {
                 const downloadBtn = document.getElementById('downloadBtn');
                 const spinner = document.getElementById('modalSpinner');
                 const modalContent = modal.querySelector('.modal-content');
-                
+
                 modalImg.style.display = 'none';
                 spinner.style.display = 'block';
                 modalContent.classList.remove('image-loaded');
                 modal.classList.add('active');
-                
-                // Force reflow to ensure animation plays every time
+
+
                 void modalContent.offsetWidth;
-                
+
                 if (downloadBtn) {
     downloadBtn.dataset.imageUrl = locationImage;
     downloadBtn.dataset.imageName = locationImage.split('/').pop();
 }
-                
+
                 const img = new Image();
                 img.onload = function() {
                     requestAnimationFrame(() => {
@@ -3187,35 +3187,35 @@ async function handleDownload(url, name) {
             }
 
             function setupEventListeners() {
-                // Add click handlers to all filter containers
-    // Add click handlers for region icons
+
+
     document.querySelector('.region-icons').addEventListener('click', handleMultiSelect);
     document.getElementById('entityFilters').addEventListener('click', handleMultiSelect);
     document.getElementById('additionFilters').addEventListener('click', handleMultiSelect);
 
-    // Add click handlers for Overworld and Cavern filter sections
+
     document.getElementById('overworldFilters').addEventListener('click', handleMultiSelect);
     document.getElementById('cavernFilters').addEventListener('click', handleMultiSelect);
-                
+
                 const sliderMin = document.getElementById('treeSliderMin');
                 const sliderMax = document.getElementById('treeSliderMax');
-                
+
                 function handleSliderInput() {
                     const minVal = parseFloat(sliderMin.value);
                     const maxVal = parseFloat(sliderMax.value);
-                    
-                    // Prevent crossing with a small buffer during drag
+
+
                     if (minVal > maxVal - 0.1) {
                         if (this === sliderMin) sliderMin.value = maxVal - 0.1;
                         else sliderMax.value = minVal + 0.1;
                     }
-                    
+
                     updateSliderFill();
-                    
-                    // Update filters with rounded values
+
+
                     const roundedMin = Math.round(parseFloat(sliderMin.value));
                     const roundedMax = Math.round(parseFloat(sliderMax.value));
-                    
+
                     if (filters.treeCountMin !== roundedMin || filters.treeCountMax !== roundedMax) {
                         filters.treeCountMin = roundedMin;
                         filters.treeCountMax = roundedMax;
@@ -3224,34 +3224,34 @@ async function handleDownload(url, name) {
                 }
 
                 function handleSliderChange() {
-                    // Snap to nearest integer on release
+
                     let val = Math.round(parseFloat(this.value));
                     this.value = val;
-                    
-                    // Ensure valid integer gap
+
+
                     const min = Math.round(parseFloat(sliderMin.value));
                     const max = Math.round(parseFloat(sliderMax.value));
-                    
+
                     if (min >= max) {
                         if (this === sliderMin) sliderMin.value = max - 1;
                         else sliderMax.value = min + 1;
                     }
-                    
+
                     filters.treeCountMin = parseInt(sliderMin.value);
                     filters.treeCountMax = parseInt(sliderMax.value);
                     updateSliderFill();
                     debounceApplyFilters();
                     positionSliderMarks();
                 }
-                
+
                 sliderMin.addEventListener('input', handleSliderInput);
                 sliderMax.addEventListener('input', handleSliderInput);
                 sliderMin.addEventListener('change', handleSliderChange);
                 sliderMax.addEventListener('change', handleSliderChange);
 
-                // Reposition marks when sliders move
+
                 document.querySelectorAll('.advanced-section .slider').forEach(s => s.addEventListener('input', positionSliderMarks));
-                
+
                 updateSliderFill();
                 positionSliderMarks();
 
@@ -3267,14 +3267,14 @@ async function handleDownload(url, name) {
                     event.preventDefault();
                     changePage(1);
                 });
-                
+
                 const downloadToggleBtn = document.getElementById('downloadToggleBtn');
                 if (downloadToggleBtn) {
                     downloadToggleBtn.addEventListener('click', function() {
                         isDownloadMode = !isDownloadMode;
                         this.textContent = isDownloadMode ? 'Enabled' : 'Disabled';
                         this.classList.toggle('enabled', isDownloadMode);
-                        
+
                         this.classList.remove('mobile-active');
                         void this.offsetWidth;
                         this.classList.add('mobile-active');
@@ -3284,9 +3284,9 @@ async function handleDownload(url, name) {
             }
 
     function positionSliderMarks() {
-        // Enable for all screen sizes
-        // if (window.innerWidth <= 768) return;
-        
+
+
+
         const container = document.querySelector('.advanced-section .slider-container');
         if (!container) return;
                 const labels = container.querySelectorAll('.slider-labels span');
@@ -3296,13 +3296,13 @@ async function handleDownload(url, name) {
                 const count = Math.max(labels.length, ticks.length);
                 if (count <= 1) return;
 
-                // Use pixel positions based on the visible track area to ensure accurate alignment
+
                 const containerRect = container.getBoundingClientRect();
                 const trackRect = track.getBoundingClientRect();
                 const trackLeft = trackRect.left - containerRect.left;
                 const trackWidth = trackRect.width;
-                
-                // Adjust for thumb width (20px) so labels/ticks align with thumb centers
+
+
                 const thumbWidth = 12;
                 const effectiveWidth = trackWidth - thumbWidth;
                 const offset = thumbWidth / 2;
@@ -3310,11 +3310,11 @@ async function handleDownload(url, name) {
                 labels.forEach((el, i) => {
                     const pct = (i / (count - 1));
                     const x = trackLeft + offset + pct * effectiveWidth;
-                    // Place labels so their bottom is desiredGap above the track
-                    const desiredGap = -20; // Move closer to slider
+
+                    const desiredGap = -20;
                     const labelsContainer = container.querySelector('.slider-labels');
                     const labelsRect = labelsContainer ? labelsContainer.getBoundingClientRect() : containerRect;
-                    // measure label height
+
                     const elRect = el.getBoundingClientRect();
                     const labelHeight = elRect.height || 14;
                     const labelTop = trackRect.top - containerRect.top - desiredGap - labelHeight;
@@ -3328,23 +3328,23 @@ async function handleDownload(url, name) {
                 ticks.forEach((el, i) => {
                     const pct = (i / (count - 1));
                     const x = trackLeft + offset + pct * effectiveWidth;
-                    // Place ticks slightly below the track (closer by 4px)
+
                     const tickY = trackRect.top - containerRect.top + trackRect.height + 4;
                     const ticksContainer = container.querySelector('.slider-ticks');
                     const ticksRect = ticksContainer ? ticksContainer.getBoundingClientRect() : containerRect;
                     const leftRel = x - (ticksRect.left - containerRect.left);
                     const topRel = tickY - (ticksRect.top - containerRect.top);
-                    const NUDGE = 12; // move ticks upward by this many pixels
+                    const NUDGE = 12;
                     el.style.left = leftRel + 'px';
                     el.style.top = (topRel - NUDGE) + 'px';
                     el.style.position = 'absolute';
-                    // Force visual nudge via transform as a robust fallback
+
                     el.style.transform = 'translateX(-50%) translateY(-12px)';
                     el.style.background = '#FFD700';
                     el.style.width = '2px';
                     el.style.height = '8px';
 
-                    // Log computed and rendered positions for debugging (print rect top)
+
                     const rect = el.getBoundingClientRect();
                     console.log('tick pos', i, 'calculatedTop', (topRel - NUDGE), 'getRectTop', rect.top, 'rect', rect);
                 });
@@ -3353,19 +3353,19 @@ async function handleDownload(url, name) {
             function handleRegionClick(e) {
         const item = e.target.closest('.icon-item');
         if (!item) return;
-        
+
         const filter = item.dataset.filter;
-        
-        // Check if it's a region filter
+
+
         if (['Overworld', 'Snow', 'Cavern', 'Big City'].includes(filter)) {
             item.classList.toggle('selected');
-            
+
             if (filters.regions.includes(filter)) {
                 filters.regions = filters.regions.filter(r => r !== filter);
             } else {
                 filters.regions.push(filter);
             }
-            
+
             debounceApplyFilters();
         }
     }
@@ -3373,29 +3373,29 @@ async function handleDownload(url, name) {
             function handleMultiSelect(e) {
         const item = e.target.closest('.icon-item');
         if (!item) return;
-        
+
         const filter = item.dataset.filter;
-        
-        // Handle region filters (Overworld, Cavern, Snow, Big City)
+
+
         if (['Overworld', 'Snow', 'Cavern', 'Big City'].includes(filter)) {
             handleRegionClick.call(this, e);
             return;
         }
-        
+
         item.classList.toggle('selected');
-        
+
         if (filters.additions.includes(filter)) {
             filters.additions = filters.additions.filter(f => f !== filter);
         } else {
             filters.additions.push(filter);
         }
-        
+
         if (filters.entities.includes(filter)) {
             filters.entities = filters.entities.filter(f => f !== filter);
         } else if (['Baddy', 'NPC', 'Bug'].includes(filter)) {
             filters.entities.push(filter);
         }
-        
+
         debounceApplyFilters();
     }
 
@@ -3408,10 +3408,10 @@ async function handleDownload(url, name) {
             }
 
             function hasValue(value) {
-                // Check if a CSV cell value indicates presence of that feature
+
                 if (!value) return false;
                 const trimmed = value.trim().toLowerCase();
-                // Empty, whitespace only, empty brackets, or 'false' means not present
+
                 return trimmed !== '' && trimmed !== '[]' && trimmed !== 'false';
             }
 
@@ -3428,7 +3428,7 @@ async function handleDownload(url, name) {
                             complete: function(results) {
                                 allMaps = results.data.map(row => {
                                     if (!row[0]) return null;
-                                    
+
                                     const mapObj = {
                                         Thumbnail: row[0],
                                         'Full Image': row[1],
@@ -3436,28 +3436,28 @@ async function handleDownload(url, name) {
                                         mapImage: '/maps/' + row[0] + '.png',
                                         locationImage: '/locations/' + row[1] + '.png'
                                     };
-                                    
-                                    // Add Biome and Tags as properties for filtering
+
+
                                     if (row[2]) mapObj[row[2]] = "true";
                                     for (let i = 4; i < row.length; i++) {
                                         if (row[i]) mapObj[row[i].trim()] = "true";
                                     }
-                                    
+
                                     return mapObj;
                                 }).filter(item => item !== null);
-                                
-                                // Debug: Count Snow maps
+
+
                                 const snowCount = allMaps.filter(m => hasValue(m['Snow'])).length;
                                 console.log('Total maps loaded:', allMaps.length);
                                 console.log('Maps with Snow:', snowCount);
-                                
-                                // Show first few Snow entries for debugging
+
+
                                 const snowMaps = allMaps.filter(m => hasValue(m['Snow'])).slice(0, 5);
                                 console.log('Sample Snow maps:', snowMaps.map(m => ({
                                     Snow: m.Snow,
                                     mapImage: m.mapImage
                                 })));
-                                
+
                                 filteredMaps = [...allMaps];
                                 updateDisplay();
                                 updateDebugInfo();
@@ -3476,7 +3476,7 @@ async function handleDownload(url, name) {
                 const overworldCount = allMaps.filter(m => hasValue(m['Overworld'])).length;
                 const cavernCount = allMaps.filter(m => hasValue(m['Cavern'])).length;
                 const bigCityCount = allMaps.filter(m => hasValue(m['Big City'])).length;
-                
+
                 debugDiv.innerHTML = `
                     Total Maps: ${allMaps.length} | 
                     Overworld: ${overworldCount} | 
@@ -3488,40 +3488,40 @@ async function handleDownload(url, name) {
             }
 
             function checkMapMatches(map) {
-                // Region filter
+
                 if (filters.regions.length > 0) {
                     const matchesRegion = filters.regions.some(region => hasValue(map[region]));
                     if (!matchesRegion) return false;
                 }
-                
-                // Entity filters - ALL selected entities must be present
+
+
                 if (filters.entities.length > 0) {
                     const hasAllEntities = filters.entities.every(entity => hasValue(map[entity]));
                     if (!hasAllEntities) return false;
                 }
-                
-                // Addition filters - ALL selected additions must be present
+
+
                 if (filters.additions.length > 0) {
                     const hasAllAdditions = filters.additions.every(addition => hasValue(map[addition]));
                     if (!hasAllAdditions) return false;
                 }
-                
-                // Tree count filter
+
+
                 if (filters.treeCountMin > 1 || filters.treeCountMax < 8) {
                     const treeCount = map._treeCount;
                     if (treeCount === 0) return false;
                     if (treeCount < filters.treeCountMin || treeCount > filters.treeCountMax) return false;
                 }
-                
+
                 return true;
             }
 
             function debounceApplyFilters() {
-        // Cancel any pending filter application
+
         if (filterDebounceTimer) {
             cancelAnimationFrame(filterDebounceTimer);
         }
-        // Use requestAnimationFrame for smooth, immediate updates
+
         filterDebounceTimer = requestAnimationFrame(() => {
             applyFilters();
             filterDebounceTimer = null;
@@ -3531,15 +3531,15 @@ async function handleDownload(url, name) {
             function applyFilters() {
                 if (isFilteringInProgress) return;
                 isFilteringInProgress = true;
-                
+
                 filteredMaps = allMaps.filter(map => checkMapMatches(map));
 
                 console.log('Filters applied:', filters);
-                
+
                 currentPage = 0;
                 updateDisplay();
                 updateDebugInfo();
-                
+
                 isFilteringInProgress = false;
             }
 
@@ -3564,14 +3564,14 @@ async function handleDownload(url, name) {
         const min = parseFloat(document.getElementById('treeSliderMin').value);
         const max = parseFloat(document.getElementById('treeSliderMax').value);
         const range = 8;
-        
+
         const leftPercent = ((min - 1) / (range - 1)) * 100;
         const rightPercent = ((max - 1) / (range - 1)) * 100;
-        
+
         fill.style.setProperty('left', leftPercent + '%', 'important');
         fill.style.setProperty('width', (rightPercent - leftPercent) + '%', 'important');
         fill.style.setProperty('display', 'block', 'important');
-        
+
         console.log('Fill updated:', leftPercent, rightPercent);
     }
 
@@ -3579,12 +3579,12 @@ async function handleDownload(url, name) {
         const gallery = document.getElementById('mapGallery');
         const spinner = document.getElementById('gallerySpinner');
         console.log('Gallery layout:', gallery?.dataset.galleryLayout || 'unknown');
-        
+
         if (spinner) spinner.style.display = 'block';
         gallery.style.opacity = '0';
         gallery.style.pointerEvents = 'none';
 
-        // Clear any pending load timeouts and track this specific update sequence
+
         loadTimeouts.forEach(clearTimeout);
         loadTimeouts = [];
         displaySequence++;
@@ -3627,7 +3627,7 @@ async function handleDownload(url, name) {
         gallery.innerHTML = html;
 
         const images = gallery.querySelectorAll('img');
-        
+
         const checkAllLoaded = () => {
             if (currentDisplay !== displaySequence) return;
             if (spinner) spinner.style.display = 'none';
@@ -3649,7 +3649,7 @@ async function handleDownload(url, name) {
             }
         });
 
-        // Safety timeout: Ensure gallery becomes visible even if some images hang
+
         const safetyTimeout = setTimeout(checkAllLoaded, 1800);
         loadTimeouts.push(safetyTimeout);
 
@@ -3657,8 +3657,8 @@ async function handleDownload(url, name) {
             if (currentDisplay === displaySequence) checkAllLoaded();
         });
 
-        // Sequential background preloading to prevent network congestion
-        // Only preload on desktop to save data/bandwidth on mobile
+
+
         if (window.innerWidth > 1024) {
         preloadSequence++;
         const currentSequence = preloadSequence;
@@ -3667,7 +3667,7 @@ async function handleDownload(url, name) {
         setTimeout(() => {
             const preloadNext = (index) => {
                 if (index >= imagesToPreload.length || preloadSequence !== currentSequence) return;
-                
+
                 if (imageCache.has(imagesToPreload[index].locationImage)) {
                     preloadNext(index + 1);
                     return;
@@ -3742,7 +3742,7 @@ async function handleDownload(url, name) {
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     document.documentElement.classList.add('page-entered');
-                    // Remove the transition overlay from the layout after it fades out so it doesn't block elements
+
                     const overlay = document.querySelector('.page-transition-overlay');
                     if (overlay) {
                         setTimeout(() => { overlay.style.display = 'none'; }, 500);

@@ -31,7 +31,7 @@
             align-items: flex-start;
         }
 
-        /* LEFT: controls */
+
         .controls {
             width: 320px;
             flex-shrink: 0;
@@ -126,7 +126,7 @@
         .save-btn:hover { background: #00cc00; }
         .save-btn:active { transform: scale(0.98); }
 
-        /* RIGHT: side-by-side previews */
+
         .previews {
             flex: 1;
             display: flex;
@@ -176,7 +176,7 @@
             transition: background-color 0.2s, opacity 0.2s;
         }
 
-        /* Upload zone */
+
         .upload-zone {
             width: 100%;
             aspect-ratio: 6 / 1;
@@ -219,7 +219,7 @@
 
         .upload-text { pointer-events: none; }
 
-        /* Saved matches table */
+
         .matches {
             background: #111;
             border: 1px solid #333;
@@ -322,7 +322,7 @@
 <h1>Profile Color Suffix Calibration Tool</h1>
 
 <div class="main">
-    <!-- LEFT CONTROLS -->
+
     <div class="controls">
         <div class="panel">
             <div class="panel-title">Current Suffix</div>
@@ -364,7 +364,7 @@
         </div>
     </div>
 
-    <!-- RIGHT PREVIEWS -->
+
     <div class="previews">
         <div class="preview-pair">
             <div class="preview-box">
@@ -386,7 +386,7 @@
             </div>
         </div>
 
-        <!-- Saved matches -->
+
         <div class="matches">
             <div class="matches-title">Saved Matches (<span id="matchCount">0</span>)</div>
             <table id="matchTable">
@@ -452,7 +452,7 @@
         const pos = suffixToSliderPos(raw);
         sliderPosDisplay.textContent = pos + ' / 675';
 
-        // If we already have a saved match for this suffix, load it
+
         if (matches[raw] !== undefined) {
             opacitySlider.value = matches[raw];
             updateOverlay();
@@ -507,7 +507,7 @@
         }
         const entries = keys.map(k => `  "${k}": ${matches[k]}`).join(',\n');
         const output = `// Suffix → opacity % lookup table\n// Generated from calibration tool\nconst SUFFIX_OPACITY = {\n${entries}\n};\n\n// Usage: SUFFIX_OPACITY["AA"] → number (0-100)\n// Interpolate between known values for unknowns`;
-        
+
         const blob = new Blob([output], { type: 'text/javascript' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -532,7 +532,7 @@
     opacitySlider.addEventListener('input', updateOverlay);
     colorInput.addEventListener('input', updateOverlay);
 
-    // Keyboard: left/right arrows to nudge opacity
+
     document.addEventListener('keydown', (e) => {
         if (document.activeElement === suffixInput || document.activeElement === colorInput) return;
         if (e.key === 'ArrowLeft') {

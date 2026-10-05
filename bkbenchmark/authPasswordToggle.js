@@ -25,7 +25,7 @@ function moveCaretToEnd(input) {
         const position = input.value.length;
         input.setSelectionRange(position, position);
     } catch (_) {
-        // Some browsers block setSelectionRange for password-like fields.
+
     }
 }
 

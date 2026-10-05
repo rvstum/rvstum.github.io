@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* green theme, taken from the page background */
+
         * {
             -webkit-tap-highlight-color: transparent;
         }
@@ -75,10 +75,10 @@
             font-weight: bold;
             font-size: clamp(26px, 5vw, 60px);
             letter-spacing: 4px;
-            text-shadow: 0 0 6px #000, 0 0 12px #000, 0 0 22px rgba(0, 0, 0, 0.9), 0 0 36px rgba(0, 0, 0, 0.7); /* black glow behind the title */
+            text-shadow: 0 0 6px #000, 0 0 12px #000, 0 0 22px rgba(0, 0, 0, 0.9), 0 0 36px rgba(0, 0, 0, 0.7);
         }
 
-        /* The text alone stays centered; the icon hangs off its right edge without shifting it. */
+
         .title-text {
             position: relative;
         }
@@ -225,8 +225,8 @@
             background-color: #000000;
         }
 
-        /* The shades are painted pixel by pixel (see drawShades) instead of with stacked CSS gradients,
-           which could leave a faint diagonal line on some screens. */
+
+
         .shade-canvas {
             position: absolute;
             inset: 0;
@@ -235,8 +235,8 @@
             display: block;
         }
 
-        /* Saturation/brightness box plus the hue strip. Stacked (strip underneath, horizontal) by default,
-           side by side (strip on the right, vertical) on desktop. */
+
+
         .picker-group {
             display: flex;
             flex-direction: column;
@@ -291,7 +291,7 @@
             .controls-shell {
                 --picker-gap: 6px;
                 --picker-w: clamp(160px, calc(100vw - 460px), 420px);
-                /* shift left by half of (picker + gap) so panel + picker are centered together */
+
                 transform: translateX(calc(-50% - (var(--picker-w) + var(--picker-gap)) / 2));
             }
 
@@ -483,7 +483,7 @@
             font-size: 14px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s, color 0.2s; /* colors follow the picker instantly */
+            transition: transform 0.2s, color 0.2s;
             position: relative;
             overflow: hidden;
         }
@@ -556,7 +556,7 @@
             }
         }
 
-        /* Fade in on entering the page and fade out when leaving it for the menu (same feel as the other pages). */
+
         .page-transition-overlay {
             position: fixed;
             inset: 0;
@@ -587,7 +587,7 @@
             }
         }
 
-        /* page background image: the picture, darkened evenly so the white text and dark panels stay readable */
+
         html {
             background-color: #6e6e6e;
             background-image: url('backgroundcolorpickerbackground.png');
@@ -699,7 +699,7 @@
         let isDraggingColorPickerBox = false;
         let isDraggingHue = false;
         let currentHue = 220;
-        let lastSaturation = 1; // kept so dragging the hue still works from black, white or gray
+        let lastSaturation = 1;
         let lastValue = 1;
         const hueStrip = document.getElementById('hueStrip');
         const hueThumb = document.getElementById('hueThumb');
@@ -804,7 +804,7 @@
             suffixLabel.textContent = useShading ? currentSuffix : '';
             overlay.style.backgroundColor = currentHex;
             if (source === 'toggle') {
-                // Turning the suffix on/off fades the image tint; color and slider changes stay instant.
+
                 overlay.style.transition = 'opacity 0.6s ease';
                 clearTimeout(overlayFadeTimer);
                 overlayFadeTimer = setTimeout(() => { overlay.style.transition = ''; }, 700);
@@ -861,12 +861,12 @@
             return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255 };
         }
 
-        // Paints the saturation (left to right) / brightness (bottom to top) shades for the current hue.
+
         const shadeCanvas = document.getElementById('shadeCanvas');
         function drawShades() {
             const rect = shadeCanvas.getBoundingClientRect();
             if (!rect.width || !rect.height) return;
-            const scale = Math.min(window.devicePixelRatio || 1, 1.5); // smooth gradient, so no need for full density
+            const scale = Math.min(window.devicePixelRatio || 1, 1.5);
             const w = Math.max(2, Math.round(rect.width * scale));
             const h = Math.max(2, Math.round(rect.height * scale));
             if (shadeCanvas.width !== w) shadeCanvas.width = w;
@@ -901,7 +901,7 @@
         function syncColorPickerBox(hex) {
             if (isDraggingColorPickerBox) return;
             if (isDraggingHue) {
-                renderHue(); // the hue is the thing being dragged, so leave it alone
+                renderHue();
                 return;
             }
             const { r, g, b } = hexToRgb(hex);
@@ -914,7 +914,7 @@
             colorPickerCursor.style.top = `${(1 - v) * 100}%`;
         }
 
-        // Hue strip: vertical on desktop, horizontal on mobile (it is whichever way the strip is drawn).
+
         function setHueFromPointer(clientX, clientY) {
             const rect = hueStrip.getBoundingClientRect();
             if (!rect.width || !rect.height) return;
@@ -1036,14 +1036,14 @@
             }, 400);
         });
 
-        // The suffix starts at 50% opacity (the slider position, and the suffix used once it is switched on).
+
         const DEFAULT_OPACITY_INDEX = SORTED_BY_OPACITY.reduce((best, entry, i) =>
             (Math.abs(entry[1] - 50) < Math.abs(SORTED_BY_OPACITY[best][1] - 50) ? i : best), 0);
         suffixSlider.value = String(DEFAULT_OPACITY_INDEX);
         currentSuffix = sliderIndexToSuffix(DEFAULT_OPACITY_INDEX);
         updateSystem('#3B5998', 'input');
 
-        // Mobile: grow the panel's bottom edge to the screen bottom (16px gap) without moving its top.
+
         const testerUi = document.querySelector('.tester-ui');
         function fitPanelToBottom() {
             testerUi.style.minHeight = '';
@@ -1053,7 +1053,7 @@
             const extra = Math.floor(window.innerHeight - 16 - rect.bottom);
             if (extra <= 0) return;
             testerUi.style.minHeight = `${rect.height + extra}px`;
-            // Body centers its content, so offset the growth to keep the top where it was.
+
             document.body.style.paddingTop = `${extra}px`;
         }
         window.addEventListener('resize', fitPanelToBottom);
@@ -1067,7 +1067,7 @@
             const isMobile = window.matchMedia('(max-width: 820px)').matches;
             imageContainer.style.marginTop = '';
             if (isMobile) {
-                // Always leave room under the home button for the whole title, so it never overlaps the image.
+
                 const room = homeMenuButton.getBoundingClientRect().bottom + pageTitle.getBoundingClientRect().height + 12;
                 const deficit = room - imageContainer.getBoundingClientRect().top;
                 if (deficit > 0) imageContainer.style.marginTop = `${90 + deficit}px`;
@@ -1075,7 +1075,7 @@
             const imageTop = imageContainer.getBoundingClientRect().top;
             const titleHeight = pageTitle.getBoundingClientRect().height;
             if (!window.matchMedia('(max-width: 820px)').matches) {
-                // Desktop: center between the top of the screen and the image.
+
                 pageTitle.style.top = `${Math.max(0, (imageTop - titleHeight) / 2)}px`;
                 return;
             }
@@ -1084,7 +1084,7 @@
             pageTitle.style.top = `${Math.max(buttonBottom, midpoint - titleHeight / 2)}px`;
         }
 
-        // Title spacing first (it can push the image down), then the panel fills the rest, then the title re-centers.
+
         function layoutPage() {
             document.body.style.paddingTop = '';
             centerPageTitle();
@@ -1112,7 +1112,7 @@
             }
 
             enter();
-            // Coming back with the browser back button restores the page from cache, so fade in again.
+
             window.addEventListener("pageshow", (event) => { if (event.persisted) enter(); });
 
             document.querySelectorAll(".home-menu-link").forEach((link) => {

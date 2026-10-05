@@ -323,7 +323,7 @@ function generateGuestProfileViewerId() {
             return window.crypto.randomUUID();
         }
     } catch (_) {
-        // Ignore crypto access failures and fall back to a time-based identifier.
+
     }
 
     return `guest_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
@@ -368,7 +368,7 @@ function getProfileViewCooldownKeyCandidates(uid, viewerKey) {
     const scopedKey = buildProfileViewCooldownKey(normalizedUid, viewerKey);
     if (scopedKey) keys.push(scopedKey);
 
-    // Honor existing installs briefly while migrating away from profile-only cooldown keys.
+
     keys.push(normalizedUid);
     return keys;
 }
@@ -469,16 +469,16 @@ export async function incrementViewCount(uid, options = {}) {
     }
 }
 
-// ---------------------------------------------------------------------------------------------
-// Friend graph
-//
-// The `friendRequests` and `friendships` collections are the ONLY source of truth. Nothing here
-// writes to the other person's user document (the old design mirrored `friends`, `friendRequests`
-// and `sentFriendRequests` arrays onto both users; the remote half of those writes was routinely
-// refused and swallowed, which is how one side ended up friends while the other still showed a
-// pending request). Every change is a single atomic batch, and both sides read the same documents
-// through live listeners (subscribeFriendGraph), so an accept shows up for both people at once.
-// ---------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
 
 function friendError(code, message) {
     const error = new Error(message);
@@ -549,9 +549,9 @@ export async function listFriendships(uid) {
     return mapQueryDocs(await getDocs(friendshipQuery));
 }
 
-// Live view of everything that involves this user: friendships, requests they received and
-// requests they sent. `onChange` gets { friendships, incoming, sent } once all three have loaded
-// and again on every change made by either side. Returns an unsubscribe function.
+
+
+
 export function subscribeFriendGraph(uid, handlers = {}) {
     const normalizedUid = normalizeUid(uid);
     if (!normalizedUid) return () => {};
@@ -579,7 +579,7 @@ export function subscribeFriendGraph(uid, handlers = {}) {
             emit();
         },
         (error) => {
-            // One failing listener must not leave the whole friends UI stuck on "Loading".
+
             loaded[key] = true;
             console.warn(`Friend ${key} listener failed:`, error);
             onError(error, key);
@@ -596,7 +596,7 @@ export function subscribeFriendGraph(uid, handlers = {}) {
     return () => {
         active = false;
         unsubscribers.forEach((unsubscribe) => {
-            try { unsubscribe(); } catch (_) { /* already closed */ }
+            try { unsubscribe(); } catch (_) {   }
         });
     };
 }
@@ -652,8 +652,8 @@ export async function sendFriendRequest(fromUid, toUid, options = {}) {
     };
 }
 
-// Deletes only the request documents that actually exist: deleting a missing document is refused
-// by the rules (there is no data to authorize against), which would fail an entire batch.
+
+
 async function deleteExistingRequests(batch, pairs) {
     let count = 0;
     for (const [fromUid, toUid] of pairs) {
@@ -694,7 +694,7 @@ export async function acceptFriendRequest(userUid, fromUid, options = {}) {
 
     const requestSnap = await getFriendRequestDocument(requesterUid, currentUid);
     if (!requestSnap) {
-        // Already accepted (for example from another tab) counts as done rather than as an error.
+
         if (await areFriends(currentUid, requesterUid)) {
             return { friendshipId: buildFriendshipId(currentUid, requesterUid), users: [currentUid, requesterUid] };
         }
@@ -710,8 +710,8 @@ export async function acceptFriendRequest(userUid, fromUid, options = {}) {
         ))
     ]);
 
-    // One atomic commit: the friendship appears and the request(s) disappear together, for both
-    // people, or nothing changes at all.
+
+
     const friendshipRef = doc(db, FRIENDSHIPS_COLLECTION, buildFriendshipId(currentUid, requesterUid));
     const batch = writeBatch(db);
     batch.set(friendshipRef, buildFriendshipPayload(currentUid, requesterUid, requestData, {
@@ -719,7 +719,7 @@ export async function acceptFriendRequest(userUid, fromUid, options = {}) {
         [currentUid]: currentSnapshot || null
     }));
     batch.delete(requestSnap.ref);
-    // Both people may have sent a request to each other at the same moment.
+
     await deleteExistingRequests(batch, [[currentUid, requesterUid]]);
 
     try {
@@ -755,10 +755,10 @@ export async function removeFriend(userUid, targetValue, options = {}) {
         }
     }
     await deleteExistingRequests(batch, [[currentUid, targetUid], [targetUid, currentUid]]);
-    // Friends from before the friendships collection also live in the `friends` list on the user's
-    // own document, and the other person's copy of that list cannot be edited from here. Drop the
-    // entry from our list and remember the removal, so neither the list fallback nor the legacy
-    // restore brings this person back.
+
+
+
+
     batch.set(doc(db, USERS_COLLECTION, currentUid), {
         friends: arrayRemove(targetUid),
         removedFriends: arrayUnion(targetUid)
@@ -772,10 +772,10 @@ export async function removeFriend(userUid, targetValue, options = {}) {
     };
 }
 
-// Friendships made before the collections became the source of truth can exist only as `friends`
-// arrays on both user documents (the friendship document write used to fail quietly). The rules
-// accept a friendship document for a pair whose arrays list each other, so this rebuilds them.
-// It runs once per account per device; a pair the rules refuse is simply skipped.
+
+
+
+
 const LEGACY_FRIEND_HEAL_STORAGE_PREFIX = "benchmark_friend_heal_v2_";
 
 export async function healLegacyFriendships(uid) {

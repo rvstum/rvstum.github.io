@@ -85,7 +85,7 @@ export function restorePathFromFallback() {
         if (!lower.startsWith('/bkbenchmark')) return;
         window.history.replaceState({}, '', target);
     } catch (e) {
-        // Ignore malformed restore parameters
+
     }
 }
 

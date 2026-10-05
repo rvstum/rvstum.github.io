@@ -4217,7 +4217,7 @@ button:disabled {
   }
 }
 
-/* Career dashboard */
+
 .career-shell {
   grid-template-columns: minmax(16rem, 0.28fr) minmax(0, 1fr);
   grid-template-rows: minmax(0, 0.9fr) minmax(0, 1.4fr);
@@ -4725,7 +4725,7 @@ button:disabled {
   }
 }
 
-/* Direct singleplayer setup */
+
 .solo-menu-screen {
   position: absolute;
   overflow-x: hidden;
@@ -6020,7 +6020,7 @@ button:disabled {
   }
 }
 
-/* Profile editor dashboard */
+
 .profile-shell {
   grid-template-rows: auto minmax(0, 1fr);
   gap: 0.5rem;
@@ -6197,7 +6197,7 @@ button:disabled {
   }
 }
 
-/* Current single-player mobile layout */
+
 @media (max-width: 820px) {
   :root {
     --shell-inset: 0.3rem;
@@ -7111,7 +7111,7 @@ button:disabled {
   }
 }
 
-/* Multiplayer team sprites, markers, and duel health. */
+
 .lobby-player-avatar {
   position: relative;
 }
@@ -7178,8 +7178,8 @@ button:disabled {
   background: rgba(190, 35, 44, 0.9);
 }
 
-/* Centering lives on this plain span, not the <button>, because some mobile WebKit
-   versions place flex/grid children of native form controls inconsistently. */
+
+
 .lobby-remove-corner-frame {
   position: absolute;
   top: 50%;
@@ -7595,7 +7595,7 @@ button:disabled {
   }
 }
 
-/* Use the supplied ClassicGuessr wordmark without changing each screen's brand placement. */
+
 .solo-page-brand .classicguessr-title-image,
 .game-brand .classicguessr-title-image {
   display: block;
@@ -7818,7 +7818,7 @@ button:disabled {
   }
 }
 
-/* Live views replace the map after the local multiplayer guess is locked. */
+
 .spectator-panel {
   position: absolute;
   inset: 0;
@@ -8086,7 +8086,7 @@ button:disabled {
   white-space: nowrap;
 }
 
-/* Fixed red-versus-blue multiplayer lobby. */
+
 .multiplayer-lobby-panel.is-2v2 .lobby-players-section {
   min-height: 10rem;
 }
@@ -8194,7 +8194,7 @@ button:disabled {
   }
 }
 
-/* Competitive multiplayer is an explicit lobby rule; casual keeps timer and rounds. */
+
 .lobby-competitive-section {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -8532,7 +8532,7 @@ button:disabled {
   }
 }
 
-/* Final multiplayer lobby spacing and responsive fit pass. */
+
 @media (min-width: 901px) {
   #multiplayerGuestView.multiplayer-guest-panel {
     width: min(54rem, calc(100% - 2rem));
@@ -8597,7 +8597,7 @@ button:disabled {
   }
 }
 
-/* Screenshot-inspired ClassicGuessr wordmark and multiplayer lobby finish. */
+
 .solo-page-brand,
 .game-brand {
   font-family: "Arial Black", Impact, Inter, sans-serif;
@@ -8765,7 +8765,7 @@ button:disabled {
   }
 }
 
-/* Corrected curved wordmark and lobby icon alignment. */
+
 .solo-page-brand,
 .game-brand {
   display: inline-flex;
@@ -8882,7 +8882,7 @@ button:disabled {
   stroke-linejoin: round;
 }
 
-/* Simple, minimal game-mode menu. */
+
 .solo-mode-picker {
   width: min(58rem, calc(100% - 8rem));
   gap: 1rem;
@@ -9013,7 +9013,7 @@ button:disabled {
   }
 }
 
-/* Green framed mode cards. */
+
 .solo-mode-choice-card {
   aspect-ratio: 1.56;
   padding: 0.35rem;
@@ -9218,7 +9218,7 @@ button:disabled {
   }
 }
 
-/* Final host-lobby structure: every section owns its height and cannot overlap its neighbors. */
+
 #multiplayerHostView, #multiplayerGuestView {
   box-sizing: border-box;
   min-height: 0;
@@ -9353,7 +9353,7 @@ button:disabled {
   }
 }
 
-/* Mobile menu panels should wrap their content instead of filling the viewport. */
+
 @media (max-width: 820px) {
   html,
   body,
@@ -9442,7 +9442,7 @@ button:disabled {
   }
 }
 
-/* Keep every narrow host-lobby slot at the full two-action card height. */
+
 @media (max-width: 520px) {
   #multiplayerHostView .lobby-player-grid, #multiplayerGuestView .lobby-player-grid {
     grid-template-rows: repeat(2, 5.25rem);
@@ -9454,7 +9454,7 @@ button:disabled {
   }
 }
 
-/* Multiplayer match results */
+
 .results-screen.is-multiplayer-result .results-panel {
   width: min(54rem, 100%);
   gap: 0.7rem;
@@ -9650,7 +9650,7 @@ button:disabled {
   }
 }
 
-/* Non-host lobby settings remain readable while making their locked ownership explicit. */
+
 #multiplayerGuestView .solo-setting-copy > .lobby-field-label {
   display: flex;
   width: 100%;
@@ -9764,7 +9764,7 @@ button:disabled {
   animation: menuSpinnerSpin 720ms linear infinite;
 }
 
-/* Mobile fit: the mode picker and singleplayer setup scale down instead of being cut off. */
+
 @media (max-width: 820px) {
   .solo-menu-screen > .solo-mode-picker:not(.hidden),
   .solo-menu-screen > .solo-menu-shell:not(.hidden) {
@@ -9773,8 +9773,8 @@ button:disabled {
   }
 }
 
-/* Mobile competitive game: one deterministic header (title | timer | round + score), the team
-   health bars in their own band underneath, then the clue image. Nothing overlaps at any size. */
+
+
 @media (max-width: 900px) and (orientation: portrait) {
   .game-screen .team-health-hud:not(.hidden) {
     top: var(--team-health-top, calc(3.95rem + env(safe-area-inset-top))) !important;
@@ -9791,7 +9791,7 @@ button:disabled {
   }
 }
 
-/* Narrow phones: give the title, timer and round/score boxes their own space in the header. */
+
 @media (max-width: 400px) {
   .game-screen .hud .game-brand .classicguessr-title-image,
   .game-screen .game-brand .classicguessr-title-image {
@@ -9810,7 +9810,7 @@ button:disabled {
   }
 }
 
-/* Mobile portrait: the location image always fits inside its own area (never runs under the map). */
+
 @media (max-width: 900px) and (orientation: portrait) {
   .clue-stage {
     container-type: size;
@@ -9824,7 +9824,7 @@ button:disabled {
   }
 }
 
-/* Mobile portrait: the map box is exactly as wide as the location box above it. */
+
 @media (max-width: 900px) and (orientation: portrait) {
   .game-screen .map-panel {
     right: var(--tile-side-inset, calc(0.45rem + env(safe-area-inset-right)));
@@ -9832,8 +9832,8 @@ button:disabled {
   }
 }
 
-/* The guest lobby uses exactly the same sizing as the host lobby, so the panel (and its Switch
-   buttons) scales identically: the Leave button stays on one line like the host's Back button. */
+
+
 @media (max-width: 900px) {
   #guestLobbyLeaveButton {
     min-width: 0;
@@ -9843,13 +9843,13 @@ button:disabled {
   }
 }
 
-/* Mobile: keep the "#/4 players" count visible next to the Players label. */
+
 .multiplayer-lobby-panel.is-2v2 .lobby-players-section > .lobby-section-copy > span {
   display: block;
   white-space: nowrap;
 }
 
-/* Leave Lobby always matches the "Waiting for host" button beside it in height. */
+
 #guestLobbyLeaveButton {
   align-self: stretch;
   margin-top: 0;
@@ -9861,7 +9861,7 @@ button:disabled {
   align-items: stretch;
 }
 
-/* Mobile: Join, Joined, Sent and Switch all stretch across the whole player box. */
+
 @media (max-width: 900px) {
   .multiplayer-lobby-panel.is-2v2 .lobby-player-actions {
     width: 100%;
@@ -9875,8 +9875,8 @@ button:disabled {
   }
 }
 
-/* Spectating is animated per frame in script, so the old 260ms CSS transitions (which restarted on
-   every network update and made the view look like ~5 fps) are switched off. */
+
+
 .spectator-viewport > img,
 .spectator-marker,
 .spectator-own-marker,
@@ -9885,7 +9885,7 @@ button:disabled {
   transition: none;
 }
 
-/* Notification pill: center its text both horizontally and vertically inside the box */
+
 .multiplayer-guess-notice:not(.hidden) {
   display: flex;
   align-items: center;

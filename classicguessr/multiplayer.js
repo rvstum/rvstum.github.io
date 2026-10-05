@@ -1,14 +1,14 @@
 const FIREBASE_VERSION = "10.12.2";
 const LOBBY_COLLECTION = "classicGuessrLobbies";
-// Spectator map views stream through the Realtime Database (built for rapid small updates);
-// lobbies, players and results stay in Firestore.
+
+
 const REALTIME_DATABASE_URL = "https://benchmark-5a89f-default-rtdb.firebaseio.com";
 const SPECTATE_PATH = "classicGuessrSpectate";
 const PRESENCE_PATH = "classicGuessrPresence";
 const LOBBY_CODE_LENGTH = 6;
 const LOBBY_LIFETIME_MS = 6 * 60 * 60 * 1000;
-// Lobbies that were never cleaned up by leaving (closed tab, crash, failed delete) are removed by
-// whoever next opens multiplayer. Must match the grace period in firestore.rules.
+
+
 const STALE_LOBBY_GRACE_MS = 12 * 60 * 60 * 1000;
 const STALE_LOBBY_SWEEP_LIMIT = 5;
 
@@ -32,19 +32,19 @@ async function sweepStaleLobbies(backend) {
   }
 }
 const CARD_PRESS_MS = 70;
-// How often the local map view is sent to spectators; the spectator side glides between updates.
+
 const VIEW_WRITE_MS = 160;
 const VIEW_WRITE_REALTIME_MS = 50;
 const COMPETITIVE_RESPONSE_MS = 10 * 1000;
 const ROUND_CLOCK_LEAD_MS = 750;
 const SHARED_COUNTDOWN_MS = 3 * 1000;
-// Every client starts the round reveal at the same server-derived instant. The lead has to
-// cover Firestore propagation, and the damage lead additionally covers the map focus
-// animation that runs first (ANSWER_FOCUS_MP_DURATION_MS in app.js) plus a settle gap.
+
+
+
 const ROUND_REVEAL_LEAD_MS = 250;
 const ANSWER_FOCUS_MP_DURATION_MS = 1600;
 const ROUND_DAMAGE_LEAD_MS = ROUND_REVEAL_LEAD_MS + ANSWER_FOCUS_MP_DURATION_MS + 250;
-// Grace after the response countdown ends for the forced locks to land before the round resolves.
+
 const DEADLINE_RESOLVE_GRACE_MS = 250;
 const PLAYER_NAME_STORAGE_KEY = "classicguessr-player-name";
 const GENERATED_PLAYER_NAME_PATTERN = /^Player (?:[1-4]|[A-Z0-9]{4})$/;
@@ -53,13 +53,13 @@ function readSavedPlayerName() {
   let name = "";
   try {
     name = localStorage.getItem(PLAYER_NAME_STORAGE_KEY) || "";
-  } catch { /* storage unavailable */ }
+  } catch {   }
 
-  // Carry over names saved by older builds, which only lasted for the browser session.
+
   if (!name) {
     try {
       name = sessionStorage.getItem(PLAYER_NAME_STORAGE_KEY) || "";
-    } catch { /* storage unavailable */ }
+    } catch {   }
     if (name && !GENERATED_PLAYER_NAME_PATTERN.test(name)) savePlayerName(name);
   }
 
@@ -70,23 +70,23 @@ function readSavedPlayerName() {
 function savePlayerName(rawName) {
   const name = String(rawName || "").trim().replace(/\s+/g, " ").slice(0, 24);
   if (!name || GENERATED_PLAYER_NAME_PATTERN.test(name)) return;
-  try { localStorage.setItem(PLAYER_NAME_STORAGE_KEY, name); } catch { /* storage unavailable */ }
-  try { sessionStorage.setItem(PLAYER_NAME_STORAGE_KEY, name); } catch { /* storage unavailable */ }
+  try { localStorage.setItem(PLAYER_NAME_STORAGE_KEY, name); } catch {   }
+  try { sessionStorage.setItem(PLAYER_NAME_STORAGE_KEY, name); } catch {   }
 }
-// Set while hosting a lobby. A refresh closes the lobby, so the reloaded page returns the host to
-// the multiplayer host/join page instead of the main menu.
+
+
 const HOSTING_STORAGE_KEY = "classicguessr-was-hosting";
 
 function setHostingFlag(isHosting) {
   try {
     if (isHosting) sessionStorage.setItem(HOSTING_STORAGE_KEY, "1");
     else sessionStorage.removeItem(HOSTING_STORAGE_KEY);
-  } catch { /* storage unavailable */ }
+  } catch {   }
 }
 const UNLOAD_TOKEN_REFRESH_MS = 10 * 60 * 1000;
-// Timers reach the game only when the lobby doc changes, so a single dropped dispatch used
-// to mean no countdown for the rest of the round. Re-publishing the authoritative state on a
-// tick makes every shared timer self-healing instead of depending on one lucky event.
+
+
+
 const MATCH_RECONCILE_MS = 1000;
 const SPECTATE_START_DELAY_MS = 600;
 const DEFAULT_TEAM_HEALTH = 5000;
@@ -97,10 +97,10 @@ function lobbyMaxHealth(lobby = session.lobby) {
   return TEAM_HEALTH_OPTIONS.includes(value) ? value : DEFAULT_TEAM_HEALTH;
 }
 
-// A hidden tab throttles setInterval to roughly once a second, then once a minute after a
-// few minutes. That can stall the host's round resolution that every other player is waiting
-// on. Worker timers are exempt from that throttling, so the game clock keeps its real cadence
-// while the tab sits in the background.
+
+
+
+
 const backgroundTimers = createBackgroundTimers();
 
 function createBackgroundTimers() {
@@ -291,7 +291,7 @@ async function ensureBackend() {
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js`),
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js`),
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js`),
-      // Optional: spectating falls back to Firestore if this fails to load.
+
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-database.js`).catch(() => null),
     ]);
     const app = appModule.getApps().length
@@ -301,8 +301,8 @@ async function ensureBackend() {
     if (!auth.currentUser) {
       await authModule.signInAnonymously(auth);
     }
-    // Auto-detect lets the SDK fall back to long polling when the streaming connection is blocked or
-    // flaky (a common cause of very slow joins and listeners that never leave the local cache).
+
+
     let db;
     try {
       db = firestoreModule.initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
@@ -315,9 +315,9 @@ async function ensureBackend() {
       if (realtimeModule) {
         rt = realtimeModule;
         rtdb = realtimeModule.getDatabase(app, REALTIME_DATABASE_URL);
-        // getDatabase opens its socket straight away. Stay offline until a lobby actually opens
-        // (subscribeToLobby goes online), otherwise every visitor holds a connection slot that is
-        // only ever released by leaving a lobby they may never have joined.
+
+
+
         realtimeModule.goOffline(rtdb);
       }
     } catch (error) {
@@ -443,7 +443,7 @@ function pressCard(button, callback) {
 }
 
 function showJoinView() {
-  ensureBackend().catch(() => {}); // warm up SDK + sign-in while the user types the code
+  ensureBackend().catch(() => {});
   getMenuApi()?.showJoinLobbyView();
   setStatus(dom.joinStatus);
   if (dom.joinInput) dom.joinInput.value = "";
@@ -578,7 +578,7 @@ async function joinLobby(rawCode) {
   setStatus(dom.joinStatus, "Joining lobby...");
 
   try {
-    // Only wait on leaving when there is a lobby to leave; load the backend alongside it.
+
     const [backend] = await Promise.all([
       ensureBackend(),
       session.lobbyCode ? leaveLobby({ preserveView: true }) : Promise.resolve(),
@@ -736,8 +736,8 @@ function subscribeToLobby() {
   const playersRef = backend.fs.collection(backend.db, LOBBY_COLLECTION, code, "players");
   session.unsubscribeLobby = backend.fs.onSnapshot(lobbyRef, (snapshot) => {
     if (!snapshot.exists()) {
-      // A cold local cache reports the doc as missing before the server replies.
-      // Only a server-confirmed absence means the lobby is really gone.
+
+
       if (snapshot.metadata.fromCache) return;
       setCreatingLobbyOverlay(false);
       if (session.role === "guest") handleForcedLobbyExit("Host has left.");
@@ -748,7 +748,7 @@ function subscribeToLobby() {
     const nextLobby = snapshot.data();
     updateServerClockOffset(nextLobby.updatedAt);
     session.lobby = nextLobby;
-    // The host has pressed Start and is preparing the match: everyone leaves the lobby right away.
+
     if (session.lobby.status === "starting") {
       setCreatingLobbyOverlay(true, "Waiting for players...");
     } else if (previousStatus === "starting" && session.lobby.status === "waiting") {
@@ -777,14 +777,14 @@ function subscribeToLobby() {
     if (session.role === "host" && localHost && !nextPlayers.some((player) => player.id === uid)) {
       nextPlayers.unshift(localHost);
     }
-    // Same guard for a guest: a cache-served snapshot must not drop our own card (team/slot).
+
     const localGuest = session.players.find((player) => player.id === uid);
     if (session.role === "guest" && localGuest && snapshot.metadata.fromCache && !nextPlayers.some((player) => player.id === uid)) {
       nextPlayers.push(localGuest);
     }
-    // A snapshot served from the local cache can be empty or partial (it often holds only
-    // our own just-written doc), which would look exactly like everyone else disconnecting.
-    // Never act on a departure until the server has confirmed it.
+
+
+
     const serverConfirmed = !snapshot.metadata.fromCache;
     const departedPlayers = serverConfirmed
       ? previousPlayers.filter((player) => !nextPlayers.some((nextPlayer) => nextPlayer.id === player.id))
@@ -813,8 +813,8 @@ function subscribeToLobby() {
         const opponentStillPresent = nextPlayers.some((player) => player.team === opponentTeam);
         const opponentWasPresent = previousPlayers.some((player) => player.team === opponentTeam);
         if (opponentWasPresent && !opponentStillPresent && !session.waitingForRematch) {
-          // The match is over, but the lobby is not: everyone still here goes back to it (whether
-          // they were mid-round or on the results screen) instead of being thrown out to the menu.
+
+
           session.players = nextPlayers;
           getMenuApi()?.returnToLobbyFromMatch?.();
           renderLobbyPlayers();
@@ -840,7 +840,7 @@ function subscribeToLobby() {
 
   if (backend.rtdb) {
     try {
-      // The connection only exists while a lobby is open (see leaveLobby), so idle menus use no slot.
+
       backend.rt.goOnline(backend.rtdb);
       const viewsRef = backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}`);
       session.unsubscribeViews = backend.rt.onValue(viewsRef, (snapshot) => {
@@ -858,9 +858,9 @@ function subscribeToLobby() {
   startPresence();
 }
 
-// The Realtime Database notices a closed tab the moment its socket drops and runs onDisconnect on
-// the server, so each player's presence node vanishes within about a second even when the page
-// never got to run any cleanup. The host then frees the Firestore slot of anyone who vanishes.
+
+
+
 function startRealtimePresence(backend, code) {
   const uid = backend.auth.currentUser?.uid;
   if (!uid) return;
@@ -870,7 +870,7 @@ function startRealtimePresence(backend, code) {
   const connectedRef = backend.rt.ref(backend.rtdb, ".info/connected");
   const stopConnected = backend.rt.onValue(connectedRef, (snapshot) => {
     if (snapshot.val() !== true) return;
-    // Re-armed on every (re)connect, since the server forgets onDisconnect handlers when the socket drops.
+
     backend.rt.onDisconnect(presenceRef).remove()
       .then(() => backend.rt.set(presenceRef, true))
       .catch((error) => console.error("Could not publish realtime presence", error));
@@ -885,7 +885,7 @@ function startRealtimePresence(backend, code) {
       session.departedPlayerIds.add(id);
       window.setTimeout(async () => {
         try {
-          // Debounce a brief reconnect: only remove if they are still absent and in the lobby.
+
           const latest = await backend.rt.get(backend.rt.ref(backend.rtdb, `${PRESENCE_PATH}/${code}/${id}`));
           if (session.lobbyCode === code && !latest.val()) {
             session.presenceSeen.delete(id);
@@ -909,9 +909,9 @@ function updateServerClockOffset(serverTimestamp) {
   }
 }
 
-// Shared deadlines are written in server-clock terms by whoever schedules them and read back
-// in each client's own clock. Timestamps taken straight from the writer's Date.now() cannot
-// be compared against a reader's Date.now(), which is what desynced the round timers.
+
+
+
 function toServerClock(localMs) {
   const value = Number(localMs);
   if (!Number.isFinite(value) || value <= 0) return 0;
@@ -1011,9 +1011,9 @@ function startPresence() {
   session.matchReconcileHandle = backgroundTimers.setInterval(reconcileMatchState, MATCH_RECONCILE_MS);
 }
 
-// Re-asserts the shared timers from the authoritative lobby doc. Every consumer applies an
-// absolute target, so repeating it is a no-op once a client is already in step - it only
-// matters for the client that missed the original dispatch.
+
+
+
 function reconcileMatchState() {
   if (!session.lobbyCode || session.lobby?.status !== "playing") return;
   publishGuessProgress();
@@ -1024,9 +1024,9 @@ document.addEventListener("visibilitychange", () => {
   if (session.lobbyCode) refreshUnloadToken();
 });
 
-// Closing the tab gives no reliable async window, so this is a best-effort fast path that
-// usually frees the slot instantly. Realtime Database onDisconnect remains the guarantee
-// for crashes, closed tabs and anything this misses.
+
+
+
 window.addEventListener("pagehide", (event) => {
   if (event.persisted) return;
   releaseOwnPlayerSlot();
@@ -1040,11 +1040,11 @@ function stopPresence() {
   session.departedPlayerIds.clear();
 }
 
-// A closing page never waits on a promise, so the SDK's own write is queued and then thrown
-// away before it reaches the network - which is why a closed browser used to linger in the
-// lobby. A keepalive fetch is the one request browsers promise to deliver while unloading, so
-// this hits Firestore's REST endpoint directly and the slot is freed as the tab closes. The
-// token has to be ready in advance because there is no time to await one here.
+
+
+
+
+
 function releaseOwnPlayerSlot() {
   const backend = session.backend;
   const code = session.lobbyCode;
@@ -1065,7 +1065,7 @@ function releaseOwnPlayerSlot() {
     } catch (error) {}
   }
 
-  // Backup for browsers without keepalive support, and harmless if the fetch already landed.
+
   try {
     backend.fs.deleteDoc(playerRef(backend, code, uid)).catch(() => {});
   } catch (error) {}
@@ -1075,8 +1075,8 @@ function refreshUnloadToken() {
   const backend = session.backend;
   const user = backend?.auth.currentUser;
   if (!backend || !session.lobbyCode || !user?.uid) return;
-  // Kept fresh here so the unload path always has a usable token on hand. getIdToken serves a
-  // cached value until it nears expiry. This does not write activity timestamps or evict idle players.
+
+
   user.getIdToken().then((token) => { session.idToken = token; }).catch(() => {});
 }
 
@@ -1243,8 +1243,8 @@ function renderPlayerGrid(container, maxPlayers, interactive = true) {
     const isCurrentPlayer = Boolean(player && uid && player.id === uid);
     card.className = `lobby-player-card is-${team}${player ? "" : " is-empty"}${isCurrentPlayer ? " is-current-player" : ""}${player?.role === "host" ? " is-host" : ""}`;
     if (isCurrentPlayer) card.setAttribute("aria-label", `${player.name || "Player"}, your player`);
-    // While the host is starting the match the lobby sits behind the loading overlay: keep the
-    // buttons on screen (disabled) instead of letting them vanish.
+
+
     const lobbyStatus = session.lobby?.status;
     const lobbyOpen = lobbyStatus === "waiting" || lobbyStatus === "starting";
     const lockAttr = lobbyStatus === "waiting" ? "" : " disabled";
@@ -1740,26 +1740,26 @@ function publishSpectatorViews() {
   const assignedOpponent = opposingTeam.length
     ? opposingTeam[(ownTeamIndex + roundParity) % opposingTeam.length]
     : null;
-  // An opponent who has already locked in has nothing left to watch - spectating them just
-  // flashes a frozen view for the moment before the round resolves, which is what the last
-  // player to guess would otherwise see. The alternating assignment is a preference, so if
-  // that opponent is finished fall back to one who is still choosing, and to nobody if the
-  // whole opposing side is done.
+
+
+
+
+
   const decidingOpponents = opposingTeam.filter((player) => !playerLockedForRound(player));
-  // Once someone has been spectated this round, keep showing them (frozen on their final view and
-  // marker) until the round resolves, rather than snapping back to our own camera.
+
+
   const stickyOpponent = session.spectatedOpponent?.round === session.currentRound
     ? opposingTeam.find((player) => player.id === session.spectatedOpponent.id) || null
     : null;
   const spectatedOpponent = assignedOpponent && !playerLockedForRound(assignedOpponent)
     ? assignedOpponent
     : decidingOpponents[0] || stickyOpponent;
-  // Starting to spectate swaps our camera for theirs, so our own marker visibly jumps. When the
-  // round deadline expires everyone locks within a few milliseconds, but our snapshot can see our
-  // side lock before theirs and briefly flip into spectating. Only begin once the opponent has stayed
-  // undecided for a moment; an established spectate is never delayed.
-  // Once the response countdown has run out (or the round was force-resolved by it) there is nothing
-  // left to watch: drop straight back to our own map.
+
+
+
+
+
+
   const deadline = session.lobby.roundDeadline;
   const resolution = session.lobby.roundResolution;
   const countdownOver = (
@@ -1793,7 +1793,7 @@ function publishSpectatorViews() {
     ? session.players
       .filter((player) => player.id === spectatedOpponent.id)
       .map((player) => {
-        // A player who never moved their map has no view for this round: they are on the default view.
+
         const storedView = viewStateOf(player);
         const view = Number(storedView?.roundIndex) === session.currentRound
           ? storedView
@@ -1864,7 +1864,7 @@ function publishGuessProgress() {
     const noticeKey = `${session.currentRound}:${team}`;
     if (session.guessNoticeKeys.has(noticeKey)) return;
     const teamPlayers = activePlayers.filter((player) => player.team === team);
-    // A team the countdown timed out without a single marker did not lock in anything.
+
     if (!teamPlayers.some((player) => playerPlacedGuess(player))) return;
     session.guessNoticeKeys.add(noticeKey);
     const message = teamPlayers.length > 1
@@ -2121,7 +2121,7 @@ async function beginSharedMatch() {
   const ownPlayer = session.players.find((player) => player.id === uid);
   if (!uid || !ownPlayer) return;
   session.gameStarted = true;
-  // The moment the host starts, everyone leaves the lobby for a waiting screen while the match loads.
+
   setCreatingLobbyOverlay(true, "Waiting for players...");
   try {
     await getGameApi().startMultiplayerGame({
@@ -2221,17 +2221,17 @@ async function returnToMultiplayerLobby(detail = {}) {
   }
 }
 
-// The host can only start once every player is back from the results screen. A player could
-// reach the lobby with rematchReady still false - most often by rejoining before the host had
-// returned, which stamps it from a stale awaitingRematch - and nothing ever corrected it,
-// blocking the start for everyone. Any client genuinely in the lobby re-asserts it here.
+
+
+
+
 function ensureRematchReady() {
   const backend = session.backend;
   const code = session.lobbyCode;
   const uid = backend?.auth.currentUser?.uid;
   if (!backend || !code || !uid || session.rematchReadyWriting) return;
   if (session.lobby?.status !== "waiting" || !session.lobby?.awaitingRematch) return;
-  // Still on the results screen: the match started for this client and it has not returned.
+
   if (session.gameStarted && !session.waitingForRematch) return;
   const ownPlayer = session.players.find((player) => player.id === uid);
   if (!ownPlayer || ownPlayer.rematchReady === true) return;
@@ -2329,12 +2329,12 @@ async function leaveLobby(options = {}) {
     if (backend.auth.currentUser) {
       removals.push(backend.rt.remove(backend.rt.ref(backend.rtdb, `${SPECTATE_PATH}/${code}/${backend.auth.currentUser.uid}`)));
       removals.push(backend.rt.remove(backend.rt.ref(backend.rtdb, `${PRESENCE_PATH}/${code}/${backend.auth.currentUser.uid}`)));
-      // Only our own entry can be removed here: the database rules allow writes per player (/<code>/<uid>), so
-      // removing the whole /<code> node as host was always denied. Every other player clears their own entry when
-      // they leave, and their onDisconnect handler covers a crash or closed tab.
+
+
+
     }
-    // Once our data is cleared, close the Realtime Database connection so it stops counting against
-    // the connection limit. Skipped if another lobby was opened in the meantime.
+
+
     Promise.race([
       Promise.allSettled(removals),
       new Promise((resolve) => window.setTimeout(resolve, 1500)),
@@ -2373,9 +2373,9 @@ async function leaveLobby(options = {}) {
       batch.delete(backend.fs.doc(backend.db, LOBBY_COLLECTION, code));
       await batch.commit();
     } else {
-      // Always clean up our own player doc, even when preserving the rest of the
-      // lobby (e.g. a forced exit) - only we (or the host) are allowed to delete it,
-      // so skipping this would leave a ghost entry behind for everyone else.
+
+
+
       await backend.fs.deleteDoc(playerRef(backend, code, backend.auth.currentUser.uid));
     }
   } catch (error) {
@@ -2438,7 +2438,7 @@ function openLobbyFromInviteLink() {
   const code = normalizeLobbyCode(new URLSearchParams(window.location.search).get("lobby"));
   if (!code) {
     let wasHosting = false;
-    try { wasHosting = sessionStorage.getItem(HOSTING_STORAGE_KEY) === "1"; } catch { /* ignore */ }
+    try { wasHosting = sessionStorage.getItem(HOSTING_STORAGE_KEY) === "1"; } catch {   }
     if (wasHosting) {
       setHostingFlag(false);
       window.setTimeout(() => getMenuApi()?.showMultiplayerView(), 0);

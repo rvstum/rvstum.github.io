@@ -57,7 +57,7 @@ export function escapeHtml(value) {
 export function getFlagUrl(code) {
     const normalized = String(code || "").toLowerCase();
     if (normalized === "hmn") {
-        return "https://upload.wikimedia.org/wikipedia/commons/2/27/Hmong_flag.svg";
+        return "https:
     }
     return `https://flagcdn.com/w80/${normalized}.png`;
 }

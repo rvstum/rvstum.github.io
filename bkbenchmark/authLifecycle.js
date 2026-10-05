@@ -20,8 +20,8 @@ const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY = "__benchmark_mobile_rest
 const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_WINDOW_MS = 15000;
 const MOBILE_REMEMBERED_RESTORE_FALLBACK_HIDE_MS = 6000;
 
-// Nobody is signed in (for example the browser data was cleared): the app must never sit there as
-// an empty account, so send the visitor to the login page. Linked profile views stay public.
+
+
 function redirectToLoginIfSignedOut() {
     if (auth.currentUser) return false;
     const params = new URLSearchParams(window.location.search);
@@ -128,12 +128,12 @@ export function initAuthLifecycle(options = {}) {
         applyLanguage(appliedLang || storedLang, false);
     };
 
-    // Incoming requests come straight from the friend graph, so the notification badge reacts the
-    // moment someone sends (or withdraws) a request instead of relying on a copy on our own user
-    // document that the sender had to write for us.
-    // The badge is always derived from the live graph, and this runs on every graph change AND after
-    // sign-in finishes. Session resets clear the badge state, and a snapshot that arrived before the
-    // reset would otherwise leave the dot missing until the next (possibly never) change.
+
+
+
+
+
+
     const refreshFriendRequestBadge = () => {
         const currentUser = auth.currentUser;
         const graph = currentUser ? getFriendGraph(currentUser.uid) : null;

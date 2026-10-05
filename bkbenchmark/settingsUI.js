@@ -14,8 +14,8 @@ const MOBILE_LEADERBOARD_SELECT_SELECTOR = "#leaderboardModal select.settings-se
 
 const THRESHOLD_VIZ_STORAGE_KEY = "kdassist-rank-threshold-viz";
 
-// Turns a hidden on/off <select> into a light-switch button. The select stays the source of truth
-// (existing code keeps reading/writing select.value and listening for "change").
+
+
 function bindSettingSwitch(select) {
     if (!select || select.dataset.switchBound === "true") return;
     select.dataset.switchBound = "true";

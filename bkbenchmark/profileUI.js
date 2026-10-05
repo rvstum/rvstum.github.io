@@ -22,7 +22,7 @@ import {
 import { escapeHtml, getFlagUrl } from "./utils.js";
 import { getCachedElementById, getCachedQuery, setHidden, setFlexVisible } from "./utils/domUtils.js";
 
-// Cropper state
+
 let cropperState = { x: 0, y: 0, scale: 1 };
 let isDragging = false;
 let startX, startY;
@@ -193,7 +193,7 @@ export async function initProfileModalState(profileModal, accountEmailDisplay, t
         try {
             await user.reload();
             currentUserEmail = user.email;
-            
+
             if (accountEmailDisplay) {
                 const parts = user.email.split('@');
                 const masked = `**************@${parts[1] || 'gmail.com'}`;
@@ -252,7 +252,7 @@ export async function initProfileModalState(profileModal, accountEmailDisplay, t
     updateProfilePicPreview(draftProfileState.pic);
     updateFlagPreview(draftProfileState.flag);
     renderGuildsList(addGuildBtn);
-    
+
     if (newGuildInputBox) setHidden(newGuildInputBox, true);
     if (addGuildBtn) setHidden(addGuildBtn, editingGuilds.length >= 6);
 
@@ -357,7 +357,7 @@ export function updateFlagPreview(code) {
 export function updateProfileButtons() {
     const saveBtn = getCachedProfileElementById('saveProfileBtn');
     const discardBtn = getCachedProfileElementById('discardProfileBtn');
-    
+
     const guildsChanged = JSON.stringify(editingGuilds) !== JSON.stringify(originalProfileState.guilds);
     const usernameChanged = draftProfileState.username !== originalProfileState.username;
     const picChanged = draftProfileState.pic !== originalProfileState.pic;
@@ -376,22 +376,22 @@ export function renderGuildsList(addGuildBtn) {
     const guildListContainer = getCachedProfileElementById('guildListContainer');
     const onboardingGuildListContainer = getCachedProfileElementById('onboardingGuildListContainer');
     const containers = [guildListContainer, onboardingGuildListContainer];
-    
+
     containers.forEach(container => {
         if (!container) return;
         container.innerHTML = '';
         setFlexVisible(container, editingGuilds.length > 0);
-        
+
     editingGuilds.forEach((guild, index) => {
         const div = document.createElement('div');
         div.className = 'guild-item';
-        
+
         const dragHandleHtml = `
             <div class="guild-drag-handle" title="${escapeHtml(t('drag_to_reorder'))}">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 5.83L15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z"/></svg>
             </div>
         `;
-        
+
         if (index === editingGuildIndex) {
             div.classList.add('editing');
             div.innerHTML = `
@@ -430,7 +430,7 @@ export function renderGuildsList(addGuildBtn) {
                     renderGuildsList(addGuildBtn);
                 }
             });
-            
+
             setTimeout(() => {
                 input.focus();
                 const end = input.value.length;
@@ -461,14 +461,14 @@ export function renderGuildsList(addGuildBtn) {
                 updateProfileButtons();
             });
         }
-        
+
         const handle = div.querySelector('.guild-drag-handle');
         if (handle) {
             handle.addEventListener('pointerdown', (e) => {
                 handleGuildDragStart(e, div, addGuildBtn);
             });
         }
-        
+
         container.appendChild(div);
     });
     });
@@ -486,29 +486,29 @@ let dragContainer = null;
 export function handleGuildDragStart(e, item, addGuildBtn) {
     if (e.button !== 0) return;
     e.preventDefault();
-    
+
     const rect = item.getBoundingClientRect();
     dragOffsetY = e.clientY - rect.top;
     dragOffsetX = e.clientX - rect.left;
-    
+
     item.style.setProperty('--drag-width', `${rect.width}px`);
-    
+
     dragAvatar = item.cloneNode(true);
     dragAvatar.classList.add('sortable-drag');
     const origInput = item.querySelector('input');
     const avatarInput = dragAvatar.querySelector('input');
     if (origInput && avatarInput) avatarInput.value = origInput.value;
-    
+
     dragAvatar.style.left = `${rect.left}px`;
     dragAvatar.style.top = `${rect.top}px`;
     document.body.appendChild(dragAvatar);
-    
+
     item.classList.add('sortable-ghost');
     dragPlaceholder = item;
     dragContainer = item.parentElement;
-    
+
     isPointerDragging = true;
-    
+
     const moveHandler = (ev) => handleGuildDragMove(ev);
     const endHandler = (ev) => handleGuildDragEnd(ev, moveHandler, endHandler, addGuildBtn);
 
@@ -520,27 +520,27 @@ export function handleGuildDragStart(e, item, addGuildBtn) {
 export function handleGuildDragMove(e) {
     if (!isPointerDragging || !dragAvatar || !dragContainer) return;
     e.preventDefault();
-    
+
     const x = e.clientX - dragOffsetX;
     const y = e.clientY - dragOffsetY;
-    
+
     dragAvatar.style.left = `${x}px`;
     dragAvatar.style.top = `${y}px`;
-    
+
     const container = dragContainer;
     const siblings = [...container.querySelectorAll('.guild-item:not(.sortable-drag)')];
     const afterElement = getDragAfterElement(container, e.clientY);
-    
+
     if (afterElement !== dragPlaceholder.nextElementSibling && afterElement !== dragPlaceholder) {
         const positions = new Map();
         siblings.forEach(el => positions.set(el, el.getBoundingClientRect().top));
-        
+
         if (afterElement == null) {
             container.appendChild(dragPlaceholder);
         } else {
             container.insertBefore(dragPlaceholder, afterElement);
         }
-        
+
         siblings.forEach(el => {
             const newTop = el.getBoundingClientRect().top;
             const oldTop = positions.get(el);
@@ -574,21 +574,21 @@ export function getDragAfterElement(container, y) {
 export function handleGuildDragEnd(e, moveHandler, endHandler, addGuildBtn) {
     if (!isPointerDragging) return;
     isPointerDragging = false;
-    
+
     document.removeEventListener('pointermove', moveHandler);
     document.removeEventListener('pointerup', endHandler);
     document.removeEventListener('pointercancel', endHandler);
-    
+
     if (dragAvatar) {
         dragAvatar.remove();
         dragAvatar = null;
     }
-    
+
     const container = dragContainer;
     if (dragPlaceholder) dragPlaceholder.classList.remove('sortable-ghost');
     dragPlaceholder = null;
     dragContainer = null;
-    
+
     const newGuilds = [];
     if (container) {
         const items = container.querySelectorAll('.guild-item');
@@ -599,10 +599,10 @@ export function handleGuildDragEnd(e, moveHandler, endHandler, addGuildBtn) {
             else if (span) newGuilds.push(span.textContent.trim());
         });
     }
-    
+
     editingGuilds = normalizeGuildList(newGuilds);
     editingGuildIndex = -1;
-    
+
     renderGuildsList(addGuildBtn);
     updateProfileButtons();
 }
@@ -610,7 +610,7 @@ export function handleGuildDragEnd(e, moveHandler, endHandler, addGuildBtn) {
 export function updateMainPageGuildDisplay() {
     const guildNameEl = getGuildNameElement();
     if (!guildNameEl) return;
-    
+
     const savedGuilds = readJson(GUILDS_STORAGE_KEY, []);
     renderGuildHeader(guildNameEl, Array.isArray(savedGuilds) ? savedGuilds : []);
 }
@@ -659,7 +659,7 @@ export function closeFlagPicker(flagModal) {
 export function updateMainHeaderLayout() {
     const pic = readString(PROFILE_PIC_STORAGE_KEY, '');
     const flag = readString(COUNTRY_FLAG_STORAGE_KEY, '');
-    
+
     const circle = getProfileCircleElement();
     const flagEl = getNationalityFlagElement();
     const userMenuBoxIcon = getUserMenuAvatarElement();
@@ -713,7 +713,7 @@ export function updateMainHeaderLayout() {
             userMenuBoxIcon.style.backgroundColor = '#0a0a0a';
             userMenuBoxIcon.textContent = userMenuInitial;
         }
-        
+
         if (flag) {
             circle.classList.add('no-pic-has-flag');
         } else {
@@ -758,7 +758,7 @@ export function syncUserMenuDropdownWidth() {
 
 export function initOnboarding(onboardingModal, onboardingUsernameInput, addGuildBtn) {
     if (!onboardingModal) return;
-    
+
     draftProfileState = {
         username: '',
         pic: null,
@@ -767,12 +767,12 @@ export function initOnboarding(onboardingModal, onboardingUsernameInput, addGuil
         cropState: null
     };
     editingGuilds = [];
-    
+
     if (onboardingUsernameInput) onboardingUsernameInput.value = '';
     updateProfilePicPreview(null);
     updateFlagPreview(null);
     renderGuildsList(addGuildBtn);
-    
+
     onboardingModal.classList.add('show');
 }
 

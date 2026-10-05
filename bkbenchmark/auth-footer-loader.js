@@ -59,7 +59,7 @@
         ensureFooter();
     }
 
-    // Run immediately so auth language setup can bind before module scripts execute.
+
     initAuthFooter();
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAuthFooter, { once: true });

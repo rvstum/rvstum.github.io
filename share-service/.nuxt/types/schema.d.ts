@@ -99,31 +99,31 @@ declare module '@nuxt/schema' {
     ["@nuxt/telemetry"]?: ModuleDependencyMeta<typeof import("@nuxt/telemetry").default extends NuxtModule<infer O> ? O | false : Record<string, unknown>> | false
   }
   interface NuxtOptions {
-    /**
-     * Configuration for `nuxt-site-config`
-     */
+
+
+
     ["site"]: typeof import("nuxt-site-config").default extends NuxtModule<infer O, unknown, boolean> ? O | false : Record<string, any> | false
-    /**
-     * Configuration for `nuxt-og-image`
-     */
+
+
+
     ["ogImage"]: typeof import("nuxt-og-image").default extends NuxtModule<infer O, unknown, boolean> ? O | false : Record<string, any> | false
-    /**
-     * Configuration for `@nuxt/telemetry`
-     */
+
+
+
     ["telemetry"]: typeof import("@nuxt/telemetry").default extends NuxtModule<infer O, unknown, boolean> ? O | false : Record<string, any> | false
   }
   interface NuxtConfig {
-    /**
-     * Configuration for `nuxt-site-config`
-     */
+
+
+
     ["site"]?: typeof import("nuxt-site-config").default extends NuxtModule<infer O, unknown, boolean> ? Partial<O> | false : Record<string, any> | false
-    /**
-     * Configuration for `nuxt-og-image`
-     */
+
+
+
     ["ogImage"]?: typeof import("nuxt-og-image").default extends NuxtModule<infer O, unknown, boolean> ? Partial<O> | false : Record<string, any> | false
-    /**
-     * Configuration for `@nuxt/telemetry`
-     */
+
+
+
     ["telemetry"]?: typeof import("@nuxt/telemetry").default extends NuxtModule<infer O, unknown, boolean> ? Partial<O> | false : Record<string, any> | false
     modules?: (undefined | null | false | NuxtModule<any> | string | [NuxtModule | string, Record<string, any>] | ["C:/Users/rvstu/Downloads/rvstum.github.io-main - Copy/rvstum.github.io-main/share-service/node_modules/nuxt-site-config/dist/module.mjs", Exclude<NuxtConfig["site"], boolean>] | ["nuxt-og-image", Exclude<NuxtConfig["ogImage"], boolean>] | ["@nuxt/telemetry", Exclude<NuxtConfig["telemetry"], boolean>])[],
   }
@@ -137,35 +137,35 @@ declare module 'nuxt/schema' {
     ["@nuxt/telemetry"]?: ModuleDependencyMeta<typeof import("@nuxt/telemetry").default extends NuxtModule<infer O> ? O | false : Record<string, unknown>> | false
   }
   interface NuxtOptions {
-    /**
-     * Configuration for `nuxt-site-config`
-     */
+
+
+
     ["site"]: typeof import("nuxt-site-config").default extends NuxtModule<infer O, unknown, boolean> ? O | false : Record<string, any> | false
-    /**
-     * Configuration for `nuxt-og-image`
-     * @see https://www.npmjs.com/package/nuxt-og-image
-     */
+
+
+
+
     ["ogImage"]: typeof import("nuxt-og-image").default extends NuxtModule<infer O, unknown, boolean> ? O | false : Record<string, any> | false
-    /**
-     * Configuration for `@nuxt/telemetry`
-     * @see https://www.npmjs.com/package/@nuxt/telemetry
-     */
+
+
+
+
     ["telemetry"]: typeof import("@nuxt/telemetry").default extends NuxtModule<infer O, unknown, boolean> ? O | false : Record<string, any> | false
   }
   interface NuxtConfig {
-    /**
-     * Configuration for `nuxt-site-config`
-     */
+
+
+
     ["site"]?: typeof import("nuxt-site-config").default extends NuxtModule<infer O, unknown, boolean> ? Partial<O> | false : Record<string, any> | false
-    /**
-     * Configuration for `nuxt-og-image`
-     * @see https://www.npmjs.com/package/nuxt-og-image
-     */
+
+
+
+
     ["ogImage"]?: typeof import("nuxt-og-image").default extends NuxtModule<infer O, unknown, boolean> ? Partial<O> | false : Record<string, any> | false
-    /**
-     * Configuration for `@nuxt/telemetry`
-     * @see https://www.npmjs.com/package/@nuxt/telemetry
-     */
+
+
+
+
     ["telemetry"]?: typeof import("@nuxt/telemetry").default extends NuxtModule<infer O, unknown, boolean> ? Partial<O> | false : Record<string, any> | false
     modules?: (undefined | null | false | NuxtModule<any> | string | [NuxtModule | string, Record<string, any>] | ["C:/Users/rvstu/Downloads/rvstum.github.io-main - Copy/rvstum.github.io-main/share-service/node_modules/nuxt-site-config/dist/module.mjs", Exclude<NuxtConfig["site"], boolean>] | ["nuxt-og-image", Exclude<NuxtConfig["ogImage"], boolean>] | ["@nuxt/telemetry", Exclude<NuxtConfig["telemetry"], boolean>])[],
   }

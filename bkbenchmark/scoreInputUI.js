@@ -167,7 +167,7 @@ export function setupScoreInputHandlers(options = {}) {
 
     const updateScoreLinkToggleText = () => {
         if (!scoreLinkToggle) return;
-        // Label only - screen readers still announce it, but nothing is shown on screen.
+
         scoreLinkToggle.setAttribute("aria-label", getSubInputTooltipText());
         scoreLinkToggle.removeAttribute("title");
     };

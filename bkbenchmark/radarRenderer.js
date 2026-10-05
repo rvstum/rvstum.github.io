@@ -5,9 +5,9 @@ import { RADAR_BAR_COLORS } from "./constants.js";
 function resizeRadarCanvas(canvas) {
     const dpr = window.devicePixelRatio || 1;
     const ratio = dpr > 1 ? Math.min(3, Math.ceil(dpr)) : 1;
-    // Never pin the canvas to a fixed pixel size: an inline width measured on desktop stayed on the canvas after
-    // switching to a mobile width, so the charts kept their desktop size and ran off the screen. The CSS (100% of
-    // its wrapper) decides the display size; here we only match the backing store to it.
+
+
+
     canvas.style.removeProperty("width");
     canvas.style.removeProperty("height");
     const width = Math.max(canvas.clientWidth, 1);
@@ -70,9 +70,9 @@ export function drawRadarChart(canvas, labels, datasets) {
     ctx.globalAlpha = 1;
     ctx.lineWidth = 2;
 
-    // Combined view: Swords and Bombs are two datasets that are each zero on the other half of the axes. Drawn as two
-    // separate polygons they leave an empty wedge between the red and the blue at both seams. Instead, split the one
-    // merged outline at the midpoint of each seam edge so the red and blue halves meet exactly, with no gap.
+
+
+
     const isSplitDual = datasets.length === 2
         && datasets.every((d) => d && d.values && d.values.length === count)
         && datasets[0].values.every((v, i) => !(v > 0 && datasets[1].values[i] > 0));
@@ -84,7 +84,7 @@ export function drawRadarChart(canvas, labels, datasets) {
         };
         const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
         const owner = (i) => (datasets[0].values[i] > 0 ? 0 : (datasets[1].values[i] > 0 ? 1 : (i < Math.floor(count / 2) ? 1 : 0)));
-        // Owner per vertex: the first dataset that has a value there (zero values fall back to the half they sit in).
+
         const groups = [[], []];
         for (let i = 0; i < count; i++) groups[owner(i)].push(i);
         groups.forEach((indices, g) => {
@@ -106,7 +106,7 @@ export function drawRadarChart(canvas, labels, datasets) {
             ctx.closePath();
             ctx.fillStyle = hexToRgba(color, 0.2);
             ctx.fill();
-            // Outline only the outer edge (not the edges through the center where the two halves meet).
+
             ctx.beginPath();
             ctx.moveTo(before.x, before.y);
             indices.forEach((i) => {
@@ -157,8 +157,8 @@ export function drawRadarChart(canvas, labels, datasets) {
     });
 }
 
-// Swords vs Bombs chart: a thick ring split into the two totals, with the percentages stacked in the center.
-// The Bombs/Swords legend with matching percentages lives in the DOM beneath the canvas.
+
+
 export function drawPieChart(canvas, swordsTotal, bombsTotal) {
     if (!canvas) return;
     const ctx = resizeRadarCanvas(canvas);

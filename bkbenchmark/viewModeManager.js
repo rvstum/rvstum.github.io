@@ -149,8 +149,8 @@ function resolveViewModeRankIndex(data = {}) {
 }
 
 function syncViewModeExitButtonTheme(rankIndex = 0) {
-    // The Exit View Mode text is always white while viewing someone else. (The top rank used to set it to near-black, and
-    // rank 0 fell back to the theme's own text color, both of which could be unreadable on the dark button.)
+
+
     document.body.style.setProperty("--exit-view-btn-text", "#ffffff");
 }
 

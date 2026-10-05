@@ -33,7 +33,7 @@ function collectCaveLabels({ shorten = true } = {}) {
             : "";
         if (altLabel) return normalizeRadarLabel(altLabel, { shorten });
 
-        // Avoid control text ("Right click to edit") leaking into radar labels.
+
         const raw = Array.from(labelCell.childNodes)
             .filter((node) => node && node.nodeType === Node.TEXT_NODE)
             .map((node) => String(node.textContent || ""))

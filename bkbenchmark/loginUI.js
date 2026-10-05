@@ -47,7 +47,7 @@ function isLikelyMobileClient() {
             return true;
         }
     } catch (e) {
-        // ignore viewport detection issues and fall back to user agent detection
+
     }
     const userAgent = typeof navigator !== "undefined" ? String(navigator.userAgent || "") : "";
     return /android|iphone|ipad|ipod|mobile/i.test(userAgent);
@@ -64,7 +64,7 @@ function cleanupMobileServiceWorkerControl() {
         }
         window.sessionStorage.setItem(MOBILE_SW_CLEANUP_SESSION_KEY, "running");
     } catch (e) {
-        // ignore storage availability errors
+
     }
     const unregisterPromise = "serviceWorker" in navigator
         ? navigator.serviceWorker.getRegistrations()
@@ -144,7 +144,7 @@ function clearLegacyAutoRestoreBootstrap() {
     try {
         sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
     } catch (e) {
-        // ignore storage availability errors
+
     }
 }
 
@@ -202,7 +202,7 @@ function clearLoginRedirectGuards() {
         sessionStorage.removeItem(LOGIN_AUTO_RESTORE_TARGET_SESSION_KEY);
         sessionStorage.removeItem(LOGIN_HANDOFF_SESSION_KEY);
     } catch (e) {
-        // ignore storage availability errors
+
     }
 }
 

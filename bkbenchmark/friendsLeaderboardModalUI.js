@@ -80,7 +80,7 @@ export function initFriendsLeaderboardModalController(options = {}) {
         }
     }
 
-    // Friends are live: if the board is open when a friendship is made or removed, redraw it.
+
     let liveRefreshTimer = 0;
     onFriendGraphChange(() => {
         if (!leaderboardModal || !leaderboardModal.classList.contains("show")) return;

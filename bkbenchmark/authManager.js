@@ -268,8 +268,8 @@ function writeViewedFriendRequests(uid, requests) {
 }
 
 function refreshPendingRequestState(uid, currentRequests) {
-    // Stored "seen" ids are not pruned here: an early cache-only snapshot can be empty, and forgetting
-    // them would light the dot again for requests already seen. Viewing the tab rewrites the list.
+
+
     const viewedSet = new Set(readViewedFriendRequests(uid));
     state.hasPendingRequests = currentRequests.some((requestUid) => !viewedSet.has(requestUid));
 }
@@ -589,8 +589,8 @@ export async function loadUserProfile(user, hooks = {}) {
         }
 
         if (shouldInitOnboarding) {
-            // The setup screen is UI only: if it fails to open, loading (and above all the score
-            // hydration further down) must still finish.
+
+
             try {
                 initOnboarding();
             } catch (onboardingError) {
@@ -727,10 +727,10 @@ export async function loadUserProfile(user, hooks = {}) {
         }
     } catch (e) {
         console.error("Error loading user data:", e);
-        // Signed-in score saves are blocked until the scores are "hydrated", and a failure anywhere
-        // above used to skip that step for good: a new account could type scores all day and none
-        // of them were ever uploaded, so nobody else could see them. A profile without remote
-        // scores has nothing to protect, so hydrate from this device and let the upload run.
+
+
+
+
         if (!isStaleAuthSession() && !state.scoresHydrated && !(data && data.scores)) {
             try {
                 ScoreManager.loadSavedScores();

@@ -192,8 +192,8 @@ export function cycleRadarMode() {
 
 let radarResizeBound = false;
 
-// Redraw the charts whenever their box changes size (desktop <-> mobile switch, rotation, resizing the window),
-// so the canvases always match their wrapper instead of keeping a stale size.
+
+
 function bindRadarResizeRedraw() {
     if (radarResizeBound) return;
     const grid = document.querySelector(".radar-chart-grid");

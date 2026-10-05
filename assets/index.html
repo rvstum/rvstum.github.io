@@ -8,7 +8,7 @@
     <title>Assets</title>
     <link rel="icon" type="image/png" sizes="43x43" href="assetsicon-tab.png">
     <style>
-        /* green theme, taken from the page background */
+
         * {
             -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
@@ -90,7 +90,7 @@
             font-weight: bold;
             font-size: var(--title-size);
             letter-spacing: 4px;
-            text-shadow: 0 0 6px #000, 0 0 12px #000, 0 0 22px rgba(0, 0, 0, 0.9), 0 0 36px rgba(0, 0, 0, 0.7); /* black glow behind the title */
+            text-shadow: 0 0 6px #000, 0 0 12px #000, 0 0 22px rgba(0, 0, 0, 0.9), 0 0 36px rgba(0, 0, 0, 0.7);
         }
 
         .page-subtitle {
@@ -103,9 +103,9 @@
             text-shadow: 0 0 5px #000, 0 0 10px #000, 0 0 18px rgba(0, 0, 0, 0.85);
         }
 
-        /* The page is exactly one screen tall at any size: the panel fills whatever is left under the
-           title and the grid (see layoutGrid) shows only as many rows as fit. Nothing depends on a
-           specific screen width or height. */
+
+
+
         html, body {
             height: 100vh;
             height: 100dvh;
@@ -113,7 +113,7 @@
             overscroll-behavior: none;
         }
 
-        /* Pinned to the screen so nothing inside can create a sideways scroll on touch devices. */
+
         body {
             position: fixed;
             inset: 0;
@@ -122,8 +122,8 @@
             flex-direction: column;
         }
 
-        /* Same gap above and below the title, so it sits centered between the top of the screen and
-           the panel at any screen size. */
+
+
         .page-title {
             --title-gap: clamp(10px, 2.5vh, 26px);
             --title-size: clamp(26px, 5vw, 60px);
@@ -131,7 +131,7 @@
             padding: var(--title-gap) 16px;
         }
 
-        /* The text alone is centered; the icon hangs off its right edge without shifting it. */
+
         .title-row {
             display: flex;
             align-items: center;
@@ -184,7 +184,7 @@
             gap: 10px;
         }
 
-        /* The count and the "!" button stay in the top row; the tabs sit underneath. */
+
         .panel-subrow {
             order: -1;
             display: flex;
@@ -262,7 +262,7 @@
             pointer-events: auto;
         }
 
-        /* Category tabs */
+
         .tabs {
             display: flex;
             flex-wrap: nowrap;
@@ -298,7 +298,7 @@
             transition: border-color 0.2s, color 0.2s, background 0.2s;
         }
 
-        /* Small line under the tab name (hats, accessories and mounts) */
+
         .tab-sub {
             display: block;
             margin-top: 2px;
@@ -309,7 +309,7 @@
             opacity: 0.75;
         }
 
-        /* Each tab has its icon pinned to the far right, sized by height so different image shapes all fit. */
+
         .tab-label {
             grid-column: 2;
         }
@@ -342,7 +342,7 @@
             background: #1a4224;
         }
 
-        /* Each tab's content fills the rest of the panel. */
+
         .tab-view {
             position: relative;
             display: flex;
@@ -352,7 +352,7 @@
             min-height: 0;
         }
 
-        /* Delete-list toolbox (temporary): marked cards get a red outline and a cross. */
+
         .card.marked {
             border-color: #ff4d4d;
             box-shadow: inset 0 0 0 1px #ff4d4d;
@@ -489,8 +489,8 @@
             cursor: pointer;
         }
 
-        /* Popup shown when a hat, accessory or mount is clicked */
-        /* While the popup is open the gallery behind it is inert, so nothing in it can pick up a hover/focus outline. */
+
+
         body.viewer-open .grid,
         body.viewer-open .grid * {
             pointer-events: none;
@@ -501,7 +501,7 @@
             border-color: #1c4a2a;
         }
 
-        /* The box of the image open in the popup is outlined in the gallery behind it. */
+
         body.viewer-open .card.viewing {
             border-color: #00ff00;
             box-shadow: 0 0 0 1px #00ff00;
@@ -589,12 +589,12 @@
             cursor: pointer;
         }
 
-        /* Fixed size: zooming scrolls the image inside the stage instead of growing the popup. */
+
         .viewer-stage {
             flex: none;
             height: max(180px, min(50vh, 420px));
             min-height: 0;
-            scrollbar-width: none; /* still scrolls and drags, just without visible bars */
+            scrollbar-width: none;
             display: flex;
             padding: 14px;
             overflow: auto;
@@ -611,7 +611,7 @@
             display: none;
         }
 
-        /* margin:auto centers the sheet while it fits and lets the stage scroll once it is zoomed larger. */
+
         .viewer-sheet {
             position: relative;
             flex: none;
@@ -742,7 +742,7 @@
             display: none;
         }
 
-        /* Hats, accessories and mounts are small pixel art: keep them crisp when scaled up. */
+
         .grid.pixelated .card-art img {
             image-rendering: pixelated;
         }
@@ -918,7 +918,7 @@
             cursor: pointer;
         }
 
-        /* Touch screens keep :hover stuck after a tap, so only apply it where a real hover exists. */
+
         @media (hover: hover) {
             .card:hover {
                 border-color: #6f9d78;
@@ -943,9 +943,9 @@
             transition: border-color 0.4s ease;
         }
 
-        /* The shield sits on top of the character template; both fill the same box so they line up. */
-        /* Hats and accessories are wide sheets, mounts are tall: their cards are smaller and shaped to match
-           (--card-scale narrows the columns, data-aspect is the art's height/width used to count rows). */
+
+
+
         .grid[data-cat="shields"] { --card-scale: 0.9; }
         .grid[data-cat="hats"] { --card-scale: 0.86; }
         .grid[data-cat="accessories"] { --card-scale: 0.92; }
@@ -958,8 +958,8 @@
             min-height: 0;
         }
 
-        /* .sheet is the 152x80 area the template occupies, centered in the card. Shield and template are
-           both drawn inside it so they always line up. */
+
+
         .card-art {
             container-type: size;
         }
@@ -982,21 +982,21 @@
             image-rendering: auto;
         }
 
-        /* The template never intercepts clicks, so right-click always lands on the shield image itself
-           ("Open image in new tab", "Save image as", etc.). */
+
+
         .card-art .template-img,
         .card-art .template-over {
             display: none;
             pointer-events: none;
         }
 
-        /* Character preview is supported only by full-size 152x80 shields. */
+
         .grid.preview-on .card-art:not(.no-template) .template-img,
         .grid.preview-on .card-art:not(.no-template) .template-over {
             display: block;
         }
 
-        /* Light switch */
+
         .switch-row {
             display: flex;
             align-items: center;
@@ -1122,7 +1122,7 @@
             margin-bottom: 0;
         }
 
-        /* Phones show the hint above the gallery instead (see the mobile block below). */
+
         .shield-hold-hint--mobile {
             display: none;
         }
@@ -1189,7 +1189,7 @@
             color: #fff;
         }
 
-        /* Bottom-right corner of the panel */
+
         .pager .reset-btn {
             position: absolute;
             right: 0;
@@ -1268,7 +1268,7 @@
             min-width: 0;
         }
 
-        /* Filters stay on one swipeable line so they never eat the panel's height. */
+
         .filter-row {
             flex-wrap: nowrap;
             overflow-x: auto;
@@ -1292,7 +1292,7 @@
             flex: none;
         }
 
-        /* On desktop there is room, so let the chips wrap instead of clipping the last one. */
+
         @media (min-width: 769px) {
             .filter-row {
                 flex-wrap: wrap;
@@ -1337,7 +1337,7 @@
         }
 
         @media (max-width: 600px) {
-            /* Phones: the icon sits below the tab name (below "Museum" where there is one), centered. */
+
             .tab {
                 grid-template-columns: minmax(0, 1fr);
                 justify-items: center;
@@ -1352,7 +1352,7 @@
                 grid-column: 1;
             }
 
-            /* The Shields tab has no "Museum" line: its text and icon sit centered in the box. */
+
             .tab {
                 align-content: center;
             }
@@ -1396,7 +1396,7 @@
                 --card-min: 84px;
             }
 
-            /* "Hold to view shields" sits above the gallery, far right, on the same line as "Supports 152x80". */
+
             .type-filter-header .shield-hold-hint {
                 display: none;
             }
@@ -1414,15 +1414,15 @@
 
             .preview-controls {
                 position: relative;
-                margin-top: -7px; /* tighter space under the last filter row */
+                margin-top: -7px;
             }
 
-            /* Tighter space between "Filter by file type" and "Filter by majority color". */
+
             #colorBlock {
                 margin-top: -7px;
             }
 
-            /* One row: page controls centered, Reset in the far-right corner, sized to fit narrow screens. */
+
             .pager {
                 display: grid;
                 grid-template-columns: 1fr auto 1fr;
@@ -1441,7 +1441,7 @@
             .pager .page-indicator {
                 font-size: 11px;
                 white-space: nowrap;
-                margin-inline: 4px; /* a little room between Prev, the page text and Next */
+                margin-inline: 4px;
             }
 
             .pager .reset-btn {
@@ -1453,8 +1453,8 @@
                 font-size: 10px;
             }
 
-            /* Narrow phones: the page controls stay centered on the screen with Reset in the far corner;
-               everything is compacted so the two never overlap. */
+
+
             @media (max-width: 419px) {
                 .pager .reset-btn {
                     padding: 6px 5px;
@@ -1490,7 +1490,7 @@
             }
         }
 
-        /* Fade in on entering the page and fade out when leaving it for the menu (same feel as the other pages). */
+
         .page-transition-overlay {
             position: fixed;
             inset: 0;
@@ -1521,7 +1521,7 @@
             }
         }
 
-        /* page background image: the picture, darkened evenly so the white text and dark panels stay readable */
+
         html {
             background-color: #6e6e6e;
             background-image: url('assetsbackground.png');
@@ -1674,9 +1674,9 @@
     </div>
 
     <script>
-        // Each category's file names live in its folder (Shields/shields.json, Hats/hats.json, ...), e.g.
-        // ["a.png", "b.gif"]. A static site can't list a folder, so assets/tools/build-shield-colors.js
-        // regenerates those files whenever something is added or removed.
+
+
+
         const CATEGORIES = {
             shields:     { dir: 'Shields/',     list: 'shields.json',     one: 'shield',    many: 'shields',     label: 'Shields',     aspect: 0.53, colors: true, preview: true, setCmd: 'setshield', exclude: /^(?:dcicon_menu_shield0\.png|aemjii-txt-manga-shield\.gif)$/i, template: { src: '../icons/shieldtemplate.png', overSrc: '../icons/shieldtemplate1.png', w: 152, h: 80 } },
             hats:        { dir: 'Hats/',        list: 'hats.json',        one: 'hat',       many: 'hats',        label: 'Hats',        aspect: 0.75, colors: true, tags: true, years: false, preview: true, setCmd: null, template: { src: '../icons/hattemplate.png', w: 192, h: 144 } },
@@ -1684,21 +1684,21 @@
             mounts:      { dir: 'Mounts/',      list: 'mounts.json',      one: 'mount',     many: 'mounts',      label: 'Mounts',      aspect: 1.5,  colors: false, preview: false, setCmd: null, exclude: /^(?:icon_|key_)|particle|^mount_shootingstar-shadow\.png$|^emote_contest2018_mount-lostinthought\.gif$/i }
         };
         let currentCat = 'shields';
-        let SHIELD_DIR = CATEGORIES.shields.dir; // folder of the tab being shown
-        const catState = {}; // remembered list / filters / page for each tab
+        let SHIELD_DIR = CATEGORIES.shields.dir;
+        const catState = {};
         const GRID_GAP = 10;
-        const CARD_EXTRA_H = 36; // card padding + name line + gap, on top of the square image
+        const CARD_EXTRA_H = 36;
         let pageSize = 24;
         let setshieldOn = true;
         let isLoading = true;
 
-        // Delete list: "Folder/file" entries, kept across tabs and reloads.
+
         const DELETE_KEY = 'kdassist-delete-list';
         const deleteList = new Set();
         try {
             (JSON.parse(localStorage.getItem(DELETE_KEY) || '[]') || []).forEach((entry) => deleteList.add(String(entry)));
-        } catch (e) { /* storage unavailable */ }
-        let markMode = false; // true while the delete-list box is open
+        } catch (e) {   }
+        let markMode = false;
 
         const COLORS = [
             { key: 'red',    label: 'Red',    hex: '#e53935' },
@@ -1747,7 +1747,7 @@
         const pageJumpMenu = document.getElementById('pageJumpMenu');
         const pageIndicator = document.getElementById('pageIndicator');
 
-        let shields = []; // { name, color }
+        let shields = [];
         let activeColor = 'all';
         let activeYear = 'all';
         let activeTheme = 'all';
@@ -1769,7 +1769,7 @@
             { key: 'gif', label: 'GIF' }
         ];
 
-        // GIF is its own type; everything else (png, jpg, webp, ...) counts as Static.
+
         function typeOf(name) {
             return /\.gif$/i.test(name) ? 'gif' : 'png';
         }
@@ -1802,7 +1802,7 @@
             const l = (max + min) / 2;
             const d = max - min;
             const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
-            // Dark, light and washed-out pixels (shading, outlines, anti-aliasing) never count as a hue.
+
             if (l < 0.18) return 'black';
             if (l > 0.85) return 'white';
             if (s < 0.2) return 'gray';
@@ -1829,10 +1829,10 @@
             ctx.drawImage(img, 0, 0, size, size);
             const data = ctx.getImageData(0, 0, size, size).data;
             const NEUTRAL = ['black', 'white', 'gray'];
-            // Colored pixels decide the shield. Black/white/gray (outlines, shading) only decide it when the
-            // shield has almost no color. "Mixed" is only for shields whose colors are genuinely split.
-            const CHROMA_MIN = 0.12;   // share of pixels that must be colored for hues to decide
-            const HUE_MAJORITY = 0.45; // top hue's share of the colored pixels
+
+
+            const CHROMA_MIN = 0.12;
+            const HUE_MAJORITY = 0.45;
             const NEUTRAL_MAJORITY = 0.4;
             function pickColor(votes) {
                 const keys = Object.keys(votes);
@@ -1863,14 +1863,14 @@
                 const img = new Image();
                 img.onload = () => {
                     try { resolve({ name, colors: dominantColor(img) }); }
-                    catch (e) { resolve({ name, colors: [] }); } // canvas blocked (e.g. opened as file://)
+                    catch (e) { resolve({ name, colors: [] }); }
                 };
                 img.onerror = () => resolve(null);
                 img.src = dir + encodeURIComponent(name);
             });
         }
 
-        // Hats / accessories: filter tags worked out from the file names (year, "1k", and shared name prefixes).
+
         const TAG_ALIASES = {
             christmascontest: 'christmas', eastercomp: 'easter', halloweencontest: 'halloween', halloweenghost: 'halloween',
             vday: 'valentines', vdaybox: 'valentines', valentine: 'valentines', valentinesday: 'valentines',
@@ -1879,7 +1879,7 @@
         const TAG_LABELS = { '1k': '1K', valentines: 'Valentines', newyear: 'New Year', lny: 'LNY', aprilfools: 'April Fools',
             graalonline: 'Graal Online', earthday: 'Earth Day', stpat: 'St. Patrick', sparcoin: 'Sparcoin', sparviewer: 'Sparviewer' };
         const TAG_SKIP = new Set(['hat', 'accessory', 'acc']);
-        // Only these name groups get a filter chip.
+
         const TAG_KEEP = new Set(['1k', 'christmas', 'candy', 'nexus', 'gst', 'event', 'bazaar', 'easter',
             'halloween', 'valentines', 'crypt', 'guild', 'rebels']);
         const TAG_MIN = 10;
@@ -1895,16 +1895,16 @@
                 if (base.includes(w)) tags.add(TAG_ALIASES[w] || w);
             });
             if (base.includes('1k')) tags.add('1k');
-            // Year: only an explicit one. A four-digit year (2011, 2025) standing on its own, or a standalone
-            // two-digit year 14-29 at the start of the name (25remake) or between _ / - (_15-), or a word directly
-            // followed by a two-digit year and a _ / - (christmas12_). Date codes
-            // such as 080515 or 0118 are not years.
+
+
+
+
             let y = null;
             let m;
             if ((m = base.match(/(?:^|[_-])(20[12][0-9])(?![0-9])/))) y = +m[1];
             else if ((m = base.match(/^(1[4-9]|2[0-9])(?![0-9])/))) y = 2000 + +m[1];
             else if ((m = base.match(/[_-](1[4-9]|2[0-9])(?=[_-])/))) y = 2000 + +m[1];
-            // A name with the year stuck on the end of a word: christmas12_, candy18_, nexus21_, gst_fall12_.
+
             else if ((m = base.match(/[a-z](1[1-9]|2[0-9])(?=[_-])/))) y = 2000 + +m[1];
             if (y && y >= 2011 && y <= 2029) tags.add('y' + y);
             return [...tags];
@@ -1921,8 +1921,8 @@
             const searchableName = rawName.replace(/[_-]+/g, ' ');
             const terms = activeSearch.split(/\s+/).filter(Boolean);
             return terms.every((term) => {
-                // Preserve punctuation in a term so searches such as "hat_1.png" or "-blue" can
-                // match the filename literally. Plain word searches still treat _ and - as spaces.
+
+
                 if (/[^\p{L}\p{N}]/u.test(term)) return rawName.includes(term);
                 return rawName.includes(term) || searchableName.includes(term);
             });
@@ -1933,7 +1933,7 @@
                 && (activeType === 'all' || typeOf(s.name) === activeType));
         }
 
-        // The list narrowed by every active filter except `skip`, so each row's counts follow the other rows.
+
         function filteredExcept(skip) {
             const cat = CATEGORIES[currentCat];
             return typeFiltered().filter((s) => (skip === 'color' || activeColor === 'all' || s.colors.includes(activeColor))
@@ -1974,7 +1974,7 @@
             });
         }
 
-        // One row of filter chips. `chips` is [{key, label, hex?, n}] (first one is "All").
+
         function fillChipRow(el, chips, active, onPick) {
             el.innerHTML = '';
             chips.forEach((c) => {
@@ -2046,7 +2046,7 @@
             }
         }
 
-        // Work out how many full rows fit the space left in the panel, then stretch them to fill it exactly.
+
         function layoutGrid() {
             gridEl.style.gridTemplateRows = '';
             gridEl.style.gridTemplateColumns = '';
@@ -2055,9 +2055,9 @@
             const cardW = (gridEl.clientWidth - GRID_GAP * (cols - 1)) / cols;
             const avail = gridEl.clientHeight;
             if (aspect !== 1) {
-                // Wide (hats, accessories) or tall (mounts) images: pick the row count that keeps the boxes closest
-                // to the size they'd naturally be, then shape each box to the image's proportions so nothing is
-                // left empty, and let as many columns as fit.
+
+
+
                 const rows = Math.max(1, Math.round((avail + GRID_GAP) / (cardW * aspect + CARD_EXTRA_H + GRID_GAP)));
                 const boxH = (avail - GRID_GAP * (rows - 1)) / rows;
                 const boxW = Math.max(40, (boxH - CARD_EXTRA_H) / aspect);
@@ -2067,8 +2067,8 @@
                 return fitCols * rows;
             }
             const cardH = cardW + CARD_EXTRA_H;
-            // Always at least one row; rows never overflow because the grid's height is whatever the
-            // panel has left, and cards shrink to their row.
+
+
             const rows = Math.max(1, Math.floor((avail + GRID_GAP) / (cardH + GRID_GAP)));
             gridEl.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
             return cols * rows;
@@ -2078,8 +2078,8 @@
             const toolbarHeight = searchToolbar.offsetHeight;
             let top = gridEl.offsetTop - toolbarHeight - 8;
             const mobileSearchLayout = window.matchMedia('(max-width: 600px)').matches;
-            // Phones: the search box gets its own full-width line above the file-type filter (room is
-            // reserved for it), so it can never sit on top of a chip whatever the screen size.
+
+
             const typeFilterBlock = typeFiltersEl.closest('.type-filter-block') || typeFiltersEl;
             typeFiltersEl.style.marginBottom = '';
             typeFilterBlock.style.marginTop = mobileSearchLayout ? `${toolbarHeight + 8}px` : '';
@@ -2106,8 +2106,8 @@
             keepFileTypeRowClearOfSearch();
         }
 
-        // The file-type chips share a line with the search box: they get only the room to its left
-        // (and scroll sideways inside it), so the search box never sits on top of a chip.
+
+
         function keepFileTypeRowClearOfSearch() {
             typeFiltersEl.style.maxWidth = '';
             const bar = searchToolbar.getBoundingClientRect();
@@ -2118,7 +2118,7 @@
         }
 
         function renderGrid() {
-            if (!gridEl.clientHeight) return; // its tab is hidden; it re-renders when shown again
+            if (!gridEl.clientHeight) return;
             pageJumpMenu.hidden = true;
             lastBtn.setAttribute('aria-expanded', 'false');
             positionSearchToolbar();
@@ -2167,7 +2167,7 @@
                 img.src = category.dir + encodeURIComponent(s.name);
                 img.alt = s.name;
                 img.loading = 'lazy';
-                // An asset whose file is gone drops out of the gallery instead of showing a broken image.
+
                 img.addEventListener('error', () => {
                     if (currentCat !== cardCategory) return;
                     shields = shields.filter((x) => x.name !== s.name);
@@ -2179,7 +2179,7 @@
                 name.className = 'card-name';
                 name.textContent = s.name.replace(/\.[^.]+$/, '');
                 name.title = s.name;
-                // Shields require the full 152x80 sheet; hats and accessories use their native template sheets.
+
                 const checkTemplateFit = () => {
                     const supportsTemplate = cardCategory !== 'shields'
                         || (img.naturalWidth === 152 && img.naturalHeight === 80);
@@ -2351,8 +2351,8 @@
             if (event.key === 'Escape') setPageJumpOpen(false);
         });
 
-        // Re-fit whenever the grid's own size changes (rotation, browser toolbars, keyboard, resizing).
-        // The grid's height comes from the panel, not its content, so this can't loop.
+
+
         let fitFrame = 0;
         new ResizeObserver(() => {
             cancelAnimationFrame(fitFrame);
@@ -2369,23 +2369,23 @@
             if (firstLoad) gridEl.innerHTML = `<div class="empty">Loading ${cat.many}...</div>`;
             let names = [];
             try {
-                // The query string defeats caches so added/removed files show up right away.
+
                 const res = await fetch(`${dir}${cat.list}?t=${Date.now()}`, { cache: 'no-store' });
                 names = await res.json();
                 if (cat.exclude) names = names.filter((name) => !cat.exclude.test(name));
             } catch (e) {
-                if (!firstLoad) return; // keep what's showing if a refresh fails
+                if (!firstLoad) return;
             }
             const signature = JSON.stringify(names);
             if (signature === listSignature && catKey === currentCat) return;
             let results;
             if (cat.colors) {
-                // Colors precomputed from every GIF frame (assets/tools/build-shield-colors.js).
+
                 let precomputed = {};
                 try {
                     const res = await fetch(`${dir}colors.json?t=${Date.now()}`, { cache: 'no-store' });
                     precomputed = await res.json();
-                } catch (e) { /* fall back to reading the images in the browser */ }
+                } catch (e) {   }
                 results = await Promise.all(names.map((name) => (
                     precomputed[name] ? { name, colors: [precomputed[name]] } : analyze(name, dir)
                 )));
@@ -2394,8 +2394,8 @@
             }
             results = results.filter(Boolean);
             results.forEach((r) => { r.tags = cat.tags ? tagsFor(r.name) : []; });
-            // Put files discovered by a refresh ahead of the existing gallery order. Filtering
-            // happens after this, so newly added files still lead any matching filtered view.
+
+
             const previous = catKey === currentCat
                 ? shields
                 : ((catState[catKey] && catState[catKey].shields) || []);
@@ -2411,7 +2411,7 @@
                 else if (catState[catKey]) catState[catKey].page = 0;
             }
             if (catKey !== currentCat) {
-                // The user switched tabs while this was loading: keep the result for that tab.
+
                 const saved = catState[catKey] || (catState[catKey] = { page: 0, activeType: 'all', activeColor: 'all' });
                 saved.shields = results;
                 saved.listSignature = signature;
@@ -2425,7 +2425,7 @@
             renderGrid();
         }
 
-        // Setshield: on (default) copies "setshield <file>"; off copies just the file name.
+
         const setshieldSwitch = document.getElementById("setshieldSwitch");
         const setshieldLabel = document.getElementById("setshieldLabel");
         function toggleSetshield() {
@@ -2436,7 +2436,7 @@
         setshieldSwitch.addEventListener("click", toggleSetshield);
         setshieldLabel.addEventListener("click", toggleSetshield);
 
-        // Character Preview: shows the character template underneath every shield.
+
         const previewSwitch = document.getElementById('previewSwitch');
         const previewLabel = document.getElementById('previewLabel');
         function togglePreview() {
@@ -2445,11 +2445,11 @@
             gridEl.classList.toggle('preview-on', on);
             if (viewerItem && !viewer.hidden) openViewer(viewerItem);
         }
-        gridEl.classList.add('preview-on'); // on by default
+        gridEl.classList.add('preview-on');
         previewSwitch.addEventListener('click', togglePreview);
         previewLabel.addEventListener('click', togglePreview);
 
-        // Popup viewer for every asset category (shield cards open it on hold).
+
         const viewer = document.getElementById('viewer');
         const viewerStage = document.getElementById('viewerStage');
         const viewerCount = document.getElementById('viewerCount');
@@ -2485,7 +2485,7 @@
             viewerStage.scrollTop += sheetRect.top + (sheetRect.height * focus.y) - centerY;
         }
 
-        // Zoom keeps the point under the pointer (or the middle of the stage) where it is.
+
         function setViewerZoom(z, cx, cy) {
             if (!viewerRelayout) return;
             const next = Math.min(12, Math.max(1, z));
@@ -2493,7 +2493,7 @@
             const r = viewerStage.getBoundingClientRect();
             const px = (cx === undefined ? r.left + r.width / 2 : cx) - r.left;
             const py = (cy === undefined ? r.top + r.height / 2 : cy) - r.top;
-            // Remember which spot of the image is under the anchor point, then put it back under it.
+
             const sheetEl = viewerStage.querySelector('.viewer-sheet');
             const before = sheetEl.getBoundingClientRect();
             const u = (r.left + px - before.left) / (before.width || 1);
@@ -2505,12 +2505,12 @@
             viewerStage.scrollTop += after.top + v * after.height - (r.top + py);
         }
 
-        // Character templates for the popup preview. Item sheets share the template's pixel scale and are
-        // drawn top-left over it (a hat goes over the head). Mounts have no template.
+
+
         const POPUP_TEMPLATES = {
             shields:     { src: '../icons/shieldtemplate.png',      overSrc: '../icons/shieldtemplate1.png',      w: 152, h: 80 },
             hats:        { src: '../icons/hattemplate.png',         w: 192, h: 144 },
-            // 'overSrc' is a second template drawn on top of the item.
+
             accessories: { src: '../icons/accessoriestemplate.png', overSrc: '../icons/accessoriestemplate1.png', w: 240, h: 144 }
         };
         function popupTemplateFor(catKey) {
@@ -2544,7 +2544,7 @@
             viewerCount.textContent = `${at + 1} / ${list.length}`;
             viewerPrev.disabled = at <= 0;
             viewerNext.disabled = at < 0 || at >= list.length - 1;
-            // Keep the gallery behind the popup on the page that holds this image.
+
             const wantPage = at < 0 ? page : Math.floor(at / pageSize);
             if (wantPage !== page) {
                 page = wantPage;
@@ -2569,7 +2569,7 @@
                 let itemTop = 0;
                 let itemWidth = w;
                 let itemHeight = h;
-                // The character template and the item are drawn at the same pixel scale, top-left aligned.
+
                 const baseW = withCharacter ? Math.max(tpl.w, itemLeft + itemWidth) : itemWidth;
                 const baseH = withCharacter ? Math.max(tpl.h, itemTop + itemHeight) : itemHeight;
                 const stageW = Math.max(120, Math.min(viewerStage.clientWidth || 560, 560) - 28);
@@ -2595,7 +2595,7 @@
                     tOver.alt = '';
                     sheet.appendChild(tOver);
                 }
-                // Everything is sized from one pixel scale, so zooming just re-runs this.
+
                 viewerRelayout = () => {
                     const k = fitK * viewerZoom;
                     sheet.style.width = `${baseW * k}px`;
@@ -2612,8 +2612,8 @@
                     img.style.top = `${itemTop * k}px`;
                     img.style.width = `${itemWidth * k}px`;
                     img.style.height = `${itemHeight * k}px`;
-                    // Zoomed in, leave slack around the image so it can be dragged in every direction
-                    // (a tall mount would otherwise only move up and down).
+
+
                     sheet.style.margin = viewerZoom > 1
                         ? `${viewerStage.clientHeight * 0.4}px ${viewerStage.clientWidth * 0.4}px`
                         : 'auto';
@@ -2681,7 +2681,7 @@
             e.preventDefault();
             setViewerZoom(viewerZoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY);
         }, { passive: false });
-        // Drag to pan while zoomed in; two fingers pinch to zoom.
+
         const pointers = new Map();
         let pinchStart = null;
         let dragFrom = null;
@@ -2732,14 +2732,14 @@
             else if (e.key === 'ArrowRight') stepViewer(1);
         });
 
-        // Delete-list toolbox
+
         const deltool = document.getElementById('deltool');
         const deltoolList = document.getElementById('deltoolList');
         const deltoolToggle = document.getElementById('deltoolToggle');
         const deltoolCopy = document.getElementById('deltoolCopy');
 
         function renderDeleteList() {
-            try { localStorage.setItem(DELETE_KEY, JSON.stringify([...deleteList])); } catch (e) { /* ignore */ }
+            try { localStorage.setItem(DELETE_KEY, JSON.stringify([...deleteList])); } catch (e) {   }
             deltoolToggle.textContent = `Delete list (${deleteList.size})`;
             deltoolList.innerHTML = '';
             if (!deleteList.size) {
@@ -2786,10 +2786,10 @@
             copyText([...deleteList].join('\n')).then(done, done);
         });
         renderDeleteList();
-        // The toolbox is hidden. Open the page with ?tools on the end (assets/?tools) to bring it back.
+
         if (new URLSearchParams(location.search).has('tools')) deltool.hidden = false;
 
-        // Category tabs: each keeps its own list, filters and page while you look at another one.
+
         const previewControls = document.getElementById('previewControls');
         const previewRow = document.getElementById('previewRow');
         const setshieldRow = document.getElementById('setshieldRow');
@@ -2816,7 +2816,7 @@
 
         function selectTab(key) {
             if (key === currentCat || !CATEGORIES[key]) return;
-            // Leaving a tab resets it (page and filters back to the start); only its loaded list is kept.
+
             const keep = isLoading ? (catState[currentCat] && catState[currentCat].shields) : shields;
             const keepSig = isLoading ? (catState[currentCat] && catState[currentCat].listSignature) : listSignature;
             catState[currentCat] = { shields: keep, listSignature: keepSig, page: 0, activeType: 'all', activeColor: 'all', activeYear: 'all', activeTheme: 'all' };
@@ -2856,7 +2856,7 @@
             if (tab) selectTab(tab.dataset.tab);
         });
 
-        // Info popup: toggles on click, closes on outside click or Escape.
+
         const infoBtn = document.getElementById('infoBtn');
         const infoPopup = document.getElementById('infoPopup');
         function setInfoOpen(open) {
@@ -2876,7 +2876,7 @@
 
         loadShields(true);
 
-        // Keep the gallery in step with the folder: re-check when you return to the tab, and every 30s.
+
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) loadShields(false);
         });
@@ -2900,7 +2900,7 @@
             }
 
             enter();
-            // Coming back with the browser back button restores the page from cache, so fade in again.
+
             window.addEventListener("pageshow", (event) => { if (event.persisted) enter(); });
 
             document.querySelectorAll(".home-menu-link").forEach((link) => {

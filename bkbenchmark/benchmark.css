@@ -652,12 +652,12 @@ html {
     --cave-header-width: 50px;
     --cave-box-width: 300px;
     --cave-box-offset: 124px;
-    /* Intrinsic width of a row's 14 non-cave cells (.ranks-bars, minus the absolutely-positioned cave cell)
-       - a fixed layout, not viewport-dependent, but not expressed by any single existing var either. Used
-       below to line the desktop "Cave" header column up with the actual cave box, which is positioned from
-       .ranks-bars' own right edge (right: calc(100% + var(--cave-box-offset))), not from the stack's left
-       edge the header row uses - the two were drifting out of alignment because they were computed from
-       opposite ends of a layout whose width isn't the same at every viewport size. */
+
+
+
+
+
+
     --cave-row-width: 1016.4375px;
     --slanted-bar-base: rgba(0, 0, 0, 0.55);
     --cave-box-base: rgba(255, 255, 255, 0.02);
@@ -1047,8 +1047,8 @@ body.view-mode .cave-play-edit {
 }
 
 .radar-tab {
-    /* Transparent border on every state (the active one only changes its color), and padding reduced by the same 1px,
-       so selecting a tab never changes the button's size or moves its text. */
+
+
     border: 1px solid transparent;
     background: transparent;
     color: #bbb;
@@ -1137,9 +1137,9 @@ body.view-mode .cave-play-edit {
 
 .radar-chart-panel {
     width: 100%;
-    /* flex-basis must stay "auto" (not the flex:1 shorthand's 0%): a flex item's basis overrides an explicit
-       height for main-axis sizing, so with basis 0% the mobile clamp() heights below were silently ignored and
-       the canvases collapsed to 0px tall. */
+
+
+
     flex: 1 1 auto;
     min-height: 0;
 }
@@ -1351,11 +1351,11 @@ body.view-mode .cave-play-edit {
     z-index: 203 !important;
 }
 
-/* Filter dropdowns (Platform/Time/Statistic/Mount). On desktop this is just a grouping row inside the shared
-   .controls-container box (see the min-width: 901px block below); its own background/border only apply on mobile,
-   where .controls-container isn't boxed. Padding is asymmetric (not centered) because each pill's floating label
-   (.box-float-label) renders above the pill via absolute position - flex centering can't account for that extra
-   height, so the top gap ends up smaller than the bottom gap unless it's given explicitly. */
+
+
+
+
+
 .filters-box {
     display: flex;
     align-items: flex-start;
@@ -1369,12 +1369,12 @@ body.view-mode .cave-play-edit {
     position: relative;
 }
 
-/* Inset darker panel behind the dropdowns, giving the box a layered "background within a background" look */
+
 .filters-box::before {
     content: "";
     position: absolute;
-    /* Same 8px gap as .middle-box's inset panel (the main rank box), so both "boxes within a box" read as one
-       consistent style. */
+
+
     inset: 8px;
     background-color: rgba(0, 0, 0, 0.22);
     border: 1px solid rgba(255, 255, 255, 0.04);
@@ -1423,7 +1423,7 @@ body.view-mode .cave-play-edit {
     flex-shrink: 0;
 }
 
-/* Layout for when there is no profile picture but there is a flag */
+
 .profile-circle.no-pic-has-flag {
     width: auto;
     height: auto;
@@ -1452,7 +1452,7 @@ body.view-mode .cave-play-edit {
     border: 1px solid #111;
     border-radius: 0;
     bottom: 3px;
-    left: calc(100% - 19.5px); /* nudge flag slightly to the right */
+    left: calc(100% - 19.5px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2091,9 +2091,9 @@ body.view-mode .cave-play-edit {
     color: #777;
 }
 
-/* Leaderboard / Share / Settings nav row: sits beside the account dropdown button (controls-container), pushed
-   to the right the same way .user-menu-wrapper is (margin-left: auto absorbs the free space, so both sit flush
-   against the right edge together). */
+
+
+
 .top-box-actions {
     margin-left: auto;
     margin-right: 20px;
@@ -2101,15 +2101,15 @@ body.view-mode .cave-play-edit {
     align-items: center;
 }
 
-/* Desktop: split the profile section and the achievements section into two separate boxes (top-box just becomes
-   a transparent flex row spacing them apart). Mobile keeps the original single .top-box look untouched - see the
-   "display: contents" rules further down, which let .profile-circle/.profile-details/.achievements-section keep
-   acting as direct grid children of .top-box the way the existing mobile grid-column/grid-row rules expect. */
+
+
+
+
 @media (min-width: 901px) {
-    /* Filters/Leaderboard-Share-Settings/account dropdown now live inside one shared box spanning the full row,
-       matching the other big boxes. .filters-box drops its own background/border here (only needed on mobile,
-       where .controls-container itself isn't boxed) and stretches to the container's full height so its internal
-       asymmetric padding (see the base rule) still lines up correctly. */
+
+
+
+
     .controls-container {
         background-color: var(--panel-bg);
         border: 1px solid var(--panel-border);
@@ -2118,14 +2118,14 @@ body.view-mode .cave-play-edit {
         box-sizing: border-box;
     }
 
-    /* Inset darker panel spanning the whole shared box (filters + leaderboard/share/settings + account dropdown),
-       matching the other big boxes' layered look. Replaces .filters-box's own inset panel below, which only
-       covered the filter pills and stopped short of the rest of the row. */
+
+
+
     .controls-container::before {
         content: "";
         position: absolute;
-        /* Same 8px gap as .middle-box's inset panel (the main rank box), so both "boxes within a box" read as
-           one consistent style. */
+
+
         inset: 8px;
         background-color: rgba(0, 0, 0, 0.22);
         border: 1px solid rgba(255, 255, 255, 0.04);
@@ -2179,8 +2179,8 @@ body.view-mode .cave-play-edit {
         isolation: isolate;
     }
 
-    /* Match the darker inset layer used by the controls and ranking panels. On mobile the
-       achievements panel already darkens by stacking over .top-box; desktop needs its own inset. */
+
+
     .achievements-box::before {
         content: "";
         position: absolute;
@@ -2209,7 +2209,7 @@ body.view-mode .cave-play-edit {
         box-sizing: border-box;
     }
 
-    /* Reserve the same label space in every field so wrapped labels cannot lower one input or icon. */
+
     .stats-label {
         height: 22px;
         margin-bottom: 3px;
@@ -2275,7 +2275,7 @@ body.view-mode .cave-play-edit {
     min-height: 150px;
 }
 
-/* Inset darker panel behind the content, giving the box a layered "background within a background" look */
+
 .middle-box::before {
     content: "";
     position: absolute;
@@ -2301,7 +2301,7 @@ body.view-mode .cave-play-edit {
     font-size: 25px;
     margin: 0;
     font-family: 'Times New Roman', Times, serif;
-    padding-right: calc(var(--progress-span) + var(--progression-right)); /* Reserve space up to progress bar */
+    padding-right: calc(var(--progress-span) + var(--progression-right));
     --rank-center-x: calc((100% - (var(--progress-span) + var(--progression-right))) / 2);
     --rank-up-color: rgba(255, 255, 255, 0.55);
     --rank-up-color-soft: rgba(255, 255, 255, 0.25);
@@ -2487,9 +2487,9 @@ body:not(.auth-gate-active) .rank-threshold-value {
 }
 
 .user-menu-wrapper {
-    /* No auto margin here: .top-box-actions (Leaderboard/Share/Settings), the sibling right before this in the
-       controls row, carries the margin-left: auto instead, so both are pushed to the right edge together instead
-       of each competing for the same leftover space (which split them apart with a gap in between). */
+
+
+
     margin-left: 0;
     position: relative;
     display: flex;
@@ -3075,8 +3075,8 @@ body:not(.mobile-layout-active) .ranks-bars.row-active-first::before {
     background: var(--slanted-bar-base);
 }
 
-/* Alternate the shade of the bars row by row (lighter, darker, lighter...) so the threshold grid is
-   easier to follow. Only the bar base colour changes; fills and rank colours are untouched. */
+
+
 .ranks-bars:nth-of-type(odd) {
     --slanted-bar-base: rgba(0, 0, 0, 0.5);
     --row-strip-bg: rgba(255, 255, 255, 0.04);
@@ -3087,22 +3087,22 @@ body:not(.mobile-layout-active) .ranks-bars.row-active-first::before {
     --row-strip-bg: rgba(0, 0, 0, 0.16);
 }
 
-/* The cave name box keeps its original colour. */
+
 .ranks-bars .rank-bar.cave-cell-label {
     --slanted-bar-base: rgba(0, 0, 0, 0.55);
 }
 
-/* A background strip behind every row, alternating with the bars. It uses the same span as the
-   active-row outline (from the cave box to the end of the big box) and sits underneath the boxes. */
+
+
 body:not(.mobile-layout-active) .ranks-bars > .row-strip {
     display: block;
     content: "";
     position: absolute;
-    /* Starts at the cave box's left edge, so the strip sits behind the cave box too. */
+
     left: var(--desktop-active-outline-left);
     right: var(--desktop-active-outline-right);
     top: 50%;
-    /* 2px shorter than the row pitch, so the page's own colour shows as a thin line between rows. */
+
     height: calc(var(--desktop-active-outline-single-height) - 2px);
     transform: translateY(-50%);
     background-color: var(--row-strip-bg, transparent);
@@ -3111,18 +3111,18 @@ body:not(.mobile-layout-active) .ranks-bars > .row-strip {
     pointer-events: none;
 }
 
-/* A row with a rank colour strip drops the alternating light/dark shade. */
+
 body:not(.mobile-layout-active) .ranks-bars.has-rank-strip > .row-strip,
 body.mobile-layout-active .ranks-bars.has-rank-strip > .row-strip {
     background-color: transparent;
 }
 
-/* ...and its bars go back to the plain base colour instead of the darker alternate. */
+
 .ranks-bars.has-rank-strip {
     --slanted-bar-base: rgba(0, 0, 0, 0.55);
 }
 
-/* Desktop: the cave box and score box get the same soft grey outline the mobile layout uses. */
+
 body:not(.mobile-layout-active) .ranks-bars > .rank-bar.cave-cell-label {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 4px;
@@ -3134,7 +3134,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     border-radius: 4px;
 }
 
-/* Desktop shows one rating per row; the grouped two-row rating cells stay for the mobile layout. */
+
 .row-strip {
     display: none;
 }
@@ -3143,7 +3143,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     display: none;
 }
 
-/* Mobile: the same strip and per-row rating, sized from the mobile layout variables. */
+
 body.mobile-layout-active .ranks-bars > .row-strip {
     display: block;
     position: absolute;
@@ -3178,8 +3178,8 @@ body.mobile-layout-active .ranks-bars > .row-rating-value {
     pointer-events: none;
 }
 
-/* The grouped two-row ratings: the older mobile rule shows them with !important, so this needs the
-   extra specificity (html + the row child selector) to win. */
+
+
 html body.mobile-layout-active .ranks-bars > .rating-value,
 html body.mobile-layout-active .rating-value,
 html body.mobile-layout-active .bg-stripe {
@@ -3206,7 +3206,7 @@ body:not(.mobile-layout-active) .bg-stripe {
     display: none !important;
 }
 
-/* The score boxes on the left follow the same light/dark rhythm, row for row. */
+
 .score-input-wrapper[data-row-index] {
     background-color: rgba(0, 0, 0, 0.14);
 }
@@ -3300,7 +3300,7 @@ body:not(.mobile-layout-active) .bg-stripe {
         filter: brightness(1.08) saturate(1.06);
     }
 
-    /* Prevent transparent cave play hitbox from blocking cave image hover/click. */
+
     .cave-play-overlay {
         pointer-events: none !important;
     }
@@ -3740,10 +3740,10 @@ body.auth-gate-active .sub-score-popout {
 .cave-text {
     position: absolute;
     top: 0;
-    /* Desktop only (mobile overrides this further down with its own left+width, which wins over this "right"
-       automatically since left+width+right together are over-constrained). Positioned from the stack's right
-       edge using the same math as the actual cave box below it, so the two stay aligned - see --cave-row-width
-       above for why "left" alone can't do this. */
+
+
+
+
     left: auto;
     right: calc(20px + var(--cave-row-width) + var(--cave-box-offset) + 2px);
     width: var(--cave-box-width);
@@ -3751,10 +3751,10 @@ body.auth-gate-active .sub-score-popout {
     height: calc(20px + 13.5px);
     display: flex;
     align-items: center;
-    /* Left-aligned with a gap, not centered: this box's left edge is where the new cave divider line sits, and
-       centered nowrap text straddled that line instead of starting clear of it. Padding must clear both the
-       label text AND its hanging icon (13px wide + 5px margin, via .header-label::before's right:100%), or the
-       icon pokes out past the left edge and overlaps the divider line. */
+
+
+
+
     justify-content: flex-start;
     padding-left: 24px;
     text-align: left;
@@ -3784,10 +3784,10 @@ body.auth-gate-active .sub-score-popout {
     pointer-events: none;
 }
 
-/* One connected header bar behind Cave / Score / Score Threshold / Rating: a single background strip with
-   divider lines at each column boundary, so the four labels above read as one table header. Positioned in the
-   same coordinate system as .cave-text/.score-text/.progression-text/.rating-text (siblings in .ranks-bars-stack),
-   sized to reach the Rating column, which sits outside the stack's own right edge. */
+
+
+
+
 .ranks-header-bar {
     position: absolute;
     top: 0;
@@ -3796,8 +3796,8 @@ body.auth-gate-active .sub-score-popout {
     height: calc(20px + 13.5px);
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid var(--panel-border);
-    /* Square, not rounded: both bottom edges sit flush against the table's straight edges, so rounded corners
-       just looked like stray notches instead of matching an actual box boundary. */
+
+
     border-radius: 0;
     box-sizing: border-box;
     z-index: 1;
@@ -3814,8 +3814,8 @@ body.auth-gate-active .sub-score-popout {
     pointer-events: none;
 }
 
-/* Aligns with the cave box's own left edge (same right-based math .cave-text now uses above it), not the old
-   fixed --cave-header-left, which drifted away from the actual cave box as the row layout's width changed. */
+
+
 .ranks-header-divider--cave {
     left: auto;
     right: calc(20px + var(--cave-row-width) + var(--cave-box-offset) + 2px + var(--cave-box-width));
@@ -3825,8 +3825,8 @@ body.auth-gate-active .sub-score-popout {
     left: 360px;
 }
 
-/* Aligns with the real score input box's right edge (.score-input-wrapper: left: 360px, width: 100px), not with
-   the Score Threshold column's own left edge - those two boundaries aren't the same point. */
+
+
 .ranks-header-divider--progression {
     left: 460px;
 }
@@ -4024,7 +4024,7 @@ body.auth-gate-active .sub-score-popout {
     backdrop-filter: none !important;
 }
 
-/* Home button, top-left of the screen, so a new account can leave the setup and return to the menu. */
+
 .onboarding-home-link {
     position: fixed;
     top: max(14px, env(safe-area-inset-top));
@@ -4983,7 +4983,7 @@ body.auth-gate-active .vertical-box {
     border-color: #555;
 }
 
-/* Autofill Override */
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
@@ -5449,9 +5449,9 @@ input:-webkit-autofill:active {
     background-repeat: no-repeat;
 }
 
-/* Centred by a full-screen flex overlay rather than a translate offset, matching the other
-   modals here. Translate centring pushes the top of a tall dialog off-screen with no way to
-   scroll back to it, which is what broke on short windows and on mobile. */
+
+
+
 .cropper-container {
     position: fixed;
     inset: 0;
@@ -5668,7 +5668,7 @@ input:-webkit-autofill:active {
     pointer-events: auto;
 }
 
-/* Profile Modal Specific Enhancements */
+
 .profile-content .settings-field {
     margin-bottom: 15px;
 }
@@ -5898,7 +5898,7 @@ input:-webkit-autofill:active {
 }
 
 #friendsModal #friendRequestsContent .friend-request-section-body > .friend-list-container {
-    /* Room for the hover lift and focus outline: an overflow container clips anything outside it. */
+
     margin: -3px;
     padding: 3px;
 }
@@ -7001,7 +7001,7 @@ input:-webkit-autofill:active {
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Prevent iOS/Safari focus zoom on form controls. */
+
     input,
     select,
     textarea {
@@ -7020,7 +7020,7 @@ input:-webkit-autofill:active {
         z-index: 25;
     }
 
-    
+
     .rounded-inner-box {
     height: 128px;
     min-height: 128px;
@@ -7071,11 +7071,11 @@ input:-webkit-autofill:active {
         position: relative;
     }
 
-    /* Desktop wraps .profile-circle/.profile-details in .profile-box so it can carry its own background/border box.
-       On mobile, "display: contents" makes that wrapper transparent to layout so its children go back to being
-       direct grid children of .top-box, exactly matching the grid-column/grid-row placement rules below (unchanged
-       from before the wrapper existed). .achievements-box (the stats box) instead stays a real element on mobile so
-       it renders as its own separate dark panel, matching the desktop side-by-side layout. */
+
+
+
+
+
     .profile-box {
         display: contents;
     }
@@ -7266,7 +7266,7 @@ input:-webkit-autofill:active {
         display: none;
     }
 
-    /* Mobile view mode uses its own floating Exit button. */
+
     #exitViewModeContainer {
         display: none !important;
     }
@@ -7379,9 +7379,9 @@ input:-webkit-autofill:active {
         height: 22px;
     }
 
-    /* The 4 filter dropdowns keep the exact same grid track sizing as the outer .controls-container grid used to
-       give them directly - .filters-box just spans that whole row (1 / -1) and repeats the template one level in,
-       so the group can carry its own background/border box without changing how the dropdowns themselves size. */
+
+
+
     .filters-box {
         grid-column: 1 / -1;
         display: grid;
@@ -7635,9 +7635,9 @@ input:-webkit-autofill:active {
         display: none;
     }
 
-    /* The single auto margin sits on the copy link so it and Compare travel to the right as
-       one group, leaving the copy text directly left of the Compare button instead of the
-       two being pushed to opposite ends of the row. */
+
+
+
     body.view-mode #mobileCopyLinkBtn {
         position: relative;
         top: 0;
@@ -7907,7 +7907,7 @@ input:-webkit-autofill:active {
         order: 3;
     }
 
-    /* Reduce sub-pixel paint shimmer while horizontal scrolling on mobile. */
+
     .ranks-labels,
     .progress-bar,
     .ranks-bars,
@@ -8019,7 +8019,7 @@ input:-webkit-autofill:active {
         right: auto;
     }
 
-    /* Aligns with .score-input-wrapper's right edge here (left: mobile-cave-start + 245px, width: 70px). */
+
     .ranks-header-divider--progression {
         left: calc(var(--mobile-cave-start) + 315px);
         right: auto;
@@ -8075,7 +8075,7 @@ input:-webkit-autofill:active {
     }
 
     .bg-stripe {
-                display: none; /* JS overrides this when active */
+                display: none;
         width: 100%;
         left: 0;
         right: auto;
@@ -8118,7 +8118,7 @@ input:-webkit-autofill:active {
         z-index: 30;
         transform: translateY(-7px);
     }
-    
+
     .bg-stripe:nth-of-type(1) { top: 43px; height: 73px; }
     .bg-stripe:nth-of-type(2) { top: 117px; height: 73px; }
     .bg-stripe:nth-of-type(3) { top: 191px; height: 73px; }
@@ -8485,7 +8485,7 @@ input:-webkit-autofill:active {
     }
 }
 
-/* Final mobile scroll/zoom guard for benchmark page only. */
+
 @media (max-width: 900px) {
     html {
         min-height: 100% !important;
@@ -8543,7 +8543,7 @@ input:-webkit-autofill:active {
         font-size: 16px !important;
     }
 
-    /* Keep header labels and rank/progress area visually steady during horizontal pan. */
+
     .cave-text,
     .score-text,
     .progression-text,
@@ -8563,7 +8563,7 @@ input:-webkit-autofill:active {
     }
 }
 
-/* Runtime mobile layout overrides (driven by isMobileViewport()). */
+
 body.mobile-layout-active {
     --mobile-scale: var(--mobile-layout-scale, 1);
     --mobile-font-scale: clamp(0.94, var(--mobile-scale), 1.04);
@@ -8984,7 +8984,7 @@ body.mobile-layout-active .ranks-header-divider--score {
     right: auto !important;
 }
 
-/* Aligns with the real score input box's right edge, not the Score Threshold track's own left edge. */
+
 body.mobile-layout-active .ranks-header-divider--progression {
     left: calc(var(--mobile-score-left) + var(--mobile-score-width)) !important;
     right: auto !important;
@@ -9012,7 +9012,7 @@ body.mobile-layout-active .ranks-bars > .rating-value {
     font-size: var(--mobile-track-font-size) !important;
 }
 
-/* Two-row cave groups: center rating between the first and second cave rows. */
+
 body.mobile-layout-active .ranks-bars > .rating-value.rating-value-0,
 body.mobile-layout-active .ranks-bars > .rating-value.rating-value-1,
 body.mobile-layout-active .ranks-bars > .rating-value.rating-value-2,
@@ -9038,15 +9038,15 @@ body.mobile-layout-active .ranks-bars > .score-input-wrapper {
     justify-content: center !important;
 }
 
-/* One height for the strip and both boxes: the full row pitch minus the 2px separator line. The
-   boxes are centred on the row, so they overhang it equally above and below. */
+
+
 body.mobile-layout-active {
     --mobile-row-box-height: calc(var(--mobile-cave-row-height) + var(--mobile-cave-row-gap) - 2px);
     --mobile-row-box-top: calc((var(--mobile-cave-row-height) - var(--mobile-row-box-height)) / 2);
 }
 
-/* Mobile: the cave box and the score box are the same height, share one centre line, and use the same
-   border and corner radius, so they read as one matched pair on every row. */
+
+
 body.mobile-layout-active .ranks-bars > .rank-bar.cave-cell-label,
 body.mobile-layout-active .ranks-bars > .score-input-wrapper {
     box-sizing: border-box !important;
@@ -9065,8 +9065,8 @@ body.mobile-layout-active .ranks-bars > .rank-bar.cave-cell-label {
     padding-bottom: 0 !important;
 }
 
-/* Pin both boxes to the same top edge of a row that is exactly one box tall. Centring each one
-   separately (flex centring for one, top 50% + translate for the other) can differ by a pixel or two. */
+
+
 html body.mobile-layout-active .container > .ranks-bars-stack > .ranks-bars {
     height: var(--mobile-cave-row-height) !important;
     min-height: var(--mobile-cave-row-height) !important;
@@ -9882,8 +9882,8 @@ html.mobile-viewport-guard body.benchmark-keyboard-open.trophy-mobile-focus-open
     }
 }
 
-/* Universal fit for the mobile top links row. benchmark.js shrinks the label size (--mobile-top-links-size)
-   only when the row would run into the home button, so this works at any screen size and in any language. */
+
+
 body.mobile-layout-active .mobile-top-links.is-fitted .mobile-link > span,
 body.mobile-layout-active .mobile-top-links.is-fitted #mobileCompareBtn > span,
 body.mobile-layout-active .mobile-top-links.is-fitted .mobile-link-icon {
@@ -9894,7 +9894,7 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     gap: 5px;
 }
 
-/* Rank marker track: a line under the ranks with a small rank-colored diamond per rank */
+
 .ranks-labels .rank-item {
     position: relative;
     padding-bottom: 16px;
@@ -9917,7 +9917,7 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     width: 7px;
     height: 7px;
     box-sizing: border-box;
-    /* Inner fill is a brightened tint of the rank color (closer to white); the outline ring below keeps the true rank color. */
+
     background: color-mix(in srgb, var(--rank-marker) 30%, white);
     border: 1.5px solid #0b0d12;
     outline: 1px solid var(--rank-marker);
@@ -9941,7 +9941,7 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
 .ranks-labels .rank-item:nth-child(12) { --rank-marker: #D8007F; }
 .ranks-labels .rank-item:nth-child(13) { --rank-marker: #d1bf8f; }
 
-/* Current rank card: trophy left, label + rank name + tier progression track */
+
 .rank-up-content {
     flex-direction: row;
     gap: 16px;
@@ -10022,11 +10022,11 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     box-shadow: 0 0 8px var(--tier-color);
 }
 .rank-tier-step.is-active::after { color: var(--tier-color); font-weight: bold; }
-/* progression line fill up to the active step */
+
 .rank-tier-step.is-passed { --seg: var(--tier-color); }
 .rank-tier-step.is-passed::before { box-shadow: none; }
 
-/* Larger current-rank card + divider before the progress bar */
+
 .rank-up-info .rank-up-text-base { font-size: 40px; }
 .rank-up-label::before { font-size: 13px; letter-spacing: 0.2em; }
 .rank-up-icon-wrap { height: 84px; width: 48px; min-width: 48px; }
@@ -10047,7 +10047,7 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.22) 20%, rgba(255, 255, 255, 0.22) 80%, transparent);
 }
 
-/* Trophy sits directly left of the rank name; whole group centered in the space left of the divider */
+
 .rank-up-name-row {
     display: flex;
     align-items: center;
@@ -10059,7 +10059,7 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
 .rank-up-info { align-items: stretch; }
 .rank-up-label::before { text-align: center; }
 
-/* Rank text is the centered element; trophy hangs off its left edge */
+
 .rank-up-info { align-items: center; }
 .rank-up-name-row { position: relative; display: block; text-align: center; }
 .rank-up-name-row .rank-up-text-base { display: inline-block; }
@@ -10071,7 +10071,7 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     margin-right: 14px;
 }
 
-/* Divider floats in the middle of the gap between rank content and progress bar */
+
 .rounded-inner-box {
     --rank-divider-gap: 40px;
     padding-right: calc(var(--progress-span) + var(--progression-right) + var(--rank-divider-gap));
@@ -10080,13 +10080,13 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     right: calc(var(--progress-span) + var(--progression-right) + var(--rank-divider-gap));
 }
 
-/* JS sets --rank-divider-x to the midpoint between rank content and progress bar */
+
 .rounded-inner-box::after {
     right: auto;
     left: var(--rank-divider-x, calc(100% - var(--progress-span) - var(--progression-right) - var(--rank-divider-gap)));
 }
 
-/* Tier track: line and every circle use the current rank color */
+
 .rank-tier-track::before {
     background: var(--tier-color);
     opacity: 0.55;
@@ -10100,14 +10100,14 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
 }
 .rank-tier-step.is-active::before { box-shadow: 0 0 8px var(--tier-color); }
 
-/* Line glows like the circles */
+
 .rank-tier-track::before {
     opacity: 1;
     height: 1.5px;
     box-shadow: 0 0 8px var(--tier-color);
 }
 
-/* Vertical centering: drop the inline strut so the row height equals the text line box */
+
 .rank-up-name-row {
     display: flex;
     justify-content: center;
@@ -10123,17 +10123,17 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     transform: translateY(-50%);
 }
 
-/* Optical centering: serif caps sit slightly above the line-box middle */
+
 .rank-up-name-row .rank-up-icon-wrap {
     transform: translateY(calc(-50% - 3px));
 }
 
-/* Trophy visual weight sits low (heavy base), so lift it further to look centered on the name */
+
 .rank-up-name-row .rank-up-icon-wrap {
     transform: translateY(calc(-50% - 8px));
 }
 
-/* Header icons: hang off the left of each label without moving the (centered) text */
+
 .header-label {
     position: relative;
 }
@@ -10150,7 +10150,7 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     -webkit-mask: var(--hdr-icon) center / contain no-repeat;
     mask: var(--hdr-icon) center / contain no-repeat;
     opacity: 0.85;
-    /* Sit above .ranks-header-divider (z-index: 1), which otherwise draws its line over the icon */
+
     z-index: 2;
 }
 .header-label-rating {
@@ -10166,7 +10166,7 @@ body.mobile-layout-active .mobile-top-links.is-fitted {
     --hdr-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 21v-2c0-6 3-11 10-11s10 5 10 11v2h-5v-2c0-2.500-1.500-5-5-5s-5 2.500-5 5v2z'/%3E%3C/svg%3E");
 }
 
-/* Light grey outline on threshold cells, cave box and score input */
+
 :root { --grid-outline: rgba(215, 218, 226, 0.09); }
 .ranks-bars .rank-bar:not(:first-child):not(:nth-child(2)) {
     border-color: var(--grid-outline);
@@ -10183,7 +10183,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     border-color: var(--grid-outline);
 }
 
-/* Outline painted above fills: threshold cells 1px, score input thicker */
+
 .ranks-bars .rank-bar:not(:first-child):not(:nth-child(2)) {
     outline: 1px solid var(--grid-outline);
     outline-offset: -1px;
@@ -10194,12 +10194,12 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     border-color: var(--grid-outline);
 }
 
-/* Fill runs all the way to the outline (no trimmed gap on the right) */
+
 .ranks-bars .rank-bar::before {
     max-width: 100%;
 }
 
-/* Bombs uses the exact same icon/text spacing as Swords */
+
 .vertical-box-icon-bombs {
     right: calc(100% + 3px);
 }
@@ -10208,7 +10208,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     right: calc(100% + 10px);
 }
 
-/* Tier track line extends well past the first and last circles */
+
 .rank-tier-track::before {
     left: -14%;
     right: -14%;
@@ -10219,8 +10219,8 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     right: -7%;
 }
 
-/* Tier track: first/last circles sit at the track ends so the line extends evenly past them;
-   each numeral is centered exactly under its circle */
+
+
 .rank-tier-track {
     justify-content: space-between;
 }
@@ -10230,7 +10230,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     overflow: visible;
 }
 
-/* Line fills with the rank color as rank progress increases (dim track underneath) */
+
 .rank-tier-track::before {
     background: color-mix(in srgb, var(--tier-color) 25%, transparent);
     box-shadow: none;
@@ -10262,7 +10262,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     pointer-events: none;
 }
 
-/* Track width is fixed so a longer rank name never stretches the line */
+
 .rank-tier-track {
     width: 300px;
     min-width: 0;
@@ -10271,7 +10271,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
 }
 
 
-/* Tiny rank-colored diamond straddling the bottom edge of every threshold cell (half in, half out) */
+
 .ranks-bars .rank-bar:not(:first-child):not(:nth-child(2)) {
     overflow: visible;
     --cell-diamond: #888;
@@ -10304,8 +10304,8 @@ body:not(.mobile-layout-active) .score-input-wrapper {
 .ranks-bars .rank-bar:nth-child(14) { --cell-diamond: #D8007F; }
 .ranks-bars .rank-bar:nth-child(15) { --cell-diamond: #d1bf8f; }
 
-/* The cell is skewed, so its bottom-edge midpoint is shifted left of the number; offset it back
-   (12.5px * tan(40deg) ~ 10.5px) so the diamond lines up under the number */
+
+
 .ranks-bars .rank-bar:not(:first-child):not(:nth-child(2))::after {
     left: calc(50% + 10.5px);
 }
@@ -10313,7 +10313,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     left: calc(50% + 7.5px);
 }
 
-/* Solid rank-colored diamond (the dark border was swallowing most of the 5px icon) */
+
 .ranks-bars .rank-bar:not(:first-child):not(:nth-child(2))::after {
     width: 6px;
     height: 6px;
@@ -10322,7 +10322,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
 }
 
-/* Per-rank diamond colors (specificity must beat the default #888) */
+
 .ranks-bars .rank-bar:not(:first-child):not(:nth-child(2)):nth-child(3) { --cell-diamond: #8a8a8a; }
 .ranks-bars .rank-bar:not(:first-child):not(:nth-child(2)):nth-child(4) { --cell-diamond: #CD7F32; }
 .ranks-bars .rank-bar:not(:first-child):not(:nth-child(2)):nth-child(5) { --cell-diamond: #C0C0C0; }
@@ -10341,7 +10341,7 @@ body:not(.mobile-layout-active) .score-input-wrapper {
     height: 4px;
 }
 
-/* Glow is anchored to the rank-name row (not the whole card) so it sits centered behind the rank text */
+
 .rounded-inner-box.rank-box-glow .rank-up-content::before,
 .rounded-inner-box.rank-box-glow .rank-up-content::after {
     display: none;
@@ -10375,13 +10375,13 @@ body:not(.mobile-layout-active) .score-input-wrapper {
 .rounded-inner-box.rank-box-glow .rank-up-name-row::before { width: 190px; height: 70px; }
 .rounded-inner-box.rank-box-glow .rank-up-name-row::after { width: 120px; height: 42px; }
 
-/* Honeycomb patch behind the rank name, glow-sized, tinted by the current rank color and fading out radially */
+
 .rank-up-name-row .rank-up-text-base {
     position: relative;
     --hc-w: 380px;
     --hc-h: 112px;
 }
-/* Mobile: bigger honeycomb both ways */
+
 body.mobile-layout-active .rank-up-name-row .rank-up-text-base {
     --hc-w: 350px;
     --hc-h: 140px;
@@ -10412,9 +10412,9 @@ body.mobile-layout-active .rank-up-name-row .rank-up-text-base {
     mask-composite: intersect;
 }
 
-/* Honeycomb shine: a soft band of light travels across the honeycomb (no glow, no blur). It is drawn through the same hex + radial
-   mask as the honeycomb itself, so it only lights up the hex lines. The gradient tile is twice the patch width and fades to
-   transparent at both tile edges, and the animation moves it by exactly one whole tile, so the loop has no visible jump or reset. */
+
+
+
 .rank-up-name-row .rank-up-text-base::after {
     content: "";
     position: absolute;
@@ -10458,7 +10458,7 @@ body.mobile-layout-active .rank-up-name-row .rank-up-text-base {
     .rank-up-name-row .rank-up-text-base::after { animation: none; opacity: 0; }
 }
 
-/* Long labels (e.g. "Aeternus Complete") must never wrap or shrink the block, which would push the tier track around */
+
 .rank-up-info {
     flex-shrink: 0;
 }
@@ -10466,7 +10466,7 @@ body.mobile-layout-active .rank-up-name-row .rank-up-text-base {
     white-space: nowrap;
 }
 
-/* Numerals are taken out of flow so their width (bold/regular, V vs III) can never resize a step and nudge the circles */
+
 .rank-tier-step {
     min-width: 0;
     height: 36px;
@@ -10479,8 +10479,8 @@ body.mobile-layout-active .rank-up-name-row .rank-up-text-base {
     white-space: nowrap;
 }
 
-/* The info block is exactly as wide as the track, so a wider label ("Aeternus Complete") overflows
-   symmetrically instead of growing the block and shifting the track/circles sideways */
+
+
 .rank-up-info {
     width: 300px;
     flex: 0 0 300px;
@@ -10490,7 +10490,7 @@ body.mobile-layout-active .rank-up-name-row .rank-up-text-base {
     justify-content: center;
 }
 
-/* Light-switch toggle (replaces on/off dropdowns) */
+
 .settings-switch {
     position: relative;
     flex: 0 0 auto;
@@ -10526,18 +10526,18 @@ body.mobile-layout-active .rank-up-name-row .rank-up-text-base {
 .settings-switch:disabled { opacity: 0.5; cursor: not-allowed; }
 .settings-switch:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.6); outline-offset: 2px; }
 
-/* Settings toggle: hide the rank diamonds on threshold cells */
+
 body.hide-threshold-diamonds .ranks-bars .rank-bar::after {
     display: none !important;
 }
 
-/* Name row hugs the text again so the trophy stays right next to it (info block is a fixed 300px) */
+
 .rank-up-name-row {
     width: auto;
     align-self: center;
 }
 
-/* ===== Settings redesign (desktop): list of label bars with the control boxed on the right ===== */
+
 #settingsModal .settings-grid {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -10638,7 +10638,7 @@ body.hide-threshold-diamonds .ranks-bars .rank-bar::after {
     background: #0f0f0f;
 }
 
-/* ===== Filter boxes: icons beside the values and a label straddling the top edge (desktop) ===== */
+
 .box-float-label {
     display: none;
 }
@@ -10698,7 +10698,7 @@ body:not(.mobile-layout-active) #statText::before {
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 3l12 12M12.500 17.500l5-5M15 15l5.500 5.500M21 3L9 15M11.500 17.500l-5-5M9 15l-5.500 5.500'/%3E%3C/svg%3E");
 }
 
-/* Beat the per-box `> span` layout rules so the label always straddles the top edge */
+
 body:not(.mobile-layout-active) #platformBox > .box-float-label,
 body:not(.mobile-layout-active) #timeBox > .box-float-label,
 body:not(.mobile-layout-active) #statBox > .box-float-label,
@@ -10712,14 +10712,14 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     transform: translate(-50%, -50%);
 }
 
-/* Label: plain bold text (no pill background) */
+
 body:not(.mobile-layout-active) .box-float-label {
     background: none;
     font-weight: bold;
     color: #bbb;
 }
 
-/* Same icons inside the dropdown lists (not the mount picker) */
+
 body:not(.mobile-layout-active) #platformBox .dropdown-item::before,
 body:not(.mobile-layout-active) #timeBox .dropdown-item::before,
 body:not(.mobile-layout-active) #statBox .dropdown-item::before {
@@ -10754,7 +10754,7 @@ body:not(.mobile-layout-active) #statBox .dropdown-item::before {
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 3l12 12M12.500 17.500l5-5M15 15l5.500 5.500M21 3L9 15M11.500 17.500l-5-5M9 15l-5.500 5.500'/%3E%3C/svg%3E");
 }
 
-/* Labels sit fully above their boxes */
+
 body:not(.mobile-layout-active) #platformBox > .box-float-label,
 body:not(.mobile-layout-active) #timeBox > .box-float-label,
 body:not(.mobile-layout-active) #statBox > .box-float-label,
@@ -10763,14 +10763,14 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     transform: translate(-50%, -100%);
 }
 
-/* Tighter corners on the filter dropdown lists */
+
 .dropdown-menu {
     border-radius: 6px;
 }
 .dropdown-menu { border-radius: 3px; }
 .dropdown-menu { border-radius: 1.5px; }
 
-/* Language card: inset option box connected directly under the title bar */
+
 #settingsModal .settings-card--lang > .settings-card-title {
     margin-bottom: 0;
 }
@@ -10781,7 +10781,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     border-top: 0;
 }
 
-/* Startup card: small note inside the title bar, below the title (no box of its own) */
+
 .settings-card-title .settings-startup-note {
     margin-top: 4px;
     font-size: 10px;
@@ -10791,7 +10791,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     color: #777;
 }
 
-/* Startup card: inset option rows connected directly under the title bar */
+
 #settingsModal .settings-card--startup {
     gap: 0;
 }
@@ -10805,7 +10805,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     border-right: 1px solid #1a1a1a;
 }
 
-/* All other settings cards: inset content connected directly under the title bar */
+
 #settingsModal .settings-card:not(.settings-card--lang):not(.settings-card--startup) {
     gap: 0;
 }
@@ -10823,30 +10823,30 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     border-right: 1px solid #1a1a1a;
 }
 
-/* Reset card: buttons aligned to the right edge */
+
 #settingsModal .settings-card--reset > .settings-actions--reset {
     justify-content: flex-end;
 }
 
-/* Outline for the inset boxes that had none (rank theme buttons box, reset buttons box, notes) */
+
 #settingsModal .settings-card:not(.settings-card--lang):not(.settings-card--startup) > .theme-options,
 #settingsModal .settings-card:not(.settings-card--lang):not(.settings-card--startup) > .settings-actions {
     border: 1px solid #1a1a1a;
     border-top: 0;
 }
 
-/* Rank theme buttons box and reset buttons box: slightly darker background */
+
 #settingsModal .settings-card:not(.settings-card--lang):not(.settings-card--startup) > .theme-options,
 #settingsModal .settings-card:not(.settings-card--lang):not(.settings-card--startup) > .settings-actions {
     background: #0a0a0a;
 }
 
-/* Threshold card: its note moved into the title bar, so the switch spans the whole row and stays at the right edge */
+
 #settingsModal .settings-field:has(> #rankThresholdVizSelect) > .settings-switch {
     grid-column: 1 / -1;
 }
 
-/* Rank threshold visualization: full-width click-to-toggle box (Enabled / Disabled) */
+
 .settings-toggle-wide {
     width: 100%;
     min-height: 36px;
@@ -10879,12 +10879,12 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     grid-column: 1 / -1;
 }
 
-/* Click animation for the wide toggle buttons: just a smooth color fade */
+
 .settings-toggle-wide {
     transition: background-color 0.2s ease;
 }
 
-/* Settings dropdowns: no side padding (the arrow is a background image), so the closed text and the opened list text are both exactly centered */
+
 #settingsModal .settings-select:not([type="range"]) {
     padding-left: 0;
     padding-right: 0;
@@ -10896,14 +10896,14 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     text-align: center;
 }
 
-/* Clicking a row label must not focus/highlight its dropdown, and label text shouldn't be selectable */
+
 #settingsModal .settings-field > label.settings-label {
     pointer-events: none;
     user-select: none;
     -webkit-user-select: none;
 }
 
-/* ===== Settings page on mobile: same layout as desktop, fixed proportions on every phone size ===== */
+
 @media (max-width: 900px) {
     #settingsModal .settings-grid,
     #settingsModal .settings-row {
@@ -10917,7 +10917,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
         font-size: 12px;
         letter-spacing: 0.8px;
     }
-    /* label on the left, control in a fixed-width column on the right */
+
     #settingsModal .settings-field {
         grid-template-columns: minmax(0, 1fr) 128px !important;
         min-height: 40px;
@@ -10964,7 +10964,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
         font-size: 11px;
         padding: 9px 8px;
     }
-    /* keep the 6px inset on both sides (the older mobile rule forces 100% width) */
+
     #settingsModal .settings-card > :not(.settings-card-title) {
         width: calc(100% - 12px) !important;
         margin-left: auto !important;
@@ -10983,7 +10983,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     }
 }
 
-/* "Auto-apply..." label: small sub-text like the other notes */
+
 #settingsModal .settings-label.settings-label--muted {
     font-size: 10px;
     font-weight: normal;
@@ -10992,7 +10992,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     color: #777;
 }
 
-/* Mobile: smaller dropdown text */
+
 @media (max-width: 900px) {
     #settingsModal .settings-custom-trigger {
         font-size: 9px;
@@ -11004,7 +11004,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     }
 }
 
-/* Mobile: force the closed dropdown text (custom trigger or native select) to a small size */
+
 @media (max-width: 900px) {
     #settingsModal .settings-custom-trigger,
     #settingsModal .settings-custom-trigger *,
@@ -11015,7 +11015,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     }
 }
 
-/* Mobile: opened dropdown list uses the same small text size as the closed box */
+
 @media (max-width: 900px) {
     #settingsModal .settings-custom-menu,
     #settingsModal .settings-custom-item,
@@ -11026,7 +11026,7 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     }
 }
 
-/* Universal replacement for the removed per-device top-link sizes: one fluid size for every phone width */
+
 @media (max-width: 900px) {
     .mobile-top-links .mobile-link > span,
     #mobileCopyLinkBtn > span,
@@ -11036,8 +11036,8 @@ body:not(.mobile-layout-active) #mountBox > .box-float-label {
     }
 }
 
-/* Mobile: the rank marker line + diamond sat inside the rank text because the mobile rule zeroed the item padding.
-   Reserve room for the marker below the text, and cancel it out with a negative margin so nothing below shifts. */
+
+
 body.mobile-layout-active .ranks-labels > .rank-item {
     padding-bottom: calc(12px * var(--mobile-scale, 1)) !important;
     margin-bottom: calc(-12px * var(--mobile-scale, 1)) !important;
@@ -11046,7 +11046,7 @@ body.mobile-layout-active .ranks-labels .rank-item::before {
     bottom: calc(3px * var(--mobile-scale, 1));
 }
 
-/* Mobile: drop the progress bar so it lines up with the rank marker line (which sits 9px into the space below the ranks) */
+
 body.mobile-layout-active {
     --mobile-progress-stack-drop: calc(18px * var(--mobile-scale, 1));
 }
@@ -11054,46 +11054,46 @@ body.mobile-layout-active .progress-stack {
     top: var(--mobile-progress-stack-drop) !important;
 }
 
-/* Mobile: move the current-rank card contents (trophy, rank name and the tier progress track) up */
+
 body.mobile-layout-active {
     --mobile-rank-box-offset: calc(6px * var(--mobile-scale, 1) * var(--mobile-layout-height-fit, 1));
 }
 
-/* Mobile: lift the ranks column (numbers, trophies, names + progress bar) so it sits centered between the box top and the cell strip */
+
 body.mobile-layout-active {
     --mobile-ranks-wrapper-drop: calc(8px * var(--mobile-scale, 1) * var(--mobile-layout-height-fit, 1));
 }
 
-/* Mobile: shrink the whole current-rank content (trophy, "CURRENT RANK", rank name, tier track) proportionally */
+
 body.mobile-layout-active .rank-up-content {
     transform: scale(0.8);
     transform-origin: center center;
 }
 
-/* Mobile: raise the ranks column a bit more so it lines up with the current-rank card */
+
 body.mobile-layout-active {
     --mobile-ranks-wrapper-drop: calc(-8px * var(--mobile-scale, 1) * var(--mobile-layout-height-fit, 1));
     --mobile-rank-box-offset: calc(6px * var(--mobile-scale, 1) * var(--mobile-layout-height-fit, 1));
 }
 
-/* Mobile: the rank card and the ranks column must share one vertical offset so they stay aligned on every phone size */
+
 body.mobile-layout-active {
     --mobile-ranks-wrapper-drop: calc(8px * var(--mobile-scale, 1) * var(--mobile-layout-height-fit, 1));
     --mobile-rank-box-offset: var(--mobile-ranks-wrapper-drop);
 }
 
-/* Mobile: center of the rank card is measured from the ranks column by JS, so both stay aligned at any size */
+
 body.mobile-layout-active .rounded-inner-box {
     top: var(--mobile-rank-box-center, calc(50% + var(--mobile-rank-box-offset))) !important;
 }
 
-/* Mobile: header icons (graph, cave arch) have their weight at the bottom of the icon box, so lift them to look centered on the text */
+
 body.mobile-layout-active .header-label::before {
     transform: translateY(calc(-50% - (2px * var(--mobile-scale, 1))));
 }
 
-/* Cave icon: a solid dome with an arched entrance and a flat base (the old open arch looked cut off at the bottom).
-   The drawing spans y=5..20 of a box shifted by 0.5, so it is vertically centered on the text. */
+
+
 .header-label-cave {
     --hdr-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 1.5 24 24'%3E%3Cpath fill-rule='evenodd' d='M3 19c0-8 3.500-14 9-14s9 6 9 14zM9.500 19v-3.500a2.500 2.500 0 0 1 5 0V19zM1 20.500h22V23H1z'/%3E%3C/svg%3E");
 }
@@ -11101,8 +11101,8 @@ body.mobile-layout-active .header-label-cave::before {
     transform: translateY(-50%);
 }
 
-/* "BK Benchmark" title: normal in-flow text at the very top of the page (inside the scrolling content, so it scrolls with the page)
-   and at the top of the login / signup / verification windows. */
+
+
 .bk-title {
     width: 100%;
     text-align: center;
@@ -11133,7 +11133,7 @@ body.mobile-layout-active .header-label-cave::before {
     }
 }
 
-/* Bigger BK Benchmark title */
+
 .bk-title {
     font-size: 52px;
     letter-spacing: 6px;
@@ -11157,13 +11157,13 @@ body.mobile-layout-active .header-label-cave::before {
     }
 }
 
-/* BK Benchmark title font */
+
 .bk-title {
     font-family: 'Cinzel', 'Times New Roman', Times, serif;
     font-weight: 900;
 }
 
-/* BK Benchmark title: heavy italic sports-style lettering with a thick dark outline and drop shadow (gold fill) */
+
 .bk-title {
     font-family: 'Bowlby One', 'Arial Black', Impact, sans-serif;
     font-style: italic;
@@ -11180,54 +11180,54 @@ body.mobile-layout-active .header-label-cave::before {
     }
 }
 
-/* BK Benchmark title: gold shadow */
+
 .bk-title {
     text-shadow: 0 0.06em 0 #b8860b, 0 0.12em 0.2em rgba(245, 198, 69, 0.6), 0 0 0.4em rgba(245, 198, 69, 0.35);
 }
 
-/* BK Benchmark title: softer (lower opacity) gold shadow */
+
 .bk-title {
     text-shadow: 0 0.06em 0 rgba(184, 134, 11, 0.45), 0 0.12em 0.2em rgba(245, 198, 69, 0.25), 0 0 0.4em rgba(245, 198, 69, 0.15);
 }
 
-/* BK Benchmark title: even fainter gold shadow */
+
 .bk-title {
     text-shadow: 0 0.06em 0 rgba(184, 134, 11, 0.2), 0 0.12em 0.2em rgba(245, 198, 69, 0.1), 0 0 0.4em rgba(245, 198, 69, 0.06);
 }
 
-/* BK Benchmark title: gold-beige fill */
+
 .bk-title {
     color: #e3cc93;
 }
 
-/* BK Benchmark title: dark grey text and dark grey shadow */
+
 .bk-title {
     color: #4a4a4a;
     -webkit-text-stroke: 0.14em #232323;
     text-shadow: 0 0.06em 0 rgba(74, 74, 74, 0.6), 0 0.12em 0.2em rgba(74, 74, 74, 0.35), 0 0 0.4em rgba(74, 74, 74, 0.2);
 }
 
-/* BK Benchmark title: lighter grey */
+
 .bk-title {
     color: #7a7a7a;
     -webkit-text-stroke: 0.14em #2e2e2e;
     text-shadow: 0 0.06em 0 rgba(122, 122, 122, 0.6), 0 0.12em 0.2em rgba(122, 122, 122, 0.35), 0 0 0.4em rgba(122, 122, 122, 0.2);
 }
 
-/* BK Benchmark title: no drop shadow, soft glow instead */
+
 .bk-title {
     text-shadow: 0 0 0.25em rgba(190, 190, 190, 0.45), 0 0 0.6em rgba(190, 190, 190, 0.25);
 }
 
-/* BK Benchmark title: keep the letters crisp - very tight, faint glow only (a wide glow in the same grey blurs the edges) */
+
 .bk-title {
     text-shadow: 0 0 0.1em rgba(190, 190, 190, 0.22);
     -webkit-font-smoothing: antialiased;
     text-rendering: geometricPrecision;
 }
 
-/* BK Benchmark title: outline made of round shadow offsets instead of -webkit-text-stroke, whose sharp miter joins stuck out
-   as little spikes on letters like K, M and R. */
+
+
 .bk-title {
     -webkit-text-stroke: 0;
     paint-order: normal;
@@ -11250,7 +11250,7 @@ body.mobile-layout-active .header-label-cave::before {
         0 0 0.1em rgba(190, 190, 190, 0.22);
 }
 
-/* BK Benchmark title: round dark outline (drawn on top) plus a soft light glow around it */
+
 .bk-title {
     text-shadow: 0.060em 0.000em 0 #2e2e2e,
         0.055em 0.023em 0 #2e2e2e,
@@ -11273,12 +11273,12 @@ body.mobile-layout-active .header-label-cave::before {
         0 0 0.9em rgba(205, 205, 205, 0.2);
 }
 
-/* BK Benchmark title: white text */
+
 .bk-title {
     color: #ffffff;
 }
 
-/* BK Benchmark title: Bungee - blocky, signage-style lettering */
+
 .bk-title {
     font-family: 'Bungee', 'Arial Black', Impact, sans-serif;
     font-style: normal;
@@ -11286,27 +11286,27 @@ body.mobile-layout-active .header-label-cave::before {
     letter-spacing: 3px;
 }
 
-/* BK Benchmark title: text color #0d0d0d (near-black) */
+
 .bk-title {
     color: #0d0d0d;
 }
 
-/* BK Benchmark title: lighter dark grey text */
+
 .bk-title {
     color: #262626;
 }
 
-/* BK Benchmark title: lighter grey text */
+
 .bk-title {
     color: #454545;
 }
 
-/* BK Benchmark title: lighter grey text */
+
 .bk-title {
     color: #a6a6a6;
 }
 
-/* BK Benchmark title: baddy icon (same as the footer) on the left; text follows the rank theme color, grey by default */
+
 .bk-title {
     display: flex;
     align-items: center;
@@ -11321,19 +11321,19 @@ body.mobile-layout-active .header-label-cave::before {
     flex: 0 0 auto;
 }
 
-/* Title icon reuses the footer's .legal-baddy-icon (so footer-baddy.js recolors it per theme); override its 60px footer size */
+
 .bk-title .bk-title-icon {
     width: auto;
     height: 1.25em;
     margin: 0;
 }
 
-/* The sprite's round body sits low (the hammer is on top), so lift it to look vertically centered on the text */
+
 .bk-title .bk-title-icon {
     transform: translateY(-0.09em);
 }
 
-/* BK Benchmark title: glow uses the same (rank theme) color as the text */
+
 .bk-title {
     text-shadow: 0.060em 0.000em 0 #2e2e2e,
         0.055em 0.023em 0 #2e2e2e,
@@ -11359,7 +11359,7 @@ body.mobile-layout-active .header-label-cave::before {
     filter: drop-shadow(0 0 0.15em color-mix(in srgb, var(--bk-title-color, #a6a6a6) 70%, transparent));
 }
 
-/* Center the title text itself on the page; the icon sits in the left column beside it instead of shifting the text over */
+
 .bk-title {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -11375,13 +11375,13 @@ body.mobile-layout-active .header-label-cave::before {
     grid-row: 1;
 }
 
-/* No glow on the title icon */
+
 .bk-title .bk-title-icon {
     filter: none;
 }
 
-/* Charts: take the canvases out of the layout flow so their pixel size can never widen the grid (that made the cave
-   charts run off the screen after switching from desktop to mobile widths). */
+
+
 .radar-chart-panel,
 .radar-donut-wrap,
 .radar-bar-wrap {
@@ -11404,14 +11404,14 @@ body.mobile-layout-active .header-label-cave::before {
     max-width: 100%;
 }
 
-/* Full-width dropdown (Language): keep its text inside the box - left aligned with normal padding (the no-padding rule
-   for the centered dropdowns put the text right on the edge) */
+
+
 #settingsModal .settings-field > .settings-select:only-child:not([type="range"]) {
     padding-left: 14px;
     padding-right: 32px;
 }
 
-/* Progress bar: no tier lines inside it, no roman numerals under it, and a clearly visible outline */
+
 .progress-bar .rank-line,
 .roman-numerals-container,
 body.mobile-layout-active .roman-numerals-container {
@@ -11423,38 +11423,38 @@ body.mobile-layout-active .progress-bar {
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
 }
 
-/* Thicker progress bar outline */
+
 .progress-bar,
 body.mobile-layout-active .progress-bar {
     border-width: 2px !important;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
 }
 
-/* Desktop: smaller sword icon beside the vertical Swords box */
+
 @media (min-width: 901px) {
     .vertical-box-icon-swords {
         height: 15px;
     }
 }
 
-/* Mobile: slightly smaller BK Benchmark title (the baddy icon is 1.25em, so it scales with it) */
+
 @media (max-width: 900px) {
     .bk-title {
         font-size: clamp(26px, 7.8vw, 35px);
     }
 
-    /* Mobile filter controls use one panel only; the inset layer is reserved for desktop. */
+
     .filters-box::before {
         content: none;
     }
 }
 
-/* Cave Graph big box: visible outline (the default panel border is only 5% white) */
+
 .radar-box {
     border: 3px solid rgba(255, 255, 255, 0.07);
 }
 
-/* Other big boxes: same visible outline as the Cave Graph box */
+
 .top-box,
 .middle-box,
 .container,
@@ -11464,10 +11464,10 @@ body.mobile-layout-active .progress-bar {
     border: 3px solid rgba(255, 255, 255, 0.07);
 }
 
-/* Desktop: .top-box is now just a transparent flex spacer between .profile-box and .achievements-box (each of
-   which carries its own outline above), so it shouldn't draw one big outline around both plus the gap. Likewise
-   .filters-box no longer draws its own outline on desktop - .controls-container (the filters/nav-actions/account
-   dropdown row) carries it instead, spanning the full row like the other big boxes. */
+
+
+
+
 @media (min-width: 901px) {
     .top-box {
         border: none;
@@ -11482,14 +11482,14 @@ body.mobile-layout-active .progress-bar {
     }
 }
 
-/* Mobile layout: middle box and grid live inside one shell, so the shell carries their outline */
+
 body.mobile-layout-active .benchmark-panels-shell {
     border: 3px solid rgba(255, 255, 255, 0.07);
 }
 
-/* Mobile: Cave header (icon + text) starts clear of the cave box's left edge, where the vertical divider line
-   sits. The icon hangs 18px off the text's left side (13px icon + 5px gap); padding it in by exactly that much
-   put the icon flush on the divider, so it visually overlapped the line. Add a few px of breathing room past it. */
+
+
+
 body.mobile-layout-active .cave-text {
     left: var(--mobile-cave-start, var(--mobile-cave-header-left)) !important;
     width: var(--mobile-cave-label-width, var(--mobile-cave-header-width)) !important;
@@ -11499,21 +11499,21 @@ body.mobile-layout-active .cave-text {
     text-align: left !important;
 }
 
-/* Mobile: keep room on the right of the rank card's content so the divider has space to sit centered on every screen width */
+
 body.mobile-layout-active .rounded-inner-box {
     padding-right: calc(28px * var(--mobile-scale, 1)) !important;
 }
 
-/* Mobile: the divider is centered between the card's content and the rank columns / panel edge (rankingUI.js measures it with the
-   table scroll factored out). Falls back to a fixed spot inside the card until it has been measured. */
+
+
 body.mobile-layout-active .rounded-inner-box::after {
     left: var(--rank-divider-mobile-x, calc(100% + var(--mobile-rank-box-left, 18px) - (14px * var(--mobile-scale, 1)))) !important;
     right: auto !important;
 }
 
-/* Swords / Bombs boxes: fill follows the selected theme. Rank themes use their respective rank color;
-   other themes use their primary accent. Outline keeps its fixed blue/red tint so the two boxes still
-   read apart from each other at a glance. */
+
+
+
 .vertical-box.vbox-1 {
     background-color: var(--vbox-fill, rgb(10, 10, 10));
     box-shadow: inset 0 0 0 1px rgba(15, 32, 66, 0.55);
@@ -11523,8 +11523,8 @@ body.mobile-layout-active .rounded-inner-box::after {
     box-shadow: inset 0 0 0 1px rgba(62, 15, 15, 0.55);
 }
 
-/* Localization safety: translated copy may be substantially longer than English. Let it wrap inside
-   flexible controls, and reduce type in the compact fixed-width UI without letting it cross borders. */
+
+
 html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchmark-lang="pt-PT"]) [data-i18n] {
     max-width: 100%;
     box-sizing: border-box;
@@ -11590,8 +11590,8 @@ html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchma
     transform: translate(-50%, -100%) !important;
 }
 
-/* Long localized Score headings share a narrow column with icons on both sides. Keep the label centered while
-   reserving space for both icons so none of them crosses a header divider. */
+
+
 .score-text-label {
     font-size: 11px;
     white-space: nowrap;
@@ -11740,8 +11740,8 @@ html:is([data-benchmark-lang="es"], [data-benchmark-lang="pt-BR"], [data-benchma
     }
 }
 
-/* Strongest / Weakest caves: center each name vertically between the bars above and below it.
-   The grid already puts 8px between the name and its bar; the extra 6px bar margin made the space below the name larger than above. */
+
+
 .radar-stat-item {
     row-gap: 8px;
 }

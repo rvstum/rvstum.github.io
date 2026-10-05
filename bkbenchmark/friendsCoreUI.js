@@ -239,8 +239,8 @@ function resolveEntryRankText(entry) {
     return RANK_NAMES[rankIndex] || RANK_NAMES[0] || "Unranked";
 }
 
-// Same I-V steps the leaderboard shows: the friend's best config rating, as progress through the
-// rank they are in. Empty when the ratings can't be worked out (or don't match the shown rank).
+
+
 function resolveEntryRankNumeral(entry, rankIndex) {
     if (rankIndex <= 0) return "";
     const scores = ScoreManager.normalizeSavedScoresRecord(safeObject(entry && entry.data).scores);
@@ -406,8 +406,8 @@ export function mergeProfileSnapshots(...snapshots) {
     return merged;
 }
 
-// Kept under its old name for existing callers: drops the cached profile data so the next render
-// re-reads people (the friend relationships themselves are live and never cached).
+
+
 export function invalidateHydratedFriendEntriesCache() {
     hydratedRecordCache.clear();
 }
@@ -566,9 +566,9 @@ export async function resolveTargetUidFromIdentifier(identifier, currentUserData
     return "";
 }
 
-// Per-person profile data (user document + directory entry) is what costs reads, and it changes
-// rarely, so it is cached briefly. The friend relationships themselves are never cached here: they
-// come straight from the live friend graph, so they are always current.
+
+
+
 async function readHydrationSource(normalizedUid, fallbackSnapshot) {
     const cached = getTimedCacheValue(hydratedRecordCache, normalizedUid);
     if (cached) return cached;
@@ -581,7 +581,7 @@ async function readHydrationSource(normalizedUid, fallbackSnapshot) {
         })()
     ]);
     const source = { data: userDoc ? (userDoc.data() || {}) : null, directoryData };
-    // A person who could not be read right now is not cached, so the next refresh tries again.
+
     if (source.data) setTimedCacheValue(hydratedRecordCache, normalizedUid, source);
     return source;
 }
@@ -630,9 +630,9 @@ export async function loadHydratedFriendEntries(currentUid) {
     if (!normalizedUid) return [];
     const graph = await readFriendGraph(normalizedUid);
 
-    // Friends made before the friendships collection became the source of truth may exist only in
-    // the `friends` list on the user's own document. Keep showing them (the list is healed into
-    // real friendships in the background) so nobody vanishes from the list.
+
+
+
     const edges = graph.friendships.slice();
     try {
         const ownDoc = await safeResolveReadableUserDoc(normalizedUid);
@@ -640,8 +640,8 @@ export async function loadHydratedFriendEntries(currentUid) {
         edges.forEach((friendship) => normalizeUidList(safeObject(friendship).users).forEach((value) => known.add(value)));
         const ownData = safeObject(ownDoc && ownDoc.data());
         const removed = new Set(normalizeUidList(ownData.removedFriends));
-        // The other person's copy of the list can't be edited when someone removes them, so only
-        // trust an entry while their own document still lists this user too.
+
+
         const candidates = normalizeUidList(ownData.friends)
             .filter((legacyUid) => legacyUid !== normalizedUid && !known.has(legacyUid) && !removed.has(legacyUid));
         const partnerDocs = await Promise.all(candidates.map((legacyUid) => safeResolveReadableUserDoc(legacyUid)));

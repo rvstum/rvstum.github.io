@@ -48,9 +48,9 @@ function updateRankTierTrack(rankBox, rankIndex, progressInRank, isComplete) {
     if (!track) return;
     const activeIdx = isComplete ? RANK_TIER_NUMERALS.length - 1 : RANK_TIER_NUMERALS.indexOf(getRomanSubRank(progressInRank));
     track.style.setProperty('--tier-color', RANK_TEXT_COLORS[rankIndex] || '#ffffff');
-    // Circles sit every 25% of the track while a tier is 20% of rank progress (x1.25), so each tier
-    // boundary lands on its circle. Tier I then runs on past the last circle toward the line end
-    // (107%), which is only reached when the final rank is complete.
+
+
+
     const p = Math.max(0, Math.min(100, Number(progressInRank) || 0));
     let fill;
     if (isComplete) fill = 107;
@@ -63,8 +63,8 @@ function updateRankTierTrack(rankBox, rankIndex, progressInRank, isComplete) {
     });
 }
 
-// Re-measure the divider after anything that can move the card or the table: scrolling, the keyboard opening/closing
-// (focus + visual viewport changes), rotation. A short burst of frames also catches transitions that finish afterwards.
+
+
 function bindRankDividerLiveUpdates() {
     let frames = 0;
     let running = false;
@@ -101,18 +101,18 @@ function positionRankDivider() {
     const stepRect = lastStep.getBoundingClientRect();
     const rightRect = firstRank.getBoundingClientRect();
     if (!rightRect.width) return;
-    // Right end of the last roman numeral (centered in its step) to the left edge of the rank columns
-    // The track line extends 7% of the track width past the last circle; the numeral is centered on the circle
+
+
     const trackRect = lastStep.parentElement.getBoundingClientRect();
     const lineRight = trackRect.right + trackRect.width * 0.07;
     const numeralRight = stepRect.left + stepRect.width / 2 + 8;
     const contentRight = Math.max(lineRight, numeralRight);
     const x = (contentRight + rightRect.left) / 2 - boxRect.left;
     if (document.body.classList.contains('mobile-layout-active')) {
-        // Mobile: measured live, so the line is always centered between what is actually on screen right now: the end of
-        // the roman numeral line and the progress bar (or the panel edge when the bar is still scrolled out of view).
-        // It is measured again on every scroll / keyboard / resize event (see bindRankDividerLiveUpdates), so nothing
-        // that shifts the card or the table can leave it stale.
+
+
+
+
         const progressEl = document.querySelector('.progress-bar');
         const progressRect = progressEl ? progressEl.getBoundingClientRect() : null;
         const shell = document.querySelector('.benchmark-panels-shell');
@@ -367,7 +367,7 @@ export function updateMainProgressBarAndRanks() {
             const subRank = getRomanSubRank(progressInRank);
             name = `${RANK_NAMES[currentRankIndex]}&nbsp;<span class="rank-sub-rn">${subRank}</span>`;
         }
-        
+
         if (romanContainer) {
             romanContainer.style.visibility = 'visible';
             romanContainer.style.opacity = '1';
@@ -516,7 +516,7 @@ export function updateRowColors() {
     const scoreInputs = document.querySelectorAll('.score-input');
     const stripes = document.querySelectorAll('.bg-stripe');
     const isMobile = isMobileViewport();
-    
+
     scoreInputs.forEach((input, idx) => {
         const wrapper = input.parentElement;
         const overlay = wrapper.querySelector('.score-text-overlay');
@@ -599,7 +599,7 @@ if (typeof document !== "undefined") {
         if (progressBar instanceof HTMLElement) {
             syncMobileRomanNumerals(progressBar);
         }
-        // Other devices settle their layout a little later, so measure again after it has finished moving
+
         requestAnimationFrame(() => requestAnimationFrame(positionRankDivider));
         window.setTimeout(positionRankDivider, 250);
         window.setTimeout(positionRankDivider, 800);
@@ -663,7 +663,7 @@ function renderRowRatingValues() {
     });
 }
 
-// Tints each row's background strip with that row's own rank colour.
+
 function updateRowStrips() {
     document.querySelectorAll('.ranks-bars').forEach((row, rowIndex) => {
         const rankIndex = getRowRankIndex(state.individualRatings[rowIndex] || 0);

@@ -146,9 +146,9 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Friend requests and friendships are the only source of truth for the friend graph. Nothing
-    // ever writes to the other person's user document: an accept is one batch that creates the
-    // friendship and deletes the request, so both people see the same thing at the same time.
+
+
+
     match /friendRequests/{requestId} {
       allow read: if signedIn()
         && (
@@ -178,22 +178,22 @@ service cloud.firestore {
     }
 
     match /friendships/{friendshipId} {
-      // The other member of a two-person friendship, from the point of view of the signed-in user.
+
       function friendshipPartner(users) {
         return users[0] == request.auth.uid ? users[1] : users[0];
       }
 
-      // Friendships made before this design exist only as `friends` arrays on both user documents.
-      // The signed-in user may rebuild the friendship document only if the OTHER person's own
-      // list names them, so nobody can make themselves a friend by editing their own document.
+
+
+
       function legacyMirroredFriends(users) {
         return exists(/databases/$(database)/documents/users/$(friendshipPartner(users)))
 && get(/databases/$(database)/documents/users/$(friendshipPartner(users))).data.get('friends', []).hasAny([request.auth.uid]);
       }
 
-      // Queries must be provably safe from the query alone. `where("users", "array-contains", uid)`
-      // proves the membership test, but not an `is list` type check, which would make the whole
-      // friends query fail with permission-denied even though every document matches.
+
+
+
       allow read: if signedIn()
         && resource.data.users.hasAny([request.auth.uid]);
 
@@ -250,8 +250,8 @@ service cloud.firestore {
         && request.resource.data.teamMode in ["1v1", "2v2"]
         && request.resource.data.maxPlayers in [2, 4];
 
-      // Abandoned lobbies (host closed the tab, crashed, ...) can be swept up by any player once
-      // they are long past expiry. Keep the 12h grace in step with STALE_LOBBY_GRACE_MS in the game.
+
+
       function isStaleLobby(data) {
         return data.expiresAtMs is number
           && request.time.toMillis() > data.expiresAtMs + 43200000;

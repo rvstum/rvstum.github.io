@@ -5,8 +5,8 @@ const DEFAULT_SECONDS = 60;
 const ROUND_COUNTDOWN_SECONDS = 3;
 const ONE_SECOND_CHALLENGE_MS = 1000;
 const TENTH_SECOND_CHALLENGE_MS = 100;
-// Score from the edge of the complete location image (the 19x11-level clue footprint). This is
-// larger than the original 6,500px radius without making moderately distant guesses too generous.
+
+
 const MAX_SCORING_DISTANCE_PIXELS = 9000;
 const MAX_ROUND_SCORE = 5000;
 const DEFAULT_TEAM_HEALTH = 5000;
@@ -17,9 +17,9 @@ const ANSWER_FOCUS_DURATION_MS = 1100;
 const ANSWER_FOCUS_MP_DURATION_MS = 1600;
 const ANSWER_FOCUS_MAX_ZOOM = 14;
 
-// A hidden tab throttles setInterval heavily, which would freeze the shared round timers and
-// leave a backgrounded player stuck on a finished round. Worker timers are not throttled, so
-// the match keeps advancing in step with everyone else while the tab is in the background.
+
+
+
 const backgroundTimers = createBackgroundTimers();
 
 function createBackgroundTimers() {
@@ -608,9 +608,9 @@ function bindDiscordPopup() {
   });
 }
 
-// iOS Safari ignores user-scalable=no, so a stray pinch can zoom the whole page and leave it stuck
-// that way. The map handles its own pinch zoom through pointer events and is unaffected. Taps are left
-// alone on purpose so rapid double-taps on buttons still register.
+
+
+
 function blockPageZoom() {
   const stop = (event) => event.preventDefault();
   ["gesturestart", "gesturechange", "gestureend"].forEach((name) => document.addEventListener(name, stop, { passive: false }));
@@ -678,13 +678,13 @@ function bindMultiplayerGameEvents() {
   });
 }
 
-// The reveal is the first beat of the round-end sequence, so it has to start at the same
-// server-derived instant on every client - otherwise each client's focus animation, damage
-// sequence and next-round countdown all inherit that client's snapshot-arrival jitter.
+
+
+
 function scheduleSynchronizedReveal(revealAtMs) {
   clearSynchronizedReveal();
   const reason = state.multiplayerLockReason || "guess";
-  // Cap the wait so a bad clock-offset estimate can never stall the match.
+
   const delay = Math.min(Math.max(0, revealAtMs - Date.now()), 3000);
   if (delay <= 0) {
     revealRound(reason);
@@ -822,8 +822,8 @@ function positionMobileModeTitle() {
   fitMobileLobbyToViewport();
 }
 
-// The mode picker and singleplayer setup shrink to fit whatever height is left under the title,
-// so nothing is cut off on short phones and nothing overlaps the feedback button.
+
+
 function fitMobileMenuViewToViewport() {
   const views = [dom.soloModePicker, dom.playMenuView].filter(Boolean);
   views.forEach((view) => view.style.removeProperty("--mobile-view-fit"));
@@ -893,8 +893,8 @@ function positionTeamHealthHud() {
     return;
   }
 
-  // Health bars (with their text) sit vertically centered between the score box and the location
-  // box; the timer sits vertically centered between the health bars and the top of the screen.
+
+
   const statsRect = dom.scoreLabel?.closest(".hud-stats")?.getBoundingClientRect();
   const healthHeight = hud.getBoundingClientRect().height;
   if (!statsRect || !healthHeight) return;
@@ -911,8 +911,8 @@ function positionTeamHealthHud() {
   }
 }
 
-// When the location image is limited by height, the map panel narrows to the same width and stays
-// centered under it, so the two boxes always line up.
+
+
 function matchMapWidthToLocationBox() {
   const screen = dom.gameScreen;
   if (!screen || !dom.tileImage) return;
@@ -2712,7 +2712,7 @@ function refreshMapImageLayer() {
   }
 
   mapLayerRefreshSign *= -1;
-  // Force a tiny transform change to recover rare stale image layers after resize/tab restore.
+
   dom.mapImage.style.setProperty("--map-layer-refresh", `${mapLayerRefreshSign * MAP_LAYER_REFRESH_NUDGE_PX}px`);
 
   mapImageRefreshFrame = window.requestAnimationFrame(() => {
@@ -2948,7 +2948,7 @@ function preloadTileImage(tile) {
         try {
           await image.decode();
         } catch (error) {
-          // Loaded images can still reject decode in some browsers; cache is still warm.
+
         }
       }
 
@@ -3536,8 +3536,8 @@ function lockMultiplayerGuess(reason) {
   const roundScore = guess ? scoreForDistance(distance) : 0;
   state.multiplayerLockReason = reason;
   state.roundInputLocked = true;
-  // The shared round clock keeps counting after we lock in; stopping it froze the timer at the
-  // moment of the guess while the others were still playing.
+
+
   if (!(state.multiplayerSession.competitive || state.multiplayerRoundStartedAtMs > 0)) clearTimer();
   dom.guessButton.disabled = true;
   dom.guessButton.textContent = "Locked in";
@@ -3560,7 +3560,7 @@ function revealRound(reason) {
   }
 
   clearRoundFlowTimers();
-  // A spectated camera stays on screen so the reveal can fly it to the answer (see focusMapOnAnswer).
+
   spectatorRevealActive = spectatorAnimations.size > 0 && Boolean(dom.spectatorGrid?.children.length);
   if (!spectatorRevealActive) clearSpectatorViews();
   setClueBlackout(false);
@@ -3602,8 +3602,8 @@ function revealRound(reason) {
     && !state.multiplayerSession.matchOver
     && (state.multiplayerSession.competitive || state.roundIndex + 1 < getTotalRounds())
   );
-  // Between multiplayer rounds the disabled "Locked in" button stays put through the reveal; the
-  // next round's setup swaps it back to "Place a pin".
+
+
   if (hasAnotherMultiplayerRound) {
     dom.guessButton.textContent = "Locked in";
     show(dom.guessButton);
@@ -3907,7 +3907,7 @@ function setCountdownClueHidden(isHidden) {
   dom.tileImage.classList.toggle("is-countdown-hidden", isHidden);
 }
 
-// Camera used for the answer reveal: zoom plus the map point (0-1) at the centre of the view.
+
 function getMapCamera(width, height) {
   const zoom = clamp(state.mapZoom, 1, MAX_MAP_ZOOM);
   return {
@@ -3925,8 +3925,8 @@ function setMapCamera(camera, width, height) {
   updateMapTransform(width, height);
 }
 
-// The zoom the reveal settles on: close enough to read the answer, but pulled back from an extreme
-// zoom, and wide enough to keep the player's own guess in frame when it is reasonably near.
+
+
 function getAnswerFocusZoom(answerPoint, guessPoint, startZoom) {
   const zoomNeededToCenter = Math.max(
     0.5 / answerPoint.x,
@@ -3943,9 +3943,9 @@ function getAnswerFocusZoom(answerPoint, guessPoint, startZoom) {
   return clamp(Math.max(minZoom, preferredZoom), 1, MAX_MAP_ZOOM);
 }
 
-// Glides the camera from one view to another in two beats: first a pan at the current zoom, then
-// the zoom in or out onto the answer. The zoom only begins once the pan is nearly done, so the two
-// never fight each other. A trip with no real pan spends the whole duration zooming.
+
+
+
 const CAMERA_PAN_END = 0.6;
 const CAMERA_ZOOM_START = 0.5;
 
@@ -3990,8 +3990,8 @@ function focusMapOnAnswer(tile, delayMs = 0, onComplete = null) {
   answerPoint.y = clamp(answerPoint.y, 0.0001, 0.9999);
   const guessPoint = state.pendingGuess ? getVisualMapPoint(state.pendingGuess.x, state.pendingGuess.y) : null;
 
-  // While spectating an opponent, the reveal flies their camera (what is on screen right now) to the
-  // answer instead of cutting back to our own view first; the main map takes over once it lands.
+
+
   const spectatorCard = spectatorRevealActive ? beginSpectatorAnswerReveal(answerPoint) : null;
   const spectatorAnim = spectatorCard ? spectatorAnimations.get(spectatorCard.dataset.playerId || "") : null;
   const start = spectatorAnim ? { ...spectatorAnim.cur } : getMapCamera(width, height);
@@ -4018,7 +4018,7 @@ function focusMapOnAnswer(tile, delayMs = 0, onComplete = null) {
 
     if (isAlreadyFocused) {
       setMapCamera(end, width, height);
-      // Keep multiplayer clients in step: everyone waits the same length whatever their camera did.
+
       if (state.multiplayerSession) {
         state.answerFocusDelayHandle = window.setTimeout(() => {
           state.answerFocusDelayHandle = 0;
@@ -4030,9 +4030,9 @@ function focusMapOnAnswer(tile, delayMs = 0, onComplete = null) {
       return;
     }
 
-    // No animation frames arrive while the tab is hidden, and this animation's completion is
-    // what starts the damage sequence and next-round countdown. Snap straight to the focused
-    // camera so a backgrounded player stays on the same round as everyone else.
+
+
+
     if (document.hidden) {
       finishAnswerFocus(onComplete);
       return;
@@ -4128,9 +4128,9 @@ function startNextRoundCountdown() {
   clearNextRoundCountdown();
   if (!dom.nextRoundCountdown || !dom.nextRoundCountdownValue || !state.multiplayerSession) return;
 
-  // A missed anchor must never become a fresh per-client 5s timer - that would hand every
-  // client its own next-round time and desync every round that follows. Late clients
-  // converge back onto the shared schedule with a short grace instead.
+
+
+
   const anchoredMs = Number(state.multiplayerNextRoundAtMs) || 0;
   const endsAtMs = anchoredMs > 0
     ? Math.max(anchoredMs, Date.now() + 250)
@@ -4306,8 +4306,8 @@ function startMultiplayerRoundClockTimer() {
 
 function applyCompetitiveDeadline(endsAtMs) {
   if (!state.multiplayerSession?.competitive || !Number.isFinite(endsAtMs) || endsAtMs <= 0) return;
-  // The deadline is re-asserted on a tick so a client that missed the original dispatch still
-  // gets it, which means an unchanged value with a live timer must not restart anything.
+
+
   if (state.competitiveDeadlineMs === endsAtMs && state.timerHandle) return;
   state.competitiveDeadlineMs = endsAtMs;
   if (!state.revealed) startCompetitiveDeadlineTimer();
@@ -4432,8 +4432,8 @@ function scoreForDistance(distance) {
   }
 
   const closeness = clamp(1 - distance / MAX_SCORING_DISTANCE_PIXELS, 0, 1);
-  // A pin just outside the clue footprint should be almost perfect, not fall immediately from
-  // 5,000 to 3,200. Reserve 5,000 for the exact 19x11 answer area and decay smoothly beyond it.
+
+
   return Math.min(MAX_ROUND_SCORE - 1, Math.round(closeness * MAX_ROUND_SCORE));
 }
 
@@ -4527,7 +4527,7 @@ function renderSpectatorViews(players, ownMarkerData, teammateMarkers = []) {
     const viewport = card.querySelector(".spectator-viewport");
     const image = viewport.querySelector("img");
     if (image.src !== mapSource) image.src = mapSource;
-    // Network updates only set the target; a frame loop glides the view toward it (see below).
+
     const target = { z: zoom, cx: (0.5 - panX) / zoom, cy: (0.5 - panY) / zoom };
     let anim = spectatorAnimations.get(playerId);
     if (!anim || isNewCard) anim = { cur: { ...target }, target, pt: null, own: null };
@@ -4571,7 +4571,7 @@ function renderSpectatorViews(players, ownMarkerData, teammateMarkers = []) {
       viewport.querySelector(".spectator-own-marker")?.remove();
     }
 
-    // Teammates' guesses stay visible while spectating, like our own.
+
     const mates = new Map();
     teammateMarkers.forEach((mate) => {
       const mateId = String(mate.uid || "");
@@ -4607,8 +4607,8 @@ function renderSpectatorViews(players, ownMarkerData, teammateMarkers = []) {
   dom.mapShell.classList.toggle("is-spectating", players.length > 0);
 }
 
-// Spectating stays smooth even though the other player's view arrives only a few times a second:
-// each frame the shown view eases toward the latest target (zoom in log space, centre linearly).
+
+
 const spectatorAnimations = new Map();
 let spectatorRevealActive = false;
 let spectatorAnimationFrame = 0;
@@ -4675,8 +4675,8 @@ function stepSpectatorAnimation(now) {
   if (moving) spectatorAnimationFrame = window.requestAnimationFrame(stepSpectatorAnimation);
 }
 
-// Freezes the network-driven spectator animation and drops the correct-location marker onto the
-// card so the reveal flight can take over its camera. Returns the card being flown, if any.
+
+
 function beginSpectatorAnswerReveal(answerPoint) {
   const card = Array.from(dom.spectatorGrid?.children || [])[0];
   const anim = card ? spectatorAnimations.get(card.dataset.playerId || "") : null;
@@ -4756,8 +4756,8 @@ function updateTeamHealth(detail = {}) {
   }
 }
 
-// Waits until an absolute wall-clock deadline. A client that is already past it continues
-// immediately, which is what lets a lagging client rejoin the shared schedule.
+
+
 function waitForDamagePhase(targetMs, token) {
   return waitForDamageSequence(Math.max(0, targetMs - Date.now()), token);
 }
@@ -4770,9 +4770,9 @@ function waitForDamageSequence(durationMs, token) {
 
 function animateDamageNumber(fromValue, toValue, durationMs, token) {
   return new Promise((resolve) => {
-    // requestAnimationFrame never fires while the tab is hidden, which would leave the
-    // damage sequence awaiting forever and stall this client on a finished round. Nobody is
-    // watching the tween anyway, so settle on the final value and keep the match moving.
+
+
+
     if (document.hidden) {
       dom.competitiveDamageScore.textContent = formatNumber(toValue);
       resolve(token === state.damageSequenceToken);
@@ -4835,8 +4835,8 @@ function animateDamagedHealth(detail, token) {
       settleDamagedHealth(detail);
       resolve(true);
     };
-    // A hidden tab gets no animation frames, so apply the authoritative health immediately
-    // rather than leaving the sequence (and this client's next round) blocked on a tween.
+
+
     if (document.hidden) {
       settleDamagedHealth(detail);
       resolve(token === state.damageSequenceToken);
@@ -4869,9 +4869,9 @@ async function playCompetitiveDamageSequence(detail, startFollowingRound) {
     ? dom.teamHealthHud.querySelector(".team-health--blue > i")
     : dom.teamHealthHud.querySelector(".team-health--red > i");
 
-  // Every beat is pinned to an absolute, server-derived time rather than chained relative
-  // sleeps, so a hitch on one client makes it catch up to the shared schedule instead of
-  // pushing every later beat back and drifting further out of sync with everyone else.
+
+
+
   const syncStart = Number(detail.damageSequenceStartsAtMs) || Date.now();
   const phaseAt = (offsetMs) => syncStart + offsetMs;
 
@@ -4937,7 +4937,7 @@ function updateMarkerVisualPosition(marker, mapWidth = dom.mapShell.clientWidth,
 
   const visualPoint = getVisualMapPoint(x, y);
   const pan = getRenderedMapPan();
-  // Apply zoom before rendering, avoiding magnified percentage-layout rounding.
+
   const screenX = pan.x + visualPoint.x * mapWidth * state.mapZoom;
   const screenY = pan.y + visualPoint.y * mapHeight * state.mapZoom;
   marker.style.setProperty("--marker-x", `${screenX}px`);
@@ -5508,8 +5508,8 @@ function getMapPointFromClient(clientX, clientY) {
   }
 
   return {
-    // Not clamped to the game's coordinate range: the picture extends past it (cloud border), and
-    // clamping made every click in that band snap back to the edge like an invisible wall.
+
+
     x: (visualPoint.x * state.mapImageWidth + state.mapImageOffsetX) / GRAAL_MAP_WIDTH,
     y: (visualPoint.y * state.mapImageHeight + state.mapImageOffsetY) / GRAAL_MAP_HEIGHT,
   };

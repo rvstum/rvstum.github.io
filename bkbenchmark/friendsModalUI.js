@@ -112,8 +112,8 @@ export function initFriendsModalController(options = {}) {
         await loadFriendsList(options);
     }
 
-    // The lists are live: when the other person accepts, declines or removes us, whichever tab is
-    // open redraws by itself (without the "Loading..." flash) instead of waiting for a reopen.
+
+
     let liveRefreshTimer = 0;
     onFriendGraphChange(() => {
         if (!friendsModal || !friendsModal.classList.contains("show")) return;

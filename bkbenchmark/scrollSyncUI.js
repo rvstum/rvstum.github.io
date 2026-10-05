@@ -86,7 +86,7 @@ export function initScoreInputsScrollSync() {
             w.style.zIndex = "20";
             w.style.transform = "translateY(-50%)";
         });
-        // The per-row ratings ride inside their row too (positioned by benchmark.css).
+
         rowRatingValues.forEach((el, i) => {
             if (rows[i]) rows[i].appendChild(el);
         });
@@ -98,9 +98,9 @@ export function initScoreInputsScrollSync() {
         scoreWrappers.forEach((w, i) => {
             const original = originalScoreWrapperStyles[i];
             if (!original) return;
-            // Desktop position comes from CSS (absolute, left: 360px) plus the builder's inline top/height.
-            // Reset everything mobile mode set instead of trusting captured values, which could themselves be
-            // mobile values (e.g. left: var(--mobile-score-left)) and left the box shifted far to the right.
+
+
+
             const isDesktopParent = original.parent
                 && !(original.parent.classList && original.parent.classList.contains("ranks-bars"));
             const desktopParent = isDesktopParent ? original.parent : benchmarkContainer;
@@ -119,7 +119,7 @@ export function initScoreInputsScrollSync() {
             w.style.alignItems = "";
             w.style.justifyContent = "";
         });
-        // Rows were made position:relative for the mobile score boxes; hand them back to the stylesheet.
+
         scrollEl.querySelectorAll(".ranks-bars").forEach((row) => {
             row.style.position = "";
         });
@@ -446,9 +446,9 @@ export function initScoreInputsScrollSync() {
     syncBothToSharedX(scrollEl.scrollLeft || (ranksScrollEl ? ranksScrollEl.scrollLeft : 0));
     notifyMobileLayoutSettled("scroll-sync-init");
 
-    // The mobile-layout-active class on <body> is toggled by another resize listener that can run AFTER this file's
-    // resize handler. Then this handler still saw "mobile", never moved the score boxes back, and nothing re-ran it
-    // (score boxes stayed in their mobile spot after switching to desktop). Re-run the layout pass whenever the class flips.
+
+
+
     if (typeof MutationObserver === "function" && document.body) {
         let lastLayoutWasMobile = isMobileLayoutMode();
         new MutationObserver(() => {
@@ -510,8 +510,8 @@ export function initScoreInputsScrollSync() {
     const ranksBars = Array.from(document.querySelectorAll(".ranks-bars"));
     const ranksBarsStack = document.getElementById("ranksBarsContainer")
         || document.querySelector(".ranks-bars-stack");
-    // Selection groups: one row per group, so clicking a row outlines that row alone. (Used to pair rows
-    // together - e.g. [0, 1] - which outlined two rows at once for a single click.)
+
+
     const stripeGroups = [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13]];
     let scoreInputFocused = false;
     let scoreBlurResetTimer = 0;
