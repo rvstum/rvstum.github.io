@@ -2126,7 +2126,6 @@
         }
 
         function renderGrid() {
-            if (!gridEl.clientHeight) return;
             pageJumpMenu.hidden = true;
             lastBtn.setAttribute('aria-expanded', 'false');
             positionSearchToolbar();
@@ -2175,7 +2174,7 @@
                 img.className = 'shield-img';
                 img.src = category.dir + encodeURIComponent(s.name);
                 img.alt = s.name;
-                img.loading = 'lazy';
+                img.loading = 'eager';
 
                 img.addEventListener('error', () => {
                     if (currentCat !== cardCategory) return;
@@ -2669,6 +2668,18 @@
             if (next) openViewer(next);
         }
 
+        function bindViewerStepButton(button, delta) {
+            button.addEventListener('pointerup', (event) => {
+                if (event.button !== 0 || button.disabled) return;
+                event.preventDefault();
+                stepViewer(delta);
+            });
+            button.addEventListener('click', (event) => {
+                if (event.detail !== 0 || button.disabled) return;
+                stepViewer(delta);
+            });
+        }
+
         document.addEventListener('pointerup', (e) => {
             if (!shieldHoldReleaseOnBackdrop) return;
             shieldHoldReleaseOnBackdrop = false;
@@ -2734,8 +2745,8 @@
         };
         viewerStage.addEventListener('pointerup', endPointer);
         viewerStage.addEventListener('pointercancel', endPointer);
-        document.getElementById('viewerPrev').addEventListener('click', () => stepViewer(-1));
-        document.getElementById('viewerNext').addEventListener('click', () => stepViewer(1));
+        bindViewerStepButton(viewerPrev, -1);
+        bindViewerStepButton(viewerNext, 1);
         document.addEventListener('keydown', (e) => {
             if (viewer.hidden) return;
             if (e.key === 'Escape') closeViewer();
