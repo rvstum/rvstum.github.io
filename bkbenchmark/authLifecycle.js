@@ -197,7 +197,6 @@ export function initAuthLifecycle(options = {}) {
         if (user) {
             const loginAuthBootstrapSource = AuthManager.getLoginAuthBootstrapSource();
             const shouldHoldLoaderThroughRememberedRestore = isMobileViewport() && loginAuthBootstrapSource === "remembered-session";
-            const shouldHoldLoaderUntilWindowLoad = shouldHoldLoaderThroughRememberedRestore;
             const rememberedId = getRememberedAccountIdForUid(user.uid);
             if (rememberedId) {
                 applyActiveAccountId(rememberedId);
@@ -351,10 +350,8 @@ export function initAuthLifecycle(options = {}) {
             if (typeof syncAuthenticatedBackNavigationGuard === "function") {
                 syncAuthenticatedBackNavigationGuard({ enabled: true });
             }
-            if (shouldHoldLoaderUntilWindowLoad) {
-                await waitForWindowLoad();
-                await waitForNextPaint();
-            }
+            await waitForWindowLoad();
+            await waitForNextPaint();
             if (!shouldHoldLoaderThroughRememberedRestore && AuthManager.isLoginAuthBootstrapPending()) {
                 armNextMobileRestoreLoaderSuppression();
             }

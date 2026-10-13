@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kdassist-v1.15.7';
+const CACHE_NAME = 'kdassist-v1.15.8';
 const urlsToCache = [
   './',
   './index.html',

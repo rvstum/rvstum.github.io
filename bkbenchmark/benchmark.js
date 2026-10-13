@@ -94,7 +94,7 @@ import * as AuthManager from "./authManager.js?v=20260921-bk-title-color-2";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260920-friend-graph";
 import { initFriendsLeaderboardModalController } from "./friendsLeaderboardModalUI.js?v=20260920-friend-graph";
 import { hydrateUserRecord } from "./friendsCoreUI.js?v=20260920-friend-graph";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20261012-mobile-warm-profile-1";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20261012-loader-after-render-2";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
 import { handleProfileLink } from "./routeManager.js?v=20260921-bk-title-color-2";
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260921-bk-title-color-2";
@@ -1871,7 +1871,6 @@ function initBenchmarkApp() {
             ScoreManager.loadScores();
             applyStoredSettings();
             state.scoresHydrated = true;
-            hidePageLoader({ immediate: true, forceReleaseBootHold: true });
             return true;
         },
         hidePageLoader,

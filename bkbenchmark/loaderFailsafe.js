@@ -52,10 +52,10 @@
     });
 
     if (document.readyState === "complete") {
-        setTimeout(releaseLoader, 12000);
+        setTimeout(releaseLoader, 45000);
     } else {
         window.addEventListener("load", function () {
-            setTimeout(releaseLoader, 12000);
+            setTimeout(releaseLoader, 45000);
         });
     }
 
