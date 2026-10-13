@@ -2725,6 +2725,10 @@ body.view-mode:not(.mobile-layout-active) #compareViewDesktopShell {
     position: relative;
 }
 
+.dropdown-item.mobile-leaderboard-item {
+    display: none;
+}
+
 .dropdown-item:hover {
     background-color: var(--config-box-bg-hover);
 }
@@ -6979,6 +6983,10 @@ input:-webkit-autofill:active {
 
 
 @media (max-width: 900px) {
+    .dropdown-item.mobile-leaderboard-item {
+        display: flex;
+    }
+
     html,
     body {
         min-height: 100dvh;

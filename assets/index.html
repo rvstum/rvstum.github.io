@@ -1542,6 +1542,17 @@
         body {
             background: transparent;
         }
+
+        @media (max-width: 820px) {
+            body.viewer-open .grid .card,
+            body.viewer-open .grid .card:hover,
+            body.viewer-open .grid .card.viewing {
+                background-color: #0c2010 !important;
+                border-color: #1c4a2a !important;
+                box-shadow: none !important;
+                outline: none !important;
+            }
+        }
     </style>
 </head>
 <body>

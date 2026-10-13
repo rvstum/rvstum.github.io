@@ -40,7 +40,10 @@ export function initFriendsLeaderboardModalController(options = {}) {
         : null;
 
     const leaderboardModal = getCachedElementById("leaderboardModal");
-    const openButton = getCachedElementById("leaderboardMenuBtn");
+    const openButtons = [
+        getCachedElementById("leaderboardMenuBtn"),
+        getCachedElementById("leaderboardDropdownBtn")
+    ].filter(Boolean);
     const closeButton = getCachedElementById("closeLeaderboardModal");
     const leaderboardUI = createFriendsLeaderboardUI({
         onSelectEntry: async (payload) => {
@@ -90,8 +93,10 @@ export function initFriendsLeaderboardModalController(options = {}) {
         }, 200);
     });
 
-    bindTapOrClick(openButton, () => {
-        openLeaderboardModal();
+    openButtons.forEach((button) => {
+        bindTapOrClick(button, () => {
+            openLeaderboardModal();
+        });
     });
 
     bindTapOrClick(closeButton, () => {
