@@ -505,7 +505,7 @@
 
         body.viewer-open .card.viewing {
             border-color: #00ff00;
-            box-shadow: 0 0 0 1px #00ff00;
+            box-shadow: none;
         }
 
         .viewer[hidden] {
@@ -2156,12 +2156,15 @@
                     : `No ${cat.many} found.`;
                 gridEl.appendChild(empty);
             }
+            let viewingCardMarked = false;
             slice.forEach((s) => {
                 const cardCategory = currentCat;
                 const category = CATEGORIES[cardCategory];
                 const templateConfig = category.template || null;
                 const card = document.createElement('div');
-                card.className = 'card' + (viewerItem && viewerItem.name === s.name ? ' viewing' : '');
+                const isViewingCard = !viewingCardMarked && !!viewerItem && viewerItem.name === s.name;
+                if (isViewingCard) viewingCardMarked = true;
+                card.className = 'card' + (isViewingCard ? ' viewing' : '');
                 card.dataset.assetName = s.name;
                 const art = document.createElement('div');
                 art.className = 'card-art no-template';
@@ -2531,9 +2534,12 @@
         }
 
         function markViewing() {
+            let viewingCardMarked = false;
             gridEl.querySelectorAll('.card').forEach((card) => {
                 const cardName = card.dataset.assetName || card.querySelector('.card-name')?.title || '';
-                card.classList.toggle('viewing', !!viewerItem && cardName === viewerItem.name);
+                const isViewingCard = !viewingCardMarked && !!viewerItem && cardName === viewerItem.name;
+                if (isViewingCard) viewingCardMarked = true;
+                card.classList.toggle('viewing', isViewingCard);
             });
         }
 
