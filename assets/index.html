@@ -2156,16 +2156,15 @@
                     : `No ${cat.many} found.`;
                 gridEl.appendChild(empty);
             }
-            let viewingCardMarked = false;
             slice.forEach((s) => {
                 const cardCategory = currentCat;
                 const category = CATEGORIES[cardCategory];
                 const templateConfig = category.template || null;
                 const card = document.createElement('div');
-                const isViewingCard = !viewingCardMarked && !!viewerItem && viewerItem.name === s.name;
-                if (isViewingCard) viewingCardMarked = true;
+                const isViewingCard = !!viewerItem && viewerItem === s;
                 card.className = 'card' + (isViewingCard ? ' viewing' : '');
                 card.dataset.assetName = s.name;
+                card.assetItem = s;
                 const art = document.createElement('div');
                 art.className = 'card-art no-template';
                 const usesPreview = category.preview && !!templateConfig;
@@ -2534,12 +2533,8 @@
         }
 
         function markViewing() {
-            let viewingCardMarked = false;
             gridEl.querySelectorAll('.card').forEach((card) => {
-                const cardName = card.dataset.assetName || card.querySelector('.card-name')?.title || '';
-                const isViewingCard = !viewingCardMarked && !!viewerItem && cardName === viewerItem.name;
-                if (isViewingCard) viewingCardMarked = true;
-                card.classList.toggle('viewing', isViewingCard);
+                card.classList.toggle('viewing', !!viewerItem && card.assetItem === viewerItem);
             });
         }
 
@@ -2556,7 +2551,8 @@
             const cat = CATEGORIES[viewerCategory];
             const url = cat.dir + encodeURIComponent(item.name);
             const list = visibleShields();
-            const at = list.findIndex((x) => x.name === item.name);
+            let at = list.indexOf(item);
+            if (at < 0) at = list.findIndex((x) => x.name === item.name);
             viewerCount.textContent = `${at + 1} / ${list.length}`;
             viewerPrev.disabled = at <= 0;
             viewerNext.disabled = at < 0 || at >= list.length - 1;
@@ -2669,7 +2665,8 @@
         function stepViewer(delta) {
             if (!viewerItem) return;
             const list = visibleShields();
-            const i = list.findIndex((x) => x.name === viewerItem.name);
+            let i = list.indexOf(viewerItem);
+            if (i < 0) i = list.findIndex((x) => x.name === viewerItem.name);
             const next = list[i + delta];
             if (next) openViewer(next);
         }
