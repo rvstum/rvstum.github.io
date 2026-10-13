@@ -1,8 +1,12 @@
-const CACHE_NAME = 'kdassist-v1.16.4';
+const CACHE_NAME = 'kdassist-v1.16.5';
 const urlsToCache = [
   './',
   './index.html',
   './treasuremaps/',
+  './classicguessr/',
+  './bkbenchmark/',
+  './backgroundcolorpicker/',
+  './assets/',
   './menu/kdassisticon.png',
   './menu/uploadicon.png',
   './menu/uploadpreviewericon.png',
@@ -72,6 +76,20 @@ self.addEventListener('fetch', event => {
   }
 
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  if (event.request.mode === 'navigate') {
+    const cachedPage = caches.match(event.request);
+    const freshPage = fetch(buildNetworkFirstRequest(event.request)).then(response => {
+      if (response && response.status === 200 && response.type === 'basic') {
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+      }
+      return response;
+    });
+    event.waitUntil(freshPage.then(() => undefined).catch(() => undefined));
+    event.respondWith(cachedPage.then(cached => cached || freshPage).catch(() => freshPage));
     return;
   }
 
