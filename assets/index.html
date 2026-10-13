@@ -2161,10 +2161,11 @@
                 const category = CATEGORIES[cardCategory];
                 const templateConfig = category.template || null;
                 const card = document.createElement('div');
-                const isViewingCard = !!viewerItem && viewerItem === s;
+                const cardAssetKey = assetKey(cardCategory, s.name);
+                const isViewingCard = !!viewerAssetKey && viewerAssetKey === cardAssetKey;
                 card.className = 'card' + (isViewingCard ? ' viewing' : '');
                 card.dataset.assetName = s.name;
-                card.assetItem = s;
+                card.dataset.assetKey = cardAssetKey;
                 const art = document.createElement('div');
                 art.className = 'card-art no-template';
                 const usesPreview = category.preview && !!templateConfig;
@@ -2467,12 +2468,17 @@
         const viewerPrev = document.getElementById('viewerPrev');
         const viewerNext = document.getElementById('viewerNext');
         let viewerItem = null;
+        let viewerAssetKey = null;
         let viewerZoom = 1;
         let viewerRelayout = null;
         let viewerLoadToken = 0;
         let shieldHoldReleaseOnBackdrop = false;
         let ignoreHoldBackdropClick = false;
         const zoomResetBtn = document.getElementById('zoomReset');
+
+        function assetKey(categoryKey, assetName) {
+            return JSON.stringify([categoryKey, assetName]);
+        }
 
         function captureViewerFocus() {
             const sheet = viewerStage.querySelector('.viewer-sheet');
@@ -2534,7 +2540,7 @@
 
         function markViewing() {
             gridEl.querySelectorAll('.card').forEach((card) => {
-                card.classList.toggle('viewing', !!viewerItem && card.assetItem === viewerItem);
+                card.classList.toggle('viewing', !!viewerAssetKey && card.dataset.assetKey === viewerAssetKey);
             });
         }
 
@@ -2544,6 +2550,7 @@
             const loadToken = ++viewerLoadToken;
             const viewerCategory = currentCat;
             viewerItem = item;
+            viewerAssetKey = assetKey(viewerCategory, item.name);
             if (!preserveZoom) viewerZoom = 1;
             const viewerTitle = document.getElementById('viewerTitle');
             viewerTitle.textContent = item.name;
@@ -2551,8 +2558,7 @@
             const cat = CATEGORIES[viewerCategory];
             const url = cat.dir + encodeURIComponent(item.name);
             const list = visibleShields();
-            let at = list.indexOf(item);
-            if (at < 0) at = list.findIndex((x) => x.name === item.name);
+            const at = list.findIndex((x) => assetKey(viewerCategory, x.name) === viewerAssetKey);
             viewerCount.textContent = `${at + 1} / ${list.length}`;
             viewerPrev.disabled = at <= 0;
             viewerNext.disabled = at < 0 || at >= list.length - 1;
@@ -2658,6 +2664,7 @@
             gridEl.querySelectorAll('.card.viewing').forEach((c) => c.classList.remove('viewing'));
             viewerStage.innerHTML = '';
             viewerItem = null;
+            viewerAssetKey = null;
             viewerZoom = 1;
             viewerRelayout = null;
         }
@@ -2665,8 +2672,7 @@
         function stepViewer(delta) {
             if (!viewerItem) return;
             const list = visibleShields();
-            let i = list.indexOf(viewerItem);
-            if (i < 0) i = list.findIndex((x) => x.name === viewerItem.name);
+            const i = list.findIndex((x) => assetKey(currentCat, x.name) === viewerAssetKey);
             const next = list[i + delta];
             if (next) openViewer(next);
         }
