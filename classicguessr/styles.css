@@ -52,7 +52,7 @@ body {
   background: #000000;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 360ms ease;
+  transition: none;
 }
 
 .classic-page-transition.is-active {

@@ -1240,12 +1240,7 @@
 
                 event.preventDefault();
                 isNavigating = true;
-                page.classList.remove("is-visible");
-                transitionOverlay.classList.add("is-active");
-
-                window.setTimeout(() => {
-                    window.location.href = link.href;
-                }, getNavigationDelay());
+                window.location.href = link.href;
             });
         });
 

@@ -720,11 +720,7 @@ function navigateWithFade(event) {
   }
 
   event.preventDefault();
-  const destination = event.currentTarget.href;
-  dom.pageTransition?.classList.add("is-active");
-  window.setTimeout(() => {
-    window.location.href = destination;
-  }, PAGE_TRANSITION_DURATION_MS);
+  window.location.href = event.currentTarget.href;
 }
 
 function showModePicker() {

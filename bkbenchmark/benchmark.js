@@ -94,7 +94,7 @@ import * as AuthManager from "./authManager.js?v=20260921-bk-title-color-2";
 import { initFriendsModalController } from "./friendsModalUI.js?v=20260920-friend-graph";
 import { initFriendsLeaderboardModalController } from "./friendsLeaderboardModalUI.js?v=20260920-friend-graph";
 import { hydrateUserRecord } from "./friendsCoreUI.js?v=20260920-friend-graph";
-import { initAuthLifecycle } from "./authLifecycle.js?v=20260921-bk-title-color-2";
+import { initAuthLifecycle } from "./authLifecycle.js?v=20261012-mobile-warm-profile-1";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
 import { handleProfileLink } from "./routeManager.js?v=20260921-bk-title-color-2";
 import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260921-bk-title-color-2";
@@ -111,6 +111,7 @@ import { hidePageLoader as hidePageLoaderUI } from "./pageLoaderUI.js?v=20260403
 
 const PAGE_LOADER_MIN_VISIBLE_MS = 1300;
 const LAST_ACTIVE_AUTH_UID_STORAGE_KEY = "benchmark_last_active_user_uid";
+const WARM_PROFILE_CACHE_UID = readString(LAST_ACTIVE_AUTH_UID_STORAGE_KEY, "");
 const MOBILE_SW_CLEANUP_SESSION_KEY = "__benchmark_mobile_sw_cleanup_done__";
 let settingsUIController = null;
 let friendsModalController = null;
@@ -1787,6 +1788,13 @@ function initOnboarding() {
 function runPostDomReadySetup() {
     UserStatsManager.loadUserStats();
     UserStatsManager.initUserStatsInputs();
+    if (WARM_PROFILE_CACHE_UID) {
+        ScoreManager.loadSavedScores();
+        ScoreManager.loadSavedCaveLinks();
+        ScoreManager.loadScores();
+        applyStoredSettings();
+        state.scoresHydrated = true;
+    }
     if (typeof ProfileUI.setupVerticalBoxClasses === 'function') {
         ProfileUI.setupVerticalBoxClasses();
     }
@@ -1856,6 +1864,16 @@ function initBenchmarkApp() {
     applyStoredStartupLanguage();
     initAuthLifecycle({
         loadUserProfile,
+        onWarmProfileSession: (user) => {
+            if (!user || user.uid !== WARM_PROFILE_CACHE_UID) return false;
+            ScoreManager.loadSavedScores();
+            ScoreManager.loadSavedCaveLinks();
+            ScoreManager.loadScores();
+            applyStoredSettings();
+            state.scoresHydrated = true;
+            hidePageLoader({ immediate: true, forceReleaseBootHold: true });
+            return true;
+        },
         hidePageLoader,
         hidePrivateProfileOverlay,
         syncAuthenticatedBackNavigationGuard,

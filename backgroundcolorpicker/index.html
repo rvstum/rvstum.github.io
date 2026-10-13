@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <script src="/pageZoomGuard.js?v=20261012-fast-tap"></script>
     <script src="/analytics.js?v=20260923-sitewide-1"></script>
+    <link rel="preload" as="image" href="backgroundcolorpickerbackground.png" fetchpriority="high">
     <title>Background Color Picker</title>
     <link rel="icon" type="image/png" href="/icons/bgcolorpickericon.png.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -564,7 +565,7 @@
             opacity: 1;
             pointer-events: none;
             z-index: 2147483647;
-            transition: opacity 420ms ease;
+            transition: none;
         }
 
         html.page-entered .page-transition-overlay {
@@ -573,7 +574,7 @@
 
         body > :not(.page-transition-overlay):not(script) {
             opacity: 0;
-            transition: opacity 420ms ease;
+            transition: none;
         }
 
         html.page-entered body > :not(.page-transition-overlay):not(script) {
@@ -589,7 +590,7 @@
 
 
         html {
-            background-color: #6e6e6e;
+            background-color: #000000;
             background-image: url('backgroundcolorpickerbackground.png');
             background-size: cover;
             background-position: center;
@@ -1106,16 +1107,9 @@
         (() => {
             const root = document.documentElement;
             const overlay = document.querySelector(".page-transition-overlay");
-            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            let leaving = false;
-
             function enter() {
-                leaving = false;
-                overlay.style.display = "block";
-                requestAnimationFrame(() => requestAnimationFrame(() => {
-                    root.classList.add("page-entered");
-                    setTimeout(() => { if (!leaving) overlay.style.display = "none"; }, 500);
-                }));
+                root.classList.add("page-entered");
+                overlay.style.display = "none";
             }
 
             enter();
@@ -1126,11 +1120,7 @@
                 link.addEventListener("click", (event) => {
                     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                     event.preventDefault();
-                    leaving = true;
-                    overlay.style.display = "block";
-                    void overlay.offsetWidth;
-                    root.classList.remove("page-entered");
-                    setTimeout(() => { window.location.href = link.href; }, reducedMotion ? 0 : 420);
+                    window.location.href = link.href;
                 });
             });
         })();

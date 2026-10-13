@@ -102,6 +102,7 @@ function releaseLoginHandoffBootHold() {
 export function initAuthLifecycle(options = {}) {
     const {
         loadUserProfile,
+        onWarmProfileSession = null,
         hidePageLoader,
         hidePrivateProfileOverlay = null,
         syncAuthenticatedBackNavigationGuard = null,
@@ -294,6 +295,13 @@ export function initAuthLifecycle(options = {}) {
                 }
                 hidePageLoader({ forceReleaseBootHold: true });
                 return;
+            }
+            if (typeof onWarmProfileSession === "function") {
+                try {
+                    onWarmProfileSession(user);
+                } catch (warmProfileError) {
+                    console.warn("Could not restore cached benchmark data:", warmProfileError);
+                }
             }
             const verificationModal = getCachedElementById("verificationModal");
             if (verificationModal) {

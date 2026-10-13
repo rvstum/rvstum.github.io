@@ -9,6 +9,7 @@
     <link rel="icon" type="image/png" href="../../icons/baddy.png">
     <script src="../mobileViewportGuard.js?v=20260310-sub-score-input-1"></script>
     <link rel="stylesheet" href="../login.css?v=20260922-auth-title-fit-1">
+    <link rel="preload" as="image" href="../../icons/background1.png" fetchpriority="high">
     <style>
         .page-transition-overlay {
             position: fixed;
@@ -17,7 +18,7 @@
             opacity: 1;
             pointer-events: none;
             z-index: 2147483647;
-            transition: opacity 420ms ease;
+            transition: none;
         }
 
         html.page-entered .page-transition-overlay {
@@ -29,7 +30,7 @@
         .auth-main {
             opacity: 0;
             transform: translateY(10px);
-            transition: opacity 420ms ease, transform 420ms ease;
+            transition: none;
         }
 
         html.page-entered .auth-home-link,
@@ -97,22 +98,12 @@
         (() => {
             const root = document.documentElement;
             const overlay = document.querySelector(".page-transition-overlay");
-            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
             let leaving = false;
 
             function enterPage() {
                 leaving = false;
-                if (overlay) overlay.style.display = "block";
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        root.classList.add("page-entered");
-                        if (overlay) {
-                            setTimeout(() => {
-                                if (!leaving) overlay.style.display = "none";
-                            }, reducedMotion ? 0 : 500);
-                        }
-                    });
-                });
+                root.classList.add("page-entered");
+                if (overlay) overlay.style.display = "none";
             }
 
             enterPage();
@@ -138,14 +129,7 @@
 
                     event.preventDefault();
                     leaving = true;
-                    if (overlay) {
-                        overlay.style.display = "block";
-                        void overlay.offsetWidth;
-                    }
-                    root.classList.remove("page-entered");
-                    setTimeout(() => {
-                        window.location.href = link.href;
-                    }, reducedMotion ? 0 : 440);
+                    window.location.href = link.href;
                 });
             });
         })();

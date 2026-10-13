@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <script src="/pageZoomGuard.js?v=20261012-fast-tap"></script>
     <script src="/analytics.js?v=20260923-sitewide-1"></script>
+    <link rel="preload" as="image" href="assetsbackground.png" fetchpriority="high">
     <title>Assets</title>
     <link rel="icon" type="image/png" sizes="43x43" href="assetsicon-tab.png">
     <style>
@@ -605,6 +606,14 @@
             background: #0c2010;
             border: 1px solid #1c4a2a;
             border-radius: 8px;
+        }
+
+        .viewer-stage > .viewer-loading-image {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            margin: auto;
         }
 
         .viewer-stage::-webkit-scrollbar {
@@ -1498,7 +1507,7 @@
             opacity: 1;
             pointer-events: none;
             z-index: 2147483647;
-            transition: opacity 420ms ease;
+            transition: none;
         }
 
         html.page-entered .page-transition-overlay {
@@ -1507,7 +1516,7 @@
 
         body > :not(.page-transition-overlay):not(script) {
             opacity: 0;
-            transition: opacity 420ms ease;
+            transition: none;
         }
 
         html.page-entered body > :not(.page-transition-overlay):not(script) {
@@ -2301,6 +2310,7 @@
             countEl.textContent = `${pageSize} per page · ${list.length} ${list.length === 1 ? CATEGORIES[currentCat].one : CATEGORIES[currentCat].many}`;
             pageIndicator.textContent = `Page ${page + 1} / ${pages}`;
             lastBtn.textContent = 'PG';
+            if (viewerItem && !viewer.hidden) markViewing();
             lastBtn.title = `Choose page (${pages} total)`;
             lastBtn.setAttribute('aria-label', `Choose page. ${pages} pages total`);
             pageJumpMenu.innerHTML = '';
@@ -2524,7 +2534,8 @@
 
         function markViewing() {
             gridEl.querySelectorAll('.card').forEach((card) => {
-                card.classList.toggle('viewing', !!viewerItem && card.dataset.assetName === viewerItem.name);
+                const cardName = card.dataset.assetName || card.querySelector('.card-name')?.title || '';
+                card.classList.toggle('viewing', !!viewerItem && cardName === viewerItem.name);
             });
         }
 
@@ -2559,6 +2570,7 @@
             viewerStage.scrollTop = 0;
             const img = new Image();
             img.alt = item.name;
+            img.className = 'viewer-loading-image';
             img.onload = () => {
                 if (loadToken !== viewerLoadToken || viewerItem !== item) return;
                 const w = img.naturalWidth;
@@ -2632,9 +2644,11 @@
                 if (loadToken !== viewerLoadToken || viewerItem !== item) return;
                 viewerStage.textContent = 'Could not load this image.';
             };
-            img.src = url;
             viewer.hidden = false;
             document.body.classList.add('viewer-open');
+            markViewing();
+            viewerStage.appendChild(img);
+            img.src = url;
         }
 
         function closeViewer() {
@@ -2888,16 +2902,10 @@
         (() => {
             const root = document.documentElement;
             const overlay = document.querySelector(".page-transition-overlay");
-            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            let leaving = false;
 
             function enter() {
-                leaving = false;
-                overlay.style.display = "block";
-                requestAnimationFrame(() => requestAnimationFrame(() => {
-                    root.classList.add("page-entered");
-                    setTimeout(() => { if (!leaving) overlay.style.display = "none"; }, 500);
-                }));
+                root.classList.add("page-entered");
+                overlay.style.display = "none";
             }
 
             enter();
@@ -2908,11 +2916,7 @@
                 link.addEventListener("click", (event) => {
                     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                     event.preventDefault();
-                    leaving = true;
-                    overlay.style.display = "block";
-                    void overlay.offsetWidth;
-                    root.classList.remove("page-entered");
-                    setTimeout(() => { window.location.href = link.href; }, reducedMotion ? 0 : 420);
+                    window.location.href = link.href;
                 });
             });
         })();
