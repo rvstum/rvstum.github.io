@@ -577,12 +577,20 @@ input:-webkit-autofill:active {
 }
 
 @media (max-width: 640px) {
+    html {
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
     body {
+        height: 100%;
         grid-template-rows: minmax(0, 1fr) auto;
         min-height: 100svh;
         min-height: 100dvh;
         overflow-x: hidden;
-        overflow-y: auto;
+        overflow-y: hidden;
+        overscroll-behavior: none;
     }
 
     .auth-stage {

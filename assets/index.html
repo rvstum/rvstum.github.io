@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <script src="/pageZoomGuard.js?v=20260920-mobile-page-zoom"></script>
+    <script src="/pageZoomGuard.js?v=20261012-fast-tap"></script>
     <script src="/analytics.js?v=20260923-sitewide-1"></script>
     <title>Assets</title>
     <link rel="icon" type="image/png" sizes="43x43" href="assetsicon-tab.png">
@@ -2155,6 +2155,7 @@
                 const templateConfig = category.template || null;
                 const card = document.createElement('div');
                 card.className = 'card' + (viewerItem && viewerItem.name === s.name ? ' viewing' : '');
+                card.dataset.assetName = s.name;
                 const art = document.createElement('div');
                 art.className = 'card-art no-template';
                 const usesPreview = category.preview && !!templateConfig;
@@ -2522,9 +2523,9 @@
         }
 
         function markViewing() {
-            const cards = gridEl.querySelectorAll('.card');
-            const names = [...cards].map((c) => c.querySelector('.card-name'));
-            cards.forEach((c, i) => c.classList.toggle('viewing', !!viewerItem && !!names[i] && names[i].title === viewerItem.name));
+            gridEl.querySelectorAll('.card').forEach((card) => {
+                card.classList.toggle('viewing', !!viewerItem && card.dataset.assetName === viewerItem.name);
+            });
         }
 
         function openViewer(item) {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <script src="/pageZoomGuard.js?v=20260920-mobile-page-zoom"></script>
+  <script src="/pageZoomGuard.js?v=20261012-fast-tap"></script>
   <script src="/analytics.js?v=20260923-sitewide-1"></script>
   <meta name="theme-color" content="#0b1118">
   <title>ClassicGuessr</title>
@@ -85,10 +85,10 @@
               <span>Time allowed for each location</span>
             </div>
             <div class="settings-option-grid" aria-label="Timer">
+              <button class="settings-option" type="button" data-setting-seconds="10">10s</button>
+              <button class="settings-option" type="button" data-setting-seconds="20">20s</button>
               <button class="settings-option" type="button" data-setting-seconds="30">30s</button>
               <button class="settings-option is-active" type="button" data-setting-seconds="60">1m</button>
-              <button class="settings-option" type="button" data-setting-seconds="120">2m</button>
-              <button class="settings-option" type="button" data-setting-seconds="300">5m</button>
               <button class="settings-option" type="button" data-setting-seconds="0">No time limit</button>
             </div>
           </div>
@@ -209,10 +209,10 @@
           <div class="solo-setting-block" id="lobbyTimerSetting">
             <div class="solo-setting-copy"><strong class="lobby-field-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6M12 2v3"></path></svg>Timer</strong><span>Time allowed for each location</span></div>
             <div class="settings-option-grid" aria-label="Multiplayer timer">
+              <button class="settings-option" type="button" data-lobby-seconds="10">10s</button>
+              <button class="settings-option" type="button" data-lobby-seconds="20">20s</button>
               <button class="settings-option" type="button" data-lobby-seconds="30">30s</button>
               <button class="settings-option is-active" type="button" data-lobby-seconds="60">1m</button>
-              <button class="settings-option" type="button" data-lobby-seconds="120">2m</button>
-              <button class="settings-option" type="button" data-lobby-seconds="300">5m</button>
             </div>
           </div>
           <div class="solo-setting-block" id="lobbyRoundsSetting">
@@ -319,10 +319,10 @@
           <div class="solo-setting-block is-locked" id="guestLobbyTimerSetting">
             <div class="solo-setting-copy"><strong class="lobby-field-label"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M9 2h6M12 2v3"></path></svg>Timer <span class="lobby-host-only-label">(Host Only)</span></strong><span>Time allowed for each location</span></div>
             <div class="settings-option-grid" aria-label="Multiplayer timer">
+              <button class="settings-option" type="button" data-guest-lobby-seconds="10" disabled>10s</button>
+              <button class="settings-option" type="button" data-guest-lobby-seconds="20" disabled>20s</button>
               <button class="settings-option" type="button" data-guest-lobby-seconds="30" disabled>30s</button>
               <button class="settings-option is-active" type="button" data-guest-lobby-seconds="60" disabled>1m</button>
-              <button class="settings-option" type="button" data-guest-lobby-seconds="120" disabled>2m</button>
-              <button class="settings-option" type="button" data-guest-lobby-seconds="300" disabled>5m</button>
             </div>
           </div>
           <div class="solo-setting-block is-locked" id="guestLobbyRoundsSetting">
@@ -406,7 +406,7 @@
 
     <section class="screen game-screen hidden" id="gameScreen">
       <header class="hud">
-        <a class="game-brand" id="gameHomeButton" href="/" aria-label="Open the home menu"><img class="classicguessr-title-image" src="./classicguessrtitle.png" alt="" draggable="false"></a>
+        <a class="game-brand" id="gameHomeButton" href="./" aria-label="ClassicGuessr home"><img class="classicguessr-title-image" src="./classicguessrtitle.png" alt="" draggable="false"></a>
         <div class="hud-pill hud-pill--timer"><span>Time</span><strong id="timerLabel">1:00</strong></div>
         <div class="hud-stats">
           <div class="hud-pill hud-pill--round"><span>Round</span><strong id="roundLabel">1 / 5</strong></div>
@@ -484,7 +484,7 @@
     </section>
 
     <section class="screen results-screen hidden" id="resultsScreen">
-      <a class="game-brand results-brand" id="resultsHomeButton" href="/" aria-label="Open the home menu"><img class="classicguessr-title-image" src="./classicguessrtitle.png" alt="" draggable="false"></a>
+      <a class="game-brand results-brand" id="resultsHomeButton" href="./" aria-label="ClassicGuessr home"><img class="classicguessr-title-image" src="./classicguessrtitle.png" alt="" draggable="false"></a>
       <div class="results-panel">
         <h1 id="resultsTitle">Final score: <span id="resultsScoreValue">0</span></h1>
         <div class="results-grid" id="resultsGrid"></div>
