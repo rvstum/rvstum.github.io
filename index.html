@@ -245,6 +245,8 @@
             animation: newShine 2s linear infinite, newPulse 1.6s ease-in-out infinite;
         }
 
+        .new-badge { display: none; }
+
         .site-shortcuts {
             position: fixed;
             right: max(14px, env(safe-area-inset-right));
@@ -585,8 +587,7 @@
                 left: 100%;
                 top: 0;
                 bottom: 0;
-                display: flex;
-                align-items: center;
+                display: none;
                 margin-left: 0.6em;
                 white-space: nowrap;
             }
@@ -1239,7 +1240,11 @@
 
                 event.preventDefault();
                 isNavigating = true;
-                window.location.href = link.href;
+                const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                transitionOverlay.classList.add("is-active");
+                window.setTimeout(() => {
+                    window.location.href = link.href;
+                }, reducedMotion ? 0 : 360);
             });
         });
 

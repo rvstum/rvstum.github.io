@@ -720,7 +720,12 @@ function navigateWithFade(event) {
   }
 
   event.preventDefault();
-  window.location.href = event.currentTarget.href;
+  const destination = event.currentTarget.href;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  dom.pageTransition?.classList.add("is-active");
+  window.setTimeout(() => {
+    window.location.href = destination;
+  }, reducedMotion ? 0 : 420);
 }
 
 function showModePicker() {

@@ -565,7 +565,7 @@
             opacity: 1;
             pointer-events: none;
             z-index: 2147483647;
-            transition: none;
+            transition: opacity 420ms ease;
         }
 
         html.page-entered .page-transition-overlay {
@@ -574,7 +574,7 @@
 
         body > :not(.page-transition-overlay):not(script) {
             opacity: 0;
-            transition: none;
+            transition: opacity 420ms ease;
         }
 
         html.page-entered body > :not(.page-transition-overlay):not(script) {
@@ -1106,9 +1106,15 @@
         (() => {
             const root = document.documentElement;
             const overlay = document.querySelector(".page-transition-overlay");
+            let leaving = false;
             function enter() {
-                root.classList.add("page-entered");
-                overlay.style.display = "none";
+                leaving = false;
+                overlay.style.display = "block";
+                root.classList.remove("page-entered");
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    root.classList.add("page-entered");
+                    setTimeout(() => { if (!leaving) overlay.style.display = "none"; }, 500);
+                }));
             }
 
             enter();
@@ -1117,9 +1123,13 @@
 
             document.querySelectorAll(".home-menu-link").forEach((link) => {
                 link.addEventListener("click", (event) => {
-                    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                    if (leaving || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                     event.preventDefault();
-                    window.location.href = link.href;
+                    leaving = true;
+                    overlay.style.display = "block";
+                    void overlay.offsetWidth;
+                    root.classList.remove("page-entered");
+                    setTimeout(() => { window.location.href = link.href; }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 420);
                 });
             });
         })();

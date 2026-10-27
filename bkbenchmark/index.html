@@ -121,7 +121,7 @@
             opacity: 1;
             pointer-events: none;
             z-index: 2147483647;
-            transition: none;
+            transition: opacity 420ms ease;
         }
 
         html.page-entered .page-transition-overlay {
@@ -133,7 +133,7 @@
         .auth-main {
             opacity: 0;
             transform: translateY(10px);
-            transition: none;
+            transition: opacity 420ms ease, transform 420ms ease;
         }
 
         html.page-entered .auth-home-link,
@@ -229,8 +229,12 @@
 
             function enterPage() {
                 leaving = false;
-                root.classList.add("page-entered");
-                if (overlay) overlay.style.display = "none";
+                if (overlay) overlay.style.display = "block";
+                root.classList.remove("page-entered");
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    root.classList.add("page-entered");
+                    if (overlay) setTimeout(() => { if (!leaving) overlay.style.display = "none"; }, 500);
+                }));
             }
 
             enterPage();
@@ -256,7 +260,12 @@
 
                     event.preventDefault();
                     leaving = true;
-                    window.location.href = link.href;
+                    if (overlay) {
+                        overlay.style.display = "block";
+                        void overlay.offsetWidth;
+                    }
+                    root.classList.remove("page-entered");
+                    setTimeout(() => { window.location.href = link.href; }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 420);
                 });
             });
         })();
