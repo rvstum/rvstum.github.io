@@ -427,7 +427,14 @@ export function initProfileModalController(options = {}) {
         return canvas.toDataURL("image/png");
     }
 
-    async function withReauth(action, onError = null) {
+    async function withReauth(action, onError = null, { reauthFirst = false } = {}) {
+        if (reauthFirst) {
+            pendingProtectedAction = { action, onError };
+            if (reauthPasswordInput) reauthPasswordInput.value = "";
+            clearStatusMessage(reauthMessage);
+            if (reauthModal) reauthModal.classList.add("show");
+            return false;
+        }
         try {
             await action();
             return true;
@@ -448,6 +455,7 @@ export function initProfileModalController(options = {}) {
     }
 
     function closeReauth() {
+        pendingProtectedAction = null;
         if (reauthModal) reauthModal.classList.remove("show");
         if (reauthPasswordInput) reauthPasswordInput.value = "";
         clearStatusMessage(reauthMessage);
@@ -995,16 +1003,7 @@ export function initProfileModalController(options = {}) {
                 if (!user) return;
                 const action = async () => {
                     const accountId = getSlugAccountId();
-                    try {
-                        await UserService.cleanupUserDataForAccountDeletion(user.uid, { accountId });
-                    } catch (cleanupError) {
-                        console.warn("Account cleanup partially skipped before auth delete:", cleanupError);
-                        try {
-                            await UserService.deleteUserDocument(user.uid);
-                        } catch (fallbackCleanupError) {
-                            console.warn("Fallback user document delete failed before auth delete:", fallbackCleanupError);
-                        }
-                    }
+                    await UserService.cleanupUserDataForAccountDeletion(user.uid, { accountId });
                     await deleteUser(user);
                     const targetUrl = typeof getLoginUrl === "function"
                         ? getLoginUrl()
@@ -1014,7 +1013,7 @@ export function initProfileModalController(options = {}) {
                 await withReauth(action, (e) => {
                     console.error("Error deleting account:", e);
                     alert(`${t("profile_delete_error_prefix")}${e && e.message ? e.message : t("err_unknown")}`);
-                });
+                }, { reauthFirst: true });
             };
 
             if (typeof showConfirmModal === "function") {
@@ -1051,7 +1050,19 @@ export function initProfileModalController(options = {}) {
                 pendingProtectedAction = null;
                 closeReauth();
                 if (pending && typeof pending.action === "function") {
-                    await pending.action();
+                    try {
+                        await pending.action();
+                    } catch (actionError) {
+                        if (typeof pending.onError === "function") {
+                            pending.onError(actionError);
+                        } else {
+                            setStatusMessage(
+                                reauthMessage,
+                                actionError && actionError.message ? actionError.message : t("err_unknown"),
+                                "error"
+                            );
+                        }
+                    }
                 }
             } catch (e) {
                 console.error("Reauthentication failed:", e);

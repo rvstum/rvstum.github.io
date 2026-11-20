@@ -7,8 +7,8 @@ import {
     loadRemoveFriendsList,
     loadFriendRequestsTab,
     setActiveTab
-} from "./friendsUI.js?v=20260920-friend-graph";
-import { onFriendGraphChange } from "./friendGraphStore.js?v=20260920-friend-graph";
+} from "./friendsUI.js?v=20261120-login-hydration";
+import { onFriendGraphChange } from "./friendGraphStore.js?v=20261120-login-hydration";
 import { getCachedElementById, setFlexVisible, setHidden } from "./utils/domUtils.js";
 
 let lastFriendsModalTouchTime = 0;

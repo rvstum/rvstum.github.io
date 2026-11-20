@@ -1,4 +1,4 @@
-import { onFriendGraphChange } from "./friendGraphStore.js?v=20260920-friend-graph";
+import { onFriendGraphChange } from "./friendGraphStore.js?v=20261120-login-hydration";
 import { createFriendsLeaderboardUI } from "./friendsLeaderboardUI.js?v=20260920-friend-graph";
 import { getCachedElementById, setFlexVisible, setHidden } from "./utils/domUtils.js";
 

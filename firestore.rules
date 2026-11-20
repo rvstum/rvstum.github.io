@@ -143,7 +143,9 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.accountId is string
         && request.resource.data.accountId == accountId;
-      allow delete: if false;
+      allow delete: if signedIn()
+        && resource.data.uid is string
+        && resource.data.uid == request.auth.uid;
     }
 
 

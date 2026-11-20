@@ -6,6 +6,20 @@ import { writeJson, CAVE_LINKS_STORAGE_KEY } from "./storage.js";
 import { DEFAULT_MOUNT_CONFIG } from "./constants.js";
 import { persistUserAndLocal } from "./persistence.js";
 
+function normalizeYoutubeUrl(value) {
+    const raw = typeof value === "string" ? value.trim() : "";
+    if (!raw) return "";
+    const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    try {
+        const url = new URL(withProtocol);
+        const allowedHosts = new Set(["youtube.com", "www.youtube.com", "youtu.be", "www.youtu.be"]);
+        if (!allowedHosts.has(url.hostname.toLowerCase()) || !url.pathname || url.pathname === "/") return null;
+        return url.toString();
+    } catch (error) {
+        return null;
+    }
+}
+
 export function openImageViewerModal({ imageViewerModal, imageViewerImg, imageViewerTitle }, src, title = "") {
     if (!imageViewerModal || !imageViewerImg) return;
     imageViewerImg.src = src;
@@ -320,15 +334,10 @@ export function setupCavePlayEditors(root = document) {
     floatingSave.addEventListener("click", (e) => {
         e.preventDefault();
         if (!activeWrapper) return;
-        const url = floatingInput.value.trim();
+        const rawUrl = floatingInput.value.trim();
+        const url = normalizeYoutubeUrl(rawUrl);
 
-        const isYoutubeLink = (value) => {
-            if (!value) return true;
-            const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
-            return youtubeRegex.test(value);
-        };
-
-        if (!isYoutubeLink(url)) {
+        if (rawUrl && !url) {
             if (floatingError) {
                 floatingError.textContent = "Please enter a valid YouTube link.";
                 floatingError.classList.add("cave-play-error-visible");
@@ -364,7 +373,7 @@ export function setupCavePlayEditors(root = document) {
     });
 
     const handleWrapperClick = (wrapper) => {
-        const url = (wrapper.dataset.youtube || "").trim();
+        const url = normalizeYoutubeUrl(wrapper.dataset.youtube || "");
         if (!url) return false;
         window.open(url, "_blank", "noopener,noreferrer");
         return true;

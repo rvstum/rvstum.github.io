@@ -246,27 +246,31 @@ export function initLoginUI() {
 
                 const savedLang = readString(LANGUAGE_STORAGE_KEY, "en");
                 const userRef = doc(db, "users", userCredential.user.uid);
-                const userSnap = await getDoc(userRef);
-                const existingData = userSnap.exists() ? (userSnap.data() || {}) : {};
-                const existingProfile = existingData.profile && typeof existingData.profile === "object"
-                    ? existingData.profile
-                    : {};
-                const userPayload = {
-                    settings: { language: savedLang }
-                };
-                if (!userSnap.exists()) {
-                    userPayload.profile = {
-                        views: 0
-                    };
-                    userPayload.isNewUser = true;
-                } else if (!Number.isFinite(Number(existingProfile.views))) {
-                    userPayload.profile = {
-                        views: 0
-                    };
-                }
-                await setDoc(userRef, userPayload, { merge: true }).catch((e) => {
+                // This is a preference sync, not part of authentication. Only
+                // update an existing user document so we don't create a
+                // settings-only record that skips first-time onboarding.
+                let canWritePreference = true;
+                let preferenceSyncSettled = false;
+                const preferenceSync = (async () => {
+                    const userSnap = await getDoc(userRef);
+                    if (!canWritePreference || !userSnap.exists()) return;
+                    await setDoc(userRef, {
+                        settings: { language: savedLang }
+                    }, { merge: true });
+                })().catch((e) => {
                     console.error("Error saving language preference:", e);
+                }).finally(() => {
+                    preferenceSyncSettled = true;
                 });
+                let preferenceTimeout = null;
+                await Promise.race([
+                    preferenceSync,
+                    new Promise((resolve) => {
+                        preferenceTimeout = setTimeout(resolve, 900);
+                    })
+                ]);
+                if (preferenceTimeout) clearTimeout(preferenceTimeout);
+                if (!preferenceSyncSettled) canWritePreference = false;
                 await navigateAfterLogin(userCredential.user, { source: rememberMe ? "remember-me-login" : "session-login" });
             })
             .catch((error) => {

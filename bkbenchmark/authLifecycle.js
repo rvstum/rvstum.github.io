@@ -5,7 +5,7 @@ import { state, getRuntimeAccountId } from "./appState.js";
 import { getCachedElementById, getCachedQuery, setHidden } from "./utils/domUtils.js";
 import { getBenchmarkBasePath, normalizeFriendRequestIds, isMobileViewport } from "./utils.js";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import * as AuthManager from "./authManager.js?v=20260921-bk-title-color-2";
+import * as AuthManager from "./authManager.js?v=20261120-login-hydration";
 import * as RadarUI from "./radarUI.js";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as ViewModeManager from "./viewModeManager.js?v=20260921-exit-text-white-1";
@@ -13,7 +13,7 @@ import { getRememberedAccountIdForUid, applyActiveAccountId } from "./accountId.
 import { tf, currentLanguage } from "./i18n.js";
 import { readString, LANGUAGE_STORAGE_KEY } from "./storage.js?v=20260310-sub-score-input-3";
 import { showPageLoader } from "./pageLoaderUI.js?v=20260403-loader-visible-idempotent-2";
-import { getFriendGraph, onFriendGraphChange, startFriendGraph, stopFriendGraph } from "./friendGraphStore.js?v=20260920-friend-graph";
+import { getFriendGraph, onFriendGraphChange, startFriendGraph, stopFriendGraph } from "./friendGraphStore.js?v=20261120-login-hydration";
 
 const AUTH_REFERRER_BLOCK_HINT = "The request is blocked by Firebase API key restrictions (check authorized domains / API key HTTP referrers).";
 const MOBILE_RESTORE_NEXT_LOADER_SUPPRESS_SESSION_KEY = "__benchmark_mobile_restore_suppress_next_loader__";

@@ -3,10 +3,11 @@ import { getRuntimeAccountId, state } from "./appState.js";
 import { BRONZE_TROPHY_FILTER, FINAL_RANK_INDEX, RANK_NAMES, RANK_TEXT_COLORS, RANK_THRESHOLDS, STELLAR_TROPHY_FILTER, getScoreBaseForConfigKey } from "./constants.js";
 import { t, tf } from "./i18n.js";
 import { calculateRankFromData, calculateTotalRatingForScores } from "./scoring.js";
+import * as FriendsService from "./friendsService.js?v=20261120-login-hydration";
 import * as Slugs from "./slugs.js";
-import { readFriendGraph } from "./friendGraphStore.js?v=20260920-friend-graph";
+import { readFriendGraph } from "./friendGraphStore.js?v=20261120-login-hydration";
 import * as UserService from "./userService.js";
-import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
+import * as ScoreManager from "./scoreManager.js?v=20261120-login-hydration";
 import { getFlagUrl, normalizeFriendRequestIds } from "./utils.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 
@@ -628,12 +629,17 @@ async function hydrateEdgeEntries(edges, { kind, uidOf, snapshotKey, idPrefix })
 export async function loadHydratedFriendEntries(currentUid) {
     const normalizedUid = normalizeUid(currentUid);
     if (!normalizedUid) return [];
-    const graph = await readFriendGraph(normalizedUid);
+    // A live graph waits for all three Firestore listeners (friendships and both
+    // request directions). The friends tab only needs friendships; on mobile
+    // Safari one of the unrelated listeners can delay that combined snapshot.
+    const graph = await FriendsService.listFriendships(normalizedUid)
+        .then((friendships) => ({ friendships }))
+        .catch(async () => readFriendGraph(normalizedUid));
 
 
 
 
-    const edges = graph.friendships.slice();
+    const edges = (Array.isArray(graph.friendships) ? graph.friendships : []).slice();
     try {
         const ownDoc = await safeResolveReadableUserDoc(normalizedUid);
         const known = new Set();

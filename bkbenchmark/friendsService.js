@@ -7,6 +7,7 @@ import {
     getDocs,
     onSnapshot,
     query,
+    runTransaction,
     setDoc,
     where,
     writeBatch
@@ -431,34 +432,29 @@ export async function incrementViewCount(uid, options = {}) {
     }
     try {
         const userRef = doc(db, USERS_COLLECTION, normalizedUid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-            const createPayload = {
-                profile: {
-                    views: 1
-                }
-            };
-            if (normalizedAccountId) {
-                createPayload.accountId = normalizedAccountId;
-            }
-            if (normalizedVisibility) {
-                createPayload.settings = {
-                    visibility: normalizedVisibility
+        const nextViews = await runTransaction(db, async (transaction) => {
+            const userSnap = await transaction.get(userRef);
+            if (!userSnap.exists()) {
+                const createPayload = {
+                    profile: { views: 1 }
                 };
+                if (normalizedAccountId) createPayload.accountId = normalizedAccountId;
+                if (normalizedVisibility) createPayload.settings = { visibility: normalizedVisibility };
+                transaction.set(userRef, createPayload, { merge: true });
+                return 1;
             }
-            await setDoc(userRef, createPayload, { merge: true });
-            setProfileViewCooldown(normalizedUid, viewerCooldownKey);
-            return 1;
-        }
-        const data = userSnap.data() || {};
-        const profile = safeObject(data.profile);
-        const currentViews = Number(profile.views) || 0;
-        const nextViews = currentViews + 1;
-        await setDoc(userRef, {
-            profile: {
-                views: nextViews
-            }
-        }, { merge: true });
+
+            const data = userSnap.data() || {};
+            const profile = safeObject(data.profile);
+            const profileViews = Number(profile.views);
+            const rootViews = Number(data.views);
+            const currentViews = Number.isFinite(profileViews)
+                ? Math.max(0, Math.floor(profileViews))
+                : (Number.isFinite(rootViews) ? Math.max(0, Math.floor(rootViews)) : 0);
+            const next = currentViews + 1;
+            transaction.update(userRef, { "profile.views": next });
+            return next;
+        });
         setProfileViewCooldown(normalizedUid, viewerCooldownKey);
         return nextViews;
     } catch (error) {

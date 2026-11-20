@@ -1,6 +1,6 @@
 import { auth } from "./client.js";
 import { t } from "./i18n.js";
-import * as FriendsService from "./friendsService.js?v=20260920-friend-graph";
+import * as FriendsService from "./friendsService.js?v=20261120-login-hydration";
 import {
     buildActionItem,
     buildSnapshotFromUserData,
@@ -20,7 +20,7 @@ import {
     resolveTargetUidFromIdentifier,
     setLoading,
     showRemoveFriendConfirmModal
-} from "./friendsCoreUI.js?v=20260920-friend-graph";
+} from "./friendsCoreUI.js?v=20261120-login-hydration";
 import { getCachedElementById, setHidden } from "./utils/domUtils.js";
 
 function getFriendsListContent() {

@@ -32,9 +32,9 @@ import {
     SUB_INPUT_MODE_STORAGE_KEY
 } from "./storage.js?v=20260310-sub-score-input-3";
 import * as Slugs from "./slugs.js?v=20260310-public-slug-directory-1";
-import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
-import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
-import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
+import * as UserService from "./userService.js?v=20261120-login-hydration";
+import * as ScoreManager from "./scoreManager.js?v=20261120-login-hydration";
+import * as ThemeUI from "./themeUI.js?v=20261120-login-hydration";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
 import * as TrophyUI from "./trophyUI.js?v=20260309-view-mode-asset-fix-1";
 import * as UserStatsManager from "./userStatsManager.js?v=20260923-stat-fit-2";
@@ -305,7 +305,10 @@ function resolveProfileViewsFromData(data = null) {
     if (Number.isFinite(rootViews)) {
         return Math.max(0, Math.floor(rootViews));
     }
-    return 0;
+    // Some older user documents have no views field at all. Treat that as
+    // missing data instead of replacing the cached count with zero.
+    const cachedViews = Number(readString(CACHED_VIEWS_STORAGE_KEY, ""));
+    return Number.isFinite(cachedViews) ? Math.max(0, Math.floor(cachedViews)) : 0;
 }
 
 export function syncLiveProfileViewCount(uid, data = null) {
@@ -360,7 +363,7 @@ export async function loadUserProfile(user, hooks = {}) {
 
     let data = null;
     try {
-        const docSnap = await UserService.getUserDocument(sessionUid);
+        const docSnap = await UserService.getUserDocumentFromServer(sessionUid);
         if (isStaleAuthSession()) return null;
         if (!docSnap.exists()) {
             const initialLanguage = readString(LANGUAGE_STORAGE_KEY, "en") || "en";
@@ -392,7 +395,7 @@ export async function loadUserProfile(user, hooks = {}) {
             if (Number.isFinite(Number(data.views))) {
                 data.profile.views = Number(data.views) || 0;
             } else {
-                data.profile.views = 0;
+                data.profile.views = resolveProfileViewsFromData(data);
             }
             await UserService.updateUserData(sessionUid, {
                 profile: {

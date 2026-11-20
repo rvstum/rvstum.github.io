@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc, arrayRemove, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc, getDoc, getDocFromServer, collection, query, where, getDocs, deleteDoc, updateDoc, arrayRemove, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "./client.js";
 import { normalizeFriendRequestIds } from "./utils.js";
 import { FINAL_RANK_INDEX, RANK_NAMES } from "./constants.js";
@@ -52,6 +52,23 @@ export async function deleteUserDocument(uid) {
 export async function getUserDocument(uid) {
     if (!uid) return null;
     return await getDoc(doc(db, 'users', uid));
+}
+
+// Prefer the current server record during auth hydration because Firestore's
+// persistent cache can be stale on the first PWA launch. Fall back to that
+// cache when the server cannot be reached so offline sessions can still load.
+export async function getUserDocumentFromServer(uid) {
+    if (!uid) return null;
+    const userRef = doc(db, 'users', uid);
+    try {
+        return await getDocFromServer(userRef);
+    } catch (serverError) {
+        try {
+            return await getDoc(userRef);
+        } catch (_) {
+            throw serverError;
+        }
+    }
 }
 
 export async function resolveUserDocByIdentifier(identifier) {

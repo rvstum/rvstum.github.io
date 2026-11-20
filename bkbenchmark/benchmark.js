@@ -62,9 +62,9 @@ import {
 } from "./configManager.js";
 import * as RankingUI from "./rankingUI.js?v=20260921-rank-divider-7";
 import * as RadarUI from "./radarUI.js";
-import * as FriendsUI from "./friendsUI.js?v=20260920-friend-graph";
+import * as FriendsUI from "./friendsUI.js?v=20261120-login-hydration";
 import { persistUserData } from "./persistence.js";
-import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
+import * as ScoreManager from "./scoreManager.js?v=20261120-login-hydration";
 import * as UserService from "./userService.js?v=20260317-directory-guilds-2";
 import * as ViewModeManager from "./viewModeManager.js?v=20260921-exit-text-white-1";
 import * as ShareManager from "./shareManager.js?v=20260923-stat-commas-1";
@@ -87,21 +87,21 @@ import {
     currentLanguage,
     BENCHMARK_LANGUAGE_LABELS
 } from "./i18n.js";
-import * as ThemeUI from "./themeUI.js?v=20260921-bk-title-color-2";
+import * as ThemeUI from "./themeUI.js?v=20261120-login-hydration";
 import * as UserStatsManager from "./userStatsManager.js?v=20260923-stat-fit-2";
 import * as ProfileUI from "./profileUI.js?v=20260311-profile-original-sync-1";
-import * as AuthManager from "./authManager.js?v=20260921-bk-title-color-2";
-import { initFriendsModalController } from "./friendsModalUI.js?v=20260920-friend-graph";
+import * as AuthManager from "./authManager.js?v=20261120-login-hydration";
+import { initFriendsModalController } from "./friendsModalUI.js?v=20261120-login-hydration";
 import { initFriendsLeaderboardModalController } from "./friendsLeaderboardModalUI.js?v=20261012-mobile-leaderboard-menu-1";
-import { hydrateUserRecord } from "./friendsCoreUI.js?v=20260920-friend-graph";
+import { hydrateUserRecord } from "./friendsCoreUI.js?v=20261120-login-hydration";
 import { initAuthLifecycle } from "./authLifecycle.js?v=20261012-loader-after-render-2";
 import { initOnboardingUI } from "./onboardingUI.js?v=20260311-profile-original-sync-1";
-import { handleProfileLink } from "./routeManager.js?v=20260921-bk-title-color-2";
-import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20260921-bk-title-color-2";
+import { handleProfileLink } from "./routeManager.js?v=20261120-login-hydration";
+import { exitViewMode as runExitViewMode } from "./viewModeExit.js?v=20261120-login-hydration";
 import { initProfileModalController } from "./profileModalUI.js?v=20260403-loader-visible-idempotent-2";
 import { createConfirmModalController } from "./confirmModalUI.js";
 import { initSecondaryModals } from "./secondaryModalsUI.js?v=20260311-profile-original-sync-1";
-import { initSettingsUI } from "./settingsUI.js?v=20260921-bk-title-color-2";
+import { initSettingsUI } from "./settingsUI.js?v=20261120-login-hydration";
 import { setupScoreInputHandlers as setupScoreInputHandlersUI } from "./scoreInputUI.js?v=20260923-desktop-score-link-gap";
 import { setupMountDropdownUI, setupConfigDropdownsUI } from "./configDropdownUI.js";
 import { createLanguageController, enforceBenchmarkSupportedLanguages } from "./languageUI.js?v=20260318-leaderboard-language-sync-1";

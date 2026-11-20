@@ -18,12 +18,12 @@ import {
     calculateSingleRating,
     calculateTotalRatingForScores
 } from "./scoring.js";
-import * as ScoreManager from "./scoreManager.js?v=20260920-friend-graph";
+import * as ScoreManager from "./scoreManager.js?v=20261120-login-hydration";
 import {
     buildSnapshotFromUserData,
     loadHydratedFriendEntries,
     readCurrentUserData
-} from "./friendsCoreUI.js?v=20260920-friend-graph";
+} from "./friendsCoreUI.js?v=20261120-login-hydration";
 import { getFlagUrl } from "./utils.js";
 import { getCachedElementById } from "./utils/domUtils.js";
 
